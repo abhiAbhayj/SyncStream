@@ -5,13 +5,13 @@
 # Proxy API requests to your actual deployed backend server
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR-BACKEND-URL.onrender.com/api/:splat"
+  to = "https://syncstream-api-0vns.onrender.com/api/:splat"
   status = 200
 
 # Proxy Socket.io connections
 [[redirects]]
   from = "/socket.io/*"
-  to = "https://YOUR-BACKEND-URL.onrender.com/socket.io/:splat"
+  to = "https://syncstream-api-0vns.onrender.com/socket.io/:splat"
   status = 200
 
 # Catch-all redirect for React Router (must be at the bottom)
