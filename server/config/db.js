@@ -13,6 +13,7 @@ export async function initDB() {
   const user = process.env.DB_USER || 'root';
   const password = process.env.DB_PASS || '';
   const dbName = process.env.DB_NAME || 'syncstream_db';
+  const sslConfig = process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined;
 
   try {
     // 1. Initial connection without database to bootstrap
@@ -21,6 +22,7 @@ export async function initDB() {
       port,
       user,
       password,
+      ssl: sslConfig,
       connectTimeout: 3000
     });
 
@@ -35,6 +37,7 @@ export async function initDB() {
       user,
       password,
       database: dbName,
+      ssl: sslConfig,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
