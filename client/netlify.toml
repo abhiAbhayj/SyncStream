@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Proxy API requests to your actual deployed backend server
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-BACKEND-URL.onrender.com/api/:splat"
+  status = 200
+
+# Proxy Socket.io connections
+[[redirects]]
+  from = "/socket.io/*"
+  to = "https://YOUR-BACKEND-URL.onrender.com/socket.io/:splat"
+  status = 200
+
+# Catch-all redirect for React Router (must be at the bottom)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
