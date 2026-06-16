@@ -231,10 +231,11 @@ export default function MediaDetail() {
         <div className="relative max-w-7xl mx-auto flex flex-col md:flex-row gap-8 items-center md:items-start z-10 w-full">
           {/* Poster */}
           <div className="w-[200px] sm:w-[240px] md:w-[280px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard">
-            <img
-              src={detail.poster_path || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster'}
+            <img 
+              src={detail.poster_path || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster'} 
               alt={detail.title}
               className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
             />
           </div>
 

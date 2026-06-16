@@ -161,6 +161,7 @@ export default function MangaReader({ chapterId, onChapterComplete }) {
                   alt={`Manga page ${idx + 1}`}
                   className="w-full h-auto select-none object-contain"
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-gray-400 pointer-events-none font-bold">
                   Page {idx + 1}
@@ -187,6 +188,7 @@ export default function MangaReader({ chapterId, onChapterComplete }) {
                 src={pages[currentPage]}
                 alt={`Manga page ${currentPage + 1}`}
                 className="max-h-[85vh] w-auto select-none object-contain rounded"
+                referrerPolicy="no-referrer"
                 onClick={(e) => {
                   // Clicking right half goes next, left half goes prev
                   const rect = e.target.getBoundingClientRect();

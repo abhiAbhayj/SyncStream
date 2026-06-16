@@ -353,6 +353,7 @@ export default function Home() {
                             src={show.poster_path}
                             alt={show.title}
                             className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                            referrerPolicy="no-referrer"
                           />
                           <div className="space-y-1">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{show.title}</h4>
@@ -390,6 +391,7 @@ export default function Home() {
                             src={anime.poster_path}
                             alt={anime.title}
                             className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                            referrerPolicy="no-referrer"
                           />
                           <div className="space-y-1 flex-grow">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{anime.title}</h4>
@@ -426,6 +428,7 @@ export default function Home() {
                           src={manga.poster_path}
                           alt={manga.title}
                           className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                          referrerPolicy="no-referrer"
                         />
                         <div className="space-y-1 flex-grow">
                           <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentPink transition line-clamp-1">{manga.title}</h4>

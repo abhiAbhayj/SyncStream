@@ -70,6 +70,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                   alt={item.title || item.name}
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  referrerPolicy="no-referrer"
                 />
                 
                 {/* Play/Read Overlay */}
