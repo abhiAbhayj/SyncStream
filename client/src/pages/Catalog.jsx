@@ -9,7 +9,10 @@ export default function Catalog() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const MAX_PAGES = 30;
 
   const getCategoryLabel = (cat) => {
     switch (cat) {
@@ -44,23 +47,40 @@ export default function Catalog() {
   };
 
   useEffect(() => {
-    const fetchCatalogData = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get('/api/media/trending');
-        const data = res.data;
-        const catalogItems = data[category]?.[type] || [];
-        setItems(catalogItems);
-      } catch (err) {
-        console.error('Failed to load catalog:', err);
-        setError('Failed to retrieve catalog details. Please check your network connection.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCatalogData();
+    // Reset state when category/type changes
+    setItems([]);
+    setPage(1);
+    fetchCatalogData(1);
   }, [category, type]);
+
+  const fetchCatalogData = async (pageNum) => {
+    try {
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+
+      const res = await axios.get(`/api/media/catalog/${category}/${type}?page=${pageNum}`);
+      
+      if (pageNum === 1) {
+        setItems(res.data.results || []);
+      } else {
+        setItems(prev => [...prev, ...(res.data.results || [])]);
+      }
+    } catch (err) {
+      console.error('Failed to load catalog:', err);
+      setError('Failed to retrieve catalog details. Please check your network connection.');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (page < MAX_PAGES) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchCatalogData(nextPage);
+    }
+  };
 
   const IconComponent = getCategoryIcon(category);
 
@@ -93,12 +113,39 @@ export default function Catalog() {
       </div>
 
       {/* Grid Content */}
-      {loading ? (
+      {loading && items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-accentCyan" />
           <p className="text-gray-400 font-medium">Loading catalog content...</p>
         </div>
-      ) : error ? (
+      ) : (
+        <div className="animate-fade-in space-y-8">
+          <MediaGrid items={items} />
+          
+          {/* Load More Button */}
+          {!loading && !error && items.length > 0 && page < MAX_PAGES && (
+            <div className="flex justify-center pt-8 pb-12">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full font-bold transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin text-accentCyan" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load More'
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
         <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl text-center space-y-4 max-w-md mx-auto">
           <p className="text-red-400 font-semibold">{error}</p>
           <Link 
@@ -108,12 +155,7 @@ export default function Catalog() {
             Go Back Home
           </Link>
         </div>
-      ) : (
-        <div className="animate-fade-in">
-          <MediaGrid items={items} />
-        </div>
       )}
-
     </div>
   );
 }

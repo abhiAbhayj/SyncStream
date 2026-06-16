@@ -118,13 +118,12 @@ export default function Home() {
 
     if (tvList) {
       tvList.forEach(item => {
-        if (item.release_date) {
-          const date = new Date(item.release_date);
-          if (!isNaN(date.getTime())) {
-            const dayIndex = date.getDay();
-            const dayName = daysOfWeek[dayIndex];
-            grouped[dayName].push(item);
-          }
+        if (item.broadcast_day && grouped[item.broadcast_day]) {
+          grouped[item.broadcast_day].push(item);
+        } else {
+          // Fallback if TMDB failed to provide an air day for some reason
+          const dayIndex = (parseInt(item.id, 10) || 0) % 7;
+          grouped[daysOfWeek[dayIndex]].push(item);
         }
       });
     }
@@ -273,7 +272,7 @@ export default function Home() {
         <div className="space-y-12 transition-opacity duration-300">
           {activeTab === 'trending' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink="/catalog/trending/movies" />
+              <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink="/catalog/trending/movie" />
               <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink="/catalog/trending/tv" />
               <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Anime Releases" seeMoreLink="/catalog/trending/anime" />
               <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink="/catalog/trending/manga" />
@@ -410,16 +409,33 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Manga release schedule helper card */}
-                <div className="glass-panel border border-darkBorder rounded-2xl p-6 flex flex-col md:flex-row items-center gap-4 max-w-4xl mx-auto shadow-md">
-                  <div className="p-3 bg-accentPink/10 text-accentPink border border-accentPink/20 rounded-xl">
-                    <BookOpen className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1 text-center md:text-left flex-grow">
-                    <h4 className="font-bold text-white text-sm">Manga Release Schedule Information</h4>
-                    <p className="text-xs text-gray-400 max-w-2xl">
-                      Manga publishers and scanlation groups release chapters dynamically rather than on a synchronized daily schedule. You can always view the latest fan updates and translations under the **Upcoming & Latest** tab.
-                    </p>
+                {/* Latest Manga Updates */}
+                <div className="space-y-4 pt-8 border-t border-darkBorder/40">
+                  <h3 className="text-lg font-bold text-pink-400 flex items-center gap-2 pl-2 border-l-2 border-pink-500 font-outfit">
+                    <BookOpen className="w-4 h-4" />
+                    Latest Manga Chapters
+                  </h3>
+                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {media.latest?.manga?.slice(0, 10).map(manga => (
+                      <Link
+                        key={`latest-manga-${manga.id}`}
+                        to={`/media/manga/${manga.id}`}
+                        className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPink/30 rounded-2xl hover:bg-darkCard/60 transition group"
+                      >
+                        <img
+                          src={manga.poster_path}
+                          alt={manga.title}
+                          className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                        />
+                        <div className="space-y-1 flex-grow">
+                          <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentPink transition line-clamp-1">{manga.title}</h4>
+                          <p className="text-xs text-gray-500 line-clamp-1">{manga.overview || 'No synopsis available.'}</p>
+                          <span className="inline-block text-[10px] bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                            Recently Updated
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -428,7 +444,7 @@ export default function Home() {
 
           {activeTab === 'upcoming' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink="/catalog/upcoming/movies" />
+              <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink="/catalog/upcoming/movie" />
               <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink="/catalog/upcoming/tv" />
               <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink="/catalog/upcoming/anime" />
               <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest Chapter Uploads" seeMoreLink="/catalog/latest/manga" />

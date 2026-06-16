@@ -55,15 +55,16 @@ export default function MediaGrid({ items, title, seeMoreLink }) {
           const rating = item.vote_average ? parseFloat(item.vote_average).toFixed(1) : null;
           const mediaLabel = getMediaTypeLabel(item.media_type);
           const badgeStyle = getBadgeColor(item.media_type);
+          const targetId = item.external_media_id || item.id;
 
           return (
             <Link
-              to={`/media/${item.media_type}/${item.id}`}
-              key={`${item.media_type}-${item.id}-${index}`}
-              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-[380px]"
+              to={`/media/${item.media_type}/${targetId}`}
+              key={`${item.media_type}-${targetId}-${index}`}
+              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-full"
             >
               {/* Image Section */}
-              <div className="relative w-full h-[250px] overflow-hidden bg-darkBg">
+              <div className="relative w-full aspect-[2/3] overflow-hidden bg-darkBg">
                 <img
                   src={item.poster_path || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster'}
                   alt={item.title || item.name}

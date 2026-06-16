@@ -17,7 +17,10 @@ export default function Search() {
   const [country, setCountry] = useState(initialCountry);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const MAX_PAGES = 30;
 
   useEffect(() => {
     // If any filter or query exists on load, search immediately
@@ -31,23 +34,45 @@ export default function Search() {
     if (mediaType === 'movie' || mediaType === 'tv') {
       const mapping = {
         action: mediaType === 'tv' ? '10759' : '28',
-        comedy: '35',
-        drama: '18',
-        scifi: mediaType === 'tv' ? '10765' : '878',
-        romance: '10749',
-        horror: '27',
+        adventure: mediaType === 'tv' ? '10759' : '12',
         animation: '16',
-        mystery: '9648'
+        comedy: '35',
+        crime: '80',
+        documentary: '99',
+        drama: '18',
+        family: '10751',
+        fantasy: mediaType === 'tv' ? '10765' : '14',
+        history: '36',
+        horror: mediaType === 'tv' ? '18' : '27',
+        music: '10402',
+        mystery: '9648',
+        romance: '10749',
+        scifi: mediaType === 'tv' ? '10765' : '878',
+        thriller: mediaType === 'tv' ? '10768' : '53',
+        war: mediaType === 'tv' ? '10768' : '10752',
+        western: '37'
       };
       return mapping[genreKey] || '';
     }
     if (mediaType === 'anime') {
       const mapping = {
         action: '1',
+        adventure: '2',
+        avant_garde: '5',
+        boys_love: '28',
         comedy: '4',
+        drama: '8',
         fantasy: '10',
+        girls_love: '26',
+        gourmet: '47',
+        horror: '14',
+        mystery: '7',
         romance: '22',
-        scifi: '24'
+        scifi: '24',
+        slice_of_life: '36',
+        sports: '30',
+        supernatural: '37',
+        suspense: '41'
       };
       return mapping[genreKey] || '';
     }
@@ -55,18 +80,28 @@ export default function Search() {
       const mapping = {
         action: '391b0425-d6f1-456d-9f4f-d0e124572215',
         comedy: '4d32cc48-9f00-4cca-9b5a-a839f0764984',
+        drama: 'b9af3a63-f058-46de-a9a0-e0c13906197a',
         fantasy: 'cdc58593-abbf-46a0-a47f-99a385c20756',
+        horror: 'cdad7e68-1419-41dd-bdce-27753074a640',
+        isekai: 'ace04997-f6bd-436e-b261-779182193def',
+        mecha: '50880a9f-5440-4731-9961-d1467453d2e1',
+        mystery: 'ee968100-4191-4968-93d3-f82d72be7e46',
         romance: '423e2eae-a7a2-4a8b-ac03-a05fc51b14dd',
-        scifi: '256c8064-a9f8-4a54-a55b-5b3a13486a9a'
+        scifi: '256c8064-a9f8-4a54-a55b-5b3a13486a9a',
+        slice_of_life: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9',
+        sports: '69964a64-2428-4ce5-b687-b05c62441d08',
+        thriller: '07251805-a27e-4d59-b468-1bd29e0843df'
       };
       return mapping[genreKey] || '';
     }
     return '';
   };
 
-  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeCountry = country) => {
-    setLoading(true);
+  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeCountry = country, pageNum = 1) => {
+    if (pageNum === 1) setLoading(true);
+    else setLoadingMore(true);
     setSearched(true);
+    
     try {
       const genreId = getGenreId(activeGenre, searchType);
       const res = await axios.get('/api/media/search', {
@@ -74,49 +109,69 @@ export default function Search() {
           query: searchQuery.trim(), 
           type: searchType, 
           genre: genreId, 
-          country: activeCountry 
+          country: activeCountry,
+          page: pageNum
         }
       });
-      setResults(res.data || []);
+      
+      if (pageNum === 1) {
+        setResults(res.data || []);
+      } else {
+        setResults(prev => [...prev, ...(res.data || [])]);
+      }
     } catch (err) {
       console.error('Search error:', err);
-      setResults([]);
+      if (pageNum === 1) setResults([]);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (page < MAX_PAGES) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      executeSearch(query, type, genre, country, nextPage);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setPage(1);
     setSearchParams({ q: query, type, genre, country });
-    executeSearch(query, type, genre, country);
+    executeSearch(query, type, genre, country, 1);
   };
 
   const handleTypeChange = (newType) => {
     setType(newType);
     setGenre('');
     setCountry('');
+    setPage(1);
     setSearchParams({ q: query, type: newType });
-    executeSearch(query, newType, '', '');
+    executeSearch(query, newType, '', '', 1);
   };
 
   const handleGenreChange = (newGenre) => {
     setGenre(newGenre);
+    setPage(1);
     setSearchParams({ q: query, type, genre: newGenre, country });
-    executeSearch(query, type, newGenre, country);
+    executeSearch(query, type, newGenre, country, 1);
   };
 
   const handleCountryChange = (newCountry) => {
     setCountry(newCountry);
+    setPage(1);
     setSearchParams({ q: query, type, genre, country: newCountry });
-    executeSearch(query, type, genre, newCountry);
+    executeSearch(query, type, genre, newCountry, 1);
   };
 
   const handleResetFilters = () => {
     setGenre('');
     setCountry('');
+    setPage(1);
     setSearchParams({ q: query, type });
-    executeSearch(query, type, '', '');
+    executeSearch(query, type, '', '', 1);
   };
 
   const filterTabs = [
@@ -196,20 +251,57 @@ export default function Search() {
               {(type === 'movie' || type === 'tv'
                 ? [
                     { key: 'action', label: 'Action' },
+                    { key: 'adventure', label: 'Adventure' },
+                    { key: 'animation', label: 'Animation' },
+                    { key: 'comedy', label: 'Comedy' },
+                    { key: 'crime', label: 'Crime' },
+                    { key: 'documentary', label: 'Documentary' },
+                    { key: 'drama', label: 'Drama' },
+                    { key: 'family', label: 'Family' },
+                    { key: 'fantasy', label: 'Fantasy' },
+                    { key: 'history', label: 'History' },
+                    { key: 'horror', label: 'Horror' },
+                    { key: 'music', label: 'Music' },
+                    { key: 'mystery', label: 'Mystery' },
+                    { key: 'romance', label: 'Romance' },
+                    { key: 'scifi', label: 'Sci-Fi' },
+                    { key: 'thriller', label: 'Thriller' },
+                    { key: 'war', label: 'War' },
+                    { key: 'western', label: 'Western' }
+                  ]
+                : type === 'anime' ? [
+                    { key: 'action', label: 'Action' },
+                    { key: 'adventure', label: 'Adventure' },
+                    { key: 'avant_garde', label: 'Avant Garde' },
+                    { key: 'boys_love', label: 'Boys Love' },
                     { key: 'comedy', label: 'Comedy' },
                     { key: 'drama', label: 'Drama' },
-                    { key: 'scifi', label: 'Sci-Fi' },
-                    { key: 'romance', label: 'Romance' },
+                    { key: 'fantasy', label: 'Fantasy' },
+                    { key: 'girls_love', label: 'Girls Love' },
+                    { key: 'gourmet', label: 'Gourmet' },
                     { key: 'horror', label: 'Horror' },
-                    { key: 'animation', label: 'Animation' },
-                    { key: 'mystery', label: 'Mystery' }
+                    { key: 'mystery', label: 'Mystery' },
+                    { key: 'romance', label: 'Romance' },
+                    { key: 'scifi', label: 'Sci-Fi' },
+                    { key: 'slice_of_life', label: 'Slice of Life' },
+                    { key: 'sports', label: 'Sports' },
+                    { key: 'supernatural', label: 'Supernatural' },
+                    { key: 'suspense', label: 'Suspense' }
                   ]
                 : [
                     { key: 'action', label: 'Action' },
                     { key: 'comedy', label: 'Comedy' },
+                    { key: 'drama', label: 'Drama' },
                     { key: 'fantasy', label: 'Fantasy' },
+                    { key: 'horror', label: 'Horror' },
+                    { key: 'isekai', label: 'Isekai' },
+                    { key: 'mecha', label: 'Mecha' },
+                    { key: 'mystery', label: 'Mystery' },
                     { key: 'romance', label: 'Romance' },
-                    { key: 'scifi', label: 'Sci-Fi' }
+                    { key: 'scifi', label: 'Sci-Fi' },
+                    { key: 'slice_of_life', label: 'Slice of Life' },
+                    { key: 'sports', label: 'Sports' },
+                    { key: 'thriller', label: 'Thriller' }
                   ]
               ).map(g => (
                 <option key={g.key} value={g.key} className="bg-darkBg">{g.label}</option>
@@ -233,9 +325,14 @@ export default function Search() {
                   { key: 'JP', label: 'Japan' },
                   { key: 'IN', label: 'India' },
                   { key: 'GB', label: 'United Kingdom' },
-                  { key: 'ES', label: 'Spain' },
+                  { key: 'CN', label: 'China' },
                   { key: 'FR', label: 'France' },
-                  { key: 'CA', label: 'Canada' }
+                  { key: 'ES', label: 'Spain' },
+                  { key: 'CA', label: 'Canada' },
+                  { key: 'DE', label: 'Germany' },
+                  { key: 'IT', label: 'Italy' },
+                  { key: 'AU', label: 'Australia' },
+                  { key: 'TH', label: 'Thailand' }
                 ].map(c => (
                   <option key={c.key} value={c.key} className="bg-darkBg">{c.label}</option>
                 ))}
@@ -293,11 +390,11 @@ export default function Search() {
               if (shortcut.type === 'genre') {
                 setGenre(shortcut.value);
                 setSearchParams({ q: query, type, genre: shortcut.value, country });
-                executeSearch(query, type, shortcut.value, country);
+                executeSearch(query, type, shortcut.value, country, 1);
               } else {
                 setCountry(shortcut.value);
                 setSearchParams({ q: query, type, genre, country: shortcut.value });
-                executeSearch(query, type, genre, shortcut.value);
+                executeSearch(query, type, genre, shortcut.value, 1);
               }
             }}
             className="px-3 py-1 rounded-full text-xs font-bold border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:border-accentCyan/30 hover:bg-accentCyan/5 transition"
@@ -308,13 +405,39 @@ export default function Search() {
       </div>
 
       {/* Results Display */}
-      {loading ? (
+      {loading && results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-accentCyan" />
           <p className="text-gray-400 font-medium">Searching international datasets...</p>
         </div>
-      ) : searched ? (
-        <MediaGrid items={results} title={`Matches for "${query}"`} />
+      ) : searched && results.length > 0 ? (
+        <div className="animate-fade-in space-y-8">
+          <MediaGrid items={results} title={query ? `Matches for "${query}"` : "Discovered Results"} />
+          
+          {/* Load More Button */}
+          {!loading && page < MAX_PAGES && (
+            <div className="flex justify-center pt-4 pb-12">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full font-bold transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin text-accentCyan" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load More'
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : searched && results.length === 0 && !loading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <p className="text-gray-400 font-medium">No matches found. Try adjusting your filters.</p>
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
           <div className="p-4 bg-white/5 border border-white/10 rounded-full text-gray-500">

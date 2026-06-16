@@ -179,8 +179,8 @@ export const getTrending = async (req, res) => {
       try {
         const today = new Date().toISOString().split('T')[0];
         const [trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes] = await Promise.all([
-          axios.get(`${TMDB_BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
@@ -189,10 +189,40 @@ export const getTrending = async (req, res) => {
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         tmdbTv = trendingTvRes.data.results.slice(0, 20).map(mapTv);
-        ongoingTv = ongoingTvRes.data.results.slice(0, 20).map(mapTv);
-        airingTodayTv = airingTodayTvRes.data.results.slice(0, 20).map(mapTv);
         upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingTv = upcomingTvRes.data.results.slice(0, 20).map(mapTv);
+
+        // Enhance ongoing and scheduled TV shows with EXACT broadcast days from TMDB details
+        const tvListToEnrich = [...ongoingTvRes.data.results.slice(0, 20), ...airingTodayTvRes.data.results.slice(0, 20)];
+        const uniqueTvIds = [...new Set(tvListToEnrich.map(t => t.id))];
+        
+        const tvDetailsPromises = uniqueTvIds.map(id => 
+          axios.get(`${TMDB_BASE_URL}/tv/${id}?api_key=${TMDB_API_KEY}`).catch(() => null)
+        );
+        const tvDetailsResponses = await Promise.all(tvDetailsPromises);
+        
+        const tvAirDays = {};
+        tvDetailsResponses.forEach(res => {
+          if (res && res.data) {
+            const ep = res.data.next_episode_to_air || res.data.last_episode_to_air;
+            if (ep && ep.air_date) {
+              const date = new Date(ep.air_date);
+              if (!isNaN(date.getTime())) {
+                const daysOfWeek = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
+                tvAirDays[res.data.id] = daysOfWeek[date.getDay()];
+              }
+            }
+          }
+        });
+
+        const mapTvWithDay = item => {
+          const mapped = mapTv(item);
+          mapped.broadcast_day = tvAirDays[item.id] || null;
+          return mapped;
+        };
+
+        ongoingTv = ongoingTvRes.data.results.slice(0, 20).map(mapTvWithDay);
+        airingTodayTv = airingTodayTvRes.data.results.slice(0, 20).map(mapTvWithDay);
       } catch (err) {
         console.warn('TMDB dashboard fetch failed, falling back to mocks:', err.message);
         tmdbMovies = MOCK_MOVIES.map(mapMovie);
@@ -244,7 +274,7 @@ export const getTrending = async (req, res) => {
 
       await new Promise(resolve => setTimeout(resolve, 400));
 
-      const scheduleAnimeRes = await axios.get('https://api.jikan.moe/v4/schedules?limit=20');
+      const scheduleAnimeRes = await axios.get('https://api.jikan.moe/v4/schedules');
       scheduleAnime = scheduleAnimeRes.data.data.map(mapAnime);
     } catch (err) {
       console.error('Jikan Anime API dashboard query error:', err.message);
@@ -358,6 +388,7 @@ export const getTrending = async (req, res) => {
 
 export const searchMedia = async (req, res) => {
   const { query, type, genre, country } = req.query; // type can be 'movie', 'tv', 'anime', 'manga'
+  const page = parseInt(req.query.page || '1', 10);
 
   try {
     let results = [];
@@ -368,35 +399,54 @@ export const searchMedia = async (req, res) => {
           let url = '';
           const hasQuery = query && query.trim() !== '';
           
-          if (genre || country || !hasQuery) {
-            // Discover Mode (TMDB Discover endpoint)
-            url = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc`;
+          if (!hasQuery) {
+            // Discover Mode (No text query, only filters or default popular)
+            url = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
+            if (genre) url += `&with_genres=${genre}`;
+            if (country) url += `&with_origin_country=${country}`;
+            
+            const searchRes = await axios.get(url);
+            results = searchRes.data.results.map(r => ({
+              id: r.id.toString(),
+              title: r.title || r.name,
+              overview: r.overview,
+              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+              release_date: r.release_date || r.first_air_date,
+              vote_average: r.vote_average,
+              media_type: type
+            }));
+          } else {
+            // Search Mode (Text query takes priority)
+            // Fetch two TMDB pages per requested page to increase local filtering density
+            url = `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}`;
+            const tmdbPage1 = (page * 2) - 1;
+            const tmdbPage2 = page * 2;
+            const [res1, res2] = await Promise.all([
+              axios.get(`${url}&page=${tmdbPage1}`),
+              axios.get(`${url}&page=${tmdbPage2}`).catch(() => ({ data: { results: [] } }))
+            ]);
+            
+            let combinedResults = [...res1.data.results, ...res2.data.results];
+            
+            // Apply strict local filtering for Genre and Country
             if (genre) {
-              url += `&with_genres=${genre}`;
+              const genreIdInt = parseInt(genre, 10);
+              combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
             }
             if (country) {
-              url += `&with_origin_country=${country}`;
+              combinedResults = combinedResults.filter(r => r.origin_country?.includes(country));
             }
-            if (hasQuery) {
-              // TMDB discover doesn't support query directly, but supports with_keywords. 
-              // We'll search by query instead if they enter a query, unless they only want discovered tags.
-              url += `&with_keywords=${encodeURIComponent(query.trim())}`;
-            }
-          } else {
-            // Search Mode
-            url = `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}`;
-          }
 
-          const searchRes = await axios.get(url);
-          results = searchRes.data.results.map(r => ({
-            id: r.id.toString(),
-            title: r.title || r.name,
-            overview: r.overview,
-            poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
-            release_date: r.release_date || r.first_air_date,
-            vote_average: r.vote_average,
-            media_type: type
-          }));
+            results = combinedResults.slice(0, 20).map(r => ({
+              id: r.id.toString(),
+              title: r.title || r.name,
+              overview: r.overview,
+              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+              release_date: r.release_date || r.first_air_date,
+              vote_average: r.vote_average,
+              media_type: type
+            }));
+          }
         } catch (err) {
           console.warn('TMDB search/discover error, using mock fallback:', err.message);
           const mockSource = type === 'movie' ? MOCK_MOVIES : MOCK_TV;
@@ -419,10 +469,15 @@ export const searchMedia = async (req, res) => {
         if (query && query.trim() !== '') params.push(`q=${encodeURIComponent(query.trim())}`);
         if (genre) params.push(`genres=${genre}`);
         
+        // Ensure anime search results prioritize modern/popular titles
+        params.push('order_by=popularity');
+        params.push('sort=asc');
+        params.push(`page=${page}`);
+        
         if (params.length > 0) {
           endpoint += `?${params.join('&')}&limit=20`;
         } else {
-          endpoint += `?limit=20`;
+          endpoint += `?limit=20&page=${page}`;
         }
 
         const animeRes = await axios.get(endpoint);
@@ -440,7 +495,9 @@ export const searchMedia = async (req, res) => {
       }
     } else if (type === 'manga') {
       try {
-        let endpoint = `https://api.mangadex.org/manga?limit=20&includes[]=cover_art`;
+        const limit = 20;
+        const offset = (page - 1) * limit;
+        let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art`;
         if (query && query.trim() !== '') endpoint += `&title=${encodeURIComponent(query.trim())}`;
         if (genre) endpoint += `&includedTags[]=${genre}`;
         
@@ -795,5 +852,95 @@ export const getAnimeEpisodes = async (req, res) => {
     console.error('[Media Controller Anime Episodes Error]:', error.message);
     // Return empty list so client falls back to generating list from main details
     res.json([]);
+  }
+};
+
+// 7. Get Deep Catalog Pagination
+export const getCatalog = async (req, res) => {
+  const { category, type } = req.params;
+  const page = parseInt(req.query.page || '1', 10);
+  
+  try {
+    let results = [];
+    const mapMovie = m => ({
+      id: m.id.toString(),
+      title: m.title,
+      overview: m.overview,
+      poster_path: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      release_date: m.release_date || '',
+      vote_average: m.vote_average,
+      media_type: 'movie'
+    });
+
+    const mapTv = t => ({
+      id: t.id.toString(),
+      title: t.name,
+      overview: t.overview,
+      poster_path: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      release_date: t.first_air_date || '',
+      vote_average: t.vote_average,
+      media_type: 'tv'
+    });
+
+    const mapAnime = item => ({
+      id: item.mal_id.toString(),
+      title: item.title_english || item.title,
+      overview: item.synopsis,
+      poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      release_date: item.aired?.string || '',
+      vote_average: item.score,
+      media_type: 'anime',
+      broadcast: item.broadcast?.string || null
+    });
+
+    if ((type === 'movie' || type === 'tv') && isTmdbConfigured()) {
+      let endpoint = '';
+      if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
+      else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
+      else if (category === 'upcoming' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
+      else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/${type}/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
+      else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
+      
+      const tmdbRes = await axios.get(endpoint);
+      results = type === 'movie' ? tmdbRes.data.results.map(mapMovie) : tmdbRes.data.results.map(mapTv);
+    } 
+    else if (type === 'anime') {
+      let endpoint = '';
+      if (category === 'trending') endpoint = `https://api.jikan.moe/v4/top/anime?page=${page}`;
+      else if (category === 'ongoing') endpoint = `https://api.jikan.moe/v4/seasons/now?page=${page}`;
+      else if (category === 'upcoming') endpoint = `https://api.jikan.moe/v4/seasons/upcoming?page=${page}`;
+      else if (category === 'schedule') endpoint = `https://api.jikan.moe/v4/schedules?page=${page}`;
+      else endpoint = `https://api.jikan.moe/v4/anime?order_by=popularity&sort=asc&page=${page}`;
+      
+      const animeRes = await axios.get(endpoint);
+      results = animeRes.data.data.map(mapAnime);
+    } 
+    else if (type === 'manga') {
+      const limit = 20;
+      const offset = (page - 1) * limit;
+      let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art`;
+      if (category === 'trending' || category === 'latest') endpoint += '&order[rating]=desc';
+      
+      const mangaRes = await axios.get(endpoint);
+      results = mangaRes.data.data.map(m => {
+        const coverRel = m.relationships.find(r => r.type === 'cover_art');
+        const coverFile = coverRel?.attributes?.fileName;
+        const posterUrl = coverFile ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Cover';
+        return {
+          id: m.id,
+          title: m.attributes.title.en || Object.values(m.attributes.title)[0],
+          overview: m.attributes.description.en || '',
+          poster_path: posterUrl,
+          release_date: m.attributes.year?.toString() || '',
+          vote_average: null,
+          media_type: 'manga'
+        };
+      });
+    }
+
+    res.json({ results, page, category, type });
+  } catch (err) {
+    console.error(`Catalog fetch error for ${category}/${type}:`, err.message);
+    res.status(500).json({ error: 'Failed to fetch catalog', results: [] });
   }
 };
