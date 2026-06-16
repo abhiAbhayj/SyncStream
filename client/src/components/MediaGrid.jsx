@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Play, BookOpen, ArrowRight, Clock } from 'lucide-react';
 
-export default function MediaGrid({ items, title, seeMoreLink }) {
+export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
   if (!items || items.length === 0) {
     return (
       <div className="py-12 text-center text-gray-500">
@@ -113,10 +113,10 @@ export default function MediaGrid({ items, title, seeMoreLink }) {
                       {item.first_air_date.substring(0, 4)}
                     </p>
                   )}
-                  {item.broadcast && (
+                  {showTimings && (item.broadcast || item.broadcast_day) && (
                     <div className="flex items-center gap-1 text-[11px] text-accentCyan font-bold mt-1">
                       <Clock className="w-3.5 h-3.5 text-accentCyan" />
-                      <span className="line-clamp-1">{item.broadcast}</span>
+                      <span className="line-clamp-1">{item.broadcast || item.broadcast_day}</span>
                     </div>
                   )}
                 </div>

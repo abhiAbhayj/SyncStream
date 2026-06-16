@@ -120,7 +120,7 @@ export default function Catalog() {
         </div>
       ) : (
         <div className="animate-fade-in space-y-8">
-          <MediaGrid items={items} />
+          <MediaGrid items={items} showTimings={category === 'ongoing'} />
           
           {/* Load More Button */}
           {!loading && !error && items.length > 0 && page < MAX_PAGES && (
