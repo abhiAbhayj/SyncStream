@@ -29,73 +29,6 @@ export default function Search() {
     }
   }, []);
 
-  const getGenreId = (genreKey, mediaType) => {
-    if (!genreKey) return '';
-    if (mediaType === 'movie' || mediaType === 'tv') {
-      const mapping = {
-        action: mediaType === 'tv' ? '10759' : '28',
-        adventure: mediaType === 'tv' ? '10759' : '12',
-        animation: '16',
-        comedy: '35',
-        crime: '80',
-        documentary: '99',
-        drama: '18',
-        family: '10751',
-        fantasy: mediaType === 'tv' ? '10765' : '14',
-        history: '36',
-        horror: mediaType === 'tv' ? '18' : '27',
-        music: '10402',
-        mystery: '9648',
-        romance: '10749',
-        scifi: mediaType === 'tv' ? '10765' : '878',
-        thriller: mediaType === 'tv' ? '10768' : '53',
-        war: mediaType === 'tv' ? '10768' : '10752',
-        western: '37'
-      };
-      return mapping[genreKey] || '';
-    }
-    if (mediaType === 'anime') {
-      const mapping = {
-        action: '1',
-        adventure: '2',
-        avant_garde: '5',
-        boys_love: '28',
-        comedy: '4',
-        drama: '8',
-        fantasy: '10',
-        girls_love: '26',
-        gourmet: '47',
-        horror: '14',
-        mystery: '7',
-        romance: '22',
-        scifi: '24',
-        slice_of_life: '36',
-        sports: '30',
-        supernatural: '37',
-        suspense: '41'
-      };
-      return mapping[genreKey] || '';
-    }
-    if (mediaType === 'manga') {
-      const mapping = {
-        action: '391b0425-d6f1-456d-9f4f-d0e124572215',
-        comedy: '4d32cc48-9f00-4cca-9b5a-a839f0764984',
-        drama: 'b9af3a63-f058-46de-a9a0-e0c13906197a',
-        fantasy: 'cdc58593-abbf-46a0-a47f-99a385c20756',
-        horror: 'cdad7e68-1419-41dd-bdce-27753074a640',
-        isekai: 'ace04997-f6bd-436e-b261-779182193def',
-        mecha: '50880a9f-5440-4731-9961-d1467453d2e1',
-        mystery: 'ee968100-4191-4968-93d3-f82d72be7e46',
-        romance: '423e2eae-a7a2-4a8b-ac03-a05fc51b14dd',
-        scifi: '256c8064-a9f8-4a54-a55b-5b3a13486a9a',
-        slice_of_life: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9',
-        sports: '69964a64-2428-4ce5-b687-b05c62441d08',
-        thriller: '07251805-a27e-4d59-b468-1bd29e0843df'
-      };
-      return mapping[genreKey] || '';
-    }
-    return '';
-  };
 
   const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeCountry = country, pageNum = 1) => {
     if (pageNum === 1) setLoading(true);
@@ -103,12 +36,11 @@ export default function Search() {
     setSearched(true);
     
     try {
-      const genreId = getGenreId(activeGenre, searchType);
       const res = await axios.get('/api/media/search', {
         params: { 
           query: searchQuery.trim(), 
           type: searchType, 
-          genre: genreId, 
+          genre: activeGenre, 
           country: activeCountry,
           page: pageNum
         }
