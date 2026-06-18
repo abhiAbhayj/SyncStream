@@ -8,7 +8,8 @@ import {
   getWatchlist,
   addToWatchlist,
   removeFromWatchlist,
-  getCatalog
+  getCatalog,
+  getTvSeason
 } from '../controllers/mediaController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
@@ -19,6 +20,7 @@ router.get('/search', searchMedia);
 router.get('/detail/:type/:id', getMediaDetail);
 router.get('/manga/chapters/:id', getMangaChapters);
 router.get('/manga/pages/:chapterId', getMangaPages);
+router.get('/tv/:id/season/:season_number', getTvSeason);
 
 router.get('/catalog/:category/:type', getCatalog);
 

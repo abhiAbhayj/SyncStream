@@ -33,6 +33,8 @@ export default function MediaDetail() {
   const [watchlist, setWatchlist] = useState([]);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  
+  const [seasonEpisodes, setSeasonEpisodes] = useState([]);
 
   // Playback modes for Video Content
   // 'trailer' | 'solo-html5' | 'solo-embed'
@@ -85,6 +87,20 @@ export default function MediaDetail() {
 
     fetchDetails();
   }, [type, id, user]);
+
+  useEffect(() => {
+    if ((type === 'tv' || type === 'anime') && activeSeason !== null) {
+      const fetchSeason = async () => {
+        try {
+          const res = await axios.get(`/api/media/tv/${id}/season/${activeSeason}`);
+          setSeasonEpisodes(res.data.episodes || []);
+        } catch (err) {
+          console.error('Failed to load season details:', err);
+        }
+      };
+      fetchSeason();
+    }
+  }, [type, id, activeSeason]);
 
   const fetchWatchlistStatus = async () => {
     try {
@@ -545,6 +561,9 @@ export default function MediaDetail() {
                 return Array.from({ length: epCount }, (_, i) => {
                   const epNum = i + 1;
                   const isSelected = activeEpisode === epNum;
+                  const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
+                  const epTitle = epDetail?.name || `Play Episode`;
+                  
                   return (
                     <button
                       key={epNum}
@@ -561,8 +580,8 @@ export default function MediaDetail() {
                       <span className="text-[10px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
                         Episode {epNum}
                       </span>
-                      <span className="text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white">
-                        Play Episode
+                      <span className="text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                        {epTitle}
                       </span>
                     </button>
                   );

@@ -663,6 +663,23 @@ export const getMediaDetail = async (req, res) => {
   }
 };
 
+// 3.5 Fetch TV Season Details for Episode Names
+export const getTvSeason = async (req, res) => {
+  const { id, season_number } = req.params;
+
+  try {
+    if (!isTmdbConfigured()) {
+      return res.json({ episodes: [] });
+    }
+
+    const response = await axios.get(`${TMDB_BASE_URL}/tv/${id}/season/${season_number}?api_key=${TMDB_API_KEY}`);
+    res.json(response.data);
+  } catch (error) {
+    console.error(`[Media Controller TV Season Error]:`, error.message);
+    res.status(500).json({ error: 'Failed to fetch season details.' });
+  }
+};
+
 // 4. MangaDex Chapter Feed lookup
 export const getMangaChapters = async (req, res) => {
   const { id } = req.params;

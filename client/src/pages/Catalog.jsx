@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useNavigationType } from 'react-router-dom';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
 import { ArrowLeft, Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays } from 'lucide-react';
@@ -46,12 +46,33 @@ export default function Catalog() {
     }
   };
 
+  const navType = useNavigationType();
+
   useEffect(() => {
-    // Reset state when category/type changes
+    const cacheKey = `catalog-${category}-${type}`;
+    
+    // If user clicked 'Back' and we have cached data, restore it instantly
+    if (navType === 'POP') {
+      const cachedData = sessionStorage.getItem(cacheKey);
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          setItems(parsed.items);
+          setPage(parsed.page);
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.warn('Cache parse failed');
+        }
+      }
+    }
+    
+    // Otherwise fetch fresh data
+    sessionStorage.removeItem(cacheKey);
     setItems([]);
     setPage(1);
     fetchCatalogData(1);
-  }, [category, type]);
+  }, [category, type, navType]);
 
   const fetchCatalogData = async (pageNum) => {
     try {
@@ -60,11 +81,13 @@ export default function Catalog() {
 
       const res = await axios.get(`/api/media/catalog/${category}/${type}?page=${pageNum}`);
       
-      if (pageNum === 1) {
-        setItems(res.data.results || []);
-      } else {
-        setItems(prev => [...prev, ...(res.data.results || [])]);
-      }
+      setItems(prev => {
+        const newItems = pageNum === 1 ? (res.data.results || []) : [...prev, ...(res.data.results || [])];
+        // Cache the newly loaded items
+        const cacheKey = `catalog-${category}-${type}`;
+        sessionStorage.setItem(cacheKey, JSON.stringify({ items: newItems, page: pageNum }));
+        return newItems;
+      });
     } catch (err) {
       console.error('Failed to load catalog:', err);
       setError('Failed to retrieve catalog details. Please check your network connection.');
