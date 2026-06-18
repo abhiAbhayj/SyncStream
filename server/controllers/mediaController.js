@@ -508,7 +508,14 @@ export const searchMedia = async (req, res) => {
         const offset = (page - 1) * limit;
         let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art`;
         if (query && query.trim() !== '') endpoint += `&title=${encodeURIComponent(query.trim())}`;
-        if (genre) endpoint += `&includedTags[]=${genre}`;
+        
+        if (genre) {
+          if (genre.startsWith('d_')) {
+            endpoint += `&publicationDemographic[]=${genre.replace('d_', '')}`;
+          } else {
+            endpoint += `&includedTags[]=${genre}`;
+          }
+        }
         
         const mangaRes = await axios.get(endpoint);
         results = mangaRes.data.data.map(m => {
