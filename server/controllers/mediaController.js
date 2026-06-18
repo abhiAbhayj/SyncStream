@@ -166,6 +166,10 @@ export const getTrending = async (req, res) => {
     let airingTodayTv = [];
     let upcomingMovies = [];
     let upcomingTv = [];
+    let trendingAnime = [];
+    let ongoingAnime = [];
+    let upcomingAnime = [];
+    let scheduleAnime = [];
 
     const mapMovie = m => ({
       id: m.id.toString(),
@@ -272,6 +276,10 @@ export const getTrending = async (req, res) => {
         airingTodayTv = tmdbTv;
         upcomingMovies = tmdbMovies;
         upcomingTv = tmdbTv;
+        trendingAnime = tmdbTv.map(t => ({...t, media_type: 'anime'}));
+        ongoingAnime = trendingAnime;
+        upcomingAnime = trendingAnime;
+        scheduleAnime = trendingAnime;
       }
     } else {
       tmdbMovies = MOCK_MOVIES.map(mapMovie);
@@ -280,6 +288,10 @@ export const getTrending = async (req, res) => {
       airingTodayTv = tmdbTv;
       upcomingMovies = tmdbMovies;
       upcomingTv = tmdbTv;
+      trendingAnime = tmdbTv.map(t => ({...t, media_type: 'anime'}));
+      ongoingAnime = trendingAnime;
+      upcomingAnime = trendingAnime;
+      scheduleAnime = trendingAnime;
     }
 
     // The old Jikan block has been fully replaced by TMDB!
@@ -367,9 +379,9 @@ export const getTrending = async (req, res) => {
     // Save in-memory cache
     dashboardCache = dashboardData;
     
-    // If Jikan failed and gave us Cowboy Bebop fallback, only cache for 30 seconds to allow retry later
+    // If TMDB failed and gave us the Sintel fallback, only cache for 30 seconds to allow retry later
     // without completely spamming the dead API right now.
-    if (trendingAnime.length === 1 && trendingAnime[0].id === '1') {
+    if (!isTmdbConfigured() || (tmdbMovies.length > 0 && tmdbMovies[0].id === 'sintel')) {
       lastCacheTime = Date.now() - CACHE_DURATION + 30000;
     } else {
       lastCacheTime = Date.now();
