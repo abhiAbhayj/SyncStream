@@ -5,6 +5,7 @@ import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
+import ScrollRestoration from './components/ScrollRestoration';
 
 // Pages
 import Home from './pages/Home';
@@ -37,6 +38,7 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ScrollRestoration />
       <Navbar />
       <main className="flex-grow pb-24 md:pb-0">
         <Routes>
