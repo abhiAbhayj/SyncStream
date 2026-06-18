@@ -432,7 +432,13 @@ export const searchMedia = async (req, res) => {
                 url += `&with_genres=16`;
               }
             } else {
-              if (genre) url += `&with_genres=${genre}`;
+              if (genre) {
+                if (genre.startsWith('k_')) {
+                  url += `&with_keywords=${genre.replace('k_', '')}`;
+                } else {
+                  url += `&with_genres=${genre}`;
+                }
+              }
               if (country) url += `&with_origin_country=${country}`;
             }
             

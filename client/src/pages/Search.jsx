@@ -209,13 +209,16 @@ export default function Search() {
                     { key: '99', label: 'Documentary' },
                     { key: '18', label: 'Drama' },
                     { key: '10751', label: 'Family' },
+                    { key: 'k_315058', label: 'Horror' },
                     { key: '10762', label: 'Kids' },
                     { key: '9648', label: 'Mystery' },
                     { key: '10763', label: 'News' },
                     { key: '10764', label: 'Reality' },
                     { key: '10765', label: 'Sci-Fi & Fantasy' },
                     { key: '10766', label: 'Soap' },
+                    { key: 'k_288394', label: 'Suspense' },
                     { key: '10767', label: 'Talk' },
+                    { key: 'k_316362', label: 'Thriller' },
                     { key: '10768', label: 'War & Politics' },
                     { key: '37', label: 'Western' }
                   ]
