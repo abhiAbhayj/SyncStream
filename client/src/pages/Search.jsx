@@ -248,7 +248,7 @@ export default function Search() {
               className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer font-semibold"
             >
               <option value="">All Genres</option>
-              {type === 'movie'
+              {(type === 'movie'
                 ? [
                     { key: '28', label: 'Action' },
                     { key: '12', label: 'Adventure' },
