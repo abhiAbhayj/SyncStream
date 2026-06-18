@@ -8,7 +8,6 @@ import {
   getWatchlist,
   addToWatchlist,
   removeFromWatchlist,
-  getAnimeEpisodes,
   getCatalog
 } from '../controllers/mediaController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
@@ -20,7 +19,7 @@ router.get('/search', searchMedia);
 router.get('/detail/:type/:id', getMediaDetail);
 router.get('/manga/chapters/:id', getMangaChapters);
 router.get('/manga/pages/:chapterId', getMangaPages);
-router.get('/anime/episodes/:id', getAnimeEpisodes);
+
 router.get('/catalog/:category/:type', getCatalog);
 
 // User Watchlist endpoints

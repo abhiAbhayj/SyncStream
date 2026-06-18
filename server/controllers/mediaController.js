@@ -138,6 +138,7 @@ const getTmdbIdForAnime = async (title, titleEnglish, releaseDate) => {
 let dashboardCache = null;
 let lastCacheTime = 0;
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in-memory cache
+let dashboardPromise = null;
 
 // 1. Get Trending/Dashboard Grid Content
 export const getTrending = async (req, res) => {
@@ -147,7 +148,18 @@ export const getTrending = async (req, res) => {
       return res.json(dashboardCache);
     }
 
-    // A. Fetch Movies & TV (TMDB or Fallback)
+    // Await existing fetch if another user is already generating the dashboard
+    if (dashboardPromise) {
+      try {
+        const data = await dashboardPromise;
+        return res.json(data);
+      } catch (err) {
+        // Fallthrough if the promise failed, we'll try again
+      }
+    }
+
+    dashboardPromise = (async () => {
+      // A. Fetch Movies & TV (TMDB or Fallback)
     let tmdbMovies = [];
     let tmdbTv = [];
     let ongoingTv = [];
@@ -177,23 +189,43 @@ export const getTrending = async (req, res) => {
 
     if (isTmdbConfigured()) {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const [trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes] = await Promise.all([
+        const todayObj = new Date();
+        const today = todayObj.toISOString().split('T')[0];
+        const lastWeek = new Date(todayObj.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const nextWeek = new Date(todayObj.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        const [
+          trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes,
+          trendingAnimeRes, ongoingAnimeRes, upcomingAnimeRes, airingTodayAnimeRes
+        ] = await Promise.all([
           axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`)
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`),
+          // Anime Queries via TMDB (Animation genre 16 + Japanese language)
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`)
         ]);
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         tmdbTv = trendingTvRes.data.results.slice(0, 20).map(mapTv);
         upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingTv = upcomingTvRes.data.results.slice(0, 20).map(mapTv);
+        
+        trendingAnime = trendingAnimeRes.data.results.slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
+        upcomingAnime = upcomingAnimeRes.data.results.slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
 
-        // Enhance ongoing and scheduled TV shows with EXACT broadcast days from TMDB details
-        const tvListToEnrich = [...ongoingTvRes.data.results.slice(0, 20), ...airingTodayTvRes.data.results.slice(0, 20)];
+        // Enhance ongoing and scheduled TV/Anime shows with EXACT broadcast days from TMDB details
+        const tvListToEnrich = [
+          ...ongoingTvRes.data.results.slice(0, 20), 
+          ...airingTodayTvRes.data.results.slice(0, 20),
+          ...ongoingAnimeRes.data.results.slice(0, 20),
+          ...airingTodayAnimeRes.data.results.slice(0, 20)
+        ];
         const uniqueTvIds = [...new Set(tvListToEnrich.map(t => t.id))];
         
         const tvDetailsPromises = uniqueTvIds.map(id => 
@@ -221,8 +253,17 @@ export const getTrending = async (req, res) => {
           return mapped;
         };
 
+        const mapAnimeWithDay = item => {
+          const mapped = mapTv(item);
+          mapped.media_type = 'anime';
+          mapped.broadcast = tvAirDays[item.id] || null; // For UI compatibility
+          return mapped;
+        };
+
         ongoingTv = ongoingTvRes.data.results.slice(0, 20).map(mapTvWithDay);
         airingTodayTv = airingTodayTvRes.data.results.slice(0, 20).map(mapTvWithDay);
+        ongoingAnime = ongoingAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
+        scheduleAnime = airingTodayAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
       } catch (err) {
         console.warn('TMDB dashboard fetch failed, falling back to mocks:', err.message);
         tmdbMovies = MOCK_MOVIES.map(mapMovie);
@@ -241,59 +282,7 @@ export const getTrending = async (req, res) => {
       upcomingTv = tmdbTv;
     }
 
-    // B. Fetch Anime (Jikan API v4) with staggered delays to bypass Jikan 3 req/sec limit
-    let trendingAnime = [];
-    let ongoingAnime = [];
-    let upcomingAnime = [];
-    let scheduleAnime = [];
-
-    const mapAnime = item => ({
-      id: item.mal_id.toString(),
-      title: item.title_english || item.title,
-      overview: item.synopsis,
-      poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
-      release_date: item.aired?.string || '',
-      vote_average: item.score,
-      media_type: 'anime',
-      broadcast: item.broadcast?.string || null
-    });
-
-    try {
-      const trendingAnimeRes = await axios.get('https://api.jikan.moe/v4/top/anime?limit=20');
-      trendingAnime = trendingAnimeRes.data.data.map(mapAnime);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      const ongoingAnimeRes = await axios.get('https://api.jikan.moe/v4/seasons/now?limit=20');
-      ongoingAnime = ongoingAnimeRes.data.data.map(mapAnime);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      const upcomingAnimeRes = await axios.get('https://api.jikan.moe/v4/seasons/upcoming?limit=20');
-      upcomingAnime = upcomingAnimeRes.data.data.map(mapAnime);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      const scheduleAnimeRes = await axios.get('https://api.jikan.moe/v4/schedules');
-      scheduleAnime = scheduleAnimeRes.data.data.map(mapAnime);
-    } catch (err) {
-      console.error('Jikan Anime API dashboard query error:', err.message);
-      const fallback = [
-        {
-          id: '1',
-          title: 'Cowboy Bebop',
-          overview: 'The futuristic misadventures of an easygoing bounty hunter and his partners.',
-          poster_path: 'https://cdn.myanimelist.net/images/anime/4/19644.jpg',
-          release_date: '1998',
-          vote_average: 8.75,
-          media_type: 'anime'
-        }
-      ];
-      trendingAnime = fallback;
-      ongoingAnime = fallback;
-      upcomingAnime = fallback;
-      scheduleAnime = fallback;
-    }
+    // The old Jikan block has been fully replaced by TMDB!
 
     // C. Fetch Manga (MangaDex API)
     let trendingManga = [];
@@ -377,10 +366,23 @@ export const getTrending = async (req, res) => {
 
     // Save in-memory cache
     dashboardCache = dashboardData;
-    lastCacheTime = Date.now();
+    
+    // If Jikan failed and gave us Cowboy Bebop fallback, only cache for 30 seconds to allow retry later
+    // without completely spamming the dead API right now.
+    if (trendingAnime.length === 1 && trendingAnime[0].id === '1') {
+      lastCacheTime = Date.now() - CACHE_DURATION + 30000;
+    } else {
+      lastCacheTime = Date.now();
+    }
 
-    res.json(dashboardData);
+    return dashboardData;
+    })();
+
+    const data = await dashboardPromise;
+    dashboardPromise = null;
+    res.json(data);
   } catch (error) {
+    dashboardPromise = null;
     console.error('[Media Controller Trending Error]:', error);
     res.status(500).json({ error: 'Failed to fetch catalog content.' });
   }
@@ -393,17 +395,24 @@ export const searchMedia = async (req, res) => {
   try {
     let results = [];
 
-    if (type === 'movie' || type === 'tv') {
+    if (type === 'movie' || type === 'tv' || type === 'anime') {
       if (isTmdbConfigured()) {
         try {
           let url = '';
           const hasQuery = query && query.trim() !== '';
+          const tmdbType = type === 'anime' ? 'tv' : type;
           
           if (!hasQuery) {
             // Discover Mode (No text query, only filters or default popular)
-            url = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
-            if (genre) url += `&with_genres=${genre}`;
-            if (country) url += `&with_origin_country=${country}`;
+            url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
+            
+            if (type === 'anime') {
+              url += `&with_original_language=ja`;
+              url += genre ? `&with_genres=16,${genre}` : `&with_genres=16`;
+            } else {
+              if (genre) url += `&with_genres=${genre}`;
+              if (country) url += `&with_origin_country=${country}`;
+            }
             
             const searchRes = await axios.get(url);
             results = searchRes.data.results.map(r => ({
@@ -418,7 +427,7 @@ export const searchMedia = async (req, res) => {
           } else {
             // Search Mode (Text query takes priority)
             // Fetch two TMDB pages per requested page to increase local filtering density
-            url = `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}`;
+            url = `${TMDB_BASE_URL}/search/${tmdbType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}`;
             const tmdbPage1 = (page * 2) - 1;
             const tmdbPage2 = page * 2;
             const [res1, res2] = await Promise.all([
@@ -429,12 +438,21 @@ export const searchMedia = async (req, res) => {
             let combinedResults = [...res1.data.results, ...res2.data.results];
             
             // Apply strict local filtering for Genre and Country
-            if (genre) {
-              const genreIdInt = parseInt(genre, 10);
-              combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
-            }
-            if (country) {
-              combinedResults = combinedResults.filter(r => r.origin_country?.includes(country));
+            if (type === 'anime') {
+              // Ensure it's Japanese Animation
+              combinedResults = combinedResults.filter(r => r.genre_ids?.includes(16) && r.origin_country?.includes('JP'));
+              if (genre) {
+                const genreIdInt = parseInt(genre, 10);
+                combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
+              }
+            } else {
+              if (genre) {
+                const genreIdInt = parseInt(genre, 10);
+                combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
+              }
+              if (country) {
+                combinedResults = combinedResults.filter(r => r.origin_country?.includes(country));
+              }
             }
 
             results = combinedResults.slice(0, 20).map(r => ({
@@ -461,37 +479,6 @@ export const searchMedia = async (req, res) => {
           const titleText = item.title || item.name || '';
           return !query || titleText.toLowerCase().includes(query.toLowerCase());
         });
-      }
-    } else if (type === 'anime') {
-      try {
-        let endpoint = `https://api.jikan.moe/v4/anime`;
-        const params = [];
-        if (query && query.trim() !== '') params.push(`q=${encodeURIComponent(query.trim())}`);
-        if (genre) params.push(`genres=${genre}`);
-        
-        // Ensure anime search results prioritize modern/popular titles
-        params.push('order_by=popularity');
-        params.push('sort=asc');
-        params.push(`page=${page}`);
-        
-        if (params.length > 0) {
-          endpoint += `?${params.join('&')}&limit=20`;
-        } else {
-          endpoint += `?limit=20&page=${page}`;
-        }
-
-        const animeRes = await axios.get(endpoint);
-        results = animeRes.data.data.map(item => ({
-          id: item.mal_id.toString(),
-          title: item.title_english || item.title,
-          overview: item.synopsis,
-          poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url,
-          vote_average: item.score,
-          media_type: 'anime'
-        }));
-      } catch (err) {
-        console.error('Jikan search error:', err.message);
-        results = [];
       }
     } else if (type === 'manga') {
       try {
@@ -545,10 +532,11 @@ export const getMediaDetail = async (req, res) => {
   try {
     let details = null;
 
-    if (type === 'movie' || type === 'tv') {
+    if (type === 'movie' || type === 'tv' || type === 'anime') {
       if (isTmdbConfigured()) {
         try {
-          const detailRes = await axios.get(`${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos,recommendations,credits`);
+          const tmdbType = type === 'anime' ? 'tv' : type;
+          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos,recommendations,credits`);
           const d = detailRes.data;
           
           const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key;
@@ -611,59 +599,6 @@ export const getMediaDetail = async (req, res) => {
             embed_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
           };
         }
-      }
-    } else if (type === 'anime') {
-      try {
-        // Check cache first to prevent Jikan 429 rate limit
-        if (jikanCache.has(id)) {
-          return res.json(jikanCache.get(id));
-        }
-
-        const animeRes = await axios.get(`https://api.jikan.moe/v4/anime/${id}`);
-        
-        let recs = [];
-        try {
-          // Add a tiny delay to separate Jikan requests
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const recommendationsRes = await axios.get(`https://api.jikan.moe/v4/anime/${id}/recommendations`);
-          recs = recommendationsRes.data.data?.slice(0, 5).map(r => ({
-            id: r.entry.mal_id.toString(),
-            title: r.entry.title,
-            poster_path: r.entry.images?.jpg?.image_url,
-            media_type: 'anime'
-          })) || [];
-        } catch (recErr) {
-          console.warn('Jikan recommendations fetch failed (likely rate-limited), proceeding without recommendations:', recErr.message);
-        }
-
-        const item = animeRes.data.data;
-        const tmdbMapping = await getTmdbIdForAnime(item.title, item.title_english, item.aired?.string);
-
-        details = {
-          id: item.mal_id.toString(),
-          tmdb_id: tmdbMapping?.id || null,
-          tmdb_type: tmdbMapping?.type || 'tv',
-          title: item.title_english || item.title,
-          overview: item.synopsis,
-          poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url,
-          backdrop_path: item.images?.jpg?.large_image_url, // fallback
-          release_date: item.aired?.string,
-          vote_average: item.score,
-          episodes_count: item.episodes || null, // Map total episode count
-          youtube_trailer: item.trailer?.youtube_id || null,
-          cast: item.studios?.map(s => ({ name: s.name, character: 'Studio' })) || [],
-          recommendations: recs,
-          media_type: 'anime',
-          // Since Jikan has no free streams, we supply a public open video link as a playable stream
-          video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-          embed_url: item.trailer?.embed_url || null
-        };
-
-        // Cache details response
-        jikanCache.set(id, details);
-      } catch (err) {
-        console.error('Jikan detail error:', err.message);
-        return res.status(500).json({ error: 'Failed to fetch anime details. API might be rate-limited or down.' });
       }
     } else if (type === 'manga') {
       try {
@@ -829,31 +764,6 @@ export const removeFromWatchlist = async (req, res) => {
   }
 };
 
-// 9. Fetch Anime Episodes List from Jikan
-export const getAnimeEpisodes = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const cacheKey = `anime-episodes-${id}`;
-    if (jikanCache.has(cacheKey)) {
-      return res.json(jikanCache.get(cacheKey));
-    }
-
-    const epsRes = await axios.get(`https://api.jikan.moe/v4/anime/${id}/episodes`);
-    const episodes = epsRes.data.data.map(ep => ({
-      id: ep.mal_id,
-      episode: ep.mal_id.toString(),
-      title: ep.title || `Episode ${ep.mal_id}`
-    }));
-
-    jikanCache.set(cacheKey, episodes);
-    res.json(episodes);
-  } catch (error) {
-    console.error('[Media Controller Anime Episodes Error]:', error.message);
-    // Return empty list so client falls back to generating list from main details
-    res.json([]);
-  }
-};
 
 // 7. Get Deep Catalog Pagination
 export const getCatalog = async (req, res) => {
@@ -893,27 +803,36 @@ export const getCatalog = async (req, res) => {
       broadcast: item.broadcast?.string || null
     });
 
-    if ((type === 'movie' || type === 'tv') && isTmdbConfigured()) {
+    if ((type === 'movie' || type === 'tv' || type === 'anime') && isTmdbConfigured()) {
       let endpoint = '';
-      if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
-      else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
-      else if (category === 'upcoming' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
-      else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/${type}/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
-      else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
-      
-      const tmdbRes = await axios.get(endpoint);
-      results = type === 'movie' ? tmdbRes.data.results.map(mapMovie) : tmdbRes.data.results.map(mapTv);
-    } 
-    else if (type === 'anime') {
-      let endpoint = '';
-      if (category === 'trending') endpoint = `https://api.jikan.moe/v4/top/anime?page=${page}`;
-      else if (category === 'ongoing') endpoint = `https://api.jikan.moe/v4/seasons/now?page=${page}`;
-      else if (category === 'upcoming') endpoint = `https://api.jikan.moe/v4/seasons/upcoming?page=${page}`;
-      else if (category === 'schedule') endpoint = `https://api.jikan.moe/v4/schedules?page=${page}`;
-      else endpoint = `https://api.jikan.moe/v4/anime?order_by=popularity&sort=asc&page=${page}`;
-      
-      const animeRes = await axios.get(endpoint);
-      results = animeRes.data.data.map(mapAnime);
+      const todayObj = new Date();
+      const today = todayObj.toISOString().split('T')[0];
+      const lastWeek = new Date(todayObj.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const nextWeek = new Date(todayObj.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      if (type === 'anime') {
+        if (category === 'trending') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc&page=${page}`;
+        else if (category === 'ongoing') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc&page=${page}`;
+        else if (category === 'upcoming') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`;
+        else if (category === 'schedule') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc&page=${page}`;
+        else endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc&page=${page}`;
+        
+        const tmdbRes = await axios.get(endpoint);
+        results = tmdbRes.data.results.map(item => {
+          const mapped = mapTv(item);
+          mapped.media_type = 'anime';
+          return mapped;
+        });
+      } else {
+        if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
+        else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
+        else if (category === 'upcoming' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
+        else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/${type}/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
+        else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
+        
+        const tmdbRes = await axios.get(endpoint);
+        results = type === 'movie' ? tmdbRes.data.results.map(mapMovie) : tmdbRes.data.results.map(mapTv);
+      }
     } 
     else if (type === 'manga') {
       const limit = 20;

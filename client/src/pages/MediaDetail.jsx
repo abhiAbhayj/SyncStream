@@ -49,7 +49,7 @@ export default function MediaDetail() {
         const detailData = detailRes.data;
         setDetail(detailData);
         
-        if (type === 'tv' && detailData.seasons && detailData.seasons.length > 0) {
+        if ((type === 'tv' || type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
           const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
           setActiveSeason(firstSeason.season_number);
         }
@@ -69,15 +69,7 @@ export default function MediaDetail() {
           setChapters(chaptersRes.data || []);
         }
 
-        // If anime, fetch episodes list
-        if (type === 'anime') {
-          try {
-            const epsRes = await axios.get(`/api/media/anime/episodes/${id}`);
-            setEpisodes(epsRes.data || []);
-          } catch (epsErr) {
-            console.warn('Failed to load anime episodes list:', epsErr.message);
-          }
-        }
+        // Episodes for Anime and TV are now natively provided within the TMDB detailData.seasons!
 
         // If logged in, check watchlist
         if (user) {
@@ -152,32 +144,20 @@ export default function MediaDetail() {
   };
 
   const getEmbedUrl = () => {
-    const tmdbId = detail?.tmdb_id || id;
-    const isTmdbMovie = detail?.tmdb_type === 'movie' || type === 'movie';
-
-    if (type === 'movie' || (type === 'anime' && isTmdbMovie)) {
-      const activeId = type === 'anime' ? tmdbId : id;
-      if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${activeId}`;
-      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${activeId}`;
+    if (type === 'movie') {
+      if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${id}`;
+      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/movie/${id}`;
+      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${id}`;
+      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${id}`;
       return null;
     }
-    if (type === 'tv') {
+    if (type === 'tv' || type === 'anime') {
       const season = activeSeason || 1;
       const episode = activeEpisode || 1;
       if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
-      return null;
-    }
-    if (type === 'anime') {
-      const episode = activeEpisode || 1;
-      if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${tmdbId}/1/${episode}`;
       return null;
     }
     return null;
@@ -529,8 +509,8 @@ export default function MediaDetail() {
               {type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}
             </h2>
 
-            {/* Season Selector for TV Shows */}
-            {type === 'tv' && detail.seasons && detail.seasons.length > 0 && (
+            {/* Season Selector for TV Shows & Anime */}
+            {(type === 'tv' || type === 'anime') && detail.seasons && detail.seasons.length > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
                 <select
@@ -553,47 +533,9 @@ export default function MediaDetail() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[300px] overflow-y-auto pr-2 text-left">
             {(() => {
-              if (type === 'anime') {
-                const totalCount = detail.episodes_count || 12;
-                const generatedEpisodes = Array.from({ length: totalCount }, (_, i) => {
-                  const epNum = i + 1;
-                  const matchedEp = episodes.find(e => parseInt(e.episode, 10) === epNum);
-                  return {
-                    id: epNum,
-                    episode: epNum.toString(),
-                    title: matchedEp?.title || `Episode ${epNum}`
-                  };
-                });
-
-                return generatedEpisodes.map((ep) => {
-                  const epNum = ep.id;
-                  const isSelected = activeEpisode === epNum;
-                  return (
-                    <button
-                      key={ep.id}
-                      onClick={() => {
-                        setActiveEpisode(epNum);
-                        setPlaybackMode('solo-embed');
-                      }}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col gap-1 group ${
-                        isSelected
-                          ? 'border-accentCyan bg-accentCyan/15 text-accentCyan'
-                          : 'border-darkBorder bg-darkCard/50 text-gray-400 hover:text-white hover:border-white/20'
-                      }`}
-                    >
-                      <span className="text-[10px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
-                        Episode {ep.episode}
-                      </span>
-                      <span className="text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white">
-                        {ep.title}
-                      </span>
-                    </button>
-                  );
-                });
-              } else {
-                // TV Shows episode list
+                // TV Shows & Anime episode list (powered seamlessly by TMDB Seasons API)
                 const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
-                const epCount = currentSeasonInfo ? currentSeasonInfo.episode_count : 1;
+                const epCount = currentSeasonInfo ? currentSeasonInfo.episode_count : (detail.episodes_count || 1);
                 
                 return Array.from({ length: epCount }, (_, i) => {
                   const epNum = i + 1;
@@ -615,12 +557,11 @@ export default function MediaDetail() {
                         Episode {epNum}
                       </span>
                       <span className="text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white">
-                        Episode {epNum}
+                        Play Episode
                       </span>
                     </button>
                   );
                 });
-              }
             })()}
           </div>
         </section>
