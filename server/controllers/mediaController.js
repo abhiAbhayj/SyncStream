@@ -420,7 +420,17 @@ export const searchMedia = async (req, res) => {
             
             if (type === 'anime') {
               url += `&with_original_language=ja`;
-              url += genre ? `&with_genres=16,${genre}` : `&with_genres=16`;
+              if (genre) {
+                if (genre.startsWith('k_')) {
+                  url += `&with_genres=16&with_keywords=${genre.replace('k_', '')}`;
+                } else if (genre.startsWith('g_')) {
+                  url += `&with_genres=16,${genre.replace('g_', '')}`;
+                } else {
+                  url += `&with_genres=16`;
+                }
+              } else {
+                url += `&with_genres=16`;
+              }
             } else {
               if (genre) url += `&with_genres=${genre}`;
               if (country) url += `&with_origin_country=${country}`;
@@ -453,8 +463,8 @@ export const searchMedia = async (req, res) => {
             if (type === 'anime') {
               // Ensure it's Japanese Animation
               combinedResults = combinedResults.filter(r => r.genre_ids?.includes(16) && r.origin_country?.includes('JP'));
-              if (genre) {
-                const genreIdInt = parseInt(genre, 10);
+              if (genre && genre.startsWith('g_')) {
+                const genreIdInt = parseInt(genre.replace('g_', ''), 10);
                 combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
               }
             } else {

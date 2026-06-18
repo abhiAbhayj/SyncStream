@@ -248,45 +248,52 @@ export default function Search() {
               className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer font-semibold"
             >
               <option value="">All Genres</option>
-              {(type === 'movie' || type === 'tv'
+              {type === 'movie'
                 ? [
-                    { key: 'action', label: 'Action' },
-                    { key: 'adventure', label: 'Adventure' },
-                    { key: 'animation', label: 'Animation' },
-                    { key: 'comedy', label: 'Comedy' },
-                    { key: 'crime', label: 'Crime' },
-                    { key: 'documentary', label: 'Documentary' },
-                    { key: 'drama', label: 'Drama' },
-                    { key: 'family', label: 'Family' },
-                    { key: 'fantasy', label: 'Fantasy' },
-                    { key: 'history', label: 'History' },
-                    { key: 'horror', label: 'Horror' },
-                    { key: 'music', label: 'Music' },
-                    { key: 'mystery', label: 'Mystery' },
-                    { key: 'romance', label: 'Romance' },
-                    { key: 'scifi', label: 'Sci-Fi' },
-                    { key: 'thriller', label: 'Thriller' },
-                    { key: 'war', label: 'War' },
-                    { key: 'western', label: 'Western' }
+                    { key: '28', label: 'Action' },
+                    { key: '12', label: 'Adventure' },
+                    { key: '16', label: 'Animation' },
+                    { key: '35', label: 'Comedy' },
+                    { key: '80', label: 'Crime' },
+                    { key: '99', label: 'Documentary' },
+                    { key: '18', label: 'Drama' },
+                    { key: '10751', label: 'Family' },
+                    { key: '14', label: 'Fantasy' },
+                    { key: '36', label: 'History' },
+                    { key: '27', label: 'Horror' },
+                    { key: '10402', label: 'Music' },
+                    { key: '9648', label: 'Mystery' },
+                    { key: '10749', label: 'Romance' },
+                    { key: '878', label: 'Sci-Fi' },
+                    { key: '53', label: 'Thriller' },
+                    { key: '10752', label: 'War' },
+                    { key: '37', label: 'Western' }
+                  ]
+                : type === 'tv' ? [
+                    { key: '10759', label: 'Action & Adventure' },
+                    { key: '16', label: 'Animation' },
+                    { key: '35', label: 'Comedy' },
+                    { key: '80', label: 'Crime' },
+                    { key: '99', label: 'Documentary' },
+                    { key: '18', label: 'Drama' },
+                    { key: '10751', label: 'Family' },
+                    { key: '10762', label: 'Kids' },
+                    { key: '9648', label: 'Mystery' },
+                    { key: '10764', label: 'Reality' },
+                    { key: '10765', label: 'Sci-Fi & Fantasy' },
+                    { key: '37', label: 'Western' }
                   ]
                 : type === 'anime' ? [
-                    { key: 'action', label: 'Action' },
-                    { key: 'adventure', label: 'Adventure' },
-                    { key: 'avant_garde', label: 'Avant Garde' },
-                    { key: 'boys_love', label: 'Boys Love' },
-                    { key: 'comedy', label: 'Comedy' },
-                    { key: 'drama', label: 'Drama' },
-                    { key: 'fantasy', label: 'Fantasy' },
-                    { key: 'girls_love', label: 'Girls Love' },
-                    { key: 'gourmet', label: 'Gourmet' },
-                    { key: 'horror', label: 'Horror' },
-                    { key: 'mystery', label: 'Mystery' },
-                    { key: 'romance', label: 'Romance' },
-                    { key: 'scifi', label: 'Sci-Fi' },
-                    { key: 'slice_of_life', label: 'Slice of Life' },
-                    { key: 'sports', label: 'Sports' },
-                    { key: 'supernatural', label: 'Supernatural' },
-                    { key: 'suspense', label: 'Suspense' }
+                    { key: 'g_10759', label: 'Action & Adventure' },
+                    { key: 'g_35', label: 'Comedy' },
+                    { key: 'g_18', label: 'Drama' },
+                    { key: 'g_10765', label: 'Sci-Fi & Fantasy' },
+                    { key: 'g_9648', label: 'Mystery' },
+                    { key: 'k_242095', label: 'Ecchi' },
+                    { key: 'k_11130', label: 'Mecha' },
+                    { key: 'k_242094', label: 'Isekai' },
+                    { key: 'k_210024', label: 'Shounen' },
+                    { key: 'k_158718', label: 'Slice of Life' }
                   ]
                 : [
                     { key: 'action', label: 'Action' },
