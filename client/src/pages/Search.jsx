@@ -287,11 +287,12 @@ export default function Search() {
                     { key: 'g_10759', label: 'Action & Adventure' },
                     { key: 'g_35', label: 'Comedy' },
                     { key: 'g_18', label: 'Drama' },
-                    { key: 'g_10765', label: 'Sci-Fi & Fantasy' },
-                    { key: 'g_9648', label: 'Mystery' },
                     { key: 'k_242095', label: 'Ecchi' },
-                    { key: 'k_11130', label: 'Mecha' },
+                    { key: 'k_9194', label: 'Harem' },
                     { key: 'k_242094', label: 'Isekai' },
+                    { key: 'k_11130', label: 'Mecha' },
+                    { key: 'g_9648', label: 'Mystery' },
+                    { key: 'g_10765', label: 'Sci-Fi & Fantasy' },
                     { key: 'k_210024', label: 'Shounen' },
                     { key: 'k_158718', label: 'Slice of Life' }
                   ]
