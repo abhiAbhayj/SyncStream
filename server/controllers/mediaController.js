@@ -668,22 +668,37 @@ export const getMangaChapters = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Fetch chapters: English translations, sorted by chapter ascending
-    // Increased limit to 500 to fetch a larger range
-    const feedRes = await axios.get(`https://api.mangadex.org/manga/${id}/feed`, {
-      params: {
-        'translatedLanguage[]': 'en',
-        'limit': 500,
-        'order[chapter]': 'asc',
-        'order[volume]': 'asc'
+    // Fetch all English chapters natively using pagination to bypass the 500 limit
+    let allFeedData = [];
+    let offset = 0;
+    const limit = 500;
+    
+    while (offset < 5000) {
+      const feedRes = await axios.get(`https://api.mangadex.org/manga/${id}/feed`, {
+        params: {
+          'translatedLanguage[]': 'en',
+          'limit': limit,
+          'offset': offset,
+          'order[chapter]': 'asc',
+          'order[volume]': 'asc'
+        }
+      });
+      
+      allFeedData.push(...feedRes.data.data);
+      
+      if (offset + limit >= feedRes.data.total) {
+        break; // Reached the end
       }
-    });
+      
+      offset += limit;
+      await new Promise(r => setTimeout(r, 200)); // Respect MangaDex 5 req/s rate limit
+    }
 
     // Deduplicate chapters to avoid multiple uploads of the same chapter number by different groups
     const uniqueChapters = [];
     const seenChapters = new Set();
 
-    for (const ch of feedRes.data.data) {
+    for (const ch of allFeedData) {
       const chNum = ch.attributes.chapter || '0';
       if (!seenChapters.has(chNum)) {
         seenChapters.add(chNum);

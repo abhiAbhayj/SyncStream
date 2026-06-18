@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ChevronLeft, ChevronRight, Layout, ZoomIn, ZoomOut, RotateCcw, Loader2 } from 'lucide-react';
 
-export default function MangaReader({ chapterId, onChapterComplete }) {
+export default function MangaReader({ chapterId, chapters = [], onChapterSelect, onChapterComplete }) {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -81,10 +81,30 @@ export default function MangaReader({ chapterId, onChapterComplete }) {
       
       {/* Floating Reader Settings Bar */}
       <div className="sticky top-20 z-40 w-full max-w-4xl glass-panel border border-darkBorder rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-4 text-sm font-semibold">
-          <span className="text-accentCyan bg-accentCyan/10 px-3 py-1 rounded-lg border border-accentCyan/20">
+        <div className="flex items-center gap-3 text-sm font-semibold">
+          <span className="text-accentCyan bg-accentCyan/10 px-3 py-1.5 rounded-lg border border-accentCyan/20">
             {isVerticalMode ? 'Vertical Scroll' : `Page ${currentPage + 1} of ${pages.length}`}
           </span>
+          
+          {chapters && chapters.length > 0 && onChapterSelect && (
+            <select
+              value={chapterId}
+              onChange={(e) => {
+                const selectedChId = e.target.value;
+                const ch = chapters.find(c => c.id === selectedChId);
+                if (ch) {
+                  onChapterSelect(selectedChId, `Chapter ${ch.chapter}: ${ch.title}`);
+                }
+              }}
+              className="bg-darkCard text-xs font-bold text-gray-200 border border-darkBorder rounded-lg px-3 py-1.5 focus:outline-none focus:border-accentCyan cursor-pointer transition max-w-[140px] md:max-w-[200px]"
+            >
+              {chapters.map(ch => (
+                <option key={ch.id} value={ch.id} className="bg-darkBg">
+                  Ch. {ch.chapter} - {ch.title}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Controls */}

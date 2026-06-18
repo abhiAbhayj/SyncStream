@@ -462,6 +462,11 @@ export default function MediaDetail() {
               
               <MangaReader 
                 chapterId={activeChapterId} 
+                chapters={chapters}
+                onChapterSelect={(chId, chTitle) => {
+                  setActiveChapterId(chId);
+                  setActiveChapterTitle(chTitle);
+                }}
                 onChapterComplete={() => {
                   setActiveChapterId(null);
                   setActiveChapterTitle('');
