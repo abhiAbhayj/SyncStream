@@ -25,13 +25,16 @@ export default function WatchParty() {
 
   // Streaming console states
   const [playbackMode, setPlaybackMode] = useState('trailer');
-  const [embedServer, setEmbedServer] = useState('vidsrc.to');
+  const [embedServer, setEmbedServer] = useState('vidlink');
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeEpisode, setActiveEpisode] = useState(1);
   const [customUrl, setCustomUrl] = useState('');
 
   // Anime episodes metadata list
   const [episodes, setEpisodes] = useState([]);
+
+  // TV episodes metadata list (for titles)
+  const [seasonEpisodes, setSeasonEpisodes] = useState([]);
 
   // Incoming sync state from host socket
   const [inboundSyncEvent, setInboundSyncEvent] = useState(null);
@@ -86,6 +89,21 @@ export default function WatchParty() {
       initRoom();
     }
   }, [code]);
+
+  // 1.5 Fetch Season Episodes for TV
+  useEffect(() => {
+    if ((room?.media_type === 'tv' || room?.media_type === 'anime') && activeSeason !== null) {
+      const fetchSeason = async () => {
+        try {
+          const res = await axios.get(`/api/media/tv/${room.external_media_id}/season/${activeSeason}`);
+          setSeasonEpisodes(res.data.episodes || []);
+        } catch (err) {
+          console.error('Failed to load season details:', err);
+        }
+      };
+      fetchSeason();
+    }
+  }, [room, activeSeason]);
 
   // 2. Join socket room & register event listeners
   useEffect(() => {
@@ -200,30 +218,27 @@ export default function WatchParty() {
 
     if (type === 'movie' || (type === 'anime' && isTmdbMovie)) {
       const activeId = type === 'anime' ? tmdbId : id;
-      if (embedServer === 'vidsrc.to') return `https://vidsrc.to/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrc.me') return `https://vidsrc.me/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrc.xyz') return `https://vidsrc.xyz/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrc.pm') return `https://vidsrc.pm/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrc.net') return `https://vidsrc.net/embed/movie/${activeId}`;
+      if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${activeId}`;
+      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/movie/${activeId}`;
+      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${activeId}`;
+      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${activeId}`;
       return null;
     }
     if (type === 'tv') {
       const season = activeSeason || 1;
       const episode = activeEpisode || 1;
-      if (embedServer === 'vidsrc.to') return `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc.me') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc.xyz') return `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc.pm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc.net') return `https://vidsrc.net/embed/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
       return null;
     }
     if (type === 'anime') {
       const episode = activeEpisode || 1;
-      if (embedServer === 'vidsrc.to') return `https://vidsrc.to/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc.me') return `https://vidsrc.me/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc.xyz') return `https://vidsrc.xyz/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc.pm') return `https://vidsrc.pm/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc.net') return `https://vidsrc.net/embed/tv/${tmdbId}/1/${episode}`;
+      if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${tmdbId}/1/${episode}`;
+      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/tv/${tmdbId}/1/${episode}`;
+      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${tmdbId}/1/${episode}`;
+      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${tmdbId}/1/${episode}`;
       return null;
     }
     return null;
@@ -353,11 +368,10 @@ export default function WatchParty() {
             <div className="flex items-center gap-3 flex-wrap text-sm border border-darkBorder bg-black/20 p-3 rounded-2xl">
               <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Streaming Server:</span>
               {[
-                { key: 'vidsrc.to', label: 'Server 1 (VidSrc.to)' },
-                { key: 'vidsrc.me', label: 'Server 2 (VidSrc.me)' },
-                { key: 'vidsrc.xyz', label: 'Server 3 (VidSrc.xyz)' },
-                { key: 'vidsrc.pm', label: 'Server 4 (VidSrc.pm)' },
-                { key: 'vidsrc.net', label: 'Server 5 (VidSrc.net)' }
+                { key: 'vidlink', label: 'Server 1 (VidLink)' },
+                { key: 'vidsrc', label: 'Server 2 (VidSrc)' },
+                { key: 'vidsrcpm', label: 'Server 3 (VidSrc.pm)' },
+                { key: 'vidsrcme', label: 'Server 4 (VidSrc.me)' }
               ].map((server) => (
                 <button
                   key={server.key}
@@ -519,6 +533,9 @@ export default function WatchParty() {
                     return Array.from({ length: epCount }, (_, i) => {
                       const epNum = i + 1;
                       const isSelected = activeEpisode === epNum;
+                      const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
+                      const epTitle = epDetail?.name || `Play Episode`;
+
                       return (
                         <button
                           key={epNum}
@@ -533,8 +550,8 @@ export default function WatchParty() {
                           <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
                             Episode {epNum}
                           </span>
-                          <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white">
-                            Episode {epNum}
+                          <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                            {epTitle}
                           </span>
                         </button>
                       );
