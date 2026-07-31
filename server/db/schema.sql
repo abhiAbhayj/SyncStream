@@ -7,9 +7,15 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    reset_token VARCHAR(255) DEFAULT NULL,
+    reset_token_expiry DATETIME DEFAULT NULL,
     avatar_url VARCHAR(255) DEFAULT 'default_avatar.png',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Note: If updating an existing database, run:
+-- ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) DEFAULT NULL;
+-- ALTER TABLE users ADD COLUMN reset_token_expiry DATETIME DEFAULT NULL;
 
 -- 2. User specific cross-referenced libraries (Stores API unique string keys)
 CREATE TABLE IF NOT EXISTS user_watchlists (

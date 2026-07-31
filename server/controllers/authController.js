@@ -176,3 +176,69 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Server error updating profile.' });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+  try {
+    const [users] = await db.query('SELECT id, username FROM users WHERE email = ?', [email]);
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User with this email does not exist.' });
+    }
+
+    const resetToken = Array.from(Array(32), () => Math.floor(Math.random() * 36).toString(36)).join('');
+    const resetTokenHash = await bcrypt.hash(resetToken, 10);
+    const expiry = new Date(Date.now() + 3600000); // 1 hour
+
+    await db.query(
+      'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
+      [resetTokenHash, expiry, users[0].id]
+    );
+
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    console.log(`\n\n[MOCK EMAIL] Password Reset Link for ${email}:\n${resetUrl}\n\n`);
+
+    res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+  } catch (error) {
+    console.error('[Forgot Password Error]:', error);
+    res.status(500).json({ error: 'Server error processing forgot password.' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password are required.' });
+
+  try {
+    const [users] = await db.query('SELECT id, reset_token, reset_token_expiry FROM users WHERE reset_token IS NOT NULL');
+    let targetUser = null;
+
+    for (let user of users) {
+      if (new Date(user.reset_token_expiry) > new Date()) {
+        const isMatch = await bcrypt.compare(token, user.reset_token);
+        if (isMatch) {
+          targetUser = user;
+          break;
+        }
+      }
+    }
+
+    if (!targetUser) {
+      return res.status(400).json({ error: 'Invalid or expired reset token.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+    await db.query(
+      'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
+      [newPasswordHash, targetUser.id]
+    );
+
+    res.json({ message: 'Password has been successfully reset. You may now login.' });
+  } catch (error) {
+    console.error('[Reset Password Error]:', error);
+    res.status(500).json({ error: 'Server error processing reset password.' });
+  }
+};

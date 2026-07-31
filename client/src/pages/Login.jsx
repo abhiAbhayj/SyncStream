@@ -93,6 +93,11 @@ export default function Login() {
                 className="w-full bg-darkBg border border-darkBorder rounded-xl pl-11 pr-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
               />
             </div>
+            <div className="flex justify-end pt-1">
+              <Link to="/forgot-password" className="text-[11px] text-accentPurple hover:text-accentCyan transition-colors font-semibold">
+                Forgot Password?
+              </Link>
+            </div>
           </div>
 
           {/* Submit */}
