@@ -162,7 +162,7 @@ export default function MediaDetail() {
   const getEmbedUrl = () => {
     if (type === 'movie') {
       if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${id}`;
-      if (embedServer === 'vidsrc') return `https://embed.su/embed/movie/${id}`;
+      if (embedServer === 'vidsrc') return `https://autoembed.cc/movie/tmdb/${id}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${id}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${id}`;
       if (embedServer === 'twoembed') return `https://www.2embed.cc/embed/${id}`;
@@ -172,7 +172,7 @@ export default function MediaDetail() {
       const season = activeSeason || 1;
       const episode = activeEpisode || 1;
       if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc') return `https://embed.su/embed/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'vidsrc') return `https://autoembed.cc/tv/tmdb/${id}-${season}-${episode}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
@@ -342,7 +342,7 @@ export default function MediaDetail() {
               <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Streaming Server:</span>
               {[
                 { key: 'vidlink', label: 'Server 1 (VidLink)' },
-                { key: 'vidsrc', label: 'Server 2 (Embed.su)' },
+                { key: 'vidsrc', label: 'Server 2 (AutoEmbed)' },
                 { key: 'vidsrcpm', label: 'Server 3 (VidSrc.pm)' },
                 { key: 'vidsrcme', label: 'Server 4 (VidSrc.me)' },
                 { key: 'twoembed', label: 'Server 5 (2Embed)' },
