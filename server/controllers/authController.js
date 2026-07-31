@@ -197,28 +197,14 @@ export const forgotPassword = async (req, res) => {
       'UPDATE users SET reset_otp = ?, reset_otp_expiry = ? WHERE id = ?',
       [resetOtpHash, expiry, users[0].id]
     );
-    
-    // Check if Twilio API credentials exist
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      // NOTE: User must run `npm install twilio` to actually use this live!
-      try {
-        const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-        await client.messages.create({
-          body: `Your SyncStream password reset code is: ${resetOtp}. Do not share this code.`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: phone_number
-        });
-        console.log(`[SMS DISPATCHED] OTP sent to ${phone_number}`);
-      } catch (smsError) {
-        console.error('[SMS ERROR] Failed to send text, falling back to mock.', smsError.message);
-        console.log(`\n\n[MOCK SMS] OTP for ${phone_number} is: ${resetOtp}\n\n`);
-      }
-    } else {
-      // Fallback Mock SMS if credentials aren't setup
-      console.log(`\n\n[MOCK SMS] Password Reset OTP for ${phone_number}:\n[ ${resetOtp} ]\n\n`);
-    }
 
-    res.json({ message: 'If an account with that number exists, an SMS reset code has been sent.' });
+    // Fallback Mock SMS: Send it straight to the frontend for easy testing!
+    console.log(`\n\n[MOCK SMS] Password Reset OTP for ${phone_number}:\n[ ${resetOtp} ]\n\n`);
+    
+    res.json({ 
+      message: 'If an account with that number exists, an SMS reset code has been sent.',
+      mockOtp: resetOtp // Expose to frontend for popup
+    });
   } catch (error) {
     console.error('[Forgot Password Error]:', error);
     res.status(500).json({ error: 'Server error processing forgot password.' });

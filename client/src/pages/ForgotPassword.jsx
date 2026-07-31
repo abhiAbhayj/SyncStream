@@ -27,8 +27,13 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/api/auth/forgot-password`, { phone_number: phoneNumber });
+      const response = await axios.post(`${API_URL}/api/auth/forgot-password`, { phone_number: phoneNumber });
       setStep(2);
+      
+      // Feature: Show Dummy OTP in a popup on screen
+      if (response.data.mockOtp) {
+        alert(`[DUMMY OTP TESTING]\n\nYour OTP is: ${response.data.mockOtp}`);
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to process request. Please try again later.');
     } finally {
