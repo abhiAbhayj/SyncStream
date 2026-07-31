@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Phone, ArrowLeft, Loader2, Key, CheckCircle2, Lock } from 'lucide-react';
+import { Phone, ArrowLeft, Loader2, Key, CheckCircle2, Lock, Eye, EyeOff, Copy } from 'lucide-react';
 import axios from 'axios';
 
 export default function ForgotPassword() {
@@ -14,6 +14,9 @@ export default function ForgotPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [secureToken, setSecureToken] = useState('');
+  const [displayedMockOtp, setDisplayedMockOtp] = useState(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,9 +33,9 @@ export default function ForgotPassword() {
       const response = await axios.post(`${API_URL}/api/auth/forgot-password`, { phone_number: phoneNumber });
       setStep(2);
       
-      // Feature: Show Dummy OTP in a popup on screen
+      // Feature: Show Dummy OTP in a popup on screen smoothly
       if (response.data.mockOtp) {
-        alert(`[DUMMY OTP TESTING]\n\nYour OTP is: ${response.data.mockOtp}`);
+        setDisplayedMockOtp(response.data.mockOtp);
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to process request. Please try again later.');
@@ -135,6 +138,22 @@ export default function ForgotPassword() {
           {/* STEP 2: OTP */}
           {step === 2 && (
             <form onSubmit={handleVerifyOtp} className="space-y-6 animate-fade-in">
+              {displayedMockOtp && (
+                <div className="bg-accentPurple/10 border border-accentPurple/20 rounded-xl p-4 text-center animate-fade-in">
+                  <p className="text-xs text-accentPurple font-bold mb-1 tracking-widest uppercase">Dummy OTP Testing</p>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-2xl font-extrabold text-white tracking-widest">{displayedMockOtp}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => navigator.clipboard.writeText(displayedMockOtp)}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition"
+                      title="Copy OTP"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-bold text-gray-300 mb-2 ml-1 text-center">6-Digit Code</label>
                 <div className="relative flex justify-center">
@@ -168,13 +187,20 @@ export default function ForgotPassword() {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                     <input
-                      type="password"
+                      type={showNewPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
+                      className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-12 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
                       placeholder="Enter new password"
                       disabled={loading}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors focus:outline-none"
+                    >
+                      {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
                 <div>
@@ -182,13 +208,20 @@ export default function ForgotPassword() {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                     <input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
+                      className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-12 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
                       placeholder="Confirm new password"
                       disabled={loading}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors focus:outline-none"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
               </div>
