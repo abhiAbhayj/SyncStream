@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 import { db } from '../config/db.js';
 import dotenv from 'dotenv';
 
@@ -197,7 +198,40 @@ export const forgotPassword = async (req, res) => {
     );
 
     const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
-    console.log(`\n\n[MOCK EMAIL] Password Reset Link for ${email}:\n${resetUrl}\n\n`);
+    
+    // Configure Nodemailer Transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    // Email Layout
+    const mailOptions = {
+      from: `"SyncStream Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'SyncStream - Password Reset Request',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #050408; padding: 40px; border-radius: 16px; color: #ffffff;">
+          <h2 style="color: #00f0ff; text-align: center; margin-bottom: 30px;">SyncStream Password Reset</h2>
+          <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">Hello ${users[0].username},</p>
+          <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">You recently requested to reset your password for your SyncStream account. Click the button below to proceed.</p>
+          <div style="text-align: center; margin: 40px 0;">
+            <a href="${resetUrl}" style="background: linear-gradient(to right, #00f0ff, #8b5cf6); color: #000000; text-decoration: none; padding: 14px 32px; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
+          </div>
+          <p style="font-size: 14px; color: #9ca3af;">If you did not request a password reset, please ignore this email or reply to contact support if you have questions.</p>
+          <p style="font-size: 14px; color: #9ca3af;">This link is only valid for the next 60 minutes.</p>
+          <hr style="border-color: #2d1944; margin: 30px 0;" />
+          <p style="font-size: 12px; color: #6b7280; text-align: center;">SyncStream &copy; ${new Date().getFullYear()}</p>
+        </div>
+      `
+    };
+
+    // Send Email
+    await transporter.sendMail(mailOptions);
+    console.log(`[EMAIL DISPATCHED] Reset link successfully sent to ${email}`);
 
     res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
   } catch (error) {
