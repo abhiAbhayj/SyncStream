@@ -61,7 +61,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             <Link
               to={`/media/${item.media_type}/${targetId}`}
               key={`${item.media_type}-${targetId}-${index}`}
-              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-full"
+              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-full transition-all duration-500 hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] hover:-translate-y-2 hover:border-accentCyan/50"
             >
               {/* Image Section */}
               <div className="relative w-full aspect-[2/3] overflow-hidden bg-darkBg">
@@ -74,12 +74,12 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                 />
                 
                 {/* Play/Read Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="bg-accentCyan text-black p-4 rounded-full shadow-lg shadow-accentCyan/30 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center translate-y-4 group-hover:translate-y-0">
+                  <div className="bg-accentCyan text-black p-4 rounded-full shadow-[0_0_20px_rgba(0,240,255,0.8)] transform scale-50 group-hover:scale-100 transition-all duration-500 ease-out delay-75">
                     {item.media_type === 'manga' ? (
-                      <BookOpen className="w-6 h-6" />
+                      <BookOpen className="w-6 h-6 animate-pulse" />
                     ) : (
-                      <Play className="w-6 h-6 fill-current" />
+                      <Play className="w-6 h-6 fill-current animate-pulse" />
                     )}
                   </div>
                 </div>
@@ -100,8 +100,8 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
 
               {/* Info Section */}
               <div className="p-3 flex flex-col justify-between flex-grow">
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-sm text-gray-100 group-hover:text-accentCyan transition duration-300 line-clamp-2 leading-tight">
+                <div className="space-y-1 relative z-10">
+                  <h3 className="font-bold text-sm text-gray-100 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-accentCyan group-hover:to-accentPurple transition-all duration-300 line-clamp-2 leading-tight">
                     {item.title || item.name}
                   </h3>
                   {item.release_date && (

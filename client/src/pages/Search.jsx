@@ -402,7 +402,7 @@ export default function Search() {
           <p className="text-gray-400 font-medium">Searching international datasets...</p>
         </div>
       ) : searched && results.length > 0 ? (
-        <div className="animate-fade-in space-y-8">
+        <div className="animate-slide-up space-y-8">
           <MediaGrid items={results} title={query ? `Matches for "${query}"` : "Discovered Results"} />
           
           {/* Load More Button */}

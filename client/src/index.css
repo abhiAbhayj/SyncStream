@@ -80,7 +80,7 @@
   transform: translateY(-4px);
 }
 
-/* Special Button Effects */
+/* Special Button & Text Effects */
 .btn-glow-purple {
   position: relative;
   overflow: hidden;
@@ -106,6 +106,44 @@
 
 .title-glow {
   text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #00f0ff, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-animated {
+  background: linear-gradient(to right, #00f0ff, #8b5cf6, #ec4899, #00f0ff);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientX 5s linear infinite;
+}
+
+/* Nav Link Hover Underline */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 50%;
+  background: linear-gradient(90deg, #00f0ff, #8b5cf6);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+  width: 100%;
 }
 
 /* Custom Video Volume Range Styling */

@@ -32,7 +32,7 @@ export default function Navbar() {
           <div className="bg-gradient-to-tr from-accentPurple to-accentCyan p-2 rounded-lg text-white shadow-md shadow-accentPurple/25">
             <Tv className="w-6 h-6 animate-pulse-glow" />
           </div>
-          <span className="font-extrabold text-2xl tracking-wider bg-gradient-to-r from-white via-accentPurple to-accentCyan bg-clip-text text-transparent title-glow font-outfit">
+          <span className="font-extrabold text-2xl tracking-wider text-gradient-animated font-outfit drop-shadow-md">
             SyncStream
           </span>
         </Link>
@@ -45,10 +45,10 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                className={`nav-link flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-all duration-300 ${
                   isActive(link.path)
-                    ? 'text-accentCyan bg-white/5 border border-white/10 shadow-lg shadow-accentCyan/5'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                    ? 'text-accentCyan active drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <Icon className="w-4 h-4" />
