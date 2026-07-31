@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Mail, Lock, LogIn, Loader2 } from 'lucide-react';
+import { Tv, Phone, Lock, LogIn, Loader2 } from 'lucide-react';
 
 export default function Login() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function Login() {
     setError(null);
     setLoading(true);
 
-    const res = await login(email, password);
+    const res = await login(phoneNumber, password);
     setLoading(false);
 
     if (res.success) {
@@ -63,17 +63,17 @@ export default function Login() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
+          {/* Mobile Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-400">Email Address</label>
+            <label className="text-xs font-bold text-gray-400">Mobile Number</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
               <input
-                type="email"
+                type="tel"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+1 555-1234"
                 className="w-full bg-darkBg border border-darkBorder rounded-xl pl-11 pr-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
               />
             </div>

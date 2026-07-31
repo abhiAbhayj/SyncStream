@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ArrowLeft, Loader2, Key, CheckCircle2, Lock } from 'lucide-react';
+import { Phone, ArrowLeft, Loader2, Key, CheckCircle2, Lock } from 'lucide-react';
 import axios from 'axios';
 
 export default function ForgotPassword() {
@@ -9,7 +9,7 @@ export default function ForgotPassword() {
   // Steps: 1 = Email, 2 = OTP, 3 = New Password
   const [step, setStep] = useState(1);
   
-  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,7 +27,7 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
+      await axios.post(`${API_URL}/api/auth/forgot-password`, { phone_number: phoneNumber });
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to process request. Please try again later.');
@@ -43,7 +43,7 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/api/auth/verify-otp`, { email, otp });
+      const res = await axios.post(`${API_URL}/api/auth/verify-otp`, { phone_number: phoneNumber, otp });
       setSecureToken(res.data.secureResetToken);
       setStep(3);
     } catch (err) {
@@ -80,7 +80,7 @@ export default function ForgotPassword() {
           {/* Header */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-[0_0_20px_rgba(139,92,246,0.3)]">
-              {step === 1 && <Mail className="w-8 h-8 text-accentCyan animate-pulse" />}
+              {step === 1 && <Phone className="w-8 h-8 text-accentCyan animate-pulse" />}
               {step === 2 && <Key className="w-8 h-8 text-accentCyan animate-pulse" />}
               {step === 3 && <Lock className="w-8 h-8 text-accentCyan animate-pulse" />}
             </div>
@@ -88,8 +88,8 @@ export default function ForgotPassword() {
               {step === 1 ? 'Reset Password' : step === 2 ? 'Enter Code' : 'New Password'}
             </h1>
             <p className="text-gray-400 text-center text-sm">
-              {step === 1 && "Enter your email address and we'll send you a 6-digit code."}
-              {step === 2 && `We've sent a 6-digit code to ${email}`}
+              {step === 1 && "Enter your mobile number and we'll send you a 6-digit code via SMS."}
+              {step === 2 && `We've sent a 6-digit code to ${phoneNumber}`}
               {step === 3 && "Please enter your new password below."}
             </p>
           </div>
@@ -100,19 +100,19 @@ export default function ForgotPassword() {
             </div>
           )}
 
-          {/* STEP 1: EMAIL */}
+          {/* STEP 1: MOBILE NUMBER */}
           {step === 1 && (
             <form onSubmit={handleSendEmail} className="space-y-6 animate-fade-in">
               <div>
-                <label className="block text-sm font-bold text-gray-300 mb-2 ml-1">Email Address</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2 ml-1">Mobile Number</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
-                    placeholder="Enter your email"
+                    placeholder="Enter your phone number"
                     disabled={loading}
                   />
                 </div>

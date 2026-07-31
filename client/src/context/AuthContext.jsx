@@ -37,9 +37,9 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token]);
 
-  const login = async (email, password) => {
+  const login = async (phone_number, password) => {
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await axios.post('/api/auth/login', { phone_number, password });
       const { token: userToken, user: userData } = res.data;
       localStorage.setItem('token', userToken);
       setToken(userToken);
@@ -53,9 +53,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, email, password) => {
+  const register = async (username, phone_number, password) => {
     try {
-      const res = await axios.post('/api/auth/register', { username, email, password });
+      const res = await axios.post('/api/auth/register', { username, phone_number, password });
       const { token: userToken, user: userData } = res.data;
       localStorage.setItem('token', userToken);
       setToken(userToken);
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       return {
         success: false,
-        error: err.response?.data?.error || 'Registration failed. Try a different username/email.'
+        error: err.response?.data?.error || 'Registration failed. Try a different username/phone number.'
       };
     }
   };

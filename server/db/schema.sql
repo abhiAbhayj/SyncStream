@@ -5,7 +5,7 @@ USE syncstream_db;
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     reset_otp VARCHAR(255) DEFAULT NULL,
     reset_otp_expiry DATETIME DEFAULT NULL,

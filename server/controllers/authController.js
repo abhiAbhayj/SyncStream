@@ -9,21 +9,21 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_syncstream_2026';
 
 export const register = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, phone_number, password } = req.body;
 
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: 'All fields (username, email, password) are required.' });
+  if (!username || !phone_number || !password) {
+    return res.status(400).json({ error: 'All fields (username, phone_number, password) are required.' });
   }
 
   try {
     // 1. Check if user already exists
     const [existingUsers] = await db.query(
-      'SELECT id FROM users WHERE username = ? OR email = ?',
-      [username, email]
+      'SELECT id FROM users WHERE username = ? OR phone_number = ?',
+      [username, phone_number]
     );
 
     if (existingUsers.length > 0) {
-      return res.status(409).json({ error: 'Username or email already exists.' });
+      return res.status(409).json({ error: 'Username or phone number already exists.' });
     }
 
     // 2. Hash password
@@ -35,14 +35,14 @@ export const register = async (req, res) => {
 
     // 4. Insert into DB
     const [result] = await db.query(
-      'INSERT INTO users (username, email, password_hash, avatar_url) VALUES (?, ?, ?, ?)',
-      [username, email, passwordHash, avatarUrl]
+      'INSERT INTO users (username, phone_number, password_hash, avatar_url) VALUES (?, ?, ?, ?)',
+      [username, phone_number, passwordHash, avatarUrl]
     );
 
     const userId = result.insertId;
 
     // 5. Generate token
-    const token = jwt.sign({ id: userId, username, email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: userId, username, phone_number }, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -50,7 +50,7 @@ export const register = async (req, res) => {
       user: {
         id: userId,
         username,
-        email,
+        phone_number,
         avatar_url: avatarUrl
       }
     });
@@ -61,17 +61,17 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { phone_number, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
+  if (!phone_number || !password) {
+    return res.status(400).json({ error: 'Phone number and password are required.' });
   }
 
   try {
-    // 1. Find user by email
-    const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    // 1. Find user by phone_number
+    const [users] = await db.query('SELECT * FROM users WHERE phone_number = ?', [phone_number]);
     if (users.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid phone number or password.' });
     }
 
     const user = users[0];
@@ -79,12 +79,12 @@ export const login = async (req, res) => {
     // 2. Compare password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid phone number or password.' });
     }
 
     // 3. Generate token
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email },
+      { id: user.id, username: user.username, phone_number: user.phone_number },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -95,7 +95,7 @@ export const login = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email,
+        phone_number: user.phone_number,
         avatar_url: user.avatar_url
       }
     });
@@ -108,7 +108,7 @@ export const login = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const [users] = await db.query(
-      'SELECT id, username, email, avatar_url, created_at FROM users WHERE id = ?',
+      'SELECT id, username, phone_number, avatar_url, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -156,13 +156,13 @@ export const updateProfile = async (req, res) => {
 
     // Fetch updated user
     const [users] = await db.query(
-      'SELECT id, username, email, avatar_url FROM users WHERE id = ?',
+      'SELECT id, username, phone_number, avatar_url FROM users WHERE id = ?',
       [req.user.id]
     );
 
     // Return updated token if username changed
     const updatedToken = jwt.sign(
-      { id: users[0].id, username: users[0].username, email: users[0].email },
+      { id: users[0].id, username: users[0].username, phone_number: users[0].phone_number },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -179,13 +179,13 @@ export const updateProfile = async (req, res) => {
 };
 
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required.' });
+  const { phone_number } = req.body;
+  if (!phone_number) return res.status(400).json({ error: 'Phone number is required.' });
 
   try {
-    const [users] = await db.query('SELECT id, username FROM users WHERE email = ?', [email]);
+    const [users] = await db.query('SELECT id, username FROM users WHERE phone_number = ?', [phone_number]);
     if (users.length === 0) {
-      return res.status(404).json({ error: 'User with this email does not exist.' });
+      return res.status(404).json({ error: 'User with this phone number does not exist.' });
     }
 
     // Generate 6-Digit OTP
@@ -198,50 +198,27 @@ export const forgotPassword = async (req, res) => {
       [resetOtpHash, expiry, users[0].id]
     );
     
-    // Check if real email is configured
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS && process.env.EMAIL_USER.includes('@')) {
+    // Check if Twilio API credentials exist
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+      // NOTE: User must run `npm install twilio` to actually use this live!
       try {
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-          }
+        const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        await client.messages.create({
+          body: `Your SyncStream password reset code is: ${resetOtp}. Do not share this code.`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phone_number
         });
-
-        const mailOptions = {
-          from: `"SyncStream Support" <${process.env.EMAIL_USER}>`,
-          to: email,
-          subject: 'SyncStream - Password Reset Code',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #050408; padding: 40px; border-radius: 16px; color: #ffffff;">
-              <h2 style="color: #00f0ff; text-align: center; margin-bottom: 30px;">SyncStream Password Reset</h2>
-              <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">Hello ${users[0].username},</p>
-              <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">You recently requested to reset your password. Use the 6-digit code below to securely reset your password.</p>
-              <div style="text-align: center; margin: 40px 0;">
-                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; font-size: 32px; letter-spacing: 8px; font-weight: bold; color: #00f0ff; border-radius: 12px; display: inline-block;">
-                  ${resetOtp}
-                </div>
-              </div>
-              <p style="font-size: 14px; color: #9ca3af;">This code will expire in 15 minutes.</p>
-              <hr style="border-color: #2d1944; margin: 30px 0;" />
-              <p style="font-size: 12px; color: #6b7280; text-align: center;">SyncStream &copy; ${new Date().getFullYear()}</p>
-            </div>
-          `
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`[EMAIL DISPATCHED] OTP sent to ${email}`);
-      } catch (emailError) {
-        console.error('[EMAIL ERROR] Failed to send email, falling back to mock.', emailError.message);
-        console.log(`\n\n[MOCK EMAIL] OTP for ${email} is: ${resetOtp}\n\n`);
+        console.log(`[SMS DISPATCHED] OTP sent to ${phone_number}`);
+      } catch (smsError) {
+        console.error('[SMS ERROR] Failed to send text, falling back to mock.', smsError.message);
+        console.log(`\n\n[MOCK SMS] OTP for ${phone_number} is: ${resetOtp}\n\n`);
       }
     } else {
-      // Fallback Mock Email if credentials aren't setup
-      console.log(`\n\n[MOCK EMAIL] Password Reset OTP for ${email}:\n[ ${resetOtp} ]\n\n`);
+      // Fallback Mock SMS if credentials aren't setup
+      console.log(`\n\n[MOCK SMS] Password Reset OTP for ${phone_number}:\n[ ${resetOtp} ]\n\n`);
     }
 
-    res.json({ message: 'If an account with that email exists, a password reset code has been sent.' });
+    res.json({ message: 'If an account with that number exists, an SMS reset code has been sent.' });
   } catch (error) {
     console.error('[Forgot Password Error]:', error);
     res.status(500).json({ error: 'Server error processing forgot password.' });
@@ -249,11 +226,11 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
+  const { phone_number, otp } = req.body;
+  if (!phone_number || !otp) return res.status(400).json({ error: 'Phone number and OTP are required.' });
 
   try {
-    const [users] = await db.query('SELECT id, reset_otp, reset_otp_expiry FROM users WHERE email = ?', [email]);
+    const [users] = await db.query('SELECT id, reset_otp, reset_otp_expiry FROM users WHERE phone_number = ?', [phone_number]);
     if (users.length === 0 || !users[0].reset_otp) {
       return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
