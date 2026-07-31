@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function VoiceAssistant() {
+  const { logout } = useAuth();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [statusText, setStatusText] = useState('');
@@ -95,30 +97,98 @@ export default function VoiceAssistant() {
   const processCommand = async (command) => {
     setStatusText('Processing...');
     
-    // COMMAND: Search
-    // e.g. "search for batman" -> "batman"
+    // 1. CATALOG / DISCOVERY INTENTS
+    if (command.includes('trending') || command.includes('popular') || command.includes('top rated')) {
+      let type = 'movie';
+      if (command.includes('anime')) type = 'anime';
+      else if (command.includes('tv') || command.includes('show')) type = 'tv';
+      else if (command.includes('manga')) type = 'manga';
+
+      let category = 'trending';
+      if (command.includes('popular')) category = 'popular';
+      if (command.includes('top rated') || command.includes('top-rated')) category = 'top_rated';
+
+      setStatusText(`Opening ${category} ${type}s...`);
+      navigate(`/catalog/${category}/${type}`);
+      return;
+    }
+
+    // 2. PROFILE / AUTH INTENTS
+    if (command.includes('edit profile') || command.includes('change avatar') || command.includes('my profile')) {
+      navigate('/profile');
+      setStatusText('Opening Profile...');
+      return;
+    }
+    if (command.includes('log out') || command.includes('logout') || command.includes('sign out')) {
+      setStatusText('Logging out...');
+      setTimeout(() => logout(), 1000);
+      return;
+    }
+
+    // 3. MEDIA DETAILS / SCHEDULE INTENTS (e.g. "What is the schedule of Kantara")
+    if (command.includes('schedule of') || command.includes('schedule for') || command.includes('tell me about') || command.includes('details of')) {
+      let query = command
+        .replace('what is the schedule of', '')
+        .replace('schedule for', '')
+        .replace('tell me about', '')
+        .replace('details of', '')
+        .trim();
+      
+      setStatusText(`Looking up ${query}...`);
+      try {
+        // We guess type based on text, default to anime if they asked about anime
+        const searchType = command.includes('anime') ? 'anime' : (command.includes('tv') ? 'tv' : 'movie');
+        query = query.replace('the anime', '').replace('this anime', '').trim();
+
+        const res = await axios.get('/api/media/search', {
+          params: { query: query, type: searchType, page: 1 }
+        });
+        
+        if (res.data && res.data.length > 0) {
+          const firstResult = res.data[0];
+          setStatusText(`Found ${firstResult.title}!`);
+          setTimeout(() => {
+            navigate(`/media/${searchType}/${firstResult.id}`);
+          }, 1000);
+        } else {
+          setStatusText(`Couldn't find ${query}.`);
+        }
+      } catch (err) {
+        setStatusText('Failed to search.');
+      }
+      return;
+    }
+
+    // 4. WATCH ROOM INTENTS
+    if (command.includes('leave room') || command.includes('exit room') || command.includes('leave watch party')) {
+      navigate('/');
+      setStatusText('Leaving room...');
+      return;
+    }
+
+    // 5. SEARCH INTENTS
     if (command.startsWith('search for ') || command.startsWith('search ')) {
       const query = command.replace('search for ', '').replace('search ', '').trim();
       if (query) {
         setStatusText(`Searching: ${query}`);
+        // Default to movie search, but could be enhanced
         navigate(`/search?q=${encodeURIComponent(query)}&type=movie`);
         return;
       }
     }
 
-    // COMMAND: Play [Movie/Show]
-    // e.g. "play kantara"
+    // 6. PLAY / PAUSE INTENTS
     if (command.startsWith('play ')) {
       const query = command.replace('play ', '').trim();
       
-      // 1. Check if it's just a general play/resume command (if in watch room)
-      if (query === '' || query === 'movie' || query === 'video') {
+      // General play/resume command (if in watch room)
+      if (query === '' || query === 'movie' || query === 'video' || query === 'it') {
         window.dispatchEvent(new CustomEvent('voice-command', { detail: { action: 'play' } }));
         setStatusText('Resuming video...');
         return;
       }
 
-      // 2. Otherwise, treat it as a search-and-play command
+      // Treat as a search-and-play command
       setStatusText(`Finding: ${query}...`);
       try {
         const res = await axios.get('/api/media/search', {
@@ -140,31 +210,25 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // COMMAND: Pause
     if (command.includes('pause') || command.includes('stop')) {
       window.dispatchEvent(new CustomEvent('voice-command', { detail: { action: 'pause' } }));
       setStatusText('Pausing video...');
       return;
     }
 
-    // COMMAND: Navigation
+    // 7. GENERAL NAVIGATION INTENTS
     if (command.includes('go home') || command === 'home') {
       navigate('/');
       setStatusText('Navigating Home...');
       return;
     }
-    if (command.includes('profile')) {
-      navigate('/profile');
-      setStatusText('Opening Profile...');
-      return;
-    }
-    if (command.includes('watchlist')) {
+    if (command.includes('watchlist') || command.includes('my list')) {
       navigate('/watchlist');
       setStatusText('Opening Watchlist...');
       return;
     }
 
-    // Unknown command
+    // Unknown command fallback
     setStatusText("Didn't catch that.");
   };
 
