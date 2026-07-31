@@ -23,7 +23,7 @@ export default function ForgotPassword() {
   const handleSendEmail = async (e) => {
     e.preventDefault();
     setError('');
-    if (!email) return setError('Please enter your email address.');
+    if (!phoneNumber) return setError('Please enter your mobile number.');
 
     setLoading(true);
     try {
