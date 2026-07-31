@@ -34,7 +34,6 @@ export default function EmbedPlayer({ embedUrl, title }) {
         scrolling="no"
         allow="autoplay; encrypted-media; picture-in-picture"
         referrerPolicy="no-referrer"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
 
         onLoad={() => setLoading(false)}
       />
