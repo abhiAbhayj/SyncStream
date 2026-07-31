@@ -79,6 +79,9 @@ export default function VideoPlayer({
         videoRef.current.pause();
         setIsPlaying(false);
         triggerOutboundSync('pause', videoRef.current.currentTime);
+      } else if (action === 'speed') {
+        const { value } = e.detail;
+        setPlaybackSpeed(value);
       }
     };
 

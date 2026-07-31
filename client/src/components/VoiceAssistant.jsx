@@ -168,11 +168,18 @@ export default function VoiceAssistant() {
 
     // 5. SEARCH INTENTS
     if (command.startsWith('search for ') || command.startsWith('search ')) {
-      const query = command.replace('search for ', '').replace('search ', '').trim();
+      let query = command.replace('search for ', '').replace('search ', '').trim();
+      let searchType = 'movie';
+      
+      // Auto-detect media type from query
+      if (query.includes('anime')) { searchType = 'anime'; query = query.replace('anime', '').trim(); }
+      else if (query.includes('tv') || query.includes('series')) { searchType = 'tv'; query = query.replace('tv', '').replace('series', '').trim(); }
+      else if (query.includes('manga')) { searchType = 'manga'; query = query.replace('manga', '').trim(); }
+      else if (query.includes('movie')) { searchType = 'movie'; query = query.replace('movie', '').trim(); }
+
       if (query) {
-        setStatusText(`Searching: ${query}`);
-        // Default to movie search, but could be enhanced
-        navigate(`/search?q=${encodeURIComponent(query)}&type=movie`);
+        setStatusText(`Searching ${searchType}s: ${query}`);
+        navigate(`/search?q=${encodeURIComponent(query)}&type=${searchType}`);
         return;
       }
     }
@@ -216,7 +223,35 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // 7. GENERAL NAVIGATION INTENTS
+    // SPEED INTENTS
+    if (command.includes('speed') || command.includes('fast forward') || command.includes('slow down')) {
+      let speed = 1;
+      if (command.includes('2x') || command.includes('two x') || command.includes('twice')) speed = 2;
+      else if (command.includes('1.5x')) speed = 1.5;
+      else if (command.includes('1.25x')) speed = 1.25;
+      else if (command.includes('0.5x') || command.includes('half')) speed = 0.5;
+      else if (command.includes('1x') || command.includes('normal')) speed = 1;
+
+      window.dispatchEvent(new CustomEvent('voice-command', { detail: { action: 'speed', value: speed } }));
+      setStatusText(`Speed set to ${speed}x`);
+      return;
+    }
+
+    // 7. THEME INTENTS
+    if (command.includes('theme') || command.includes('midnight cosmic') || command.includes('standard neon')) {
+      if (command.includes('cosmic') || command.includes('midnight') || command.includes('dark')) {
+        localStorage.setItem('syncstream_theme', 'cosmic');
+        document.body.classList.add('theme-cosmic');
+        setStatusText('Cosmic Theme Enabled');
+      } else {
+        localStorage.setItem('syncstream_theme', 'standard');
+        document.body.classList.remove('theme-cosmic');
+        setStatusText('Standard Theme Enabled');
+      }
+      return;
+    }
+
+    // 8. GENERAL NAVIGATION INTENTS
     if (command.includes('go home') || command === 'home') {
       navigate('/');
       setStatusText('Navigating Home...');
