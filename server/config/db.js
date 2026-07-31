@@ -98,23 +98,50 @@ export async function initDB() {
       );
     `);
 
-    // Auto-Migrations for Live Databases to prevent 500 crashes
-    try {
-      await pool.query('ALTER TABLE users CHANGE email phone_number VARCHAR(20) UNIQUE NOT NULL');
-      console.log('[DB] Migration Success: Changed email to phone_number');
-    } catch (e) { /* Ignore if it already exists or fails */ }
+    // ── Safe Auto-Migrations using INFORMATION_SCHEMA ──────────────────────
+    // Check actual live column state before touching anything.
 
-    try {
+    // 1. Rename 'email' → 'phone_number' if email column still exists
+    const [emailCols] = await pool.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'email'`
+    );
+    if (emailCols.length > 0) {
+      await pool.query('ALTER TABLE users CHANGE COLUMN email phone_number VARCHAR(20) UNIQUE NOT NULL');
+      console.log('[DB] Migration: Renamed email → phone_number ✓');
+    }
+
+    // 2. Add 'phone_number' if it doesn't exist at all (fresh install edge case)
+    const [phoneCols] = await pool.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'phone_number'`
+    );
+    if (phoneCols.length === 0) {
+      await pool.query('ALTER TABLE users ADD COLUMN phone_number VARCHAR(20) UNIQUE NOT NULL DEFAULT ""');
+      console.log('[DB] Migration: Added phone_number column ✓');
+    }
+
+    // 3. Add reset_otp if missing
+    const [otpCols] = await pool.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'reset_otp'`
+    );
+    if (otpCols.length === 0) {
       await pool.query('ALTER TABLE users ADD COLUMN reset_otp VARCHAR(255) DEFAULT NULL');
-      console.log('[DB] Migration Success: Added reset_otp column');
-    } catch (e) { /* Ignore */ }
+      console.log('[DB] Migration: Added reset_otp column ✓');
+    }
 
-    try {
+    // 4. Add reset_otp_expiry if missing
+    const [expiryCols] = await pool.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'reset_otp_expiry'`
+    );
+    if (expiryCols.length === 0) {
       await pool.query('ALTER TABLE users ADD COLUMN reset_otp_expiry DATETIME DEFAULT NULL');
-      console.log('[DB] Migration Success: Added reset_otp_expiry column');
-    } catch (e) { /* Ignore */ }
+      console.log('[DB] Migration: Added reset_otp_expiry column ✓');
+    }
 
-    console.log('[DB] Database tables initialized successfully.');
+    console.log('[DB] Database tables and migrations initialized successfully.');
     isDbConnected = true;
 
     // Clear reconnect interval if database successfully initialized
