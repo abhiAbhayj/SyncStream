@@ -219,26 +219,29 @@ export default function WatchParty() {
     if (type === 'movie' || (type === 'anime' && isTmdbMovie)) {
       const activeId = type === 'anime' ? tmdbId : id;
       if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${activeId}`;
-      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/movie/${activeId}`;
+      if (embedServer === 'vidsrc') return `https://embed.su/embed/movie/${activeId}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${activeId}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${activeId}`;
+      if (embedServer === 'twoembed') return `https://www.2embed.cc/embed/${activeId}`;
       return null;
     }
     if (type === 'tv') {
       const season = activeSeason || 1;
       const episode = activeEpisode || 1;
       if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'vidsrc') return `https://embed.su/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
+      if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
       return null;
     }
     if (type === 'anime') {
       const episode = activeEpisode || 1;
       if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc') return `https://vidsrc.to/embed/tv/${tmdbId}/1/${episode}`;
+      if (embedServer === 'vidsrc') return `https://embed.su/embed/tv/${tmdbId}/1/${episode}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${tmdbId}/1/${episode}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${tmdbId}/1/${episode}`;
+      if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${tmdbId}&s=1&e=${episode}`;
       return null;
     }
     return null;
@@ -369,9 +372,10 @@ export default function WatchParty() {
               <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Streaming Server:</span>
               {[
                 { key: 'vidlink', label: 'Server 1 (VidLink)' },
-                { key: 'vidsrc', label: 'Server 2 (VidSrc)' },
+                { key: 'vidsrc', label: 'Server 2 (Embed.su)' },
                 { key: 'vidsrcpm', label: 'Server 3 (VidSrc.pm)' },
-                { key: 'vidsrcme', label: 'Server 4 (VidSrc.me)' }
+                { key: 'vidsrcme', label: 'Server 4 (VidSrc.me)' },
+                { key: 'twoembed', label: 'Server 5 (2Embed)' },
               ].map((server) => (
                 <button
                   key={server.key}

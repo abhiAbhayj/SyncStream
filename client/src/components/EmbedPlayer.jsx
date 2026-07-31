@@ -25,7 +25,7 @@ export default function EmbedPlayer({ embedUrl, title }) {
         </div>
       )}
 
-      {/* Embed IFrame — sandbox prevents the iframe from navigating the parent page (stops mobile ad redirects) */}
+      {/* Embed IFrame */}
       <iframe
         src={embedUrl}
         title={title || 'Media Streaming Embed'}
@@ -34,7 +34,6 @@ export default function EmbedPlayer({ embedUrl, title }) {
         scrolling="no"
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
         referrerPolicy="no-referrer"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups-to-escape-sandbox allow-pointer-lock"
         onLoad={() => setLoading(false)}
       />
 
