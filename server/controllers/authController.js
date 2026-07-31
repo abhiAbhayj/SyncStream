@@ -188,91 +188,120 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ error: 'User with this email does not exist.' });
     }
 
-    const resetToken = Array.from(Array(32), () => Math.floor(Math.random() * 36).toString(36)).join('');
-    const resetTokenHash = await bcrypt.hash(resetToken, 10);
-    const expiry = new Date(Date.now() + 3600000); // 1 hour
+    // Generate 6-Digit OTP
+    const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetOtpHash = await bcrypt.hash(resetOtp, 10);
+    const expiry = new Date(Date.now() + 15 * 60000); // 15 mins
 
     await db.query(
-      'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
-      [resetTokenHash, expiry, users[0].id]
+      'UPDATE users SET reset_otp = ?, reset_otp_expiry = ? WHERE id = ?',
+      [resetOtpHash, expiry, users[0].id]
     );
-
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
     
-    // Configure Nodemailer Transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+    // Check if real email is configured
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS && process.env.EMAIL_USER.includes('@')) {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
+        });
+
+        const mailOptions = {
+          from: `"SyncStream Support" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'SyncStream - Password Reset Code',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #050408; padding: 40px; border-radius: 16px; color: #ffffff;">
+              <h2 style="color: #00f0ff; text-align: center; margin-bottom: 30px;">SyncStream Password Reset</h2>
+              <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">Hello ${users[0].username},</p>
+              <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">You recently requested to reset your password. Use the 6-digit code below to securely reset your password.</p>
+              <div style="text-align: center; margin: 40px 0;">
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; font-size: 32px; letter-spacing: 8px; font-weight: bold; color: #00f0ff; border-radius: 12px; display: inline-block;">
+                  ${resetOtp}
+                </div>
+              </div>
+              <p style="font-size: 14px; color: #9ca3af;">This code will expire in 15 minutes.</p>
+              <hr style="border-color: #2d1944; margin: 30px 0;" />
+              <p style="font-size: 12px; color: #6b7280; text-align: center;">SyncStream &copy; ${new Date().getFullYear()}</p>
+            </div>
+          `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`[EMAIL DISPATCHED] OTP sent to ${email}`);
+      } catch (emailError) {
+        console.error('[EMAIL ERROR] Failed to send email, falling back to mock.', emailError.message);
+        console.log(`\n\n[MOCK EMAIL] OTP for ${email} is: ${resetOtp}\n\n`);
       }
-    });
+    } else {
+      // Fallback Mock Email if credentials aren't setup
+      console.log(`\n\n[MOCK EMAIL] Password Reset OTP for ${email}:\n[ ${resetOtp} ]\n\n`);
+    }
 
-    // Email Layout
-    const mailOptions = {
-      from: `"SyncStream Support" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'SyncStream - Password Reset Request',
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #050408; padding: 40px; border-radius: 16px; color: #ffffff;">
-          <h2 style="color: #00f0ff; text-align: center; margin-bottom: 30px;">SyncStream Password Reset</h2>
-          <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">Hello ${users[0].username},</p>
-          <p style="font-size: 16px; line-height: 1.5; color: #d1d5db;">You recently requested to reset your password for your SyncStream account. Click the button below to proceed.</p>
-          <div style="text-align: center; margin: 40px 0;">
-            <a href="${resetUrl}" style="background: linear-gradient(to right, #00f0ff, #8b5cf6); color: #000000; text-decoration: none; padding: 14px 32px; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
-          </div>
-          <p style="font-size: 14px; color: #9ca3af;">If you did not request a password reset, please ignore this email or reply to contact support if you have questions.</p>
-          <p style="font-size: 14px; color: #9ca3af;">This link is only valid for the next 60 minutes.</p>
-          <hr style="border-color: #2d1944; margin: 30px 0;" />
-          <p style="font-size: 12px; color: #6b7280; text-align: center;">SyncStream &copy; ${new Date().getFullYear()}</p>
-        </div>
-      `
-    };
-
-    // Send Email
-    await transporter.sendMail(mailOptions);
-    console.log(`[EMAIL DISPATCHED] Reset link successfully sent to ${email}`);
-
-    res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+    res.json({ message: 'If an account with that email exists, a password reset code has been sent.' });
   } catch (error) {
     console.error('[Forgot Password Error]:', error);
     res.status(500).json({ error: 'Server error processing forgot password.' });
   }
 };
 
-export const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
-  if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password are required.' });
+export const verifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
 
   try {
-    const [users] = await db.query('SELECT id, reset_token, reset_token_expiry FROM users WHERE reset_token IS NOT NULL');
-    let targetUser = null;
-
-    for (let user of users) {
-      if (new Date(user.reset_token_expiry) > new Date()) {
-        const isMatch = await bcrypt.compare(token, user.reset_token);
-        if (isMatch) {
-          targetUser = user;
-          break;
-        }
-      }
+    const [users] = await db.query('SELECT id, reset_otp, reset_otp_expiry FROM users WHERE email = ?', [email]);
+    if (users.length === 0 || !users[0].reset_otp) {
+      return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
 
-    if (!targetUser) {
-      return res.status(400).json({ error: 'Invalid or expired reset token.' });
+    const user = users[0];
+    if (new Date(user.reset_otp_expiry) < new Date()) {
+      return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.reset_otp);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Incorrect OTP.' });
+    }
+
+    // Generate a short-lived temporary secure session token to authorize the password change
+    const secureResetToken = jwt.sign({ id: user.id, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
+
+    res.json({ message: 'OTP Verified.', secureResetToken });
+  } catch (error) {
+    console.error('[Verify OTP Error]:', error);
+    res.status(500).json({ error: 'Server error verifying OTP.' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { secureResetToken, newPassword } = req.body;
+  if (!secureResetToken || !newPassword) return res.status(400).json({ error: 'Token and new password are required.' });
+
+  try {
+    const decoded = jwt.verify(secureResetToken, JWT_SECRET);
+    if (decoded.purpose !== 'password_reset') {
+      return res.status(401).json({ error: 'Invalid token purpose.' });
     }
 
     const salt = await bcrypt.genSalt(10);
     const newPasswordHash = await bcrypt.hash(newPassword, salt);
 
     await db.query(
-      'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
-      [newPasswordHash, targetUser.id]
+      'UPDATE users SET password_hash = ?, reset_otp = NULL, reset_otp_expiry = NULL WHERE id = ?',
+      [newPasswordHash, decoded.id]
     );
 
     res.json({ message: 'Password has been successfully reset. You may now login.' });
   } catch (error) {
     console.error('[Reset Password Error]:', error);
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Your reset session has expired. Please start over.' });
+    }
     res.status(500).json({ error: 'Server error processing reset password.' });
   }
 };
