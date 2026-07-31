@@ -7,6 +7,7 @@ import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
 import ScrollRestoration from './components/ScrollRestoration';
 import VoiceAssistant from './components/VoiceAssistant';
+import ServerWakeup from './components/ServerWakeup';
 
 // Pages
 import Home from './pages/Home';
@@ -87,6 +88,7 @@ function AppContent() {
       <Footer />
       <BottomNav />
       <VoiceAssistant />
+      <ServerWakeup />
     </div>
   );
 }

@@ -28,9 +28,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/rooms', roomRoutes);
 
-// Health check endpoint
+// Health check endpoints (both /health and /api/health for Netlify proxy compatibility)
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date() });
+});
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date(), db: db.isConnected() });
 });
 
 // Cache for room media playback states to sync late-joiners
