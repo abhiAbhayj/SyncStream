@@ -176,13 +176,22 @@ export default function Navbar() {
                 placeholder="e.g. 8f7a9b"
                 className="w-full bg-darkBg border border-darkBorder rounded-xl px-4 py-3 text-center text-lg font-bold text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition tracking-widest placeholder:text-gray-600"
               />
-              <button
-                type="submit"
-                disabled={!joinCode.trim()}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-[1.02] transition disabled:opacity-50 disabled:hover:scale-100 btn-glow-purple"
-              >
-                Enter Room
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowJoinModal(false)}
+                  className="w-1/3 py-3 rounded-xl border border-darkBorder bg-darkCard text-gray-400 font-bold hover:text-white hover:bg-white/5 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!joinCode.trim()}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-[1.02] transition disabled:opacity-50 disabled:hover:scale-100 btn-glow-purple"
+                >
+                  Enter Room
+                </button>
+              </div>
             </form>
           </div>
         </div>
