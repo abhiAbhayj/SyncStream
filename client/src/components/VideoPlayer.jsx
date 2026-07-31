@@ -62,6 +62,30 @@ export default function VideoPlayer({
 
   }, [socketEvent]);
 
+  // 2.5 Listen for Global Voice Commands
+  useEffect(() => {
+    const handleVoiceCommand = (e) => {
+      if (!isHost || !videoRef.current) return;
+      const { action } = e.detail;
+
+      if (action === 'play') {
+        videoRef.current.play()
+          .then(() => {
+            setIsPlaying(true);
+            triggerOutboundSync('play', videoRef.current.currentTime);
+          })
+          .catch(err => console.error('Voice play failed:', err));
+      } else if (action === 'pause') {
+        videoRef.current.pause();
+        setIsPlaying(false);
+        triggerOutboundSync('pause', videoRef.current.currentTime);
+      }
+    };
+
+    window.addEventListener('voice-command', handleVoiceCommand);
+    return () => window.removeEventListener('voice-command', handleVoiceCommand);
+  }, [isHost]);
+
   // 3. User interaction triggers (Host only)
   const handlePlayPause = () => {
     if (!videoRef.current) return;

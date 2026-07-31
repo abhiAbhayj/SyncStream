@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
 import ScrollRestoration from './components/ScrollRestoration';
+import VoiceAssistant from './components/VoiceAssistant';
 
 // Pages
 import Home from './pages/Home';
@@ -85,6 +86,7 @@ function AppContent() {
       </main>
       <Footer />
       <BottomNav />
+      <VoiceAssistant />
     </div>
   );
 }
