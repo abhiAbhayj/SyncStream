@@ -50,8 +50,10 @@ export async function initDB() {
       CREATE TABLE IF NOT EXISTS users (
         id INT PRIMARY KEY AUTO_INCREMENT,
         username VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
+        phone_number VARCHAR(20) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        reset_otp VARCHAR(255) DEFAULT NULL,
+        reset_otp_expiry DATETIME DEFAULT NULL,
         avatar_url VARCHAR(255) DEFAULT 'default_avatar.png',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -95,6 +97,22 @@ export async function initDB() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
+
+    // Auto-Migrations for Live Databases to prevent 500 crashes
+    try {
+      await pool.query('ALTER TABLE users CHANGE email phone_number VARCHAR(20) UNIQUE NOT NULL');
+      console.log('[DB] Migration Success: Changed email to phone_number');
+    } catch (e) { /* Ignore if it already exists or fails */ }
+
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN reset_otp VARCHAR(255) DEFAULT NULL');
+      console.log('[DB] Migration Success: Added reset_otp column');
+    } catch (e) { /* Ignore */ }
+
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN reset_otp_expiry DATETIME DEFAULT NULL');
+      console.log('[DB] Migration Success: Added reset_otp_expiry column');
+    } catch (e) { /* Ignore */ }
 
     console.log('[DB] Database tables initialized successfully.');
     isDbConnected = true;
