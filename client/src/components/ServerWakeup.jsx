@@ -22,8 +22,14 @@ export default function ServerWakeup() {
 
     const ping = async (attempt = 0) => {
       try {
-        await axios.get('/api/health', { timeout: 8000 });
-        if (!cancelled) setStatus('ready');
+        const res = await axios.get('/api/health', { timeout: 8000 });
+        // Only mark ready when DB is also connected
+        if (res.data?.db === true) {
+          if (!cancelled) setStatus('ready');
+        } else {
+          // Server up but DB still connecting — keep retrying
+          throw new Error('DB not ready yet');
+        }
       } catch (err) {
         if (cancelled) return;
 
