@@ -198,9 +198,11 @@ export const getTrending = async (req, res) => {
         const lastWeek = new Date(todayObj.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const nextWeek = new Date(todayObj.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+        let ongoingMovies = [];
+
         const [
           trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes,
-          trendingAnimeRes, ongoingAnimeRes, upcomingAnimeRes, airingTodayAnimeRes
+          trendingAnimeRes, ongoingAnimeRes, upcomingAnimeRes, airingTodayAnimeRes, nowPlayingMoviesRes
         ] = await Promise.all([
           axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`),
@@ -212,10 +214,12 @@ export const getTrending = async (req, res) => {
           axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc`),
           axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
           axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`)
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`)
         ]);
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
+        ongoingMovies = nowPlayingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         tmdbTv = trendingTvRes.data.results.slice(0, 20).map(mapTv);
         upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingTv = upcomingTvRes.data.results.slice(0, 20).map(mapTv);
@@ -358,6 +362,7 @@ export const getTrending = async (req, res) => {
         manga: trendingManga
       },
       ongoing: {
+        movies: ongoingMovies,
         tv: ongoingTv,
         anime: ongoingAnime,
         manga: ongoingManga
@@ -932,6 +937,7 @@ export const getCatalog = async (req, res) => {
       } else {
         if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
         else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
+        else if (category === 'ongoing' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
         else if (category === 'upcoming' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
         else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/${type}/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
         else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;

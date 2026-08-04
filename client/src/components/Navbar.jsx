@@ -37,15 +37,15 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 glass-panel border-b border-darkBorder px-4 py-3 md:px-8">
+    <nav className="sticky top-0 z-50 glass-panel-glow border-b border-darkBorder/80 px-4 py-3.5 md:px-8 shadow-2xl backdrop-blur-xl transition-all duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="bg-gradient-to-tr from-accentPurple to-accentCyan p-2 rounded-lg text-white shadow-md shadow-accentPurple/25">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="bg-gradient-to-tr from-accentPurple to-accentCyan p-2.5 rounded-xl text-white shadow-lg shadow-accentPurple/30 group-hover:scale-110 transition-transform duration-300">
             <Tv className="w-6 h-6 animate-pulse-glow" />
           </div>
-          <span className="font-extrabold text-2xl tracking-wider text-gradient-animated font-outfit drop-shadow-md">
+          <span className="font-extrabold text-2xl tracking-wider text-gradient-animated font-syne drop-shadow-md">
             SyncStream
           </span>
         </Link>
@@ -58,9 +58,9 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`nav-link flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-all duration-300 ${
+                className={`nav-link flex items-center gap-2 px-3.5 py-2 text-sm font-bold font-outfit transition-all duration-300 ${
                   isActive(link.path)
-                    ? 'text-accentCyan active drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]'
+                    ? 'text-accentCyan active drop-shadow-[0_0_10px_rgba(0,240,255,0.9)]'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
@@ -73,9 +73,9 @@ export default function Navbar() {
           {/* Join Party Button */}
           <button
             onClick={() => setShowJoinModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-accentPurple border border-accentPurple/30 bg-accentPurple/10 hover:bg-accentPurple/20 hover:scale-105 transition-all shadow-[0_0_15px_rgba(139,92,246,0.15)]"
+            className="flex items-center gap-2 px-4.5 py-2 rounded-xl text-sm font-extrabold font-outfit text-accentPurple border border-accentPurple/40 bg-accentPurple/10 hover:bg-accentPurple/25 hover:border-accentPurple hover:scale-105 transition-all shadow-[0_0_20px_rgba(139,92,246,0.2)]"
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 animate-pulse" />
             Join Party
           </button>
         </div>
