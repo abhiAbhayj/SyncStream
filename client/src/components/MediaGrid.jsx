@@ -1,122 +1,135 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Play, BookOpen, ArrowRight, Clock } from 'lucide-react';
+import { Star, Play, BookOpen, ArrowRight, Clock, Sparkles } from 'lucide-react';
+
+const TYPE_CONFIG = {
+  movie: {
+    badge: 'badge-movie',
+    label: 'Movie',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(99,210,255,0.2)]',
+    playBg: 'bg-accentCyan',
+    titleHover: 'group-hover:from-accentCyan group-hover:to-accentPurple',
+  },
+  tv: {
+    badge: 'badge-tv',
+    label: 'TV Show',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(72,240,180,0.2)]',
+    playBg: 'bg-accentGreen',
+    titleHover: 'group-hover:from-accentGreen group-hover:to-accentCyan',
+  },
+  anime: {
+    badge: 'badge-anime',
+    label: 'Anime',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(149,100,255,0.25)]',
+    playBg: 'bg-accentPurple',
+    titleHover: 'group-hover:from-accentPurple group-hover:to-accentPink',
+  },
+  manga: {
+    badge: 'badge-manga',
+    label: 'Manga',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,85,173,0.2)]',
+    playBg: 'bg-accentPink',
+    titleHover: 'group-hover:from-accentPink group-hover:to-accentGold',
+  },
+};
 
 export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
   if (!items || items.length === 0) {
     return (
-      <div className="py-12 text-center text-gray-500">
-        <p className="text-lg">No content found matching this category.</p>
+      <div className="py-16 text-center">
+        <Sparkles className="w-10 h-10 text-gray-700 mx-auto mb-3" />
+        <p className="text-gray-500 text-sm">No content found for this category.</p>
       </div>
     );
   }
 
-  const getMediaTypeLabel = (type) => {
-    switch (type) {
-      case 'movie': return 'Movie';
-      case 'tv': return 'TV Show';
-      case 'anime': return 'Anime';
-      case 'manga': return 'Manga';
-      default: return type;
-    }
-  };
-
-  const getBadgeColor = (type) => {
-    switch (type) {
-      case 'movie': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'tv': return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
-      case 'anime': return 'bg-accentPurple/10 text-accentPurple border-accentPurple/20';
-      case 'manga': return 'bg-accentPink/10 text-accentPink border-accentPink/20';
-      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-    }
-  };
-
   return (
     <div className="space-y-6">
       {title && (
-        <div className="flex items-center justify-between border-l-4 border-accentCyan pl-3">
-          <h2 className="text-2xl font-bold tracking-tight text-white font-outfit">
+        <div className="flex items-center justify-between">
+          <h2 className="section-title text-xl font-display font-bold text-white">
             {title}
           </h2>
           {seeMoreLink && (
             <Link
               to={seeMoreLink}
-              className="flex items-center gap-1 text-xs font-bold text-accentCyan hover:text-accentPurple transition duration-300"
+              className="group flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-accentCyan transition-all duration-300"
             >
-              See More
-              <ArrowRight className="w-3.5 h-3.5" />
+              View All
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           )}
         </div>
       )}
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
         {items.map((item, index) => {
           const rating = item.vote_average ? parseFloat(item.vote_average).toFixed(1) : null;
-          const mediaLabel = getMediaTypeLabel(item.media_type);
-          const badgeStyle = getBadgeColor(item.media_type);
           const targetId = item.external_media_id || item.id;
+          const cfg = TYPE_CONFIG[item.media_type] || TYPE_CONFIG.movie;
 
           return (
             <Link
               to={`/media/${item.media_type}/${targetId}`}
               key={`${item.media_type}-${targetId}-${index}`}
-              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-full transition-all duration-500 hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] hover:-translate-y-2 hover:border-accentCyan/50"
+              className={`group media-card h-full transition-all duration-500 ${cfg.hoverGlow} animate-fade-up`}
+              style={{ animationDelay: `${index * 0.04}s`, animationFillMode: 'both' }}
             >
-              {/* Image Section */}
-              <div className="relative w-full aspect-[2/3] overflow-hidden bg-darkBg">
+              {/* ── Poster Image ── */}
+              <div className="relative w-full aspect-[2/3] overflow-hidden bg-white/[0.03]">
                 <img
-                  src={item.poster_path || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster'}
+                  src={item.poster_path || 'https://placehold.co/400x600/0b0b18/555?text=No+Poster'}
                   alt={item.title || item.name}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-75"
                   referrerPolicy="no-referrer"
                 />
-                
-                {/* Play/Read Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center translate-y-4 group-hover:translate-y-0">
-                  <div className="bg-accentCyan text-black p-4 rounded-full shadow-[0_0_20px_rgba(0,240,255,0.8)] transform scale-50 group-hover:scale-100 transition-all duration-500 ease-out delay-75">
-                    {item.media_type === 'manga' ? (
-                      <BookOpen className="w-6 h-6 animate-pulse" />
-                    ) : (
-                      <Play className="w-6 h-6 fill-current animate-pulse" />
-                    )}
+
+                {/* Gradient overlay — always present subtly, stronger on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+
+                {/* Play button */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400">
+                  <div className={`${cfg.playBg} text-black p-3.5 rounded-full shadow-2xl transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-75`}
+                       style={{ boxShadow: '0 0 30px currentColor' }}>
+                    {item.media_type === 'manga'
+                      ? <BookOpen className="w-5 h-5" />
+                      : <Play className="w-5 h-5 fill-current" />
+                    }
                   </div>
                 </div>
 
-                {/* Rating Badge */}
+                {/* Rating */}
                 {rating && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/75 backdrop-blur-md text-yellow-400 text-xs font-bold px-2 py-1 rounded-lg border border-white/5">
-                    <Star className="w-3.5 h-3.5 fill-current" />
+                  <div className="absolute top-2 right-2 rating-pill opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300">
+                    <Star className="w-3 h-3 fill-current" />
                     {rating}
                   </div>
                 )}
 
-                {/* Media Type Badge */}
-                <div className={`absolute bottom-2 left-2 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${badgeStyle} backdrop-blur-md`}>
-                  {mediaLabel}
+                {/* Type badge */}
+                <div className={`badge ${cfg.badge} absolute bottom-2 left-2 backdrop-blur-md`}>
+                  {cfg.label}
                 </div>
               </div>
 
-              {/* Info Section */}
-              <div className="p-3 flex flex-col justify-between flex-grow">
-                <div className="space-y-1 relative z-10">
-                  <h3 className="font-bold text-sm text-gray-100 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-accentCyan group-hover:to-accentPurple transition-all duration-300 line-clamp-2 leading-tight">
-                    {item.title || item.name}
-                  </h3>
-                  {item.release_date && (
-                    <p className="text-xs text-gray-500">
-                      {item.release_date.substring(0, 4)}
-                    </p>
-                  )}
-                  {item.first_air_date && (
-                    <p className="text-xs text-gray-500">
-                      {item.first_air_date.substring(0, 4)}
-                    </p>
+              {/* ── Info ── */}
+              <div className="p-3 flex flex-col gap-1">
+                <h3 className={`font-semibold text-sm leading-snug line-clamp-2 transition-all duration-300 text-gray-200
+                               group-hover:bg-gradient-to-r ${cfg.titleHover}
+                               group-hover:bg-clip-text group-hover:text-transparent`}>
+                  {item.title || item.name}
+                </h3>
+
+                <div className="flex items-center gap-2 mt-0.5">
+                  {(item.release_date || item.first_air_date) && (
+                    <span className="text-[11px] text-gray-600 font-medium">
+                      {(item.release_date || item.first_air_date).substring(0, 4)}
+                    </span>
                   )}
                   {showTimings && (item.broadcast || item.broadcast_day) && (
-                    <div className="flex items-center gap-1 text-[11px] text-accentCyan font-bold mt-1">
-                      <Clock className="w-3.5 h-3.5 text-accentCyan" />
+                    <div className="flex items-center gap-1 text-[11px] text-accentCyan font-semibold">
+                      <Clock className="w-3 h-3" />
                       <span className="line-clamp-1">{item.broadcast || item.broadcast_day}</span>
                     </div>
                   )}

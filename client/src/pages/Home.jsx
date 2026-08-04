@@ -155,75 +155,74 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-16 py-6 px-4 md:px-8 max-w-7xl mx-auto">
-      
-      {/* Premium Hero Banner */}
-      <section className="relative rounded-3xl overflow-hidden glass-panel border border-darkBorder p-8 md:p-16 text-center space-y-6 shadow-2xl">
-        {/* Glow dots decoration */}
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-accentPurple/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-accentCyan/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div className="space-y-16 py-8 px-4 md:px-8 max-w-7xl mx-auto">
 
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-gray-300">
-          <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
-          The Ultimate Shared Streaming Hub
-        </div>
+      {/* ── Hero Banner ── */}
+      <section className="relative rounded-3xl overflow-hidden border border-white/[0.06] text-center bg-aurora">
+        {/* Ambient orbs */}
+        <div className="orb orb-purple w-80 h-80 -top-20 -left-20 opacity-60" />
+        <div className="orb orb-cyan w-64 h-64 -bottom-16 -right-16 opacity-50" />
+        <div className="orb orb-pink w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30" />
 
-        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight font-outfit">
-          Discover Global Entertainment & <br className="hidden md:inline"/>
-          <span className="bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink bg-clip-text text-transparent title-glow">
-            Watch Together in Real-Time
-          </span>
-        </h1>
+        {/* Noise grain overlay */}
+        <div className="noise-overlay rounded-3xl" />
 
-        <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg font-medium">
-          Stream movies, TV shows, and anime, or read manga side-by-side with friends. Host low-latency synchronized Watch Parties with interactive persistent chat lobbies.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-          <Link
-            to="/search"
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-102 transition"
-          >
-            <Search className="w-4 h-4 text-black fill-current" />
-            Explore Catalog
-          </Link>
-          <Link
-            to="/search"
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-darkBorder text-gray-300 hover:text-white hover:bg-white/10 transition"
-          >
-            <Users className="w-4 h-4" />
-            Join a Watch Party
-          </Link>
-        </div>
-
-        {/* Feature Highlights Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 max-w-4xl mx-auto border-t border-darkBorder/40">
-          <div className="flex flex-col items-center p-4 text-center space-y-2">
-            <div className="p-3 bg-cyan-500/10 rounded-2xl text-accentCyan border border-cyan-500/20">
-              <Tv className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-sm text-white">Aggregated Catalog</h3>
-            <p className="text-xs text-gray-500 max-w-xs">TMDB, Jikan Anime, and MangaDex feeds parsed under a single unified user dashboard.</p>
+        {/* Content */}
+        <div className="relative z-10 py-16 px-6 md:py-24 md:px-16 space-y-7 hero-gradient">
+          {/* Pill badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-full text-xs font-semibold text-gray-300 backdrop-blur-md animate-fade-up">
+            <Sparkles className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
+            The Ultimate Shared Streaming Hub
           </div>
-          <div className="flex flex-col items-center p-4 text-center space-y-2">
-            <div className="p-3 bg-purple-500/10 rounded-2xl text-accentPurple border border-purple-500/20">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-sm text-white">Host Sync Players</h3>
-            <p className="text-xs text-gray-500 max-w-xs">Control playback seek/pause states across all participant browsers programmatically.</p>
+
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-extrabold tracking-tight leading-[1.08] animate-fade-up stagger-2">
+            Discover, Stream &
+            <br className="hidden sm:block" />
+            <span className="text-gradient-aurora title-glow">&nbsp;Watch Together</span>
+          </h1>
+
+          <p className="text-gray-400 max-w-xl mx-auto text-base md:text-lg leading-relaxed animate-fade-up stagger-3">
+            Movies, TV shows, anime &amp; manga — synced across devices in real-time. Host Watch Parties with chat, no account sharing needed.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 animate-fade-up stagger-4">
+            <Link
+              to="/search"
+              className="btn-primary flex items-center gap-2 !text-white text-sm !px-6 !py-3"
+            >
+              <Search className="w-4 h-4" />
+              Explore Catalog
+            </Link>
+            <Link
+              to="/search"
+              className="btn-ghost flex items-center gap-2 text-sm !px-6 !py-3"
+            >
+              <Users className="w-4 h-4" />
+              Join a Party
+            </Link>
           </div>
-          <div className="flex flex-col items-center p-4 text-center space-y-2">
-            <div className="p-3 bg-pink-500/10 rounded-2xl text-accentPink border border-pink-500/20">
-              <MessageSquareCode className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-sm text-white">Persistent Lobby Chat</h3>
-            <p className="text-xs text-gray-500 max-w-xs">Chat live alongside video streams. All messages are stored in MySQL to guarantee audit trail logs.</p>
+
+          {/* Feature highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-10 max-w-3xl mx-auto border-t border-white/[0.06] mt-4 animate-fade-up stagger-5">
+            {[
+              { icon: Tv, color: 'text-accentCyan', bg: 'bg-accentCyan/10 border-accentCyan/20', title: 'Aggregated Catalog', desc: 'TMDB, Anime, MangaDex feeds in one dashboard.' },
+              { icon: Sparkles, color: 'text-accentPurple', bg: 'bg-accentPurple/10 border-accentPurple/20', title: 'Host Sync Players', desc: 'Control playback across all participants live.' },
+              { icon: MessageSquareCode, color: 'text-accentPink', bg: 'bg-accentPink/10 border-accentPink/20', title: 'Lobby Chat', desc: 'Chat alongside streams with persistent history.' },
+            ].map(({ icon: Icon, color, bg, title, desc }) => (
+              <div key={title} className="flex flex-col items-center p-4 text-center space-y-2 hover-lift">
+                <div className={`p-3 rounded-2xl border ${bg}`}>
+                  <Icon className={`w-5 h-5 ${color}`} />
+                </div>
+                <h3 className="font-semibold text-sm text-white">{title}</h3>
+                <p className="text-xs text-gray-500 max-w-[180px]">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Tab Selector Section */}
-      <div className="flex flex-wrap items-center justify-center gap-3 border-b border-darkBorder pb-6">
+      {/* ── Tab Selector ── */}
+      <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -231,14 +230,19 @@ export default function Home() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl text-sm font-bold tracking-wide transition-all duration-300 ${
+              className={`group relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-semibold tracking-wide transition-all duration-400 ${
                 isSelected
-                  ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-black shadow-lg shadow-accentCyan/20 scale-102'
-                  : 'text-gray-400 border border-darkBorder bg-darkCard/40 hover:text-white hover:bg-white/5'
+                  ? 'bg-white/[0.08] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.1)] border border-white/[0.1]'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
               }`}
             >
-              <Icon className={`w-4.5 h-4.5 ${isSelected ? 'text-black' : tab.color}`} />
-              {tab.label}
+              {isSelected && (
+                <div className="absolute inset-0 rounded-2xl opacity-100" style={{
+                  background: `linear-gradient(135deg, rgba(var(--accent-purple),0.15), rgba(var(--accent-cyan),0.08))`
+                }} />
+              )}
+              <Icon className={`relative w-4 h-4 transition-all duration-300 ${isSelected ? tab.color : 'text-gray-500 group-hover:text-gray-300'}`} />
+              <span className="relative">{tab.label}</span>
             </button>
           );
         })}
@@ -246,13 +250,13 @@ export default function Home() {
 
       {/* Dashboard Grid Content */}
       {loading ? (
-        <div className="space-y-12 animate-pulse py-12">
+        <div className="space-y-12 py-8">
           {[1, 2].map((i) => (
-            <div key={i} className="space-y-4">
-              <div className="h-6 w-48 bg-white/10 rounded animate-fade-in"></div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+            <div key={i} className="space-y-5">
+              <div className="h-5 w-48 skeleton rounded-xl" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 {[1, 2, 3, 4, 5].map((j) => (
-                  <div key={j} className="h-[380px] bg-white/5 rounded-2xl border border-darkBorder"></div>
+                  <div key={j} className="aspect-[2/3] skeleton rounded-2xl" />
                 ))}
               </div>
             </div>
