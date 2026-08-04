@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   React.useEffect(() => {
-    const ALL_THEMES = ['theme-inferno', 'theme-sakura', 'theme-synthwave'];
+    const ALL_THEMES = ['theme-inferno', 'theme-emerald', 'theme-cyber'];
     const savedTheme = localStorage.getItem('syncstream_theme') || 'ocean';
     // Remove all theme classes first
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));

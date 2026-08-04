@@ -234,17 +234,17 @@ export default function VoiceAssistant() {
     }
 
     // 7. THEME INTENTS
-    if (command.includes('theme') || command.includes('inferno') || command.includes('sakura') || command.includes('synthwave') || command.includes('ocean')) {
-      const ALL_THEMES = ['theme-inferno', 'theme-sakura', 'theme-synthwave'];
+    if (command.includes('theme') || command.includes('inferno') || command.includes('emerald') || command.includes('cyber') || command.includes('ocean') || command.includes('gold')) {
+      const ALL_THEMES = ['theme-inferno', 'theme-emerald', 'theme-cyber'];
       let newTheme = 'ocean';
-      if (command.includes('inferno') || command.includes('fire')) newTheme = 'inferno';
-      else if (command.includes('sakura') || command.includes('pink') || command.includes('blossom')) newTheme = 'sakura';
-      else if (command.includes('synthwave') || command.includes('retro') || command.includes('80s')) newTheme = 'synthwave';
+      if (command.includes('inferno') || command.includes('fire') || command.includes('lava')) newTheme = 'inferno';
+      else if (command.includes('emerald') || command.includes('green') || command.includes('forest')) newTheme = 'emerald';
+      else if (command.includes('cyber') || command.includes('gold') || command.includes('golden')) newTheme = 'cyber';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
       if (newTheme !== 'ocean') document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
-      const labels = { ocean: '🌊 Deep Ocean', inferno: '🔥 Inferno', sakura: '🌸 Sakura', synthwave: '👾 Synthwave' };
+      const labels = { ocean: '🌊 Deep Ocean', inferno: '🔥 Inferno', emerald: '🌿 Emerald', cyber: '⚡ Cyber Gold' };
       setStatusText(`Theme: ${labels[newTheme]}`);
       return;
     }

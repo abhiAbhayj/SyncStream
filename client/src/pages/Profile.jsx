@@ -13,7 +13,7 @@ export default function Profile() {
     return localStorage.getItem('syncstream_theme') || 'ocean';
   });
 
-  const ALL_THEME_CLASSES = ['theme-inferno', 'theme-sakura', 'theme-synthwave'];
+  const ALL_THEME_CLASSES = ['theme-inferno', 'theme-emerald', 'theme-cyber'];
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
@@ -194,16 +194,16 @@ export default function Profile() {
                   swatch: ['#ff3719', '#ff8c28', '#ffc800'],
                 },
                 {
-                  id: 'sakura',
-                  name: '🌸 Sakura',
-                  desc: 'Cherry blossom & violet',
-                  swatch: ['#e4489b', '#ff9bc3', '#b037c8'],
+                  id: 'emerald',
+                  name: '🌿 Emerald',
+                  desc: 'Dark forest + neon green',
+                  swatch: ['#32f0a0', '#00c878', '#8cff64'],
                 },
                 {
-                  id: 'synthwave',
-                  name: '👾 Synthwave',
-                  desc: 'Retro 80s neon grid',
-                  swatch: ['#c800ff', '#00e6ff', '#ff00af'],
+                  id: 'cyber',
+                  name: '⚡ Cyber Gold',
+                  desc: 'Gunmetal dark + pure gold',
+                  swatch: ['#ffcd00', '#dc8500', '#fff08c'],
                 },
               ].map((t) => (
                 <button

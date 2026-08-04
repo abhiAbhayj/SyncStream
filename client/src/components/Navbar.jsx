@@ -60,7 +60,7 @@ export default function Navbar() {
                 <Tv className="w-5 h-5 animate-pulse-glow" />
               </div>
             </div>
-            <span className="font-display font-extrabold text-xl tracking-wide text-gradient-aurora">
+            <span className="font-orbitron font-extrabold text-xl tracking-widest text-gradient-aurora uppercase">
               SyncStream
             </span>
           </Link>
@@ -74,7 +74,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`nav-link relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                  className={`nav-link relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 font-rajdhani tracking-wide uppercase text-[13px] ${
                     active
                       ? 'text-white bg-white/[0.07]'
                       : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'

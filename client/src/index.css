@@ -1,7 +1,8 @@
 /* =============================================
    SyncStream — Premium Design System v3.0
    ============================================= */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* ── Premium Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -48,43 +49,43 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME: Sakura 🌸  (Cherry Blossom)
+   THEME: Emerald 🌿  (Dark Forest / Neon Green)
 ───────────────────────────────────────────── */
-.theme-sakura {
-  --dark-bg:     7 3 9;
-  --dark-card:   16 6 20;
-  --dark-surf:   22 9 27;
+.theme-emerald {
+  --dark-bg:     2 8 5;
+  --dark-card:   4 16 9;
+  --dark-surf:   5 22 12;
   --dark-border: 255 255 255;
 
-  --accent-cyan:   255 155 195;
-  --accent-purple: 228 72 155;
-  --accent-pink:   175 55 200;
-  --accent-gold:   255 185 205;
-  --accent-green:  195 120 230;
+  --accent-cyan:   50 240 160;    /* neon mint */
+  --accent-purple: 0 200 120;     /* emerald green */
+  --accent-pink:   140 255 100;   /* lime glow */
+  --accent-gold:   255 220 50;    /* golden highlight */
+  --accent-green:  0 255 140;     /* bright neon green */
 
-  --glow-1: rgba(228,  72, 155, 0.15);
-  --glow-2: rgba(255, 155, 195, 0.09);
-  --glow-3: rgba(175,  55, 200, 0.07);
+  --glow-1: rgba(0,  200, 120, 0.18);
+  --glow-2: rgba(50, 240, 160, 0.12);
+  --glow-3: rgba(255, 220, 50, 0.07);
 }
 
 /* ─────────────────────────────────────────────
-   THEME: Synthwave 👾  (80s Retro)
+   THEME: Cyber Gold ⚡  (Dark Gunmetal + Gold)
 ───────────────────────────────────────────── */
-.theme-synthwave {
-  --dark-bg:     4 1 14;
-  --dark-card:   9 3 26;
-  --dark-surf:   13 5 34;
+.theme-cyber {
+  --dark-bg:     6 6 4;
+  --dark-card:   12 12 8;
+  --dark-surf:   16 16 10;
   --dark-border: 255 255 255;
 
-  --accent-cyan:   0 230 255;
-  --accent-purple: 200 0 255;
-  --accent-pink:   255 0 175;
-  --accent-gold:   255 230 0;
-  --accent-green:  0 255 155;
+  --accent-cyan:   255 205 0;     /* pure gold */
+  --accent-purple: 220 165 0;     /* deep gold */
+  --accent-pink:   255 120 0;     /* amber orange */
+  --accent-gold:   255 240 140;   /* pale gold shimmer */
+  --accent-green:  255 230 80;    /* yellow gold */
 
-  --glow-1: rgba(200,   0, 255, 0.18);
-  --glow-2: rgba(  0, 230, 255, 0.12);
-  --glow-3: rgba(255,   0, 175, 0.09);
+  --glow-1: rgba(255, 205,   0, 0.15);
+  --glow-2: rgba(255, 120,   0, 0.10);
+  --glow-3: rgba(220, 165,   0, 0.07);
 }
 
 /* ─────────────────────────────────────────────
@@ -97,7 +98,7 @@
 
   body {
     @apply bg-darkBg text-gray-100 antialiased overflow-x-hidden;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
     background-image:
       radial-gradient(ellipse 80% 50% at 15%  0%,  var(--glow-1) 0%, transparent 60%),
       radial-gradient(ellipse 60% 40% at 85% 100%, var(--glow-2) 0%, transparent 60%),
@@ -107,7 +108,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Sora', system-ui, sans-serif;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
     @apply font-bold tracking-tight;
   }
 

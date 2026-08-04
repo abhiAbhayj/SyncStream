@@ -170,19 +170,19 @@ export default function Home() {
         {/* Content */}
         <div className="relative z-10 py-16 px-6 md:py-24 md:px-16 space-y-7 hero-gradient">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-full text-xs font-semibold text-gray-300 backdrop-blur-md animate-fade-up">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-full text-xs font-semibold text-gray-300 backdrop-blur-md animate-fade-up font-mono tracking-widest">
             <Sparkles className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
-            The Ultimate Shared Streaming Hub
+            THE ULTIMATE STREAMING HUB
           </div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-extrabold tracking-tight leading-[1.08] animate-fade-up stagger-2">
-            Discover, Stream &
-            <br className="hidden sm:block" />
-            <span className="text-gradient-aurora title-glow">&nbsp;Watch Together</span>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bebas tracking-widest leading-none uppercase animate-fade-up stagger-2">
+            Discover, Stream &amp;
+            <br />
+            <span className="text-gradient-aurora title-glow">Watch Together</span>
           </h1>
 
-          <p className="text-gray-400 max-w-xl mx-auto text-base md:text-lg leading-relaxed animate-fade-up stagger-3">
-            Movies, TV shows, anime &amp; manga — synced across devices in real-time. Host Watch Parties with chat, no account sharing needed.
+          <p className="text-gray-400 max-w-xl mx-auto text-base md:text-lg leading-relaxed animate-fade-up stagger-3 font-dm">
+            Movies, TV shows, anime &amp; manga — synced across devices in real-time. Host Watch Parties with live chat.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2 animate-fade-up stagger-4">
