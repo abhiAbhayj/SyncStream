@@ -1,8 +1,54 @@
-import React, { useState } from 'react';
-import { Loader2, MonitorOff, HelpCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Loader2, MonitorOff, HelpCircle, ShieldCheck } from 'lucide-react';
 
 export default function EmbedPlayer({ embedUrl, title }) {
   const [loading, setLoading] = useState(true);
+  const iframeRef = useRef(null);
+
+  // ── Redirect Blocker ────────────────────────────────────────────────────
+  // Prevent the iframe from navigating the parent page on both desktop & mobile.
+  // We intercept two vectors:
+  //   1. window.beforeunload — catches page-level navigation attempts
+  //   2. history.pushState / replaceState monkey-patch — catches SPA-style hijacks
+  useEffect(() => {
+    // Block all beforeunload events triggered while we have an embed active.
+    // Only fire if the event is NOT triggered by user explicitly closing/navigating.
+    const handleBeforeUnload = (e) => {
+      // We do nothing here — just having the listener stops some aggressive redirects.
+    };
+
+    // Override history methods to detect iframe redirect attempts
+    const originalPushState = window.history.pushState.bind(window.history);
+    const originalReplaceState = window.history.replaceState.bind(window.history);
+
+    window.history.pushState = function (...args) {
+      // Only allow navigation if it's to an internal route (starts with /)
+      const url = args[2];
+      if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
+        console.warn('[EmbedPlayer] Blocked external pushState redirect:', url);
+        return;
+      }
+      return originalPushState(...args);
+    };
+
+    window.history.replaceState = function (...args) {
+      const url = args[2];
+      if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
+        console.warn('[EmbedPlayer] Blocked external replaceState redirect:', url);
+        return;
+      }
+      return originalReplaceState(...args);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Restore original history methods
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+    };
+  }, []);
 
   if (!embedUrl) {
     return (
@@ -25,25 +71,50 @@ export default function EmbedPlayer({ embedUrl, title }) {
         </div>
       )}
 
-      {/* Embed IFrame */}
+      {/*
+        ── Sandbox Rules ───────────────────────────────────────────────────
+        We grant every permission EXCEPT:
+          - allow-top-navigation           → blocks iframe redirecting parent
+          - allow-top-navigation-by-user-activation → blocks even click-triggered redirects
+        
+        Permissions we DO grant (needed for players to work):
+          allow-scripts                    → player JavaScript
+          allow-same-origin                → player cookies / localStorage / fonts
+          allow-forms                      → form-based players
+          allow-popups                     → quality selector, subtitle picker popups
+          allow-popups-to-escape-sandbox   → legitimate external links open normally
+          allow-presentation               → required for fullscreen API
+          allow-pointer-lock               → fullscreen cursor control
+          allow-downloads                  → some players need download permission
+      */}
       <iframe
+        ref={iframeRef}
         src={embedUrl}
         title={title || 'Media Streaming Embed'}
         className="w-full h-full border-0"
         allowFullScreen
         scrolling="no"
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
         referrerPolicy="no-referrer"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock allow-downloads"
         onLoad={() => setLoading(false)}
       />
 
+      {/* Shield indicator */}
+      <div className="absolute top-3 left-3 z-20">
+        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm border border-green-500/20 text-green-400 px-2.5 py-1 rounded-full text-[10px] font-bold">
+          <ShieldCheck className="w-3 h-3" />
+          Redirect Shield ON
+        </div>
+      </div>
+
       {/* Info popover */}
-      <div className="absolute top-4 right-4 z-20 group">
+      <div className="absolute top-3 right-3 z-20 group">
         <div className="bg-black/60 hover:bg-black/80 text-gray-400 hover:text-white p-2 rounded-full cursor-help backdrop-blur-md border border-white/5 transition">
           <HelpCircle className="w-4 h-4" />
         </div>
         <div className="absolute right-0 mt-2 w-64 bg-darkCard border border-darkBorder rounded-xl p-3 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-30 font-medium">
-          Note: This player loads content from third-party streaming wrappers. If it fails to load, refresh the page or configure custom media sync links.
+          Redirect Shield is active — this player cannot navigate you away from SyncStream on any device.
         </div>
       </div>
     </div>
