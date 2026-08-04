@@ -96,17 +96,8 @@ export default function EmbedPlayer({ embedUrl, title }) {
         scrolling="no"
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
         referrerPolicy="no-referrer"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock allow-downloads"
         onLoad={() => setLoading(false)}
       />
-
-      {/* Shield indicator */}
-      <div className="absolute top-3 left-3 z-20">
-        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm border border-green-500/20 text-green-400 px-2.5 py-1 rounded-full text-[10px] font-bold">
-          <ShieldCheck className="w-3 h-3" />
-          Redirect Shield ON
-        </div>
-      </div>
 
       {/* Info popover */}
       <div className="absolute top-3 right-3 z-20 group">

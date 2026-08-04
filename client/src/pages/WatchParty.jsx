@@ -219,7 +219,6 @@ export default function WatchParty() {
     if (type === 'movie' || (type === 'anime' && isTmdbMovie)) {
       const activeId = type === 'anime' ? tmdbId : id;
       if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${activeId}`;
-      if (embedServer === 'vidsrc') return `https://multiembed.mov/?video_id=${activeId}&tmdb=1`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${activeId}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${activeId}`;
       if (embedServer === 'twoembed') return `https://www.2embed.cc/embed/${activeId}`;
@@ -229,7 +228,6 @@ export default function WatchParty() {
       const season = activeSeason || 1;
       const episode = activeEpisode || 1;
       if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrc') return `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
       if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
@@ -238,7 +236,6 @@ export default function WatchParty() {
     if (type === 'anime') {
       const episode = activeEpisode || 1;
       if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrc') return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=1&e=${episode}`;
       if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${tmdbId}/1/${episode}`;
       if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${tmdbId}/1/${episode}`;
       if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${tmdbId}&s=1&e=${episode}`;
@@ -372,10 +369,9 @@ export default function WatchParty() {
               <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Streaming Server:</span>
               {[
                 { key: 'vidlink', label: 'Server 1 (VidLink)' },
-                { key: 'vidsrc', label: 'Server 2 (MultiEmbed)' },
-                { key: 'vidsrcpm', label: 'Server 3 (VidSrc.pm)' },
-                { key: 'vidsrcme', label: 'Server 4 (VidSrc.me)' },
-                { key: 'twoembed', label: 'Server 5 (2Embed)' },
+                { key: 'vidsrcpm', label: 'Server 2 (VidSrc.pm)' },
+                { key: 'vidsrcme', label: 'Server 3 (VidSrc.me)' },
+                { key: 'twoembed', label: 'Server 4 (2Embed)' },
               ].map((server) => (
                 <button
                   key={server.key}
