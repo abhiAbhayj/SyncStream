@@ -200,22 +200,24 @@ export const getTrending = async (req, res) => {
 
         let ongoingMovies = [];
 
+        const tmdbAxios = axios.create({ timeout: 7000 });
+
         const [
           trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes,
           trendingAnimeRes, ongoingAnimeRes, upcomingAnimeRes, airingTodayAnimeRes, nowPlayingMoviesRes
         ] = await Promise.all([
-          axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`),
+          tmdbAxios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
           // Anime Queries via TMDB (Animation genre 16 + Japanese language)
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`)
+          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
+          tmdbAxios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } }))
         ]);
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
@@ -327,14 +329,15 @@ export const getTrending = async (req, res) => {
     };
 
     try {
-      const trendingMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[followedCount]=desc');
-      trendingManga = trendingMangaRes.data.data.map(mapManga);
+      const mangaAxios = axios.create({ timeout: 6000 });
+      const trendingMangaRes = await mangaAxios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[followedCount]=desc').catch(e => ({ data: { data: [] } }));
+      trendingManga = (trendingMangaRes.data?.data || []).map(mapManga);
 
-      const ongoingMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&status[]=ongoing&order[followedCount]=desc');
-      ongoingManga = ongoingMangaRes.data.data.map(mapManga);
+      const ongoingMangaRes = await mangaAxios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&status[]=ongoing&order[followedCount]=desc').catch(e => ({ data: { data: [] } }));
+      ongoingManga = (ongoingMangaRes.data?.data || []).map(mapManga);
 
-      const latestMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[latestUploadedChapter]=desc');
-      latestManga = latestMangaRes.data.data.map(mapManga);
+      const latestMangaRes = await mangaAxios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[latestUploadedChapter]=desc').catch(e => ({ data: { data: [] } }));
+      latestManga = (latestMangaRes.data?.data || []).map(mapManga);
     } catch (err) {
       console.error('MangaDex API dashboard query error:', err.message);
       const fallback = [
@@ -401,7 +404,19 @@ export const getTrending = async (req, res) => {
   } catch (error) {
     dashboardPromise = null;
     console.error('[Media Controller Trending Error]:', error);
-    res.status(500).json({ error: 'Failed to fetch catalog content.' });
+
+    // Fallback response if everything fails to guarantee homepage never crashes
+    const fallbackMovies = MOCK_MOVIES.map(m => ({
+      id: m.id, title: m.title, overview: m.overview, poster_path: m.poster_path, release_date: m.release_date, vote_average: m.vote_average, media_type: 'movie'
+    }));
+
+    res.json({
+      trending: { movies: fallbackMovies, tv: [], anime: [], manga: [] },
+      ongoing: { movies: fallbackMovies, tv: [], anime: [], manga: [] },
+      upcoming: { movies: fallbackMovies, tv: [], anime: [] },
+      schedule: { tv: [], anime: [] },
+      latest: { manga: [] }
+    });
   }
 };
 

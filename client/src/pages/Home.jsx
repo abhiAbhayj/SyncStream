@@ -131,20 +131,33 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const fetchCatalog = async () => {
+    let isMounted = true;
+    
+    const fetchCatalog = async (attempt = 1) => {
       try {
-        setLoading(true);
+        if (attempt === 1) setLoading(true);
         const res = await axios.get('/api/media/trending');
-        setMedia(res.data);
+        if (isMounted) {
+          setMedia(res.data);
+          setError(null);
+        }
       } catch (err) {
-        console.error('Failed to load home catalog:', err);
-        setError('Could not connect to external media APIs. Retrying shortly...');
+        console.error(`Failed to load home catalog (attempt ${attempt}):`, err);
+        if (attempt <= 3) {
+          setTimeout(() => {
+            if (isMounted) fetchCatalog(attempt + 1);
+          }, 3000);
+        } else if (isMounted) {
+          setError('Could not connect to external media APIs. Retrying shortly...');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted && attempt === 1) setLoading(false);
       }
     };
 
-    fetchCatalog();
+    fetchCatalog(1);
+
+    return () => { isMounted = false; };
   }, []);
 
   const tabs = [
