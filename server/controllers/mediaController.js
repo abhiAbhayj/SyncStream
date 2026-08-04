@@ -401,8 +401,18 @@ export const getTrending = async (req, res) => {
 };
 
 export const searchMedia = async (req, res) => {
-  const { query, type, genre, country } = req.query; // type can be 'movie', 'tv', 'anime', 'manga'
+  const { query, type, genre, country, sort } = req.query;
   const page = parseInt(req.query.page || '1', 10);
+
+  // Determine TMDB sort_by value:
+  //  - Discover (no query): default to latest release date
+  //  - Search (has query): default to relevance (TMDB handles it), then we sort by date client-side
+  const getSortBy = (mediaType) => {
+    if (sort === 'trending')  return 'popularity.desc';
+    if (sort === 'top_rated') return 'vote_average.desc';
+    // Default: latest first
+    return mediaType === 'movie' ? 'primary_release_date.desc' : 'first_air_date.desc';
+  };
 
   try {
     let results = [];
@@ -415,8 +425,16 @@ export const searchMedia = async (req, res) => {
           const tmdbType = type === 'anime' ? 'tv' : type;
           
           if (!hasQuery) {
-            // Discover Mode (No text query, only filters or default popular)
-            url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
+            // Discover Mode (No text query, only filters or default — LATEST FIRST)
+            const tmdbType = type === 'anime' ? 'tv' : type;
+            const sortBy = getSortBy(tmdbType);
+            url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=${sortBy}&page=${page}`;
+
+            // Exclude future release dates so upcoming films don't clog latest
+            if (type === 'movie') {
+              const today = new Date().toISOString().split('T')[0];
+              url += `&primary_release_date.lte=${today}`;
+            }
             
             if (type === 'anime') {
               url += `&with_original_language=ja`;
@@ -492,6 +510,17 @@ export const searchMedia = async (req, res) => {
               vote_average: r.vote_average,
               media_type: type
             }));
+
+            // Sort search results: latest first by default, unless trending/top_rated requested
+            if (!sort || sort === 'latest') {
+              results.sort((a, b) => {
+                const dateA = new Date(a.release_date || '1900-01-01').getTime();
+                const dateB = new Date(b.release_date || '1900-01-01').getTime();
+                return dateB - dateA;
+              });
+            } else if (sort === 'top_rated') {
+              results.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+            }
           }
         } catch (err) {
           console.warn('TMDB search/discover error, using mock fallback:', err.message);
@@ -512,7 +541,15 @@ export const searchMedia = async (req, res) => {
       try {
         const limit = 20;
         const offset = (page - 1) * limit;
-        let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art`;
+
+        // Sort manga by latest updated chapter by default
+        const mangaOrder = sort === 'trending'
+          ? 'order[followedCount]=desc'
+          : sort === 'top_rated'
+          ? 'order[rating]=desc'
+          : 'order[latestUploadedChapter]=desc'; // latest updated first
+
+        let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art&${mangaOrder}`;
         if (query && query.trim() !== '') endpoint += `&title=${encodeURIComponent(query.trim())}`;
         
         if (genre) {
@@ -533,12 +570,14 @@ export const searchMedia = async (req, res) => {
 
           const title = m.attributes.title.en || Object.values(m.attributes.title)[0] || 'Unknown Manga';
           const overview = m.attributes.description.en || 'No description available.';
+          const lastChapterDate = m.attributes.updatedAt || m.attributes.createdAt || null;
 
           return {
             id: m.id,
             title,
             overview,
             poster_path: posterUrl,
+            release_date: lastChapterDate,
             vote_average: 8.0,
             media_type: 'manga'
           };

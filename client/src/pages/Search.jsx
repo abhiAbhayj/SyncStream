@@ -15,6 +15,7 @@ export default function Search() {
   const [type, setType] = useState(initialType);
   const [genre, setGenre] = useState(initialGenre);
   const [country, setCountry] = useState(initialCountry);
+  const [sort, setSort] = useState('latest');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -30,7 +31,7 @@ export default function Search() {
   }, []);
 
 
-  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeCountry = country, pageNum = 1) => {
+  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeCountry = country, pageNum = 1, activeSort = sort) => {
     if (pageNum === 1) setLoading(true);
     else setLoadingMore(true);
     setSearched(true);
@@ -42,6 +43,7 @@ export default function Search() {
           type: searchType, 
           genre: activeGenre, 
           country: activeCountry,
+          sort: activeSort,
           page: pageNum
         }
       });
@@ -103,7 +105,13 @@ export default function Search() {
     setCountry('');
     setPage(1);
     setSearchParams({ q: query, type });
-    executeSearch(query, type, '', '', 1);
+    executeSearch(query, type, '', '', 1, sort);
+  };
+
+  const handleSortChange = (newSort) => {
+    setSort(newSort);
+    setPage(1);
+    executeSearch(query, type, genre, country, 1, newSort);
   };
 
   const filterTabs = [
@@ -171,6 +179,30 @@ export default function Search() {
 
         {/* Filter controls row */}
         <div className="flex flex-wrap gap-4 items-center justify-start text-xs pt-2">
+          
+          {/* Sort selector */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-400 font-bold uppercase tracking-wider">Sort:</span>
+            {[
+              { key: 'latest', label: type === 'anime' ? '📅 Latest Episode' : type === 'manga' ? '📅 Latest Chapter' : type === 'tv' ? '📅 Latest Aired' : '📅 Latest Release' },
+              { key: 'trending', label: '🔥 Trending' },
+              { key: 'top_rated', label: '⭐ Top Rated' },
+            ].map(s => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => handleSortChange(s.key)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                  sort === s.key
+                    ? 'bg-accentPurple text-white'
+                    : 'bg-darkCard border border-darkBorder text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
           {/* Genre select */}
           <div className="flex items-center gap-2">
             <span className="text-gray-400 font-bold uppercase tracking-wider">Genre:</span>
