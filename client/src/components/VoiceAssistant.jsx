@@ -234,16 +234,18 @@ export default function VoiceAssistant() {
     }
 
     // 7. THEME INTENTS
-    if (command.includes('theme') || command.includes('midnight cosmic') || command.includes('standard neon')) {
-      if (command.includes('cosmic') || command.includes('midnight') || command.includes('dark')) {
-        localStorage.setItem('syncstream_theme', 'cosmic');
-        document.body.classList.add('theme-cosmic');
-        setStatusText('Cosmic Theme Enabled');
-      } else {
-        localStorage.setItem('syncstream_theme', 'standard');
-        document.body.classList.remove('theme-cosmic');
-        setStatusText('Standard Theme Enabled');
-      }
+    if (command.includes('theme') || command.includes('inferno') || command.includes('sakura') || command.includes('synthwave') || command.includes('ocean')) {
+      const ALL_THEMES = ['theme-inferno', 'theme-sakura', 'theme-synthwave'];
+      let newTheme = 'ocean';
+      if (command.includes('inferno') || command.includes('fire')) newTheme = 'inferno';
+      else if (command.includes('sakura') || command.includes('pink') || command.includes('blossom')) newTheme = 'sakura';
+      else if (command.includes('synthwave') || command.includes('retro') || command.includes('80s')) newTheme = 'synthwave';
+
+      ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
+      if (newTheme !== 'ocean') document.body.classList.add(`theme-${newTheme}`);
+      localStorage.setItem('syncstream_theme', newTheme);
+      const labels = { ocean: '🌊 Deep Ocean', inferno: '🔥 Inferno', sakura: '🌸 Sakura', synthwave: '👾 Synthwave' };
+      setStatusText(`Theme: ${labels[newTheme]}`);
       return;
     }
 

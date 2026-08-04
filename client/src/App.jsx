@@ -31,11 +31,13 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   React.useEffect(() => {
-    const savedTheme = localStorage.getItem('syncstream_theme') || 'standard';
-    if (savedTheme === 'cosmic') {
-      document.body.classList.add('theme-cosmic');
-    } else {
-      document.body.classList.remove('theme-cosmic');
+    const ALL_THEMES = ['theme-inferno', 'theme-sakura', 'theme-synthwave'];
+    const savedTheme = localStorage.getItem('syncstream_theme') || 'ocean';
+    // Remove all theme classes first
+    ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
+    // Apply the saved theme
+    if (savedTheme !== 'ocean') {
+      document.body.classList.add(`theme-${savedTheme}`);
     }
   }, []);
 

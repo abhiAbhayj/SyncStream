@@ -10,16 +10,17 @@ export default function Profile() {
   const [username, setUsername] = useState(user?.username || '');
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar_url || '');
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'standard';
+    return localStorage.getItem('syncstream_theme') || 'ocean';
   });
+
+  const ALL_THEME_CLASSES = ['theme-inferno', 'theme-sakura', 'theme-synthwave'];
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     localStorage.setItem('syncstream_theme', newTheme);
-    if (newTheme === 'cosmic') {
-      document.body.classList.add('theme-cosmic');
-    } else {
-      document.body.classList.remove('theme-cosmic');
+    ALL_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
+    if (newTheme !== 'ocean') {
+      document.body.classList.add(`theme-${newTheme}`);
     }
   };
   
@@ -175,35 +176,65 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Layout Mode selection */}
+          {/* Theme Picker */}
           <div className="space-y-3">
-            <label className="text-xs font-bold text-gray-400 block">Dashboard Theme Palette</label>
-            
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => handleThemeChange('standard')}
-                className={`flex-grow py-3 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 ${
-                  theme === 'standard'
-                    ? 'border-accentCyan bg-accentCyan/5 text-accentCyan'
-                    : 'border-darkBorder bg-darkBg text-gray-400 hover:text-white hover:border-white/10'
-                }`}
-              >
-                <div className="w-3 h-3 rounded-full bg-accentCyan"></div>
-                Standard Neon Dark
-              </button>
-              <button
-                type="button"
-                onClick={() => handleThemeChange('cosmic')}
-                className={`flex-grow py-3 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 ${
-                  theme === 'cosmic'
-                    ? 'border-accentCyan bg-accentCyan/5 text-accentCyan'
-                    : 'border-darkBorder bg-darkBg text-gray-400 hover:text-white hover:border-white/10'
-                }`}
-              >
-                <div className="w-3 h-3 rounded-full bg-accentPurple"></div>
-                Midnight Cosmic
-              </button>
+            <label className="text-xs font-bold text-gray-400 block uppercase tracking-wider">Dashboard Theme</label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                {
+                  id: 'ocean',
+                  name: '🌊 Deep Ocean',
+                  desc: 'Electric blue & violet',
+                  swatch: ['#63d2ff', '#9564ff', '#ff55ad'],
+                },
+                {
+                  id: 'inferno',
+                  name: '🔥 Inferno',
+                  desc: 'Fire, lava & molten gold',
+                  swatch: ['#ff3719', '#ff8c28', '#ffc800'],
+                },
+                {
+                  id: 'sakura',
+                  name: '🌸 Sakura',
+                  desc: 'Cherry blossom & violet',
+                  swatch: ['#e4489b', '#ff9bc3', '#b037c8'],
+                },
+                {
+                  id: 'synthwave',
+                  name: '👾 Synthwave',
+                  desc: 'Retro 80s neon grid',
+                  swatch: ['#c800ff', '#00e6ff', '#ff00af'],
+                },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => handleThemeChange(t.id)}
+                  className={`relative p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden ${
+                    theme === t.id
+                      ? 'border-white/20 bg-white/[0.08] shadow-lg shadow-black/30'
+                      : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10'
+                  }`}
+                >
+                  {/* Color swatch bar */}
+                  <div className="flex gap-1 mb-3">
+                    {t.swatch.map((color) => (
+                      <div
+                        key={color}
+                        className="h-2 flex-1 rounded-full"
+                        style={{ background: color, boxShadow: `0 0 8px ${color}66` }}
+                      />
+                    ))}
+                  </div>
+                  <p className="font-bold text-sm text-white">{t.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t.desc}</p>
+                  {theme === t.id && (
+                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentPurple flex items-center justify-center shadow">
+                      <Check className="w-3 h-3 text-white stroke-[3]" />
+                    </div>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
