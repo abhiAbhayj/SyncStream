@@ -131,33 +131,20 @@ export default function Home() {
   };
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const fetchCatalog = async (attempt = 1) => {
+    const fetchCatalog = async () => {
       try {
-        if (attempt === 1) setLoading(true);
+        setLoading(true);
         const res = await axios.get('/api/media/trending');
-        if (isMounted) {
-          setMedia(res.data);
-          setError(null);
-        }
+        setMedia(res.data);
       } catch (err) {
-        console.error(`Failed to load home catalog (attempt ${attempt}):`, err);
-        if (attempt <= 3) {
-          setTimeout(() => {
-            if (isMounted) fetchCatalog(attempt + 1);
-          }, 3000);
-        } else if (isMounted) {
-          setError('Could not connect to external media APIs. Retrying shortly...');
-        }
+        console.error('Failed to load home catalog:', err);
+        setError('Could not connect to external media APIs. Retrying shortly...');
       } finally {
-        if (isMounted && attempt === 1) setLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchCatalog(1);
-
-    return () => { isMounted = false; };
+    fetchCatalog();
   }, []);
 
   const tabs = [
@@ -171,40 +158,40 @@ export default function Home() {
     <div className="space-y-16 py-6 px-4 md:px-8 max-w-7xl mx-auto">
       
       {/* Premium Hero Banner */}
-      <section className="relative rounded-3xl overflow-hidden glass-panel-glow border border-accentCyan/20 p-8 md:p-16 text-center space-y-6 shadow-2xl animate-fade-in">
+      <section className="relative rounded-3xl overflow-hidden glass-panel border border-darkBorder p-8 md:p-16 text-center space-y-6 shadow-2xl">
         {/* Glow dots decoration */}
-        <div className="absolute top-0 left-1/4 w-80 h-80 bg-accentPurple/15 rounded-full blur-[110px] pointer-events-none animate-float"></div>
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accentCyan/15 rounded-full blur-[110px] pointer-events-none animate-float" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-accentPurple/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-accentCyan/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-darkCard/80 border border-accentCyan/30 rounded-full text-xs font-bold text-gray-200 shadow-[0_0_15px_rgba(0,240,255,0.15)] animate-pulse-glow">
-          <Sparkles className="w-4 h-4 text-accentCyan" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-gray-300">
+          <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
           The Ultimate Shared Streaming Hub
         </div>
 
-        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight font-syne">
+        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight font-outfit">
           Discover Global Entertainment & <br className="hidden md:inline"/>
           <span className="bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink bg-clip-text text-transparent title-glow">
             Watch Together in Real-Time
           </span>
         </h1>
 
-        <p className="text-gray-300/90 max-w-2xl mx-auto text-base md:text-lg font-sans font-medium leading-relaxed">
+        <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg font-medium">
           Stream movies, TV shows, and anime, or read manga side-by-side with friends. Host low-latency synchronized Watch Parties with interactive persistent chat lobbies.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
           <Link
             to="/search"
-            className="flex items-center gap-2 px-7 py-3.5 rounded-2xl btn-cyber-glow text-black font-extrabold font-outfit shadow-xl hover:scale-105 transition-all duration-300"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-102 transition"
           >
             <Search className="w-4 h-4 text-black fill-current" />
             Explore Catalog
           </Link>
           <Link
             to="/search"
-            className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-gray-200 hover:text-white hover:bg-white/10 hover:border-accentCyan/40 transition-all duration-300 font-outfit font-bold backdrop-blur-md"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-darkBorder text-gray-300 hover:text-white hover:bg-white/10 transition"
           >
-            <Users className="w-4 h-4 text-accentCyan" />
+            <Users className="w-4 h-4" />
             Join a Watch Party
           </Link>
         </div>
@@ -294,7 +281,7 @@ export default function Home() {
 
           {activeTab === 'ongoing' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing & Airing Movies (In Theaters)" seeMoreLink="/catalog/ongoing/movie" />
+              <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink="/catalog/ongoing/movie" />
               <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink="/catalog/ongoing/tv" showTimings={true} />
               <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Currently Airing Anime (MAL)" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
               <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Ongoing Manga Publications" seeMoreLink="/catalog/ongoing/manga" />

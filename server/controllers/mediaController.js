@@ -62,77 +62,15 @@ const MOCK_MOVIES = [
 const MOCK_TV = [
   {
     id: 'cosmos-laundromat',
-    title: 'Cosmos Laundromat',
     name: 'Cosmos Laundromat',
-    overview: 'On a desolate island, a depressed sheep named Franck meets a mysterious salesman who offers him a spiritual laundry service.',
+    overview: 'On a desolate island, a depressed sheep named Franck meets a mysterious salesman who offers him a spiritual, dimension-hopping laundry service to alter his destiny.',
     poster_path: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Cosmos_Laundromat_-_First_Cycle.webm.jpg',
+    backdrop_path: 'https://gooseberry.blender.org/wp-content/uploads/2015/03/laundromat_inside.jpg',
     first_air_date: '2015-08-10',
-    release_date: '2015-08-10',
     vote_average: 8.5,
     media_type: 'tv',
-    broadcast_day: 'Sundays'
-  },
-  {
-    id: 'sintel-series',
-    title: 'Sintel Chronicles',
-    name: 'Sintel Chronicles',
-    overview: 'Follow Sintel across dragon domains in this fantasy series.',
-    poster_path: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg',
-    first_air_date: '2021-04-12',
-    release_date: '2021-04-12',
-    vote_average: 8.1,
-    media_type: 'tv',
-    broadcast_day: 'Fridays'
-  }
-];
-
-const MOCK_ANIME = [
-  {
-    id: '1429',
-    title: 'Attack on Titan',
-    name: 'Attack on Titan',
-    overview: 'Humans fight giant man-eating humanoids called Titans.',
-    poster_path: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg',
-    first_air_date: '2013-04-07',
-    release_date: '2013-04-07',
-    vote_average: 9.0,
-    media_type: 'anime',
-    broadcast: 'Sundays',
-    broadcast_day: 'Sundays'
-  },
-  {
-    id: '37854',
-    title: 'Jujutsu Kaisen',
-    name: 'Jujutsu Kaisen',
-    overview: 'A boy swallows a cursed talisman and becomes cursed himself.',
-    poster_path: 'https://mango.blender.org/wp-content/uploads/2012/09/poster_v2_small.jpg',
-    first_air_date: '2020-10-03',
-    release_date: '2020-10-03',
-    vote_average: 8.8,
-    media_type: 'anime',
-    broadcast: 'Fridays',
-    broadcast_day: 'Fridays'
-  }
-];
-
-const MOCK_MANGA = [
-  {
-    id: 'a1c7c817-4e59-4f0b-938a-a1962c050a78',
-    title: 'Chainsaw Man',
-    overview: 'Denji has a simple dream—to live a happy and peaceful life with his devil pet Pochita.',
-    poster_path: 'https://mango.blender.org/wp-content/uploads/2012/09/poster_v2_small.jpg',
-    release_date: '2018',
-    vote_average: 8.9,
-    media_type: 'manga'
-  },
-  {
-    id: '32d76d19-8a05-4db0-9fc2-e0b0648fe9d0',
-    title: 'Solo Leveling',
-    overview: 'In a world where hunters battle deadly monsters, an E-rank hunter gains a mysterious level-up system.',
-    poster_path: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg',
-    release_date: '2018',
-    vote_average: 9.1,
-    media_type: 'manga'
+    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4', // Example video
+    youtube_trailer: 'YOF538VwV6A'
   }
 ];
 
@@ -224,6 +162,7 @@ export const getTrending = async (req, res) => {
       // A. Fetch Movies & TV (TMDB or Fallback)
     let tmdbMovies = [];
     let tmdbTv = [];
+    let ongoingMovies = [];
     let ongoingTv = [];
     let airingTodayTv = [];
     let upcomingMovies = [];
@@ -260,43 +199,39 @@ export const getTrending = async (req, res) => {
         const lastWeek = new Date(todayObj.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const nextWeek = new Date(todayObj.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-        let ongoingMovies = [];
-
-        const tmdbAxios = axios.create({ timeout: 7000 });
-
         const [
           trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes,
           trendingAnimeRes, ongoingAnimeRes, upcomingAnimeRes, airingTodayAnimeRes, nowPlayingMoviesRes
         ] = await Promise.all([
-          tmdbAxios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
+          axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`),
           // Anime Queries via TMDB (Animation genre 16 + Japanese language)
-          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`).catch(e => ({ data: { results: [] } })),
-          tmdbAxios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`).catch(e => ({ data: { results: [] } }))
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
+          axios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`)
         ]);
 
-        tmdbMovies = (trendingMoviesRes.data?.results || []).slice(0, 20).map(mapMovie);
-        ongoingMovies = (nowPlayingMoviesRes.data?.results || []).slice(0, 20).map(mapMovie);
-        tmdbTv = (trendingTvRes.data?.results || []).slice(0, 20).map(mapTv);
-        upcomingMovies = (upcomingMoviesRes.data?.results || []).slice(0, 20).map(mapMovie);
-        upcomingTv = (upcomingTvRes.data?.results || []).slice(0, 20).map(mapTv);
+        tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
+        tmdbTv = trendingTvRes.data.results.slice(0, 20).map(mapTv);
+        ongoingMovies = nowPlayingMoviesRes.data.results.slice(0, 20).map(mapMovie);
+        upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
+        upcomingTv = upcomingTvRes.data.results.slice(0, 20).map(mapTv);
         
-        trendingAnime = (trendingAnimeRes.data?.results || []).slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
-        upcomingAnime = (upcomingAnimeRes.data?.results || []).slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
+        trendingAnime = trendingAnimeRes.data.results.slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
+        upcomingAnime = upcomingAnimeRes.data.results.slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
 
         // Enhance ongoing and scheduled TV/Anime shows with EXACT broadcast days from TMDB details
         const tvListToEnrich = [
-          ...(ongoingTvRes.data?.results || []).slice(0, 20), 
-          ...(airingTodayTvRes.data?.results || []).slice(0, 20),
-          ...(ongoingAnimeRes.data?.results || []).slice(0, 20),
-          ...(airingTodayAnimeRes.data?.results || []).slice(0, 20)
+          ...ongoingTvRes.data.results.slice(0, 20), 
+          ...airingTodayTvRes.data.results.slice(0, 20),
+          ...ongoingAnimeRes.data.results.slice(0, 20),
+          ...airingTodayAnimeRes.data.results.slice(0, 20)
         ];
         const uniqueTvIds = [...new Set(tvListToEnrich.map(t => t.id))];
         
@@ -332,27 +267,15 @@ export const getTrending = async (req, res) => {
           return mapped;
         };
 
-        ongoingTv = (ongoingTvRes.data?.results || []).slice(0, 20).map(mapTvWithDay);
-        airingTodayTv = (airingTodayTvRes.data?.results || []).slice(0, 20).map(mapTvWithDay);
-        ongoingAnime = (ongoingAnimeRes.data?.results || []).slice(0, 20).map(mapAnimeWithDay);
-        scheduleAnime = (airingTodayAnimeRes.data?.results || []).slice(0, 20).map(mapAnimeWithDay);
-
-        // Fallback guarantees if any individual query returned 0 items
-        if (tmdbMovies.length === 0) tmdbMovies = MOCK_MOVIES.map(mapMovie);
-        if (ongoingMovies.length === 0) ongoingMovies = tmdbMovies;
-        if (tmdbTv.length === 0) tmdbTv = MOCK_TV;
-        if (upcomingMovies.length === 0) upcomingMovies = tmdbMovies;
-        if (upcomingTv.length === 0) upcomingTv = MOCK_TV;
-        if (trendingAnime.length === 0) trendingAnime = MOCK_ANIME;
-        if (ongoingAnime.length === 0) ongoingAnime = MOCK_ANIME;
-        if (upcomingAnime.length === 0) upcomingAnime = MOCK_ANIME;
-        if (ongoingTv.length === 0) ongoingTv = MOCK_TV;
-        if (airingTodayTv.length === 0) airingTodayTv = MOCK_TV;
-        if (scheduleAnime.length === 0) scheduleAnime = MOCK_ANIME;
+        ongoingTv = ongoingTvRes.data.results.slice(0, 20).map(mapTvWithDay);
+        airingTodayTv = airingTodayTvRes.data.results.slice(0, 20).map(mapTvWithDay);
+        ongoingAnime = ongoingAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
+        scheduleAnime = airingTodayAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
       } catch (err) {
         console.warn('TMDB dashboard fetch failed, falling back to mocks:', err.message);
         tmdbMovies = MOCK_MOVIES.map(mapMovie);
         tmdbTv = MOCK_TV.map(mapTv);
+        ongoingMovies = tmdbMovies;
         ongoingTv = tmdbTv;
         airingTodayTv = tmdbTv;
         upcomingMovies = tmdbMovies;
@@ -365,6 +288,7 @@ export const getTrending = async (req, res) => {
     } else {
       tmdbMovies = MOCK_MOVIES.map(mapMovie);
       tmdbTv = MOCK_TV.map(mapTv);
+      ongoingMovies = tmdbMovies;
       ongoingTv = tmdbTv;
       airingTodayTv = tmdbTv;
       upcomingMovies = tmdbMovies;
@@ -404,19 +328,14 @@ export const getTrending = async (req, res) => {
     };
 
     try {
-      const mangaAxios = axios.create({ timeout: 6000 });
-      const trendingMangaRes = await mangaAxios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[followedCount]=desc').catch(e => ({ data: { data: [] } }));
-      trendingManga = (trendingMangaRes.data?.data || []).map(mapManga);
+      const trendingMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[followedCount]=desc');
+      trendingManga = trendingMangaRes.data.data.map(mapManga);
 
-      const ongoingMangaRes = await mangaAxios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&status[]=ongoing&order[followedCount]=desc').catch(e => ({ data: { data: [] } }));
-      ongoingManga = (ongoingMangaRes.data?.data || []).map(mapManga);
+      const ongoingMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&status[]=ongoing&order[followedCount]=desc');
+      ongoingManga = ongoingMangaRes.data.data.map(mapManga);
 
-      const latestMangaRes = await mangaAxios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[latestUploadedChapter]=desc').catch(e => ({ data: { data: [] } }));
-      latestManga = (latestMangaRes.data?.data || []).map(mapManga);
-
-      if (trendingManga.length === 0) trendingManga = MOCK_MANGA;
-      if (ongoingManga.length === 0) ongoingManga = MOCK_MANGA;
-      if (latestManga.length === 0) latestManga = MOCK_MANGA;
+      const latestMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[latestUploadedChapter]=desc');
+      latestManga = latestMangaRes.data.data.map(mapManga);
     } catch (err) {
       console.error('MangaDex API dashboard query error:', err.message);
       const fallback = [
@@ -483,19 +402,7 @@ export const getTrending = async (req, res) => {
   } catch (error) {
     dashboardPromise = null;
     console.error('[Media Controller Trending Error]:', error);
-
-    // Fallback response if everything fails to guarantee homepage never crashes
-    const fallbackMovies = MOCK_MOVIES.map(m => ({
-      id: m.id, title: m.title, overview: m.overview, poster_path: m.poster_path, release_date: m.release_date, vote_average: m.vote_average, media_type: 'movie'
-    }));
-
-    res.json({
-      trending: { movies: fallbackMovies, tv: [], anime: [], manga: [] },
-      ongoing: { movies: fallbackMovies, tv: [], anime: [], manga: [] },
-      upcoming: { movies: fallbackMovies, tv: [], anime: [] },
-      schedule: { tv: [], anime: [] },
-      latest: { manga: [] }
-    });
+    res.status(500).json({ error: 'Failed to fetch catalog content.' });
   }
 };
 
@@ -1031,7 +938,6 @@ export const getCatalog = async (req, res) => {
       } else {
         if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
         else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
-        else if (category === 'ongoing' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
         else if (category === 'upcoming' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
         else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/${type}/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
         else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
