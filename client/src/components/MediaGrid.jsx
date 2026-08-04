@@ -23,10 +23,10 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
 
   const getBadgeColor = (type) => {
     switch (type) {
-      case 'movie': return 'bg-accentPrimary/10 text-accentPrimary border-accentPrimary/20';
-      case 'tv': return 'bg-accentSecondary/10 text-accentSecondary border-accentSecondary/20';
-      case 'anime': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-      case 'manga': return 'bg-accentAmber/10 text-accentAmber border-accentAmber/20';
+      case 'movie': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'tv': return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+      case 'anime': return 'bg-accentPurple/10 text-accentPurple border-accentPurple/20';
+      case 'manga': return 'bg-accentPink/10 text-accentPink border-accentPink/20';
       default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
@@ -34,14 +34,14 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
   return (
     <div className="space-y-6">
       {title && (
-        <div className="flex items-center justify-between border-l-4 border-accentPrimary pl-3">
+        <div className="flex items-center justify-between border-l-4 border-accentCyan pl-3">
           <h2 className="text-2xl font-bold tracking-tight text-white font-outfit">
             {title}
           </h2>
           {seeMoreLink && (
             <Link
               to={seeMoreLink}
-              className="flex items-center gap-1 text-xs font-bold text-accentPrimary hover:text-accentSecondary transition duration-300"
+              className="flex items-center gap-1 text-xs font-bold text-accentCyan hover:text-accentPurple transition duration-300"
             >
               See More
               <ArrowRight className="w-3.5 h-3.5" />
@@ -61,8 +61,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             <Link
               to={`/media/${item.media_type}/${targetId}`}
               key={`${item.media_type}-${targetId}-${index}`}
-              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-full transition-all duration-500 hover:shadow-[0_0_40px_rgba(225,29,72,0.15)] hover:-translate-y-1.5 hover:border-accentPrimary/40 animate-card-reveal"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="group glass-card rounded-2xl overflow-hidden flex flex-col relative h-full transition-all duration-500 hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] hover:-translate-y-2 hover:border-accentCyan/50"
             >
               {/* Image Section */}
               <div className="relative w-full aspect-[2/3] overflow-hidden bg-darkBg">
@@ -75,12 +74,12 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                 />
                 
                 {/* Play/Read Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center translate-y-4 group-hover:translate-y-0">
-                  <div className="bg-accentPrimary text-white p-4 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.8)] transform scale-50 group-hover:scale-100 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] delay-75">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center translate-y-4 group-hover:translate-y-0">
+                  <div className="bg-accentCyan text-black p-4 rounded-full shadow-[0_0_20px_rgba(0,240,255,0.8)] transform scale-50 group-hover:scale-100 transition-all duration-500 ease-out delay-75">
                     {item.media_type === 'manga' ? (
                       <BookOpen className="w-6 h-6 animate-pulse" />
                     ) : (
-                      <Play className="w-6 h-6 fill-current animate-pulse ml-1" />
+                      <Play className="w-6 h-6 fill-current animate-pulse" />
                     )}
                   </div>
                 </div>
@@ -100,9 +99,9 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
               </div>
 
               {/* Info Section */}
-              <div className="p-3 flex flex-col justify-between flex-grow bg-gradient-to-t from-[#0a0a0c] to-transparent">
+              <div className="p-3 flex flex-col justify-between flex-grow">
                 <div className="space-y-1 relative z-10">
-                  <h3 className="font-bold text-sm text-gray-100 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-accentPrimary group-hover:to-accentSecondary transition-all duration-300 line-clamp-2 leading-tight">
+                  <h3 className="font-bold text-sm text-gray-100 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-accentCyan group-hover:to-accentPurple transition-all duration-300 line-clamp-2 leading-tight">
                     {item.title || item.name}
                   </h3>
                   {item.release_date && (
@@ -116,8 +115,8 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                     </p>
                   )}
                   {showTimings && (item.broadcast || item.broadcast_day) && (
-                    <div className="flex items-center gap-1 text-[11px] text-accentAmber font-bold mt-1">
-                      <Clock className="w-3.5 h-3.5 text-accentAmber" />
+                    <div className="flex items-center gap-1 text-[11px] text-accentCyan font-bold mt-1">
+                      <Clock className="w-3.5 h-3.5 text-accentCyan" />
                       <span className="line-clamp-1">{item.broadcast || item.broadcast_day}</span>
                     </div>
                   )}

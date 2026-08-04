@@ -158,23 +158,19 @@ export default function Home() {
     <div className="space-y-16 py-6 px-4 md:px-8 max-w-7xl mx-auto">
       
       {/* Premium Hero Banner */}
-      <section className="relative rounded-3xl overflow-hidden p-8 md:p-16 text-center space-y-6 shadow-2xl border border-white/5">
-        {/* Dynamic Ambient Background */}
-        <div className="absolute inset-0 bg-darkCard/50 -z-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-accentPrimary/20 via-transparent to-accentSecondary/20 animate-ambient-shift -z-10 bg-[length:200%_200%]"></div>
-        
+      <section className="relative rounded-3xl overflow-hidden glass-panel border border-darkBorder p-8 md:p-16 text-center space-y-6 shadow-2xl">
         {/* Glow dots decoration */}
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-accentPrimary/20 rounded-full blur-[100px] pointer-events-none animate-float"></div>
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-accentAmber/10 rounded-full blur-[100px] pointer-events-none animate-float" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-accentPurple/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-accentCyan/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-gray-300">
-          <Sparkles className="w-3.5 h-3.5 text-accentPrimary" />
+          <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
           The Ultimate Shared Streaming Hub
         </div>
 
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight font-outfit">
           Discover Global Entertainment & <br className="hidden md:inline"/>
-          <span className="bg-gradient-to-r from-accentPrimary via-accentSecondary to-accentAmber bg-clip-text text-transparent title-glow">
+          <span className="bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink bg-clip-text text-transparent title-glow">
             Watch Together in Real-Time
           </span>
         </h1>
@@ -186,14 +182,14 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
           <Link
             to="/search"
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-accentPrimary to-accentSecondary text-white font-extrabold shadow-lg shadow-accentPrimary/25 hover:opacity-90 hover:scale-105 transition btn-glow-crimson"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-102 transition"
           >
-            <Search className="w-4 h-4 text-white fill-current" />
+            <Search className="w-4 h-4 text-black fill-current" />
             Explore Catalog
           </Link>
           <Link
             to="/search"
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-darkBorder text-gray-300 hover:text-white hover:bg-white/10 transition"
           >
             <Users className="w-4 h-4" />
             Join a Watch Party
@@ -201,23 +197,23 @@ export default function Home() {
         </div>
 
         {/* Feature Highlights Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 max-w-4xl mx-auto border-t border-white/5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 max-w-4xl mx-auto border-t border-darkBorder/40">
           <div className="flex flex-col items-center p-4 text-center space-y-2">
-            <div className="p-3 bg-accentPrimary/10 rounded-full text-accentPrimary border border-accentPrimary/20">
+            <div className="p-3 bg-cyan-500/10 rounded-2xl text-accentCyan border border-cyan-500/20">
               <Tv className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-sm text-white">Aggregated Catalog</h3>
             <p className="text-xs text-gray-500 max-w-xs">TMDB, Jikan Anime, and MangaDex feeds parsed under a single unified user dashboard.</p>
           </div>
           <div className="flex flex-col items-center p-4 text-center space-y-2">
-            <div className="p-3 bg-accentSecondary/10 rounded-full text-accentSecondary border border-accentSecondary/20">
+            <div className="p-3 bg-purple-500/10 rounded-2xl text-accentPurple border border-purple-500/20">
               <Sparkles className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-sm text-white">Host Sync Players</h3>
             <p className="text-xs text-gray-500 max-w-xs">Control playback seek/pause states across all participant browsers programmatically.</p>
           </div>
           <div className="flex flex-col items-center p-4 text-center space-y-2">
-            <div className="p-3 bg-accentAmber/10 rounded-full text-accentAmber border border-accentAmber/20">
+            <div className="p-3 bg-pink-500/10 rounded-2xl text-accentPink border border-pink-500/20">
               <MessageSquareCode className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-sm text-white">Persistent Lobby Chat</h3>
@@ -227,7 +223,7 @@ export default function Home() {
       </section>
 
       {/* Tab Selector Section */}
-      <div className="flex flex-wrap items-center justify-center gap-3 border-b border-white/5 pb-6">
+      <div className="flex flex-wrap items-center justify-center gap-3 border-b border-darkBorder pb-6">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -235,13 +231,13 @@ export default function Home() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-2.5 px-6 py-3.5 rounded-full text-sm font-bold tracking-wide transition-all duration-400 ${
+              className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl text-sm font-bold tracking-wide transition-all duration-300 ${
                 isSelected
-                  ? 'bg-gradient-to-r from-accentPrimary to-accentSecondary text-white shadow-lg shadow-accentPrimary/20 scale-[1.03]'
-                  : 'text-gray-400 border border-white/5 bg-white/5 hover:text-white hover:bg-white/10'
+                  ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-black shadow-lg shadow-accentCyan/20 scale-102'
+                  : 'text-gray-400 border border-darkBorder bg-darkCard/40 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Icon className={`w-4.5 h-4.5 ${isSelected ? 'text-white' : tab.color}`} />
+              <Icon className={`w-4.5 h-4.5 ${isSelected ? 'text-black' : tab.color}`} />
               {tab.label}
             </button>
           );

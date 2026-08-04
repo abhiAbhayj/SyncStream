@@ -179,7 +179,13 @@ export default function VoiceAssistant() {
 
       if (query) {
         setStatusText(`Searching ${searchType}s: ${query}`);
-        navigate(`/search?q=${encodeURIComponent(query)}&type=${searchType}`);
+        const searchUrl = `/search?q=${encodeURIComponent(query)}&type=${searchType}`;
+        // If already on the search page, force a hard reload so the new params take effect immediately
+        if (window.location.pathname === '/search') {
+          window.location.href = searchUrl;
+        } else {
+          navigate(searchUrl);
+        }
         return;
       }
     }
@@ -190,8 +196,7 @@ export default function VoiceAssistant() {
       
       // General play/resume command (if in watch room)
       if (query === '' || query === 'movie' || query === 'video' || query === 'it') {
-        window.dispatchEvent(new CustomEvent('voice-command', { detail: { action: 'play' } }));
-        setStatusText('Resuming video...');
+        setStatusText('External players must be clicked to play.');
         return;
       }
 
@@ -218,22 +223,13 @@ export default function VoiceAssistant() {
     }
 
     if (command.includes('pause') || command.includes('stop')) {
-      window.dispatchEvent(new CustomEvent('voice-command', { detail: { action: 'pause' } }));
-      setStatusText('Pausing video...');
+      setStatusText('Cannot pause external iframe players.');
       return;
     }
 
     // SPEED INTENTS
     if (command.includes('speed') || command.includes('fast forward') || command.includes('slow down')) {
-      let speed = 1;
-      if (command.includes('2x') || command.includes('two x') || command.includes('twice')) speed = 2;
-      else if (command.includes('1.5x')) speed = 1.5;
-      else if (command.includes('1.25x')) speed = 1.25;
-      else if (command.includes('0.5x') || command.includes('half')) speed = 0.5;
-      else if (command.includes('1x') || command.includes('normal')) speed = 1;
-
-      window.dispatchEvent(new CustomEvent('voice-command', { detail: { action: 'speed', value: speed } }));
-      setStatusText(`Speed set to ${speed}x`);
+      setStatusText('Speed control disabled for external players.');
       return;
     }
 
