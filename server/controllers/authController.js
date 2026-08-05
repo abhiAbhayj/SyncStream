@@ -56,7 +56,7 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error('[Auth Controller Register Error]:', error);
-    res.status(500).json({ error: 'Server error during registration.' });
+    res.status(500).json({ error: 'Server error during registration. Is MySQL running in XAMPP?' });
   }
 };
 
@@ -101,7 +101,7 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error('[Auth Controller Login Error]:', error);
-    res.status(500).json({ error: 'Server error during login.' });
+    res.status(500).json({ error: 'Server error during login. Is MySQL running in XAMPP?' });
   }
 };
 

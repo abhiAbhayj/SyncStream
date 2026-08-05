@@ -38,59 +38,36 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (phone_number, password) => {
-    const MAX_RETRIES = 4;
-    const RETRY_DELAY = 4000;
-
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        const res = await axios.post('/api/auth/login', { phone_number, password });
-        const { token: userToken, user: userData } = res.data;
-        localStorage.setItem('token', userToken);
-        setToken(userToken);
-        setUser(userData);
-        return { success: true };
-      } catch (err) {
-        const status = err.response?.status;
-        // On 500 (server cold-start / DB not ready), retry silently
-        if (status === 500 && attempt < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, RETRY_DELAY));
-          continue;
-        }
-        return {
-          success: false,
-          error: status === 500
-            ? 'Server is still starting up. Please wait 30 seconds and try again.'
-            : (err.response?.data?.error || 'Login failed. Please check your credentials.')
-        };
-      }
+    try {
+      const res = await axios.post('/api/auth/login', { phone_number, password });
+      const { token: userToken, user: userData } = res.data;
+      localStorage.setItem('token', userToken);
+      setToken(userToken);
+      setUser(userData);
+      return { success: true };
+    } catch (err) {
+      const status = err.response?.status;
+      return {
+        success: false,
+        error: err.response?.data?.error || (status === 500 ? 'Server error. Is MySQL running in XAMPP?' : 'Login failed. Please check your credentials.')
+      };
     }
   };
 
   const register = async (username, phone_number, password) => {
-    const MAX_RETRIES = 4;
-    const RETRY_DELAY = 4000;
-
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        const res = await axios.post('/api/auth/register', { username, phone_number, password });
-        const { token: userToken, user: userData } = res.data;
-        localStorage.setItem('token', userToken);
-        setToken(userToken);
-        setUser(userData);
-        return { success: true };
-      } catch (err) {
-        const status = err.response?.status;
-        if (status === 500 && attempt < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, RETRY_DELAY));
-          continue;
-        }
-        return {
-          success: false,
-          error: status === 500
-            ? 'Server is still starting up. Please wait 30 seconds and try again.'
-            : (err.response?.data?.error || 'Registration failed. Try a different username/phone number.')
-        };
-      }
+    try {
+      const res = await axios.post('/api/auth/register', { username, phone_number, password });
+      const { token: userToken, user: userData } = res.data;
+      localStorage.setItem('token', userToken);
+      setToken(userToken);
+      setUser(userData);
+      return { success: true };
+    } catch (err) {
+      const status = err.response?.status;
+      return {
+        success: false,
+        error: err.response?.data?.error || (status === 500 ? 'Server error. Is MySQL running in XAMPP?' : 'Registration failed. Try a different username/phone number.')
+      };
     }
   };
 
