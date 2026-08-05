@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       const status = err.response?.status;
       return {
         success: false,
-        error: err.response?.data?.error || (status === 500 ? 'Server error. Is MySQL running in XAMPP?' : 'Login failed. Please check your credentials.')
+        error: err.response?.data?.error || (status === 500 ? 'Server error. Database is offline or unreachable.' : 'Login failed. Please check your credentials.')
       };
     }
   };
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
       const status = err.response?.status;
       return {
         success: false,
-        error: err.response?.data?.error || (status === 500 ? 'Server error. Is MySQL running in XAMPP?' : 'Registration failed. Try a different username/phone number.')
+        error: err.response?.data?.error || (status === 500 ? 'Server error. Database is offline or unreachable.' : 'Registration failed. Try a different username/phone number.')
       };
     }
   };
