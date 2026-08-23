@@ -272,31 +272,12 @@ export const getTrending = async (req, res) => {
         ongoingAnime = ongoingAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
         scheduleAnime = airingTodayAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
       } catch (err) {
-        console.warn('TMDB dashboard fetch failed, falling back to mocks:', err.message);
-        tmdbMovies = MOCK_MOVIES.map(mapMovie);
-        tmdbTv = MOCK_TV.map(mapTv);
-        ongoingMovies = tmdbMovies;
-        ongoingTv = tmdbTv;
-        airingTodayTv = tmdbTv;
-        upcomingMovies = tmdbMovies;
-        upcomingTv = tmdbTv;
-        trendingAnime = tmdbTv.map(t => ({...t, media_type: 'anime'}));
-        ongoingAnime = trendingAnime;
-        upcomingAnime = trendingAnime;
-        scheduleAnime = trendingAnime;
+        console.warn('TMDB dashboard fetch failed:', err.message);
+        // No mock fallback — leave arrays empty
       }
     } else {
-      tmdbMovies = MOCK_MOVIES.map(mapMovie);
-      tmdbTv = MOCK_TV.map(mapTv);
-      ongoingMovies = tmdbMovies;
-      ongoingTv = tmdbTv;
-      airingTodayTv = tmdbTv;
-      upcomingMovies = tmdbMovies;
-      upcomingTv = tmdbTv;
-      trendingAnime = tmdbTv.map(t => ({...t, media_type: 'anime'}));
-      ongoingAnime = trendingAnime;
-      upcomingAnime = trendingAnime;
-      scheduleAnime = trendingAnime;
+      console.warn('TMDB API key not configured. Dashboard will show empty sections.');
+      // No mock fallback — leave arrays empty
     }
 
     // The old Jikan block has been fully replaced by TMDB!
@@ -546,19 +527,12 @@ export const searchMedia = async (req, res) => {
             }
           }
         } catch (err) {
-          console.warn('TMDB search/discover error, using mock fallback:', err.message);
-          const mockSource = type === 'movie' ? MOCK_MOVIES : MOCK_TV;
-          results = mockSource.filter(item => {
-            const titleText = item.title || item.name || '';
-            return !query || titleText.toLowerCase().includes(query.toLowerCase());
-          });
+          console.warn('TMDB search/discover error:', err.message);
+          results = [];
         }
       } else {
-        const mockSource = type === 'movie' ? MOCK_MOVIES : MOCK_TV;
-        results = mockSource.filter(item => {
-          const titleText = item.title || item.name || '';
-          return !query || titleText.toLowerCase().includes(query.toLowerCase());
-        });
+        console.warn('TMDB API key not configured. No search results available.');
+        results = [];
       }
     } else if (type === 'manga') {
       try {
@@ -669,33 +643,9 @@ export const getMediaDetail = async (req, res) => {
         }
       }
 
-      // If TMDB detail lookup failed or is not configured, load from mock list
+      // If TMDB detail lookup failed or is not configured
       if (!details) {
-        const mockSource = type === 'movie' ? MOCK_MOVIES : MOCK_TV;
-        const matched = mockSource.find(item => item.id === id);
-        if (matched) {
-          details = {
-            ...matched,
-            cast: [{ name: 'Blender Foundation', character: 'Production' }],
-            recommendations: mockSource.filter(m => m.id !== id).map(m => ({ id: m.id, title: m.title || m.name, poster_path: m.poster_path, media_type: type }))
-          };
-        } else {
-          // If not in standard list, return dynamic fallback mock
-          details = {
-            id,
-            title: `Fallback ${type === 'movie' ? 'Movie' : 'TV Show'} #${id}`,
-            overview: 'Detailed media synopsis placeholder. TMDB is not fully configured, playing mock fallback stream.',
-            poster_path: 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
-            release_date: '2026-06-14',
-            vote_average: 8.0,
-            youtube_trailer: 'eRsGyueVLvQ',
-            cast: [{ name: 'Jane Doe', character: 'Protagonist' }],
-            recommendations: [],
-            media_type: type,
-            video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-            embed_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
-          };
-        }
+        return res.status(404).json({ error: 'Media not found. TMDB may be temporarily unavailable.' });
       }
     } else if (type === 'manga') {
       try {
