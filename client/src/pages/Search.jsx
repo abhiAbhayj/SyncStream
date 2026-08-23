@@ -24,10 +24,8 @@ export default function Search() {
   const MAX_PAGES = 30;
 
   useEffect(() => {
-    // If any filter or query exists on load, search immediately
-    if (initialQuery || initialGenre || initialCountry) {
-      executeSearch(initialQuery, initialType, initialGenre, initialCountry);
-    }
+    // Search immediately on page load to display trending/discovered items
+    executeSearch(initialQuery, initialType, initialGenre, initialCountry, 1, sort);
   }, []);
 
 

@@ -388,17 +388,19 @@ export const getTrending = async (req, res) => {
 };
 
 export const searchMedia = async (req, res) => {
-  const { query, type, genre, country, sort } = req.query;
+  const { query, type = 'movie', genre, country, sort } = req.query;
   const page = parseInt(req.query.page || '1', 10);
+  const today = new Date().toISOString().split('T')[0];
 
   // Determine TMDB sort_by value:
-  //  - Discover (no query): default to latest release date
-  //  - Search (has query): default to relevance (TMDB handles it), then we sort by date client-side
   const getSortBy = (mediaType) => {
-    if (sort === 'trending')  return 'popularity.desc';
+    if (sort === 'trending') return 'popularity.desc';
     if (sort === 'top_rated') return 'vote_average.desc';
-    // Default: latest first
-    return mediaType === 'movie' ? 'primary_release_date.desc' : 'first_air_date.desc';
+    if (sort === 'latest') {
+      return mediaType === 'movie' ? 'primary_release_date.desc' : 'first_air_date.desc';
+    }
+    // Default to popularity for best discovery experience
+    return 'popularity.desc';
   };
 
   try {
@@ -407,34 +409,28 @@ export const searchMedia = async (req, res) => {
     if (type === 'movie' || type === 'tv' || type === 'anime') {
       if (isTmdbConfigured()) {
         try {
-          let url = '';
           const hasQuery = query && query.trim() !== '';
           const tmdbType = type === 'anime' ? 'tv' : type;
           
           if (!hasQuery) {
-            // Discover Mode (No text query, only filters or default — LATEST FIRST)
-            const tmdbType = type === 'anime' ? 'tv' : type;
+            // Discover Mode
             const sortBy = getSortBy(tmdbType);
-            url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=${sortBy}&page=${page}`;
+            let url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=${sortBy}&page=${page}`;
 
-            // Exclude future release dates so upcoming films don't clog latest
-            if (type === 'movie') {
-              const today = new Date().toISOString().split('T')[0];
+            // Exclude future unreleased entries (e.g., year 2040+ entries)
+            if (tmdbType === 'movie') {
               url += `&primary_release_date.lte=${today}`;
+              if (sort === 'latest') url += `&vote_count.gte=1`;
+            } else {
+              url += `&first_air_date.lte=${today}`;
+              if (sort === 'latest') url += `&vote_count.gte=1`;
             }
             
             if (type === 'anime') {
-              url += `&with_original_language=ja`;
+              url += `&with_original_language=ja&with_genres=16`;
               if (genre) {
-                if (genre.startsWith('k_')) {
-                  url += `&with_genres=16&with_keywords=${genre.replace('k_', '')}`;
-                } else if (genre.startsWith('g_')) {
-                  url += `&with_genres=16,${genre.replace('g_', '')}`;
-                } else {
-                  url += `&with_genres=16`;
-                }
-              } else {
-                url += `&with_genres=16`;
+                const cleanGenre = genre.replace('k_', '').replace('g_', '');
+                url += `,${cleanGenre}`;
               }
             } else {
               if (genre) {
@@ -444,63 +440,61 @@ export const searchMedia = async (req, res) => {
                   url += `&with_genres=${genre}`;
                 }
               }
-              if (country) {
+              if (country === 'IN') {
+                url += `&with_origin_country=IN&with_original_language=ta|te|kn|ml|hi`;
+              } else if (country) {
                 url += `&with_origin_country=${country}`;
               }
-              if (sort) url += `&sort_by=${sort}`;
             }
             
             const searchRes = await axios.get(url);
-            let discoverResults = searchRes.data.results;
-            
-            // Apply language filtering locally because TMDB Discover doesn't support multiple languages via '|'
-            if (country === 'IN') {
-              const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi'];
-              discoverResults = discoverResults.filter(r => allowedLangs.includes(r.original_language));
-            }
+            const discoverResults = searchRes.data.results || [];
             
             results = discoverResults.map(r => ({
               id: r.id.toString(),
               title: r.title || r.name,
-              overview: r.overview,
-              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-              release_date: r.release_date || r.first_air_date,
-              vote_average: r.vote_average,
+              overview: r.overview || '',
+              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
+              release_date: r.release_date || r.first_air_date || '',
+              vote_average: r.vote_average || 0,
               media_type: type
             }));
           } else {
-            // Search Mode (Text query takes priority)
-            // Fetch two TMDB pages per requested page to increase local filtering density
-            url = `${TMDB_BASE_URL}/search/${tmdbType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}`;
-            const tmdbPage1 = (page * 2) - 1;
-            const tmdbPage2 = page * 2;
-            const [res1, res2] = await Promise.all([
-              axios.get(`${url}&page=${tmdbPage1}`),
-              axios.get(`${url}&page=${tmdbPage2}`).catch(() => ({ data: { results: [] } }))
-            ]);
+            // Search Mode (Text query)
+            const url = `${TMDB_BASE_URL}/search/${tmdbType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`;
+            const searchRes = await axios.get(url);
+            let combinedResults = searchRes.data.results || [];
             
-            let combinedResults = [...res1.data.results, ...res2.data.results];
-            
-            // Apply strict local filtering for Genre and Country
+            // Apply filtering for Genre and Country
             if (type === 'anime') {
-              // Ensure it's Japanese Animation
-              combinedResults = combinedResults.filter(r => r.genre_ids?.includes(16) && r.origin_country?.includes('JP'));
+              combinedResults = combinedResults.filter(r => 
+                (r.genre_ids?.includes(16) || r.original_language === 'ja')
+              );
               if (genre && genre.startsWith('g_')) {
                 const genreIdInt = parseInt(genre.replace('g_', ''), 10);
                 combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
               }
             } else {
               if (genre) {
-                combinedResults = combinedResults.filter(r => r.genre_ids?.includes(parseInt(genre)));
+                const gId = parseInt(genre.replace('k_', '').replace('g_', ''), 10);
+                if (!isNaN(gId)) {
+                  combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
+                }
               }
               if (country) {
                 if (country === 'IN') {
                   const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi'];
                   combinedResults = combinedResults.filter(r => 
-                    r.origin_country?.includes(country) && allowedLangs.includes(r.original_language)
+                    r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language)
                   );
                 } else {
-                  combinedResults = combinedResults.filter(r => r.origin_country?.includes(country));
+                  const countryToLang = {
+                    'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de'
+                  };
+                  const expectedLang = countryToLang[country];
+                  combinedResults = combinedResults.filter(r => 
+                    r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang)
+                  );
                 }
               }
             }
@@ -508,22 +502,20 @@ export const searchMedia = async (req, res) => {
             results = combinedResults.slice(0, 20).map(r => ({
               id: r.id.toString(),
               title: r.title || r.name,
-              overview: r.overview,
-              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-              release_date: r.release_date || r.first_air_date,
-              vote_average: r.vote_average,
+              overview: r.overview || '',
+              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
+              release_date: r.release_date || r.first_air_date || '',
+              vote_average: r.vote_average || 0,
               media_type: type
             }));
 
-            // Sort search results: latest first by default, unless trending/top_rated requested
-            if (!sort || sort === 'latest') {
+            // Sort search results if requested
+            if (sort === 'latest') {
               results.sort((a, b) => {
                 const dateA = new Date(a.release_date || '1900-01-01').getTime();
                 const dateB = new Date(b.release_date || '1900-01-01').getTime();
                 return dateB - dateA;
               });
-            } else if (sort === 'top_rated') {
-              results.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
             }
           }
         } catch (err) {
@@ -539,12 +531,11 @@ export const searchMedia = async (req, res) => {
         const limit = 20;
         const offset = (page - 1) * limit;
 
-        // Sort manga by latest updated chapter by default
         const mangaOrder = sort === 'trending'
           ? 'order[followedCount]=desc'
           : sort === 'top_rated'
           ? 'order[rating]=desc'
-          : 'order[latestUploadedChapter]=desc'; // latest updated first
+          : 'order[latestUploadedChapter]=desc';
 
         let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art&${mangaOrder}`;
         if (query && query.trim() !== '') endpoint += `&title=${encodeURIComponent(query.trim())}`;
@@ -558,16 +549,16 @@ export const searchMedia = async (req, res) => {
         }
         
         const mangaRes = await axios.get(endpoint);
-        results = mangaRes.data.data.map(m => {
-          const coverRel = m.relationships.find(r => r.type === 'cover_art');
+        results = (mangaRes.data.data || []).map(m => {
+          const coverRel = m.relationships?.find(r => r.type === 'cover_art');
           const coverFile = coverRel?.attributes?.fileName;
           const posterUrl = coverFile
             ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}`
-            : 'https://placehold.co/400x600/1e1e24/fff?text=No+Cover';
+            : null;
 
-          const title = m.attributes.title.en || Object.values(m.attributes.title)[0] || 'Unknown Manga';
-          const overview = m.attributes.description.en || 'No description available.';
-          const lastChapterDate = m.attributes.updatedAt || m.attributes.createdAt || null;
+          const title = m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || 'Unknown Manga';
+          const overview = m.attributes?.description?.en || 'No description available.';
+          const lastChapterDate = m.attributes?.updatedAt || m.attributes?.createdAt || null;
 
           return {
             id: m.id,
@@ -587,8 +578,8 @@ export const searchMedia = async (req, res) => {
 
     res.json(results);
   } catch (error) {
-    console.error('[Media Controller Search Error]:', error);
-    res.status(500).json({ error: 'Search query failed.' });
+    console.error('Unified Search Error:', error);
+    res.status(500).json({ error: 'Failed to search media catalog' });
   }
 };
 
@@ -623,7 +614,7 @@ export const getMediaDetail = async (req, res) => {
             id: d.id.toString(),
             title: d.title || d.name,
             overview: d.overview,
-            poster_path: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+            poster_path: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : (d.backdrop_path ? `https://image.tmdb.org/t/p/w500${d.backdrop_path}` : null),
             backdrop_path: d.backdrop_path ? `https://image.tmdb.org/t/p/original${d.backdrop_path}` : null,
             release_date: d.release_date || d.first_air_date,
             vote_average: d.vote_average,
@@ -661,7 +652,7 @@ export const getMediaDetail = async (req, res) => {
         const coverFile = coverRel?.attributes?.fileName;
         const posterUrl = coverFile
           ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}`
-          : 'https://placehold.co/400x600/1e1e24/fff?text=No+Cover';
+          : null;
 
         const title = m.attributes.title.en || Object.values(m.attributes.title)[0] || 'Unknown Manga';
         const overview = m.attributes.description.en || 'No description available.';
@@ -855,7 +846,7 @@ export const getCatalog = async (req, res) => {
       id: m.id.toString(),
       title: m.title,
       overview: m.overview,
-      poster_path: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      poster_path: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : (m.backdrop_path ? `https://image.tmdb.org/t/p/w500${m.backdrop_path}` : null),
       release_date: m.release_date || '',
       vote_average: m.vote_average,
       media_type: 'movie'
@@ -865,7 +856,7 @@ export const getCatalog = async (req, res) => {
       id: t.id.toString(),
       title: t.name,
       overview: t.overview,
-      poster_path: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      poster_path: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : (t.backdrop_path ? `https://image.tmdb.org/t/p/w500${t.backdrop_path}` : null),
       release_date: t.first_air_date || '',
       vote_average: t.vote_average,
       media_type: 'tv'
