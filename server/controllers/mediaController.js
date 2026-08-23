@@ -465,15 +465,20 @@ export const searchMedia = async (req, res) => {
               }
               if (country) {
                 url += `&with_origin_country=${country}`;
-                if (country === 'IN') {
-                  url += `&with_original_language=ta|te|kn|ml|hi`;
-                }
               }
               if (sort) url += `&sort_by=${sort}`;
             }
             
             const searchRes = await axios.get(url);
-            results = searchRes.data.results.map(r => ({
+            let discoverResults = searchRes.data.results;
+            
+            // Apply language filtering locally because TMDB Discover doesn't support multiple languages via '|'
+            if (country === 'IN') {
+              const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi'];
+              discoverResults = discoverResults.filter(r => allowedLangs.includes(r.original_language));
+            }
+            
+            results = discoverResults.map(r => ({
               id: r.id.toString(),
               title: r.title || r.name,
               overview: r.overview,
@@ -523,7 +528,7 @@ export const searchMedia = async (req, res) => {
               id: r.id.toString(),
               title: r.title || r.name,
               overview: r.overview,
-              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
               release_date: r.release_date || r.first_air_date,
               vote_average: r.vote_average,
               media_type: type
