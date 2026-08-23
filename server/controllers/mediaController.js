@@ -176,7 +176,7 @@ export const getTrending = async (req, res) => {
       id: m.id.toString(),
       title: m.title,
       overview: m.overview,
-      poster_path: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      poster_path: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
       release_date: m.release_date || '',
       vote_average: m.vote_average,
       media_type: 'movie'
@@ -186,7 +186,7 @@ export const getTrending = async (req, res) => {
       id: t.id.toString(),
       title: t.name,
       overview: t.overview,
-      poster_path: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      poster_path: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : null,
       release_date: t.first_air_date || '',
       vote_average: t.vote_average,
       media_type: 'tv'
@@ -311,7 +311,7 @@ export const getTrending = async (req, res) => {
       const coverFile = coverRel?.attributes?.fileName;
       const posterUrl = coverFile
         ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}`
-        : 'https://placehold.co/400x600/1e1e24/fff?text=No+Cover';
+        : null;
 
       const title = m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || 'Unknown Manga';
       const overview = m.attributes?.description?.en || 'No description available.';
@@ -343,7 +343,7 @@ export const getTrending = async (req, res) => {
           id: 'f84b6f89-8d77-4c3e-a4b5-ea9ef076d54d',
           title: 'Sample Manga (MangaDex Down)',
           overview: 'A beautiful manga placeholder. Please check back when MangaDex returns.',
-          poster_path: 'https://placehold.co/400x600/1e1e24/fff?text=MangaDex+Offline',
+          poster_path: null,
           release_date: '2026',
           vote_average: 8.0,
           media_type: 'manga'
@@ -463,7 +463,13 @@ export const searchMedia = async (req, res) => {
                   url += `&with_genres=${genre}`;
                 }
               }
-              if (country) url += `&with_origin_country=${country}`;
+              if (country) {
+                url += `&with_origin_country=${country}`;
+                if (country === 'IN') {
+                  url += `&with_original_language=ta|te|kn|ml|hi`;
+                }
+              }
+              if (sort) url += `&sort_by=${sort}`;
             }
             
             const searchRes = await axios.get(url);
@@ -471,7 +477,7 @@ export const searchMedia = async (req, res) => {
               id: r.id.toString(),
               title: r.title || r.name,
               overview: r.overview,
-              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
               release_date: r.release_date || r.first_air_date,
               vote_average: r.vote_average,
               media_type: type
@@ -499,11 +505,17 @@ export const searchMedia = async (req, res) => {
               }
             } else {
               if (genre) {
-                const genreIdInt = parseInt(genre, 10);
-                combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
+                combinedResults = combinedResults.filter(r => r.genre_ids?.includes(parseInt(genre)));
               }
               if (country) {
-                combinedResults = combinedResults.filter(r => r.origin_country?.includes(country));
+                if (country === 'IN') {
+                  const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi'];
+                  combinedResults = combinedResults.filter(r => 
+                    r.origin_country?.includes(country) && allowedLangs.includes(r.original_language)
+                  );
+                } else {
+                  combinedResults = combinedResults.filter(r => r.origin_country?.includes(country));
+                }
               }
             }
 
@@ -908,7 +920,7 @@ export const getCatalog = async (req, res) => {
       id: item.mal_id.toString(),
       title: item.title_english || item.title,
       overview: item.synopsis,
-      poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || 'https://placehold.co/400x600/1e1e24/fff?text=No+Poster',
+      poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || null,
       release_date: item.aired?.string || '',
       vote_average: item.score,
       media_type: 'anime',
@@ -956,7 +968,7 @@ export const getCatalog = async (req, res) => {
       results = mangaRes.data.data.map(m => {
         const coverRel = m.relationships.find(r => r.type === 'cover_art');
         const coverFile = coverRel?.attributes?.fileName;
-        const posterUrl = coverFile ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}` : 'https://placehold.co/400x600/1e1e24/fff?text=No+Cover';
+        const posterUrl = coverFile ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}` : null;
         return {
           id: m.id,
           title: m.attributes.title.en || Object.values(m.attributes.title)[0],

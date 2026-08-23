@@ -77,13 +77,20 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             >
               {/* ── Poster Image ── */}
               <div className="relative w-full aspect-[2/3] overflow-hidden bg-white/[0.03]">
-                <img
-                  src={item.poster_path || 'https://placehold.co/400x600/0b0b18/555?text=No+Poster'}
-                  alt={item.title || item.name}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-75"
-                  referrerPolicy="no-referrer"
-                />
+                {item.poster_path ? (
+                  <img
+                    src={item.poster_path}
+                    alt={item.title || item.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-75"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className={`w-full h-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-75 ${cfg.bg} bg-opacity-20`}>
+                    <span className={`font-bold text-lg mb-2 ${cfg.color} drop-shadow-md`}>{item.title || item.name}</span>
+                    <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No Poster</span>
+                  </div>
+                )}
 
                 {/* Gradient overlay — always present subtly, stronger on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
