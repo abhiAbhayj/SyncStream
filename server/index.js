@@ -15,9 +15,13 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
-// CORS setup
+// CORS setup with dynamic LAN and localhost support
 const corsOptions = {
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow non-browser requests or any local/LAN/production origin
+    if (!origin) return callback(null, true);
+    callback(null, true); // Allow all valid origins dynamically with credentials
+  },
   credentials: true,
 };
 

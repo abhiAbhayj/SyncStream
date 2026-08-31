@@ -19,10 +19,10 @@ import {
   FileText,
   Maximize,
   Minimize,
-  Radio,
   X,
   Loader2,
-  Sparkles
+  Sparkles,
+  Music2
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -69,7 +69,7 @@ export default function MusicModal() {
     } catch {
       return 'player';
     }
-  }); // 'player' | 'lyrics' | 'queue'
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Lyrics state
@@ -260,14 +260,17 @@ export default function MusicModal() {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-darkBg/98 backdrop-blur-3xl overflow-hidden animate-fade-in text-white p-3 sm:p-6 md:p-8 select-none">
+    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-darkBg text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
       
-      {/* Blurred Backdrop Artwork */}
+      {/* ── Ambient Glowing Aurora Mesh Background (Prevents black screen) ── */}
       <div
-        className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-20 pointer-events-none scale-125 transition-all duration-1000"
-        style={{ backgroundImage: `url(${currentTrack.image})` }}
+        className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-40 pointer-events-none scale-125 transition-all duration-1000"
+        style={{ backgroundImage: `url(${currentTrack.image || ''})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-darkBg via-darkBg/85 to-darkBg/50 pointer-events-none" />
+      {/* Dynamic Animated Ambient Orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accentPurple/20 blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-accentCyan/20 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-darkBg via-darkBg/80 to-darkBg/40 pointer-events-none" />
 
       {/* ── Top Header Navigation ── */}
       <div className="relative z-10 flex items-center justify-between max-w-4xl mx-auto w-full gap-2 pt-[env(safe-area-inset-top,0.5rem)]">
@@ -275,44 +278,45 @@ export default function MusicModal() {
         {/* Minimize Button */}
         <button
           onClick={() => setIsExpanded(false)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-gray-300 hover:text-white transition font-bold text-xs backdrop-blur-md shrink-0"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-gray-200 hover:text-white transition font-bold text-xs backdrop-blur-md shrink-0 border border-white/10"
         >
           <ChevronDown className="w-4 h-4" />
           <span className="hidden sm:inline">Minimize</span>
         </button>
 
         {/* View Switcher Tabs (Player | Lyrics | Queue) */}
-        <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md">
+        <div className="flex items-center gap-1 bg-white/10 border border-white/15 p-1 rounded-full backdrop-blur-xl shadow-lg">
           <button
             onClick={() => handleTabChange('player')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1 px-3.5 py-1 rounded-full text-xs font-bold transition active:scale-95 ${
               activeTab === 'player'
-                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-md'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(99,210,255,0.4)]'
+                : 'text-gray-300 hover:text-white'
             }`}
           >
-            Player
+            <Music2 className="w-3.5 h-3.5" />
+            <span>Player</span>
           </button>
           <button
             onClick={() => handleTabChange('lyrics')}
-            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1 px-3.5 py-1 rounded-full text-xs font-bold transition active:scale-95 ${
               activeTab === 'lyrics'
-                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-md'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(99,210,255,0.4)]'
+                : 'text-gray-300 hover:text-white'
             }`}
           >
-            <FileText className="w-3 h-3" />
+            <FileText className="w-3.5 h-3.5" />
             <span>Lyrics</span>
           </button>
           <button
             onClick={() => handleTabChange('queue')}
-            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1 px-3.5 py-1 rounded-full text-xs font-bold transition active:scale-95 ${
               activeTab === 'queue'
-                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-md'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(99,210,255,0.4)]'
+                : 'text-gray-300 hover:text-white'
             }`}
           >
-            <ListMusic className="w-3 h-3" />
+            <ListMusic className="w-3.5 h-3.5" />
             <span>Queue</span>
           </button>
         </div>
@@ -321,14 +325,14 @@ export default function MusicModal() {
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={toggleBrowserFullscreen}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition active:scale-95"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition active:scale-95 border border-white/10"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
           <button
             onClick={closePlayer}
-            className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 active:scale-95 text-gray-300 hover:text-red-400 transition"
+            className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 active:scale-95 text-gray-200 hover:text-red-400 transition border border-white/10"
             title="Stop & Close"
           >
             <X className="w-4 h-4" />
@@ -343,37 +347,39 @@ export default function MusicModal() {
         {activeTab === 'player' && (
           <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 w-full animate-fade-in text-center">
             
-            {/* Spinning Vinyl Visual */}
+            {/* Glowing Spinning Vinyl Visual */}
             <div className="relative flex items-center justify-center shrink-0">
               <div
-                className={`w-44 h-44 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full p-2 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_40px_rgba(99,210,255,0.3)] transition-all duration-700 ${
-                  isPlaying ? 'animate-spin-slow shadow-[0_0_60px_rgba(99,210,255,0.5)]' : ''
+                className={`w-44 h-44 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full p-2.5 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_50px_rgba(99,210,255,0.35)] transition-all duration-700 ${
+                  isPlaying ? 'animate-spin-slow shadow-[0_0_80px_rgba(99,210,255,0.6)]' : ''
                 }`}
               >
-                <div className="w-full h-full rounded-full bg-black border-2 sm:border-4 border-white/20 overflow-hidden relative flex items-center justify-center shadow-inner">
-                  <div className="absolute inset-2 sm:inset-4 rounded-full border border-white/5 pointer-events-none" />
-                  <div className="absolute inset-5 sm:inset-8 rounded-full border border-white/5 pointer-events-none" />
-                  <div className="absolute inset-8 sm:inset-12 rounded-full border border-white/10 pointer-events-none" />
+                <div className="w-full h-full rounded-full bg-black border-2 sm:border-4 border-white/25 overflow-hidden relative flex items-center justify-center shadow-2xl">
+                  {/* Vinyl Grooves */}
+                  <div className="absolute inset-2 sm:inset-4 rounded-full border border-white/10 pointer-events-none" />
+                  <div className="absolute inset-5 sm:inset-8 rounded-full border border-white/10 pointer-events-none" />
+                  <div className="absolute inset-8 sm:inset-12 rounded-full border border-white/15 pointer-events-none" />
 
-                  {/* Artwork Circle */}
-                  <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
+                  {/* Artwork Center */}
+                  <div className="w-26 h-26 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
                     <img
                       src={currentTrack.image || 'https://placehold.co/300x300/1e1e24/fff?text=Music'}
                       alt={currentTrack.title}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 m-auto w-5 h-5 rounded-full bg-darkBg border-2 border-white/40 shadow-inner" />
+                    <div className="absolute inset-0 m-auto w-5 h-5 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
                   </div>
                 </div>
               </div>
 
-              {/* Live Equalizer Audio Waves */}
+              {/* Live Audio Frequency Waves */}
               {isPlaying && (
-                <div className="absolute -bottom-3 flex items-end gap-1 px-3 py-1 bg-black/80 backdrop-blur-md rounded-full border border-white/15 shadow-lg">
-                  <span className="w-1 h-4 bg-accentCyan rounded-full animate-pulse" />
+                <div className="absolute -bottom-3 flex items-end gap-1 px-3 py-1 bg-black/90 backdrop-blur-md rounded-full border border-white/20 shadow-[0_0_20px_rgba(99,210,255,0.4)]">
+                  <span className="w-1 h-3.5 bg-accentCyan rounded-full animate-pulse" />
                   <span className="w-1 h-6 bg-accentPurple rounded-full animate-pulse [animation-delay:0.2s]" />
-                  <span className="w-1 h-3 bg-accentPink rounded-full animate-pulse [animation-delay:0.4s]" />
-                  <span className="w-1 h-5 bg-accentCyan rounded-full animate-pulse [animation-delay:0.1s]" />
+                  <span className="w-1 h-4 bg-accentPink rounded-full animate-pulse [animation-delay:0.4s]" />
+                  <span className="w-1 h-5.5 bg-accentCyan rounded-full animate-pulse [animation-delay:0.1s]" />
+                  <span className="w-1 h-3 bg-accentPurple rounded-full animate-pulse [animation-delay:0.3s]" />
                 </div>
               )}
             </div>
@@ -381,14 +387,14 @@ export default function MusicModal() {
             {/* Track Info */}
             <div className="space-y-1 max-w-sm sm:max-w-md px-2">
               <div className="flex items-center justify-center gap-2">
-                <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono">
+                <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono shadow-sm">
                   {currentTrack.language || 'Global'}
                 </span>
                 {currentTrack.year && (
                   <span className="text-[11px] text-gray-400 font-mono">&bull; {currentTrack.year}</span>
                 )}
               </div>
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-2">
                 {currentTrack.title}
               </h1>
               <p className="text-xs sm:text-sm text-gray-300 font-medium font-sans truncate">
@@ -400,7 +406,7 @@ export default function MusicModal() {
 
         {/* ══════ 2. LYRICS VIEW ══════ */}
         {activeTab === 'lyrics' && (
-          <div className="w-full max-w-2xl h-[52vh] sm:h-[58vh] flex flex-col gap-3 animate-fade-in glass-panel rounded-2xl border border-white/10 p-4 sm:p-6 backdrop-blur-2xl">
+          <div className="w-full max-w-2xl h-[52vh] sm:h-[58vh] flex flex-col gap-3 animate-fade-in glass-panel rounded-2xl border border-white/15 p-4 sm:p-6 backdrop-blur-2xl bg-darkCard/80 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-2.5 shrink-0">
               <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                 <h2 className="text-sm sm:text-base font-bold text-white font-outfit truncate flex items-center gap-1.5">
@@ -410,7 +416,7 @@ export default function MusicModal() {
                 <p className="text-[11px] text-gray-400 truncate">{currentTrack.artist}</p>
               </div>
               {lyricsData.synced && (
-                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/30 font-mono shrink-0">
+                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/30 font-mono shrink-0 shadow-sm">
                   Live Synced
                 </span>
               )}
@@ -419,13 +425,13 @@ export default function MusicModal() {
             {lyricsData.loading ? (
               <div className="flex flex-col items-center justify-center flex-1 gap-2">
                 <Loader2 className="w-7 h-7 text-accentCyan animate-spin" />
-                <p className="text-xs text-gray-400 font-mono">Fetching synchronized lyrics...</p>
+                <p className="text-xs text-gray-300 font-mono">Fetching synchronized lyrics...</p>
               </div>
             ) : lyricsData.synced && lyricsData.syncedLyrics.length > 0 ? (
               /* Synced Interactive Lyrics */
               <div
                 ref={lyricsContainerRef}
-                className="overflow-y-auto space-y-3 flex-1 pr-2 custom-scrollbar py-4"
+                className="overflow-y-auto space-y-3.5 flex-1 pr-2 custom-scrollbar py-4"
               >
                 {lyricsData.syncedLyrics.map((line, idx) => {
                   const isActive = idx === activeLyricIndex;
@@ -433,13 +439,13 @@ export default function MusicModal() {
                     <p
                       key={`lyric-${idx}`}
                       onClick={() => seek(line.time)}
-                      className={`text-sm sm:text-lg md:text-xl font-bold cursor-pointer transition-all duration-300 text-center select-none py-1.5 px-2 rounded-xl ${
+                      className={`text-sm sm:text-lg md:text-xl font-bold cursor-pointer transition-all duration-300 text-center select-none py-1.5 px-3 rounded-xl ${
                         isActive
-                          ? 'text-accentCyan scale-105 font-extrabold drop-shadow-[0_0_15px_rgba(99,210,255,0.7)] bg-white/10'
+                          ? 'text-accentCyan scale-105 font-black drop-shadow-[0_0_18px_rgba(99,210,255,0.9)] bg-white/10 border border-accentCyan/30'
                           : 'text-gray-400 hover:text-gray-200 opacity-60 hover:opacity-100'
                       }`}
                     >
-                      {line.text || '♪'}
+                      {line?.text || '♪'}
                     </p>
                   );
                 })}
@@ -447,14 +453,14 @@ export default function MusicModal() {
             ) : lyricsData.plainLyrics ? (
               /* Plain Text Lyrics */
               <div className="overflow-y-auto space-y-2 flex-1 pr-2 custom-scrollbar py-3 text-center">
-                <pre className="text-xs sm:text-sm font-sans text-gray-300 leading-relaxed whitespace-pre-wrap">
+                <pre className="text-xs sm:text-sm font-sans text-gray-200 leading-relaxed whitespace-pre-wrap">
                   {lyricsData.plainLyrics}
                 </pre>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-center text-gray-500 space-y-2">
-                <Sparkles className="w-7 h-7 text-gray-600" />
-                <p className="text-xs sm:text-sm font-semibold">No lyrics found for this track.</p>
+              <div className="flex flex-col items-center justify-center flex-1 text-center text-gray-400 space-y-2">
+                <Sparkles className="w-7 h-7 text-accentCyan" />
+                <p className="text-xs sm:text-sm font-semibold">No synchronized lyrics found for this track.</p>
               </div>
             )}
           </div>
@@ -462,7 +468,7 @@ export default function MusicModal() {
 
         {/* ══════ 3. QUEUE VIEW ══════ */}
         {activeTab === 'queue' && (
-          <div className="w-full max-w-2xl bg-darkCard/90 border border-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur-xl h-[52vh] sm:h-[58vh] flex flex-col gap-3 animate-fade-in">
+          <div className="w-full max-w-2xl bg-darkCard/85 border border-white/15 rounded-2xl p-4 sm:p-6 backdrop-blur-2xl h-[52vh] sm:h-[58vh] flex flex-col gap-3 animate-fade-in shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-2.5 shrink-0">
               <h2 className="text-sm sm:text-base font-bold text-white font-outfit flex items-center gap-2">
                 <ListMusic className="w-4 h-4 text-accentCyan" />
@@ -478,7 +484,7 @@ export default function MusicModal() {
                     key={`${t.id}-${idx}`}
                     className={`flex items-center justify-between gap-2.5 p-2.5 rounded-xl transition ${
                       isCurrent
-                        ? 'bg-accentCyan/15 border border-accentCyan/30 text-white'
+                        ? 'bg-accentCyan/15 border border-accentCyan/30 text-white shadow-[0_0_12px_rgba(99,210,255,0.2)]'
                         : 'hover:bg-white/5 text-gray-300'
                     }`}
                   >
@@ -489,7 +495,7 @@ export default function MusicModal() {
                       <img
                         src={t.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
                         alt={t.title}
-                        className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0"
+                        className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0 shadow-md"
                       />
                       <div className="min-w-0 flex-1">
                         <p className={`font-bold text-xs truncate ${isCurrent ? 'text-accentCyan' : 'text-white'}`}>
@@ -523,19 +529,19 @@ export default function MusicModal() {
             ref={scrubberRef}
             onMouseDown={handleMouseDown}
             onTouchStart={handleMouseDown}
-            className="relative w-full h-2 sm:h-2.5 rounded-full bg-white/15 cursor-pointer overflow-visible group/scrubber"
+            className="relative w-full h-2.5 sm:h-3 rounded-full bg-white/20 cursor-pointer overflow-visible group/scrubber"
           >
             <div
-              className="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_12px_rgba(99,210,255,0.7)]"
+              className="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_15px_rgba(99,210,255,0.8)]"
               style={{ width: `${progressPercent}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-white shadow-[0_0_10px_#fff]"
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full bg-white shadow-[0_0_12px_#fff]"
               style={{ left: `${progressPercent}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-mono font-bold text-gray-400 px-0.5">
+          <div className="flex items-center justify-between text-[11px] font-mono font-bold text-gray-300 px-0.5">
             <span>{formatTime(displayTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -548,7 +554,7 @@ export default function MusicModal() {
           <button
             onClick={toggleShuffle}
             className={`p-2 rounded-full transition active:scale-90 ${
-              isShuffling ? 'text-accentCyan bg-accentCyan/20' : 'text-gray-400 hover:text-white'
+              isShuffling ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(99,210,255,0.4)]' : 'text-gray-300 hover:text-white'
             }`}
             title="Shuffle"
           >
@@ -558,7 +564,7 @@ export default function MusicModal() {
           {/* Previous Track */}
           <button
             onClick={prevTrack}
-            className="p-2 sm:p-2.5 text-gray-300 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
+            className="p-2 sm:p-2.5 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
             title="Previous Track"
           >
             <SkipBack className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -567,7 +573,7 @@ export default function MusicModal() {
           {/* -10s Backward Jump */}
           <button
             onClick={() => skipBackward(10)}
-            className="relative p-2 sm:p-2.5 text-gray-300 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
+            className="relative p-2 sm:p-2.5 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
             title="Rewind 10s"
           >
             <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-rotate-45" />
@@ -578,7 +584,7 @@ export default function MusicModal() {
           <button
             onClick={togglePlay}
             disabled={isLoading}
-            className="w-13 h-13 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_30px_rgba(99,210,255,0.5)] hover:shadow-[0_0_45px_rgba(99,210,255,0.8)] active:scale-95 transition-all disabled:opacity-50"
+            className="w-13 h-13 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_35px_rgba(99,210,255,0.6)] hover:shadow-[0_0_50px_rgba(99,210,255,0.9)] active:scale-95 transition-all disabled:opacity-50"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isLoading ? (
@@ -593,7 +599,7 @@ export default function MusicModal() {
           {/* +10s Forward Jump */}
           <button
             onClick={() => skipForward(10)}
-            className="relative p-2 sm:p-2.5 text-gray-300 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
+            className="relative p-2 sm:p-2.5 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
             title="Forward 10s"
           >
             <RotateCw className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:rotate-45" />
@@ -603,7 +609,7 @@ export default function MusicModal() {
           {/* Next Track */}
           <button
             onClick={nextTrack}
-            className="p-2 sm:p-2.5 text-gray-300 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
+            className="p-2 sm:p-2.5 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
             title="Next Track"
           >
             <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -613,7 +619,7 @@ export default function MusicModal() {
           <button
             onClick={toggleLoop}
             className={`p-2 rounded-full transition active:scale-90 ${
-              isLooping !== 'none' ? 'text-accentCyan bg-accentCyan/20' : 'text-gray-400 hover:text-white'
+              isLooping !== 'none' ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(99,210,255,0.4)]' : 'text-gray-300 hover:text-white'
             }`}
             title={`Loop: ${isLooping}`}
           >
@@ -637,7 +643,7 @@ export default function MusicModal() {
             step="0.01"
             value={isMuted ? 0 : volume}
             onChange={(e) => setVolume(parseFloat(e.target.value))}
-            className="w-32 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accentCyan"
+            className="w-32 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
           />
         </div>
 

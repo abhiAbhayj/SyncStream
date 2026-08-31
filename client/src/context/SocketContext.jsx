@@ -19,10 +19,10 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Connect to Backend WebSocket server
-    const socketUrl = 'http://localhost:5000';
+    // Connect to Backend WebSocket server dynamically
+    const socketUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname || 'localhost'}:5000`;
     const newSocket = io(socketUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true
     });
