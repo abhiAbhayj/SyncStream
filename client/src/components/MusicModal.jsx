@@ -171,13 +171,18 @@ export default function MusicModal() {
     }
   }, [activeLyricIndex, activeTab]);
 
-  const calculateSeekTime = useCallback((e) => {
+  if (!isExpanded || !currentTrack) return null;
+
+  const displayTime = isDragging ? dragTime : currentTime;
+  const progressPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
+
+  const calculateSeekTime = (e) => {
     if (!scrubberRef.current || duration <= 0) return 0;
     const rect = scrubberRef.current.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const offsetX = Math.max(0, Math.min(clientX - rect.left, rect.width));
     return (offsetX / rect.width) * duration;
-  }, [duration]);
+  };
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -188,7 +193,7 @@ export default function MusicModal() {
     if (isDragging) {
       setDragTime(calculateSeekTime(e));
     }
-  }, [isDragging, calculateSeekTime]);
+  }, [isDragging, duration]);
 
   const handleMouseUp = useCallback((e) => {
     if (isDragging) {
@@ -196,7 +201,7 @@ export default function MusicModal() {
       seek(target);
       setIsDragging(false);
     }
-  }, [isDragging, calculateSeekTime, seek]);
+  }, [isDragging, seek]);
 
   useEffect(() => {
     if (isDragging) {
@@ -212,11 +217,6 @@ export default function MusicModal() {
       window.removeEventListener('touchend', handleMouseUp);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
-
-  if (!isExpanded || !currentTrack) return null;
-
-  const displayTime = isDragging ? dragTime : currentTime;
-  const progressPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-between bg-darkBg/95 backdrop-blur-3xl overflow-hidden animate-fade-in text-white p-4 sm:p-8">

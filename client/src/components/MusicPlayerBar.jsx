@@ -65,14 +65,20 @@ export default function MusicPlayerBar() {
   const [isMinimized, setIsMinimized] = useState(false);
   const progressBarRef = useRef(null);
 
+  // If no track selected, don't show floating player
+  if (!currentTrack) return null;
+
+  const displayTime = isDragging ? dragTime : currentTime;
+  const progressPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
+
   // Handle Scrubbing (Mouse & Touch Drag)
-  const calculateSeekTime = useCallback((e) => {
+  const calculateSeekTime = (e) => {
     if (!progressBarRef.current || duration <= 0) return 0;
     const rect = progressBarRef.current.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const offsetX = Math.max(0, Math.min(clientX - rect.left, rect.width));
     return (offsetX / rect.width) * duration;
-  }, [duration]);
+  };
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -84,7 +90,7 @@ export default function MusicPlayerBar() {
     if (isDragging) {
       setDragTime(calculateSeekTime(e));
     }
-  }, [isDragging, calculateSeekTime]);
+  }, [isDragging, duration]);
 
   const handleMouseUp = useCallback((e) => {
     if (isDragging) {
@@ -92,7 +98,7 @@ export default function MusicPlayerBar() {
       seek(target);
       setIsDragging(false);
     }
-  }, [isDragging, calculateSeekTime, seek]);
+  }, [isDragging, seek]);
 
   useEffect(() => {
     if (isDragging) {
@@ -119,12 +125,6 @@ export default function MusicPlayerBar() {
       time: formatTime(hoverTime)
     });
   };
-
-  // If no track selected, don't show floating player
-  if (!currentTrack) return null;
-
-  const displayTime = isDragging ? dragTime : currentTime;
-  const progressPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
 
   return (
     <>
