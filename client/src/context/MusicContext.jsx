@@ -35,27 +35,26 @@ export const MusicProvider = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  
   const [volume, setVolumeState] = useState(() => {
     try {
       const saved = localStorage.getItem('syncstream_music_vol');
-      return saved ? parseFloat(saved) : 0.85;
+      if (saved) {
+        const val = parseFloat(saved);
+        return isNaN(val) ? 0.85 : val;
+      }
+      return 0.85;
     } catch {
       return 0.85;
     }
   });
+  
   const [isMuted, setIsMuted] = useState(false);
   const [isLooping, setIsLooping] = useState('none'); // 'none' | 'track' | 'queue'
   const [isShuffling, setIsShuffling] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [playbackError, setPlaybackError] = useState(null);
-
-  // Initialize Audio instance
-  if (!audioRef.current && typeof window !== 'undefined') {
-    audioRef.current = new Audio();
-    audioRef.current.preload = 'metadata';
-    audioRef.current.volume = volume;
-  }
 
   // Seek to specific second
   const seek = useCallback((time) => {
@@ -222,49 +221,6 @@ export const MusicProvider = ({ children }) => {
     }
   }, [queueIndex]);
 
-  // Clear Queue
-  const clearQueue = useCallback(() => {
-    setQueue(currentTrack ? [currentTrack] : []);
-    setQueueIndex(0);
-  }, [currentTrack]);
-
-  // Volume Controller
-  const setVolume = useCallback((val) => {
-    const clamped = Math.max(0, Math.min(1, val));
-    setVolumeState(clamped);
-    if (audioRef.current) {
-      audioRef.current.volume = clamped;
-    }
-    if (clamped > 0 && isMuted) {
-      setIsMuted(false);
-    }
-    try {
-      localStorage.setItem('syncstream_music_vol', clamped.toString());
-    } catch (e) {}
-  }, [isMuted]);
-
-  // Toggle Mute
-  const toggleMute = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isMuted) {
-      audio.volume = volume;
-      setIsMuted(false);
-    } else {
-      audio.volume = 0;
-      setIsMuted(true);
-    }
-  }, [isMuted, volume]);
-
-  // Toggle Loop
-  const toggleLoop = useCallback(() => {
-    setIsLooping(prev => {
-      if (prev === 'none') return 'track';
-      if (prev === 'track') return 'queue';
-      return 'none';
-    });
-  }, []);
-
   // Close / Dismiss Player completely
   const closePlayer = useCallback(() => {
     const audio = audioRef.current;
@@ -283,10 +239,67 @@ export const MusicProvider = ({ children }) => {
     } catch (e) {}
   }, []);
 
-  // Attach event listeners to audio element
-  useEffect(() => {
+  // Clear Queue
+  const clearQueue = useCallback(() => {
+    setQueue(currentTrack ? [currentTrack] : []);
+    setQueueIndex(0);
+  }, [currentTrack]);
+
+  // Volume Controller
+  const setVolume = useCallback((val) => {
+    const parsed = parseFloat(val);
+    const clamped = isNaN(parsed) ? 0.85 : Math.max(0, Math.min(1, parsed));
+    setVolumeState(clamped);
+    if (audioRef.current) {
+      audioRef.current.volume = clamped;
+    }
+    if (clamped > 0 && isMuted) {
+      setIsMuted(false);
+    }
+    try {
+      localStorage.setItem('syncstream_music_vol', clamped.toString());
+    } catch (e) {}
+  }, [isMuted]);
+
+  // Toggle Mute
+  const toggleMute = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    if (isMuted) {
+      audio.volume = isNaN(volume) ? 0.85 : volume;
+      setIsMuted(false);
+    } else {
+      audio.volume = 0;
+      setIsMuted(true);
+    }
+  }, [isMuted, volume]);
+
+  // Toggle Loop
+  const toggleLoop = useCallback(() => {
+    setIsLooping(prev => {
+      if (prev === 'none') return 'track';
+      if (prev === 'track') return 'queue';
+      return 'none';
+    });
+  }, []);
+
+  // Toggle Shuffle
+  const toggleShuffle = useCallback(() => {
+    setIsShuffling(prev => !prev);
+  }, []);
+
+  // Safe Mount & Initialization of Audio Engine (inside useEffect)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.preload = 'metadata';
+      const safeVol = isNaN(volume) ? 0.85 : volume;
+      audioRef.current.volume = safeVol;
+    }
+
+    const audio = audioRef.current;
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => {
@@ -335,7 +348,7 @@ export const MusicProvider = ({ children }) => {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [isLooping, nextTrack, currentTrack]);
+  }, [isLooping, nextTrack, currentTrack, volume]);
 
   // Sync queue to localStorage
   useEffect(() => {
