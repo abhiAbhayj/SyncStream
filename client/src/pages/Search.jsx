@@ -157,8 +157,8 @@ export default function Search() {
         </p>
       </div>
 
-      {/* Category Toggle Tabs */}
-      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 border-b border-darkBorder pb-4">
+      {/* Category Toggle Tabs (Scrollable on mobile) */}
+      <div className="flex items-center justify-start gap-2 border-b border-darkBorder pb-3 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
         {filterTabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = type === tab.key;
@@ -166,9 +166,9 @@ export default function Search() {
             <button
               key={tab.key}
               onClick={() => handleTypeChange(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition active:scale-95 shrink-0 ${
                 isSelected
-                  ? 'bg-accentCyan text-black font-extrabold shadow-lg shadow-accentCyan/15'
+                  ? 'bg-accentCyan text-black font-extrabold shadow-lg shadow-accentCyan/20'
                   : 'text-gray-400 border border-darkBorder bg-darkCard/40 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -180,21 +180,21 @@ export default function Search() {
       </div>
 
       {/* Search and Filters Console */}
-      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/30 border border-darkBorder/60 p-6 rounded-3xl backdrop-blur-md shadow-2xl">
-        <div className="flex flex-col md:flex-row gap-3">
+      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/30 border border-darkBorder/60 p-4 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-md shadow-2xl">
+        <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3">
           <div className="relative flex-grow">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 sm:w-5 h-4 sm:h-5" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : 'manga entries'}...`}
-              className="w-full bg-darkCard border border-darkBorder rounded-2xl pl-12 pr-4 py-3.5 text-base text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-600"
+              placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'songs, artists' : 'manga entries'}...`}
+              className="w-full bg-darkCard border border-darkBorder rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-600 font-medium"
             />
           </div>
           <button
             type="submit"
-            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-102 transition flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base"
           >
             Search
           </button>

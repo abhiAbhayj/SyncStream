@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
-import { MusicProvider } from './context/MusicContext';
+import { MusicProvider, useMusic } from './context/MusicContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
@@ -34,6 +34,8 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function AppContent() {
+  const { currentTrack } = useMusic();
+
   React.useEffect(() => {
     const ALL_THEMES = ['theme-inferno', 'theme-emerald', 'theme-cyber'];
     const savedTheme = localStorage.getItem('syncstream_theme') || 'ocean';
@@ -49,7 +51,7 @@ function AppContent() {
     <div className="flex flex-col min-h-screen">
       <ScrollRestoration />
       <Navbar />
-      <main className="flex-grow pb-24 md:pb-0">
+      <main className={`flex-grow transition-all duration-300 ${currentTrack ? 'pb-36 md:pb-24' : 'pb-20 md:pb-0'}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
