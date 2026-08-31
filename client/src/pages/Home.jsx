@@ -155,74 +155,74 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-16 py-8 px-4 md:px-8 max-w-7xl mx-auto">
+    <div className="space-y-8 sm:space-y-14 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto">
 
       {/* ── Hero Banner ── */}
-      <section className="relative rounded-3xl overflow-hidden border border-white/[0.06] text-center bg-aurora">
+      <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.06] text-center bg-aurora">
         {/* Ambient orbs */}
-        <div className="orb orb-purple w-80 h-80 -top-20 -left-20 opacity-60" />
-        <div className="orb orb-cyan w-64 h-64 -bottom-16 -right-16 opacity-50" />
-        <div className="orb orb-pink w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30" />
+        <div className="orb orb-purple w-80 h-80 -top-20 -left-20 opacity-60 pointer-events-none" />
+        <div className="orb orb-cyan w-64 h-64 -bottom-16 -right-16 opacity-50 pointer-events-none" />
+        <div className="orb orb-pink w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none" />
 
         {/* Noise grain overlay */}
-        <div className="noise-overlay rounded-3xl" />
+        <div className="noise-overlay rounded-2xl sm:rounded-3xl pointer-events-none" />
 
         {/* Content */}
-        <div className="relative z-10 py-16 px-6 md:py-24 md:px-16 space-y-7 hero-gradient">
+        <div className="relative z-10 py-8 px-4 sm:py-16 sm:px-8 md:py-20 md:px-16 space-y-4 sm:space-y-6 hero-gradient">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-full text-xs font-semibold text-gray-300 backdrop-blur-md animate-fade-up font-mono tracking-widest">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] border border-white/[0.1] rounded-full text-[11px] font-semibold text-gray-300 backdrop-blur-md animate-fade-up font-mono tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
-            THE ULTIMATE STREAMING HUB
+            <span>THE ULTIMATE STREAMING HUB</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bebas tracking-widest leading-none uppercase animate-fade-up stagger-2">
+          <h1 className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-bebas tracking-wider leading-tight sm:leading-none uppercase animate-fade-up stagger-2">
             Discover, Stream &amp;
             <br />
             <span className="text-gradient-aurora title-glow">Watch Together</span>
           </h1>
 
-          <p className="text-gray-400 max-w-xl mx-auto text-base md:text-lg leading-relaxed animate-fade-up stagger-3 font-dm">
+          <p className="text-gray-400 max-w-xl mx-auto text-xs sm:text-base md:text-lg leading-relaxed animate-fade-up stagger-3 font-dm">
             Movies, TV shows, anime &amp; manga — synced across devices in real-time. Host Watch Parties with live chat.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 animate-fade-up stagger-4">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-1 animate-fade-up stagger-4">
             <Link
               to="/search"
-              className="btn-primary flex items-center gap-2 !text-white text-sm !px-6 !py-3"
+              className="btn-primary flex items-center gap-2 !text-white text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95"
             >
               <Search className="w-4 h-4" />
-              Explore Catalog
+              <span>Explore Catalog</span>
             </Link>
             <Link
               to="/search"
-              className="btn-ghost flex items-center gap-2 text-sm !px-6 !py-3"
+              className="btn-ghost flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95"
             >
               <Users className="w-4 h-4" />
-              Join a Party
+              <span>Join a Party</span>
             </Link>
           </div>
 
           {/* Feature highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-10 max-w-3xl mx-auto border-t border-white/[0.06] mt-4 animate-fade-up stagger-5">
+          <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 max-w-3xl mx-auto border-t border-white/[0.06] mt-2 animate-fade-up stagger-5">
             {[
               { icon: Tv, color: 'text-accentCyan', bg: 'bg-accentCyan/10 border-accentCyan/20', title: 'Aggregated Catalog', desc: 'TMDB, Anime, MangaDex feeds in one dashboard.' },
               { icon: Sparkles, color: 'text-accentPurple', bg: 'bg-accentPurple/10 border-accentPurple/20', title: 'Host Sync Players', desc: 'Control playback across all participants live.' },
               { icon: MessageSquareCode, color: 'text-accentPink', bg: 'bg-accentPink/10 border-accentPink/20', title: 'Lobby Chat', desc: 'Chat alongside streams with persistent history.' },
             ].map(({ icon: Icon, color, bg, title, desc }) => (
-              <div key={title} className="flex flex-col items-center p-4 text-center space-y-2 hover-lift">
-                <div className={`p-3 rounded-2xl border ${bg}`}>
-                  <Icon className={`w-5 h-5 ${color}`} />
+              <div key={title} className="flex flex-col items-center p-3 text-center space-y-1 hover-lift">
+                <div className={`p-2.5 rounded-xl border ${bg}`}>
+                  <Icon className={`w-4 h-4 ${color}`} />
                 </div>
-                <h3 className="font-semibold text-sm text-white">{title}</h3>
-                <p className="text-xs text-gray-500 max-w-[180px]">{desc}</p>
+                <h3 className="font-semibold text-xs text-white">{title}</h3>
+                <p className="text-[11px] text-gray-500 max-w-[180px]">{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Tab Selector ── */}
-      <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+      {/* ── Tab Selector (Horizontal Swipe on Mobile) ── */}
+      <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -230,14 +230,14 @@ export default function Home() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`group relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-semibold tracking-wide transition-all duration-400 ${
+              className={`group relative flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold tracking-wide transition-all duration-300 shrink-0 active:scale-95 ${
                 isSelected
-                  ? 'bg-white/[0.08] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.1)] border border-white/[0.1]'
+                  ? 'bg-white/[0.08] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.15)] border border-white/[0.1]'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
               }`}
             >
               {isSelected && (
-                <div className="absolute inset-0 rounded-2xl opacity-100" style={{
+                <div className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-100" style={{
                   background: `linear-gradient(135deg, rgba(var(--accent-purple),0.15), rgba(var(--accent-cyan),0.08))`
                 }} />
               )}

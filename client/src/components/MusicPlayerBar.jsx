@@ -16,10 +16,8 @@ import {
   Maximize2,
   ListMusic,
   Disc3,
-  Sparkles,
   FileText,
-  X,
-  ChevronDown
+  X
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -64,7 +62,7 @@ export default function MusicPlayerBar() {
   const [hoverPosition, setHoverPosition] = useState(null);
   const progressBarRef = useRef(null);
 
-  // If no track selected, don't show player
+  // If no track is loaded, keep player completely unmounted
   if (!currentTrack) return null;
 
   const displayTime = isDragging ? dragTime : currentTime;
@@ -81,8 +79,7 @@ export default function MusicPlayerBar() {
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
-    const target = calculateSeekTime(e);
-    setDragTime(target);
+    setDragTime(calculateSeekTime(e));
   };
 
   const handleMouseMove = useCallback((e) => {
@@ -127,14 +124,14 @@ export default function MusicPlayerBar() {
 
   return (
     <>
-      {/* ── Persistent Floating Music Bar ── */}
+      {/* ── Floating Music Bar ── */}
       <aside
         aria-label="Floating Music Player"
-        className="fixed left-0 right-0 z-40 px-2 sm:px-4 bottom-[56px] md:bottom-0 max-w-7xl mx-auto transition-all duration-300 pointer-events-auto"
+        className="fixed left-0 right-0 z-40 px-2 sm:px-4 bottom-[52px] md:bottom-0 max-w-7xl mx-auto transition-all duration-300 pointer-events-auto select-none"
       >
-        <div className="relative glass-panel rounded-2xl md:rounded-t-2xl md:rounded-b-none border border-white/10 shadow-[0_-10px_35px_rgba(0,0,0,0.7)] backdrop-blur-2xl bg-darkCard/95 md:bg-darkCard/90 overflow-hidden">
+        <div className="relative rounded-2xl md:rounded-t-2xl md:rounded-b-none border border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.8)] backdrop-blur-2xl bg-darkCard/95 md:bg-darkCard/90 overflow-hidden">
           
-          {/* Top Edge Progress Bar for Mobile & Desktop */}
+          {/* Top Edge Neon Progress Bar */}
           <div
             ref={progressBarRef}
             onMouseDown={handleMouseDown}
@@ -143,14 +140,14 @@ export default function MusicPlayerBar() {
             onMouseLeave={() => setHoverPosition(null)}
             className="relative w-full h-1.5 md:h-2 bg-white/10 cursor-pointer overflow-visible group/bar"
           >
-            {/* Active Progress Fill */}
+            {/* Active Progress Gradient Fill */}
             <div
-              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_10px_rgba(99,210,255,0.8)]"
+              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_8px_rgba(99,210,255,0.8)]"
               style={{ width: `${progressPercent}%` }}
             />
-            {/* Scrubber Knob (Hover / Touch) */}
+            {/* Scrubber Knob (Desktop hover) */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-white shadow-[0_0_10px_#fff] opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none"
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-white shadow-[0_0_8px_#fff] opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none"
               style={{ left: `${progressPercent}%` }}
             />
             {/* Hover Tooltip (Desktop) */}
@@ -164,39 +161,39 @@ export default function MusicPlayerBar() {
             )}
           </div>
 
-          {/* ══════ MOBILE VIEW (< 768px) ══════ */}
-          <div className="flex md:hidden items-center justify-between gap-2.5 px-3 py-2">
+          {/* ══════ MOBILE SLEEK MINI-PLAYER (< 768px) ══════ */}
+          <div className="flex md:hidden items-center justify-between gap-2 px-2.5 py-1.5 h-13">
             
-            {/* Track Info (Tap opens full-screen modal) */}
+            {/* Left: Artwork + Track Title (Tap opens full-screen player modal) */}
             <div
               onClick={() => setIsExpanded(true)}
-              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer active:opacity-80 transition-opacity"
+              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer active:opacity-75 transition-opacity"
             >
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-white/15 shadow-md bg-black/40">
+              <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-white/15 bg-black/40 shadow-sm">
                 <img
                   src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
                   alt={currentTrack.title}
                   className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`}
                 />
                 {isPlaying && (
-                  <div className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
+                  <div className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_4px_#fff]" />
                 )}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate font-outfit leading-tight">
+              <div className="min-w-0 flex-1 pr-1">
+                <p className="text-xs font-bold text-white truncate font-outfit leading-snug">
                   {currentTrack.title}
                 </p>
-                <p className="text-[11px] text-gray-400 truncate mt-0.5 font-medium">
+                <p className="text-[10px] text-gray-400 truncate leading-tight font-medium">
                   {currentTrack.artist}
                 </p>
               </div>
             </div>
 
-            {/* Clean Mobile Controls ( -10s, Play/Pause, +10s, Close ) */}
-            <div className="flex items-center gap-1 shrink-0">
+            {/* Right: Clean, un-crowded touch buttons */}
+            <div className="flex items-center gap-0.5 shrink-0">
               
-              {/* -10s Skip */}
+              {/* -10s Jump */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -206,29 +203,29 @@ export default function MusicPlayerBar() {
                 title="Rewind 10s"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span className="absolute text-[7px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
+                <span className="absolute text-[6.5px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
               </button>
 
-              {/* Big Glowing Play / Pause Button */}
+              {/* Glowing Play / Pause Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   togglePlay();
                 }}
                 disabled={isLoading}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-accentCyan to-accentPurple text-white flex items-center justify-center shadow-[0_0_15px_rgba(99,210,255,0.4)] active:scale-95 transition"
+                className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-accentCyan to-accentPurple text-white flex items-center justify-center shadow-[0_0_12px_rgba(99,210,255,0.4)] active:scale-90 transition mx-0.5"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : isPlaying ? (
-                  <Pause className="w-4 h-4 fill-current" />
+                  <Pause className="w-3.5 h-3.5 fill-current" />
                 ) : (
-                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                  <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                 )}
               </button>
 
-              {/* +10s Skip */}
+              {/* +10s Jump */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -238,7 +235,7 @@ export default function MusicPlayerBar() {
                 title="Forward 10s"
               >
                 <RotateCw className="w-4 h-4" />
-                <span className="absolute text-[7px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
+                <span className="absolute text-[6.5px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
               </button>
 
               {/* Close Button */}
@@ -255,7 +252,7 @@ export default function MusicPlayerBar() {
             </div>
           </div>
 
-          {/* ══════ DESKTOP VIEW (>= 768px) ══════ */}
+          {/* ══════ DESKTOP BAR (>= 768px) ══════ */}
           <div className="hidden md:flex flex-col gap-2 p-3 sm:p-4">
             
             {/* Timestamps */}
@@ -393,11 +390,11 @@ export default function MusicPlayerBar() {
                 </button>
               </div>
 
-              {/* 3. Right Extra Controls (Volume & Queue) */}
-              <div className="flex items-center justify-end gap-2.5 min-w-0 max-w-[28%] shrink-0">
+              {/* 3. Right Extra Controls (Volume, Queue, Lyrics, Fullscreen, Close) */}
+              <div className="flex items-center justify-end gap-2 min-w-0 max-w-[28%] shrink-0">
                 
                 {/* Volume Slider */}
-                <div className="flex items-center gap-2 group/vol">
+                <div className="flex items-center gap-1.5 group/vol">
                   <button
                     onClick={toggleMute}
                     className="text-gray-400 hover:text-white transition"
