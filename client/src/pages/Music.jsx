@@ -124,23 +124,48 @@ export default function Music() {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="relative max-w-md w-full">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search songs, artists (e.g. Arijit, BTS, Anirudh)..."
-            className="w-full bg-darkCard/80 border border-darkBorder rounded-2xl pl-11 pr-24 py-3 text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-500 font-medium"
-          />
-          <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-          <button
-            type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-white text-xs font-bold hover:shadow-[0_0_15px_rgba(99,210,255,0.4)] transition"
-          >
-            Search
-          </button>
-        </form>
+        {/* Search Bar & Quick Suggestions */}
+        <div className="flex flex-col gap-2 max-w-md w-full">
+          <form onSubmit={handleSearch} className="relative w-full">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search songs, artists (e.g. Hunt You Down, Kesariya)..."
+              className="w-full bg-darkCard/80 border border-darkBorder rounded-2xl pl-11 pr-24 py-3 text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-500 font-medium"
+            />
+            <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-white text-xs font-bold hover:shadow-[0_0_15px_rgba(99,210,255,0.4)] transition"
+            >
+              Search
+            </button>
+          </form>
+
+          {/* Quick Suggestions */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400">
+            <span className="font-semibold text-gray-500 shrink-0">Try:</span>
+            {['Hunt You Down', 'Kesariya', 'Believer', 'Illuminati', 'BTS', 'Anirudh'].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => {
+                  setSearchQuery(tag);
+                  setSearching(true);
+                  setLoading(true);
+                  axios.get('/api/music/search', { params: { query: tag, limit: 30 } })
+                    .then(res => setSongs(res.data.songs || []))
+                    .catch(console.error)
+                    .finally(() => setLoading(false));
+                }}
+                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-accentCyan/10 hover:text-accentCyan border border-white/5 whitespace-nowrap transition"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ── Language Filter Selector Chips ── */}

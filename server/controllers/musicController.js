@@ -139,7 +139,7 @@ export const getTrendingMusic = async (req, res) => {
   }
 };
 
-// 2. Search Music (Songs, Artists, Albums)
+// 2. Search Music (Songs, Artists, Albums) with Smart Progressive Fallback
 export const searchMusic = async (req, res) => {
   const { query, language } = req.query;
   const page = parseInt(req.query.page || '1', 10);
@@ -149,31 +149,57 @@ export const searchMusic = async (req, res) => {
     return getTrendingMusic(req, res);
   }
 
-  let finalQuery = query.trim();
-  if (language && language !== 'all') {
-    finalQuery += ` ${language}`;
+  const rawQuery = query.trim();
+  // Generate cleaned candidate queries for complex searches like "hunt you down a rock music from teach you a lesson"
+  const cleaned = rawQuery
+    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|rock|pop|soundtrack)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
+
+  const candidateQueries = [rawQuery];
+  if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
+  if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
+    candidateQueries.push(shortKeywords);
   }
 
   try {
-    const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(finalQuery)}`;
+    let finalSongs = [];
+    let totalCount = 0;
 
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      timeout: 10000
-    });
+    for (const q of candidateQueries) {
+      let searchQuery = q;
+      if (language && language !== 'all') {
+        searchQuery += ` ${language}`;
+      }
 
-    const rawResults = response.data.results || [];
-    const songs = rawResults
-      .map(formatSong)
-      .filter(s => s && s.audio_url);
+      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(searchQuery)}`;
+
+      const response = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        timeout: 10000
+      });
+
+      const rawResults = response.data.results || [];
+      const validSongs = rawResults
+        .map(formatSong)
+        .filter(s => s && s.audio_url);
+
+      if (validSongs.length > 0) {
+        finalSongs = validSongs;
+        totalCount = response.data.total || validSongs.length;
+        break;
+      }
+    }
 
     res.json({
-      query: finalQuery,
+      query: rawQuery,
       page,
-      total: response.data.total || songs.length,
-      songs
+      total: totalCount,
+      songs: finalSongs
     });
   } catch (error) {
     console.error('[Music Controller Search Error]:', error.message);
@@ -261,5 +287,135 @@ export const getSongDetails = async (req, res) => {
   } catch (error) {
     console.error('[Music Controller Song Detail Error]:', error.message);
     res.status(500).json({ error: 'Failed to fetch song details' });
+  }
+};
+
+// 5. Get Lyrics (Synced & Plain) via LRCLIB & JioSaavn
+export const getLyrics = async (req, res) => {
+  const { title, artist, duration, songId } = req.query;
+
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required for lyrics lookup' });
+  }
+
+  // Clean title (remove (From "Movie"), (Feat...), etc.)
+  const cleanTitle = title
+    .replace(/\s*\(From.*?\)/gi, '')
+    .replace(/\s*\(Feat.*?\)/gi, '')
+    .replace(/\s*\[.*?\]/gi, '')
+    .replace(/\s*-\s*.*$/gi, '')
+    .trim();
+
+  const cleanArtist = (artist || '').split(',')[0].trim();
+
+  try {
+    // 1. Try LRCLIB for synchronized and plain lyrics
+    let lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
+    if (duration) lrcUrl += `&duration=${parseInt(duration, 10)}`;
+
+    try {
+      const lrcRes = await axios.get(lrcUrl, {
+        headers: { 'User-Agent': 'SyncStream/1.0 (https://github.com/abhiAbhayj/SyncStream)' },
+        timeout: 5000
+      });
+
+      if (lrcRes.data && (lrcRes.data.syncedLyrics || lrcRes.data.plainLyrics)) {
+        // Parse synced lyrics into timestamped array
+        let parsedLines = [];
+        if (lrcRes.data.syncedLyrics) {
+          parsedLines = lrcRes.data.syncedLyrics
+            .split('\n')
+            .map((line) => {
+              const match = line.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
+              if (!match) return null;
+              return {
+                time: parseInt(match[1], 10) * 60 + parseFloat(match[2]),
+                text: match[3].trim()
+              };
+            })
+            .filter(Boolean);
+        }
+
+        return res.json({
+          has_lyrics: true,
+          synced: parsedLines.length > 0,
+          syncedLyrics: parsedLines,
+          plainLyrics: lrcRes.data.plainLyrics || '',
+          source: 'LRCLIB'
+        });
+      }
+    } catch (e) {
+      // Fall through to search or JioSaavn
+    }
+
+    // 2. Try LRCLIB search endpoint if exact get failed
+    try {
+      const searchLrcUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(`${cleanTitle} ${cleanArtist}`)}`;
+      const sRes = await axios.get(searchLrcUrl, {
+        headers: { 'User-Agent': 'SyncStream/1.0' },
+        timeout: 5000
+      });
+
+      const firstMatch = sRes.data?.[0];
+      if (firstMatch && (firstMatch.syncedLyrics || firstMatch.plainLyrics)) {
+        let parsedLines = [];
+        if (firstMatch.syncedLyrics) {
+          parsedLines = firstMatch.syncedLyrics
+            .split('\n')
+            .map((line) => {
+              const match = line.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
+              if (!match) return null;
+              return {
+                time: parseInt(match[1], 10) * 60 + parseFloat(match[2]),
+                text: match[3].trim()
+              };
+            })
+            .filter(Boolean);
+        }
+
+        return res.json({
+          has_lyrics: true,
+          synced: parsedLines.length > 0,
+          syncedLyrics: parsedLines,
+          plainLyrics: firstMatch.plainLyrics || '',
+          source: 'LRCLIB'
+        });
+      }
+    } catch (e) {
+      // Fall through to JioSaavn
+    }
+
+    // 3. Fallback to JioSaavn native lyrics if songId provided
+    if (songId) {
+      try {
+        const jioLyrUrl = `${JIOSAAVN_BASE}?__call=lyrics.getLyrics&_format=json&_marker=0&api_version=4&ctx=web6dot0&lyrics_id=${songId}`;
+        const jioRes = await axios.get(jioLyrUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          timeout: 5000
+        });
+
+        if (jioRes.data?.lyrics) {
+          const rawPlain = jioRes.data.lyrics.replace(/<br\s*[\/]?>/gi, '\n');
+          return res.json({
+            has_lyrics: true,
+            synced: false,
+            syncedLyrics: [],
+            plainLyrics: rawPlain,
+            source: 'JioSaavn'
+          });
+        }
+      } catch (e) {}
+    }
+
+    res.json({
+      has_lyrics: false,
+      synced: false,
+      syncedLyrics: [],
+      plainLyrics: 'No lyrics found for this track. Enjoy the instrumental vibe!',
+      source: null
+    });
+  } catch (err) {
+    console.error('[Music Controller Lyrics Error]:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve lyrics' });
   }
 };

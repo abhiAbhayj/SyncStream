@@ -17,6 +17,7 @@ import {
   ListMusic,
   Disc3,
   Sparkles,
+  FileText,
   X,
   ChevronDown
 } from 'lucide-react';
@@ -53,7 +54,8 @@ export default function MusicPlayerBar() {
     toggleShuffle,
     setIsExpanded,
     removeFromQueue,
-    playTrack
+    playTrack,
+    closePlayer
   } = useMusic();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -175,11 +177,18 @@ export default function MusicPlayerBar() {
                   {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
                 </button>
                 <button
-                  onClick={() => setIsMinimized(false)}
+                  onClick={() => setIsExpanded(true)}
                   className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/5"
-                  title="Expand"
+                  title="Fullscreen"
                 >
                   <Maximize2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={closePlayer}
+                  className="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-white/5"
+                  title="Close Player"
+                >
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -403,10 +412,25 @@ export default function MusicPlayerBar() {
                     )}
                   </button>
 
+                  {/* Lyrics Button */}
+                  <button
+                    onClick={() => {
+                      sessionStorage.setItem('syncstream_music_modal_tab', 'lyrics');
+                      setIsExpanded(true);
+                    }}
+                    className="p-2 text-gray-400 hover:text-accentCyan hover:bg-accentCyan/10 rounded-xl transition"
+                    title="Lyrics View"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </button>
+
                   {/* Fullscreen Expand */}
                   <button
-                    onClick={() => setIsExpanded(true)}
-                    className="hidden sm:flex p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition"
+                    onClick={() => {
+                      sessionStorage.setItem('syncstream_music_modal_tab', 'player');
+                      setIsExpanded(true);
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition"
                     title="Fullscreen Player"
                   >
                     <Maximize2 className="w-4 h-4" />
@@ -416,9 +440,18 @@ export default function MusicPlayerBar() {
                   <button
                     onClick={() => setIsMinimized(true)}
                     className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition"
-                    title="Minimize"
+                    title="Minimize Bar"
                   >
                     <ChevronDown className="w-4 h-4" />
+                  </button>
+
+                  {/* Close / Dismiss Player */}
+                  <button
+                    onClick={closePlayer}
+                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition ml-0.5"
+                    title="Close / Stop Music"
+                  >
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 

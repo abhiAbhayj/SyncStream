@@ -3,7 +3,8 @@ import {
   getTrendingMusic,
   searchMusic,
   getMusicCharts,
-  getSongDetails
+  getSongDetails,
+  getLyrics
 } from '../controllers/musicController.js';
 
 const router = express.Router();
@@ -19,5 +20,8 @@ router.get('/charts', getMusicCharts);
 
 // GET /api/music/song/:id
 router.get('/song/:id', getSongDetails);
+
+// GET /api/music/lyrics?title=...&artist=...&duration=...&songId=...
+router.get('/lyrics', getLyrics);
 
 export default router;

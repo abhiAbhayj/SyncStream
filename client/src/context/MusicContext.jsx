@@ -265,9 +265,22 @@ export const MusicProvider = ({ children }) => {
     });
   }, []);
 
-  // Toggle Shuffle
-  const toggleShuffle = useCallback(() => {
-    setIsShuffling(prev => !prev);
+  // Close / Dismiss Player completely
+  const closePlayer = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = '';
+    }
+    setCurrentTrack(null);
+    setIsPlaying(false);
+    setIsExpanded(false);
+    setCurrentTime(0);
+    setDuration(0);
+    try {
+      localStorage.removeItem('syncstream_last_track');
+    } catch (e) {}
   }, []);
 
   // Attach event listeners to audio element
@@ -360,7 +373,8 @@ export const MusicProvider = ({ children }) => {
     toggleMute,
     toggleLoop,
     toggleShuffle,
-    setIsExpanded
+    setIsExpanded,
+    closePlayer
   };
 
   return (
