@@ -36,8 +36,12 @@ export const MusicProvider = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(() => {
-    const saved = localStorage.getItem('syncstream_music_vol');
-    return saved ? parseFloat(saved) : 0.85;
+    try {
+      const saved = localStorage.getItem('syncstream_music_vol');
+      return saved ? parseFloat(saved) : 0.85;
+    } catch {
+      return 0.85;
+    }
   });
   const [isMuted, setIsMuted] = useState(false);
   const [isLooping, setIsLooping] = useState('none'); // 'none' | 'track' | 'queue'
@@ -46,149 +50,12 @@ export const MusicProvider = ({ children }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [playbackError, setPlaybackError] = useState(null);
 
-  // Initialize Audio element once
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.preload = 'metadata';
-      audioRef.current.volume = volume;
-    }
-
-    const audio = audioRef.current;
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration || currentTrack?.duration || 0);
-      setIsLoading(false);
-    };
-
-    const handleWaiting = () => setIsLoading(true);
-    const handleCanPlay = () => setIsLoading(false);
-    const handlePlaying = () => {
-      setIsPlaying(true);
-      setIsLoading(false);
-      setPlaybackError(null);
-    };
-    const handlePause = () => setIsPlaying(false);
-
-    const handleEnded = () => {
-      if (isLooping === 'track') {
-        audio.currentTime = 0;
-        audio.play().catch(console.error);
-      } else {
-        handleNext();
-      }
-    };
-
-    const handleError = (e) => {
-      console.warn('Audio playback error:', e);
-      setIsLoading(false);
-      setIsPlaying(false);
-      setPlaybackError('Unable to stream this audio track.');
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('waiting', handleWaiting);
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('playing', handlePlaying);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('playing', handlePlaying);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-    };
-  }, [isLooping]);
-
-  // Sync audio source when currentTrack changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack || !currentTrack.audio_url) return;
-
-    if (audio.src !== currentTrack.audio_url) {
-      setIsLoading(true);
-      audio.src = currentTrack.audio_url;
-      audio.currentTime = 0;
-      audio.play().then(() => {
-        setIsPlaying(true);
-        setIsLoading(false);
-      }).catch(err => {
-        console.warn('Auto-play blocked or stream load error:', err.message);
-        setIsPlaying(false);
-        setIsLoading(false);
-      });
-    }
-
-    try {
-      localStorage.setItem('syncstream_last_track', JSON.stringify(currentTrack));
-    } catch (e) {}
-  }, [currentTrack]);
-
-  // Sync queue to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('syncstream_music_queue', JSON.stringify(queue));
-    } catch (e) {}
-  }, [queue]);
-
-  // Play a single track and set as active queue
-  const playTrack = useCallback((track, trackList = null) => {
-    if (!track || !track.audio_url) return;
-
-    setPlaybackError(null);
-    setCurrentTrack(track);
-
-    if (trackList && trackList.length > 0) {
-      setQueue(trackList);
-      const idx = trackList.findIndex(t => t.id === track.id);
-      setQueueIndex(idx !== -1 ? idx : 0);
-    } else {
-      // If no tracklist supplied and queue empty, add to queue
-      setQueue(prev => {
-        const exists = prev.some(t => t.id === track.id);
-        if (!exists) return [...prev, track];
-        return prev;
-      });
-    }
-  }, []);
-
-  // Play entire queue starting at specific index
-  const playQueue = useCallback((trackList, startIndex = 0) => {
-    if (!trackList || trackList.length === 0) return;
-    const target = trackList[startIndex] || trackList[0];
-    setQueue(trackList);
-    setQueueIndex(startIndex);
-    playTrack(target, trackList);
-  }, [playTrack]);
-
-  // Toggle Play / Pause
-  const togglePlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!currentTrack && queue.length > 0) {
-      playTrack(queue[0], queue);
-      return;
-    }
-
-    if (audio.paused) {
-      audio.play().then(() => setIsPlaying(true)).catch(console.error);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
-  }, [currentTrack, queue, playTrack]);
+  // Initialize Audio instance
+  if (!audioRef.current && typeof window !== 'undefined') {
+    audioRef.current = new Audio();
+    audioRef.current.preload = 'metadata';
+    audioRef.current.volume = volume;
+  }
 
   // Seek to specific second
   const seek = useCallback((time) => {
@@ -215,8 +82,58 @@ export const MusicProvider = ({ children }) => {
     seek(target);
   }, [seek]);
 
+  // Play a single track and set as active queue
+  const playTrack = useCallback((track, trackList = null) => {
+    if (!track || !track.audio_url) return;
+
+    setPlaybackError(null);
+    setCurrentTrack(track);
+
+    if (trackList && trackList.length > 0) {
+      setQueue(trackList);
+      const idx = trackList.findIndex(t => t.id === track.id);
+      setQueueIndex(idx !== -1 ? idx : 0);
+    } else {
+      setQueue(prev => {
+        const exists = prev.some(t => t.id === track.id);
+        if (!exists) return [...prev, track];
+        return prev;
+      });
+    }
+
+    const audio = audioRef.current;
+    if (audio) {
+      setIsLoading(true);
+      if (audio.src !== track.audio_url) {
+        audio.src = track.audio_url;
+      }
+      audio.currentTime = 0;
+      audio.play().then(() => {
+        setIsPlaying(true);
+        setIsLoading(false);
+      }).catch(err => {
+        console.warn('Playback error / User interaction needed:', err.message);
+        setIsPlaying(false);
+        setIsLoading(false);
+      });
+    }
+
+    try {
+      localStorage.setItem('syncstream_last_track', JSON.stringify(track));
+    } catch (e) {}
+  }, []);
+
+  // Play entire queue starting at specific index
+  const playQueue = useCallback((trackList, startIndex = 0) => {
+    if (!trackList || trackList.length === 0) return;
+    const target = trackList[startIndex] || trackList[0];
+    setQueue(trackList);
+    setQueueIndex(startIndex);
+    playTrack(target, trackList);
+  }, [playTrack]);
+
   // Next Track
-  const handleNext = useCallback(() => {
+  const nextTrack = useCallback(() => {
     if (queue.length === 0) return;
 
     let nextIndex = queueIndex + 1;
@@ -230,23 +147,21 @@ export const MusicProvider = ({ children }) => {
       if (isLooping === 'queue') {
         nextIndex = 0;
       } else {
-        // End of queue
         setIsPlaying(false);
         return;
       }
     }
 
     setQueueIndex(nextIndex);
-    const nextTrack = queue[nextIndex];
-    if (nextTrack) {
-      setCurrentTrack(nextTrack);
+    const nxt = queue[nextIndex];
+    if (nxt) {
+      playTrack(nxt, queue);
     }
-  }, [queue, queueIndex, isShuffling, isLooping]);
+  }, [queue, queueIndex, isShuffling, isLooping, playTrack]);
 
   // Previous Track
-  const handlePrev = useCallback(() => {
+  const prevTrack = useCallback(() => {
     const audio = audioRef.current;
-    // If playing for more than 3 seconds, rewind to start first
     if (audio && audio.currentTime > 3) {
       seek(0);
       return;
@@ -260,11 +175,34 @@ export const MusicProvider = ({ children }) => {
     }
 
     setQueueIndex(prevIndex);
-    const prevTrack = queue[prevIndex];
-    if (prevTrack) {
-      setCurrentTrack(prevTrack);
+    const prv = queue[prevIndex];
+    if (prv) {
+      playTrack(prv, queue);
     }
-  }, [queue, queueIndex, isLooping, seek]);
+  }, [queue, queueIndex, isLooping, seek, playTrack]);
+
+  // Toggle Play / Pause
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!currentTrack && queue.length > 0) {
+      playTrack(queue[0], queue);
+      return;
+    }
+
+    if (!currentTrack) return;
+
+    if (audio.paused) {
+      if (!audio.src || audio.src !== currentTrack.audio_url) {
+        audio.src = currentTrack.audio_url;
+      }
+      audio.play().then(() => setIsPlaying(true)).catch(console.error);
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  }, [currentTrack, queue, playTrack]);
 
   // Add Track to Queue
   const addToQueue = useCallback((track) => {
@@ -332,6 +270,67 @@ export const MusicProvider = ({ children }) => {
     setIsShuffling(prev => !prev);
   }, []);
 
+  // Attach event listeners to audio element
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration || currentTrack?.duration || 0);
+      setIsLoading(false);
+    };
+    const handleWaiting = () => setIsLoading(true);
+    const handleCanPlay = () => setIsLoading(false);
+    const handlePlaying = () => {
+      setIsPlaying(true);
+      setIsLoading(false);
+      setPlaybackError(null);
+    };
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => {
+      if (isLooping === 'track') {
+        audio.currentTime = 0;
+        audio.play().catch(console.error);
+      } else {
+        nextTrack();
+      }
+    };
+    const handleError = (e) => {
+      console.warn('Audio playback stream error:', e);
+      setIsLoading(false);
+      setIsPlaying(false);
+      setPlaybackError('Unable to stream this audio track.');
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('playing', handlePlaying);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('playing', handlePlaying);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+    };
+  }, [isLooping, nextTrack, currentTrack]);
+
+  // Sync queue to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('syncstream_music_queue', JSON.stringify(queue));
+    } catch (e) {}
+  }, [queue]);
+
   const value = {
     currentTrack,
     queue,
@@ -352,8 +351,8 @@ export const MusicProvider = ({ children }) => {
     seek,
     skipForward,
     skipBackward,
-    nextTrack: handleNext,
-    prevTrack: handlePrev,
+    nextTrack,
+    prevTrack,
     addToQueue,
     removeFromQueue,
     clearQueue,
