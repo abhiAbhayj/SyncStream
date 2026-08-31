@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Loader2 } from 'lucide-react';
+import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Music, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { useMusic } from '../context/MusicContext';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { playTrack } = useMusic();
   const initialQuery = searchParams.get('q') || '';
   const initialType = searchParams.get('type') || 'movie';
   const initialGenre = searchParams.get('genre') || '';
@@ -35,21 +37,43 @@ export default function Search() {
     setSearched(true);
     
     try {
-      const res = await axios.get('/api/media/search', {
-        params: { 
-          query: searchQuery.trim(), 
-          type: searchType, 
-          genre: activeGenre, 
-          country: activeCountry,
-          sort: activeSort,
-          page: pageNum
+      if (searchType === 'music') {
+        const musicEndpoint = searchQuery.trim() ? '/api/music/search' : '/api/music/trending';
+        const res = await axios.get(musicEndpoint, {
+          params: {
+            query: searchQuery.trim(),
+            page: pageNum,
+            limit: 24
+          }
+        });
+        const musicItems = (res.data.songs || []).map(s => ({
+          ...s,
+          poster_path: s.image,
+          vote_average: '9.0',
+          media_type: 'music'
+        }));
+        if (pageNum === 1) {
+          setResults(musicItems);
+        } else {
+          setResults(prev => [...prev, ...musicItems]);
         }
-      });
-      
-      if (pageNum === 1) {
-        setResults(res.data || []);
       } else {
-        setResults(prev => [...prev, ...(res.data || [])]);
+        const res = await axios.get('/api/media/search', {
+          params: { 
+            query: searchQuery.trim(), 
+            type: searchType, 
+            genre: activeGenre, 
+            country: activeCountry,
+            sort: activeSort,
+            page: pageNum
+          }
+        });
+        
+        if (pageNum === 1) {
+          setResults(res.data || []);
+        } else {
+          setResults(prev => [...prev, ...(res.data || [])]);
+        }
       }
     } catch (err) {
       console.error('Search error:', err);
@@ -116,7 +140,8 @@ export default function Search() {
     { key: 'movie', label: 'Movies', icon: Film },
     { key: 'tv', label: 'TV Shows', icon: Tv },
     { key: 'anime', label: 'Anime', icon: Sparkles },
-    { key: 'manga', label: 'Manga', icon: BookOpen }
+    { key: 'manga', label: 'Manga', icon: BookOpen },
+    { key: 'music', label: 'Music', icon: Music }
   ];
 
   return (

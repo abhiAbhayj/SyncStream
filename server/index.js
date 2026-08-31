@@ -8,6 +8,7 @@ import { initDB, db } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import mediaRoutes from './routes/media.js';
 import roomRoutes from './routes/rooms.js';
+import musicRoutes from './routes/music.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/rooms', roomRoutes);
+app.use('/api/music', musicRoutes);
 
 // Health check endpoints (both /health and /api/health for Netlify proxy compatibility)
 app.get('/health', (req, res) => {

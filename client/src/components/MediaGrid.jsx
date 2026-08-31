@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Play, BookOpen, ArrowRight, Clock, Sparkles } from 'lucide-react';
+import { Star, Play, BookOpen, Music, ArrowRight, Clock, Sparkles } from 'lucide-react';
 
 const TYPE_CONFIG = {
   movie: {
@@ -31,6 +31,13 @@ const TYPE_CONFIG = {
     playBg: 'bg-accentPink',
     titleHover: 'group-hover:from-accentPink group-hover:to-accentGold',
   },
+  music: {
+    badge: 'badge-anime',
+    label: 'Music',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(99,210,255,0.3)]',
+    playBg: 'bg-accentCyan',
+    titleHover: 'group-hover:from-accentCyan group-hover:to-accentPurple',
+  }
 };
 
 export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {

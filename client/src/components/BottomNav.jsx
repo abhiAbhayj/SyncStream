@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Search, Heart, User } from 'lucide-react';
+import { Tv, Search, Music, Heart, User } from 'lucide-react';
 
 export default function BottomNav() {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ export default function BottomNav() {
   const navLinks = [
     { path: '/', label: 'Home', icon: Tv },
     { path: '/search', label: 'Search', icon: Search },
+    { path: '/music', label: 'Music', icon: Music },
     { path: '/watchlist', label: 'Watchlist', icon: Heart },
     { path: user ? '/profile' : '/login', label: user ? 'Profile' : 'Sign In', icon: User },
   ];

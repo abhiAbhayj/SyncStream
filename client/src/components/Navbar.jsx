@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Search, Heart, User, Users, LogOut, X, Zap } from 'lucide-react';
+import { Tv, Search, Music, Heart, User, Users, LogOut, X, Zap } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -38,6 +38,7 @@ export default function Navbar() {
   const navLinks = [
     { path: '/', label: 'Discovery', icon: Tv },
     { path: '/search', label: 'Search', icon: Search },
+    { path: '/music', label: 'Music', icon: Music },
     { path: '/watchlist', label: 'Watchlist', icon: Heart },
   ];
 

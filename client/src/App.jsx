@@ -2,16 +2,20 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { MusicProvider } from './context/MusicContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
 import ScrollRestoration from './components/ScrollRestoration';
 import VoiceAssistant from './components/VoiceAssistant';
 import ServerWakeup from './components/ServerWakeup';
+import MusicPlayerBar from './components/MusicPlayerBar';
+import MusicModal from './components/MusicModal';
 
 // Pages
 import Home from './pages/Home';
 import Search from './pages/Search';
+import Music from './pages/Music';
 import MediaDetail from './pages/MediaDetail';
 import WatchParty from './pages/WatchParty';
 import Watchlist from './pages/Watchlist';
@@ -49,6 +53,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/music" element={<Music />} />
           <Route path="/media/:type/:id" element={<MediaDetail />} />
           <Route path="/catalog/:category/:type" element={<Catalog />} />
           
@@ -89,6 +94,8 @@ function AppContent() {
       </main>
       <Footer />
       <BottomNav />
+      <MusicPlayerBar />
+      <MusicModal />
       <VoiceAssistant />
       <ServerWakeup />
     </div>
@@ -100,7 +107,9 @@ export default function App() {
     <Router>
       <AuthProvider>
         <SocketProvider>
-          <AppContent />
+          <MusicProvider>
+            <AppContent />
+          </MusicProvider>
         </SocketProvider>
       </AuthProvider>
     </Router>

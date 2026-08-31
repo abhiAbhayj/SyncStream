@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock } from 'lucide-react';
+import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Home() {
@@ -278,6 +278,31 @@ export default function Home() {
             <div className="space-y-16 animate-fade-in">
               <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink="/catalog/trending/movie" />
               <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink="/catalog/trending/tv" />
+
+              {/* ── Music Streaming Showcase Card ── */}
+              <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-6 group">
+                <div className="space-y-2 text-center md:text-left max-w-xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accentCyan/10 border border-accentCyan/20 text-accentCyan text-xs font-bold uppercase tracking-wider font-mono">
+                    <Radio className="w-3.5 h-3.5 animate-pulse" />
+                    <span>New Feature: 320kbps Music Portal</span>
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-outfit tracking-tight">
+                    Stream Songs Across All Languages
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Full-duration audio in Hindi, English, K-Pop, Tamil, Telugu, Malayalam, Kannada, & Punjabi with zero interruption.
+                  </p>
+                </div>
+                <Link
+                  to="/music"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
+                >
+                  <Music className="w-4 h-4" />
+                  <span>Open Music Portal</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
               <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Anime Releases" seeMoreLink="/catalog/trending/anime" />
               <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink="/catalog/trending/manga" />
             </div>
