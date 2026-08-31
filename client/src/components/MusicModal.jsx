@@ -85,14 +85,49 @@ export default function MusicModal() {
   const scrubberRef = useRef(null);
   const lyricsContainerRef = useRef(null);
 
-  // Toggle true browser fullscreen
+  // Robust cross-browser fullscreen toggle
   const toggleBrowserFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
-    } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    try {
+      const doc = document;
+      const docEl = document.documentElement;
+      const isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+
+      if (!isFull) {
+        const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+        if (req) {
+          req.call(docEl).then(() => setIsFullscreen(true)).catch(() => setIsFullscreen(true));
+        } else {
+          setIsFullscreen(true);
+        }
+      } else {
+        const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+        if (exit) {
+          exit.call(doc).then(() => setIsFullscreen(false)).catch(() => setIsFullscreen(false));
+        } else {
+          setIsFullscreen(false);
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle:', err);
+      setIsFullscreen(!isFullscreen);
     }
   };
+
+  // Sync fullscreen change events
+  useEffect(() => {
+    const handleFSChange = () => {
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      setIsFullscreen(isFull);
+    };
+    document.addEventListener('fullscreenchange', handleFSChange);
+    document.addEventListener('webkitfullscreenchange', handleFSChange);
+    document.addEventListener('mozfullscreenchange', handleFSChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFSChange);
+      document.removeEventListener('webkitfullscreenchange', handleFSChange);
+      document.removeEventListener('mozfullscreenchange', handleFSChange);
+    };
+  }, []);
 
   // Fetch lyrics when track changes
   useEffect(() => {

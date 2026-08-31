@@ -79,7 +79,8 @@ export default function MusicPlayerBar() {
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
-    setDragTime(calculateSeekTime(e));
+    const target = calculateSeekTime(e);
+    setDragTime(target);
   };
 
   const handleMouseMove = useCallback((e) => {
@@ -236,6 +237,18 @@ export default function MusicPlayerBar() {
               >
                 <RotateCw className="w-4 h-4" />
                 <span className="absolute text-[6.5px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
+              </button>
+
+              {/* Fullscreen Expand Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(true);
+                }}
+                className="p-1.5 text-gray-300 hover:text-accentCyan active:scale-90 rounded-lg transition"
+                title="Expand Fullscreen Player"
+              >
+                <Maximize2 className="w-4 h-4" />
               </button>
 
               {/* Close Button */}
