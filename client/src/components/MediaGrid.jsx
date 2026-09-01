@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useMusic } from '../context/MusicContext';
 import { Star, Play, BookOpen, Music, ArrowRight, Clock, Sparkles } from 'lucide-react';
 
 const TYPE_CONFIG = {
@@ -41,6 +42,7 @@ const TYPE_CONFIG = {
 };
 
 export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
+  const { playTrack, currentTrack, isPlaying } = useMusic();
   if (!items || items.length === 0) {
     return (
       <div className="py-16 text-center">
@@ -74,6 +76,66 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
           const rating = item.vote_average ? parseFloat(item.vote_average).toFixed(1) : null;
           const targetId = item.external_media_id || item.id;
           const cfg = TYPE_CONFIG[item.media_type] || TYPE_CONFIG.movie;
+          const isMusic = item.media_type === 'music';
+          const isCurrentPlaying = isMusic && currentTrack?.id === item.id && isPlaying;
+
+          if (isMusic) {
+            return (
+              <div
+                key={`music-${targetId}-${index}`}
+                onClick={() => {
+                  const musicList = items.filter(i => i.media_type === 'music');
+                  playTrack(item, musicList.length > 0 ? musicList : [item]);
+                }}
+                className={`group media-card h-full transition-all duration-500 ${cfg.hoverGlow} animate-fade-up cursor-pointer ${isCurrentPlaying ? 'border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.3)]' : ''}`}
+                style={{ animationDelay: `${index * 0.04}s`, animationFillMode: 'both' }}
+              >
+                {/* ── Poster Image ── */}
+                <div className="relative w-full aspect-[2/3] overflow-hidden bg-white/[0.03]">
+                  {item.poster_path ? (
+                    <img
+                      src={item.poster_path}
+                      alt={item.title || item.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-75"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className={`w-full h-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-75 ${cfg.bg} bg-opacity-20`}>
+                      <span className={`font-bold text-lg mb-2 ${cfg.color} drop-shadow-md`}>{item.title || item.name}</span>
+                      <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No Poster</span>
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+
+                  {/* Play / Pause button overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400">
+                    <div className={`${cfg.playBg} text-black p-3.5 rounded-full shadow-2xl transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-75`}
+                         style={{ boxShadow: '0 0 30px currentColor' }}>
+                      <Play className="w-5 h-5 fill-current ml-0.5" />
+                    </div>
+                  </div>
+
+                  <div className={`badge ${cfg.badge} absolute bottom-2 left-2 backdrop-blur-md`}>
+                    {cfg.label}
+                  </div>
+                </div>
+
+                {/* ── Info ── */}
+                <div className="p-3 flex flex-col gap-1">
+                  <h3 className={`font-semibold text-sm leading-snug line-clamp-2 transition-all duration-300 text-gray-200
+                                 group-hover:bg-gradient-to-r ${cfg.titleHover}
+                                 group-hover:bg-clip-text group-hover:text-transparent ${isCurrentPlaying ? 'text-accentCyan' : ''}`}>
+                    {item.title || item.name}
+                  </h3>
+                  {item.artist && (
+                    <p className="text-xs text-gray-400 truncate">{item.artist}</p>
+                  )}
+                </div>
+              </div>
+            );
+          }
 
           return (
             <Link

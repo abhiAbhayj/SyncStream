@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { db } from '../config/db.js';
 import dotenv from 'dotenv';
+import { getSongDetails } from './musicController.js';
 
 dotenv.config();
 
@@ -590,6 +591,10 @@ const mangadexCache = new Map();
 // 3. Get Media Detail
 export const getMediaDetail = async (req, res) => {
   const { type, id } = req.params;
+
+  if (type === 'music') {
+    return getSongDetails(req, res);
+  }
 
   try {
     let details = null;
