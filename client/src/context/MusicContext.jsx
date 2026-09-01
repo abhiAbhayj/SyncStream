@@ -223,6 +223,17 @@ export const MusicProvider = ({ children }) => {
 
   // Close / Dismiss Player completely
   const closePlayer = useCallback(() => {
+    // Exit browser native fullscreen if active to prevent black screen
+    try {
+      if (typeof document !== 'undefined') {
+        const doc = document;
+        if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
+          const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+          if (exit) exit.call(doc);
+        }
+      }
+    } catch (e) {}
+
     const audio = audioRef.current;
     if (audio) {
       audio.pause();

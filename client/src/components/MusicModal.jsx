@@ -119,6 +119,35 @@ export default function MusicModal() {
     }
   };
 
+  // Exit native browser fullscreen safely
+  const exitNativeFullscreen = useCallback(() => {
+    try {
+      const doc = document;
+      if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
+        const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+        if (exit) exit.call(doc);
+      }
+    } catch (e) {}
+  }, []);
+
+  // Sync isExpanded changes: update activeTab when opening, exit native fullscreen when closing
+  useEffect(() => {
+    if (isExpanded) {
+      try {
+        const winTab = (typeof window !== 'undefined' && window.__musicModalTab) ? window.__musicModalTab : null;
+        if (winTab) {
+          window.__musicModalTab = null;
+          setActiveTab(winTab);
+        } else {
+          const stored = sessionStorage.getItem('syncstream_music_modal_tab');
+          if (stored) setActiveTab(stored);
+        }
+      } catch (e) {}
+    } else {
+      exitNativeFullscreen();
+    }
+  }, [isExpanded, exitNativeFullscreen]);
+
   // Sync fullscreen change events
   useEffect(() => {
     const handleFSChange = () => {
@@ -266,7 +295,7 @@ export default function MusicModal() {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-[#0d0d14] text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex flex-col justify-between bg-[#0b0b14] text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
       
       {/* ── Ambient Glowing Aurora Mesh Background ── */}
       <div
@@ -284,7 +313,10 @@ export default function MusicModal() {
         
         {/* Minimize Button */}
         <button
-          onClick={() => setIsExpanded(false)}
+          onClick={() => {
+            exitNativeFullscreen();
+            setIsExpanded(false);
+          }}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-gray-200 hover:text-white transition font-bold text-xs backdrop-blur-md shrink-0 border border-white/10"
         >
           <ChevronDown className="w-4 h-4" />
@@ -338,7 +370,10 @@ export default function MusicModal() {
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
           <button
-            onClick={closePlayer}
+            onClick={() => {
+              exitNativeFullscreen();
+              closePlayer();
+            }}
             className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 active:scale-95 text-gray-200 hover:text-red-400 transition border border-white/10"
             title="Stop & Close"
           >
@@ -413,26 +448,30 @@ export default function MusicModal() {
 
         {/* ══════ 2. LYRICS VIEW ══════ */}
         {activeTab === 'lyrics' && (
-          <div className="w-full max-w-2xl h-[52vh] sm:h-[58vh] flex flex-col gap-3 animate-fade-in glass-panel rounded-2xl border border-white/15 p-4 sm:p-6 backdrop-blur-2xl bg-darkCard/80 shadow-2xl">
+          <div className="w-full max-w-2xl h-[52vh] sm:h-[58vh] flex flex-col gap-3 animate-fade-in glass-panel rounded-2xl border border-white/20 p-4 sm:p-6 backdrop-blur-2xl bg-[#12121e]/90 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-2.5 shrink-0">
               <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                 <h2 className="text-sm sm:text-base font-bold text-white font-outfit truncate flex items-center gap-1.5">
                   <FileText className="w-4 h-4 text-accentCyan shrink-0" />
                   <span className="truncate">{currentTrack.title}</span>
                 </h2>
-                <p className="text-[11px] text-gray-400 truncate">{currentTrack.artist}</p>
+                <p className="text-[11px] text-gray-300 truncate">{currentTrack.artist}</p>
               </div>
-              {lyricsData.synced && (
-                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/30 font-mono shrink-0 shadow-sm">
+              {lyricsData.synced ? (
+                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 font-mono shrink-0 shadow-sm">
                   Live Synced
                 </span>
-              )}
+              ) : lyricsData.has_lyrics ? (
+                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-accentPurple/20 text-accentPurple border border-accentPurple/40 font-mono shrink-0 shadow-sm">
+                  Plain Lyrics
+                </span>
+              ) : null}
             </div>
 
             {lyricsData.loading ? (
-              <div className="flex flex-col items-center justify-center flex-1 gap-2">
-                <Loader2 className="w-7 h-7 text-accentCyan animate-spin" />
-                <p className="text-xs text-gray-300 font-mono">Fetching synchronized lyrics...</p>
+              <div className="flex flex-col items-center justify-center flex-1 gap-3 py-8">
+                <Loader2 className="w-8 h-8 text-accentCyan animate-spin" />
+                <p className="text-xs font-bold text-gray-300 font-mono">Searching lyrics catalog...</p>
               </div>
             ) : lyricsData.synced && lyricsData.syncedLyrics.length > 0 ? (
               /* Synced Interactive Lyrics */
@@ -457,17 +496,30 @@ export default function MusicModal() {
                   );
                 })}
               </div>
-            ) : lyricsData.plainLyrics ? (
+            ) : lyricsData.plainLyrics && !lyricsData.plainLyrics.includes('No lyrics available') ? (
               /* Plain Text Lyrics */
               <div className="overflow-y-auto space-y-2 flex-1 pr-2 custom-scrollbar py-3 text-center">
-                <pre className="text-xs sm:text-sm font-sans text-gray-200 leading-relaxed whitespace-pre-wrap">
+                <pre className="text-xs sm:text-sm font-sans text-gray-200 leading-relaxed whitespace-pre-wrap font-medium">
                   {lyricsData.plainLyrics}
                 </pre>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-center text-gray-400 space-y-2">
-                <Sparkles className="w-7 h-7 text-accentCyan" />
-                <p className="text-xs sm:text-sm font-semibold">No synchronized lyrics found for this track.</p>
+              /* High-Contrast Beautiful Fallback */
+              <div className="flex flex-col items-center justify-center flex-1 text-center p-4 space-y-3 my-auto">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/20 shadow-lg shrink-0">
+                  <img
+                    src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                    alt={currentTrack.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-1 max-w-sm">
+                  <h3 className="text-sm font-bold text-white font-outfit">{currentTrack.title}</h3>
+                  <p className="text-xs text-gray-400">{currentTrack.artist}</p>
+                  <p className="text-[11px] text-accentCyan/80 font-mono pt-1">
+                    ♪ Synchronized lyrics are not available for this track yet. Enjoy the music!
+                  </p>
+                </div>
               </div>
             )}
           </div>
