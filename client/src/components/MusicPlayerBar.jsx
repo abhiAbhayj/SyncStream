@@ -243,6 +243,10 @@ export default function MusicPlayerBar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  try {
+                    window.__musicModalTab = 'player';
+                    sessionStorage.setItem('syncstream_music_modal_tab', 'player');
+                  } catch (e2) {}
                   setIsExpanded(true);
                 }}
                 className="p-1.5 text-gray-300 hover:text-accentCyan active:scale-90 rounded-lg transition"
@@ -454,6 +458,7 @@ export default function MusicPlayerBar() {
                 <button
                   onClick={() => {
                     try {
+                      window.__musicModalTab = 'lyrics';
                       sessionStorage.setItem('syncstream_music_modal_tab', 'lyrics');
                     } catch (e) {}
                     setIsExpanded(true);
@@ -468,6 +473,7 @@ export default function MusicPlayerBar() {
                 <button
                   onClick={() => {
                     try {
+                      window.__musicModalTab = 'player';
                       sessionStorage.setItem('syncstream_music_modal_tab', 'player');
                     } catch (e) {}
                     setIsExpanded(true);

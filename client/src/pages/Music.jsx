@@ -26,17 +26,17 @@ const formatTime = (seconds) => {
 };
 
 const LANGUAGES = [
-  { id: 'all', label: '🔥 All Hits', flag: '🌍' },
-  { id: 'hindi', label: 'Bollywood (Hindi)', flag: '🇮🇳' },
-  { id: 'english', label: 'Global Pop (English)', flag: '🇬🇧' },
-  { id: 'korean', label: 'K-Pop (Korean)', flag: '🇰🇷' },
-  { id: 'tamil', label: 'Kollywood (Tamil)', flag: '⚡' },
-  { id: 'telugu', label: 'Tollywood (Telugu)', flag: '💥' },
-  { id: 'malayalam', label: 'Mollywood (Malayalam)', flag: '🌿' },
-  { id: 'kannada', label: 'Sandalwood (Kannada)', flag: '🦁' },
-  { id: 'punjabi', label: 'Punjabi Hits', flag: '🥁' },
+  { id: 'all', label: 'All Hits', flag: '🔥' },
+  { id: 'hindi', label: 'Bollywood', flag: '🇮🇳' },
+  { id: 'telugu', label: 'Tollywood', flag: '🎬' },
+  { id: 'tamil', label: 'Kollywood', flag: '⚡' },
+  { id: 'kannada', label: 'Sandalwood', flag: '🦁' },
+  { id: 'malayalam', label: 'Mollywood', flag: '🌿' },
+  { id: 'punjabi', label: 'Punjabi', flag: '🥁' },
+  { id: 'english', label: 'Global Pop', flag: '🌍' },
+  { id: 'korean', label: 'K-Pop', flag: '🇰🇷' },
   { id: 'lofi', label: 'Lo-Fi Chill', flag: '☕' },
-  { id: 'anime', label: 'Anime & J-Pop', flag: '🌸' }
+  { id: 'anime', label: 'Anime', flag: '🌸' }
 ];
 
 export default function Music() {
@@ -49,6 +49,7 @@ export default function Music() {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [featuredSong, setFeaturedSong] = useState(null);
+  const [chartsLoading, setChartsLoading] = useState(true);
 
   // Fetch trending songs by language
   const fetchTrending = async (lang = 'all') => {
@@ -69,13 +70,16 @@ export default function Music() {
     }
   };
 
-  // Fetch curated charts
+  // Fetch curated charts (sequentially fetched on backend - takes a few seconds)
   const fetchCharts = async () => {
+    setChartsLoading(true);
     try {
       const res = await axios.get('/api/music/charts');
       setCharts(res.data || []);
     } catch (err) {
       console.error('Error fetching charts:', err);
+    } finally {
+      setChartsLoading(false);
     }
   };
 
@@ -102,9 +106,13 @@ export default function Music() {
   };
 
   useEffect(() => {
+    setSearchQuery('');
     fetchTrending(selectedLang);
-    fetchCharts();
   }, [selectedLang]);
+
+  useEffect(() => {
+    fetchCharts();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-10 min-h-[85vh]">
@@ -146,7 +154,7 @@ export default function Music() {
           {/* Quick Suggestions */}
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400 py-0.5">
             <span className="font-semibold text-gray-500 shrink-0">Try:</span>
-            {['Hunt You Down', 'Kesariya', 'Believer', 'Illuminati', 'BTS', 'Anirudh'].map((tag) => (
+            {['Kesariya', 'Pushpa 2', 'BTS Butter', 'Anirudh', 'Diljit', 'Ramaite'].map((tag) => (
               <button
                 key={tag}
                 type="button"
@@ -397,64 +405,81 @@ export default function Music() {
         )}
       </div>
 
-      {/* ── Curated Playlists / Charts Showcase ── */}
-      {charts.length > 0 && !searchQuery && (
-        <div className="space-y-6 pt-4 border-t border-darkBorder">
+      {/* Curated Regional Charts */}
+      {!searchQuery && (
+        <div className="space-y-8 pt-4 border-t border-darkBorder">
           <div className="space-y-0.5">
             <h3 className="text-lg sm:text-2xl font-extrabold text-white font-outfit flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-accentCyan" />
-              <span>Curated Charts & Playlists</span>
+              <span>Curated Charts &amp; Playlists</span>
             </h3>
-            <p className="text-xs text-gray-400 font-medium">Explore hand-picked top trending regional and global playlists.</p>
+            <p className="text-xs text-gray-400 font-medium">Hand-picked trending charts by region — Telugu, Tamil, Kannada, Bollywood, K-Pop &amp; more.</p>
           </div>
 
-          <div className="space-y-6">
-            {charts.slice(0, 4).map((chart) => (
-              <div key={chart.id} className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm sm:text-base font-bold text-white font-outfit">{chart.title}</h4>
-                  <button
-                    onClick={() => playQueue(chart.songs, 0)}
-                    className="text-xs font-bold text-accentCyan hover:underline flex items-center gap-1 active:scale-95"
-                  >
-                    <span>Play All</span>
-                    <Play className="w-3 h-3 fill-current" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
-                  {chart.songs.map((s, idx) => (
-                    <div
-                      key={`${s.id}-${idx}`}
-                      onClick={() => playTrack(s, chart.songs)}
-                      className="group p-2 rounded-xl glass-panel border border-white/5 hover:border-accentCyan/40 bg-darkCard/40 hover:bg-darkCard transition cursor-pointer space-y-1.5 active:scale-95"
-                    >
-                      <div className="relative aspect-square rounded-lg overflow-hidden border border-white/10 shadow-md">
-                        <img
-                          src={s.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
-                          alt={s.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="w-8 h-8 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-lg">
-                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                          </div>
-                        </div>
+          {chartsLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <Loader2 className="w-7 h-7 text-accentCyan animate-spin" />
+              <p className="text-xs font-bold text-gray-400 font-mono">Loading regional charts... may take a few seconds</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {charts.map((chart) => {
+                if (!chart.songs || chart.songs.length === 0) return null;
+                return (
+                  <div key={chart.id} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm sm:text-base font-bold text-white font-outfit">{chart.title}</h4>
+                        {chart.subtitle && <p className="text-[11px] text-gray-500">{chart.subtitle}</p>}
                       </div>
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-bold text-white truncate font-outfit group-hover:text-accentCyan transition-colors">
-                          {s.title}
-                        </p>
-                        <p className="text-[10px] text-gray-400 truncate">
-                          {s.artist}
-                        </p>
-                      </div>
+                      <button
+                        onClick={() => { if (chart.songs.length > 0) playQueue(chart.songs, 0); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accentCyan/10 hover:bg-accentCyan/20 text-accentCyan border border-accentCyan/20 text-xs font-bold transition active:scale-95"
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>Play All</span>
+                      </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+                      {chart.songs.map((s, idx) => {
+                        const isCur = currentTrack?.id === s.id;
+                        const mins = Math.floor((s.duration||0)/60);
+                        const secs = String((s.duration||0)%60).padStart(2,'0');
+                        return (
+                          <div
+                            key={`${s.id}-${idx}`}
+                            onClick={() => playTrack(s, chart.songs)}
+                            className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-40 cursor-pointer p-2 rounded-xl border transition-all duration-300 ${isCur ? 'bg-accentCyan/15 border-accentCyan/40' : 'border-white/5 bg-darkCard/50 hover:bg-darkCard hover:border-accentCyan/25'}`}
+                          >
+                            <div className="relative aspect-square rounded-lg overflow-hidden border border-white/10 shadow-md">
+                              <img src={s.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-lg">
+                                  {isCur && isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+                                </div>
+                              </div>
+                              {isCur && isPlaying && (
+                                <div className="absolute bottom-1.5 right-1.5 flex items-end gap-0.5">
+                                  <span className="w-0.5 h-2 bg-accentCyan rounded-full animate-pulse" />
+                                  <span className="w-0.5 h-3 bg-accentCyan rounded-full animate-pulse [animation-delay:0.2s]" />
+                                  <span className="w-0.5 h-1.5 bg-accentCyan rounded-full animate-pulse [animation-delay:0.4s]" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-0.5 min-w-0">
+                              <p className={`text-xs font-bold truncate font-outfit transition-colors ${isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'}`}>{s.title}</p>
+                              <p className="text-[10px] text-gray-400 truncate">{s.artist}</p>
+                              <p className="text-[9px] font-mono text-gray-600">{mins}:{secs}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

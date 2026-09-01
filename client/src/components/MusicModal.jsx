@@ -64,7 +64,13 @@ export default function MusicModal() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragTime, setDragTime] = useState(0);
   const [activeTab, setActiveTab] = useState(() => {
+    // Check window flag first (set by mini-bar buttons for reliable tab targeting)
     try {
+      const winTab = (typeof window !== 'undefined' && window.__musicModalTab) ? window.__musicModalTab : null;
+      if (winTab) {
+        window.__musicModalTab = null; // consume it
+        return winTab;
+      }
       return sessionStorage.getItem('syncstream_music_modal_tab') || 'player';
     } catch {
       return 'player';
@@ -260,17 +266,18 @@ export default function MusicModal() {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-darkBg text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
+    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-[#0d0d14] text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
       
-      {/* ── Ambient Glowing Aurora Mesh Background (Prevents black screen) ── */}
+      {/* ── Ambient Glowing Aurora Mesh Background ── */}
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-40 pointer-events-none scale-125 transition-all duration-1000"
         style={{ backgroundImage: `url(${currentTrack.image || ''})` }}
       />
       {/* Dynamic Animated Ambient Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accentPurple/20 blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-accentCyan/20 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-darkBg via-darkBg/80 to-darkBg/40 pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accentPurple/25 blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-accentCyan/25 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-accentPink/15 blur-3xl pointer-events-none animate-pulse [animation-delay:0.5s]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-[#0d0d14]/70 to-[#0d0d14]/30 pointer-events-none" />
 
       {/* ── Top Header Navigation ── */}
       <div className="relative z-10 flex items-center justify-between max-w-4xl mx-auto w-full gap-2 pt-[env(safe-area-inset-top,0.5rem)]">

@@ -90,19 +90,32 @@ const formatSong = (song) => {
 
 // Language specific trending search queries
 const TRENDING_QUERIES = {
-  all: 'Top 50 Hits',
-  hindi: 'Hindi Top Hits Bollywood',
-  english: 'English Pop Top Hits',
-  korean: 'K-Pop BTS BLACKPINK',
-  kpop: 'K-Pop Korean Hits',
-  tamil: 'Tamil Hits Anirudh',
-  telugu: 'Telugu Hits Sid Sriram',
-  malayalam: 'Malayalam Hits Sushin Shyam',
-  kannada: 'Kannada Hits Ravi Basrur',
-  punjabi: 'Punjabi Hits',
-  lofi: 'Lofi Chill Beats',
-  anime: 'Anime Japanese OST'
+  all: 'Top 50 Hits 2026',
+  hindi: 'Hindi Top Hits Bollywood 2026',
+  english: 'English Pop Top Hits 2026',
+  korean: 'K-Pop BTS BLACKPINK 2026',
+  kpop: 'K-Pop Korean Hits BTS',
+  tamil: 'Tamil Hits Anirudh 2026',
+  telugu: 'Telugu Hits 2026',
+  malayalam: 'Malayalam Hits 2026',
+  kannada: 'Kannada Hits 2026',
+  punjabi: 'Punjabi Hits Diljit Dosanjh 2026',
+  lofi: 'Lofi Chill Beats Study',
+  anime: 'Anime Japanese OST Opening'
 };
+
+// Helper: fetch songs from JioSaavn by query
+const fetchSaavnSongs = async (query, n = 8) => {
+  const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${n}&p=1&q=${encodeURIComponent(query)}`;
+  const response = await axios.get(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    timeout: 10000
+  });
+  return (response.data.results || []).map(formatSong).filter(s => s && s.audio_url);
+};
+
+// Delay helper to avoid JioSaavn rate limiting
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 1. Get Trending / Featured Songs by Language
 export const getTrendingMusic = async (req, res) => {
@@ -207,46 +220,112 @@ export const searchMusic = async (req, res) => {
   }
 };
 
-// 3. Get Curated Playlists / Charts
+// 3. Get Curated Regional Playlists / Charts
+// IMPORTANT: Sequential fetching with delays to avoid JioSaavn rate limiting.
+// Parallel Promise.all() caused rate limiting which returned garbage mixed results.
 export const getMusicCharts = async (req, res) => {
-  try {
-    const categories = [
-      { id: 'all', title: '🔥 Global Top 20', query: 'Global Top Hits 2026' },
-      { id: 'hindi', title: '🇮🇳 Bollywood Trending', query: 'Bollywood Top Hits 2026' },
-      { id: 'english', title: '🌍 Global Pop Hits', query: 'Top Pop Hits 2026' },
-      { id: 'korean', title: '🇰🇷 K-Pop Worldwide', query: 'K-Pop Top Hits 2026' },
-      { id: 'tamil', title: '⚡ Kollywood Explosive', query: 'Tamil Top Hits Anirudh 2026' },
-      { id: 'telugu', title: '💥 Tollywood Party', query: 'Telugu Top Hits Sid Sriram 2026' },
-      { id: 'malayalam', title: '🌿 Mollywood Melodies', query: 'Malayalam Melodies Sushin Shyam' },
-      { id: 'kannada', title: '🦁 Sandalwood BGM & Hits', query: 'Kannada Hits Ravi Basrur' },
-      { id: 'lofi', title: '☕ Midnight Lo-Fi & Chill', query: 'Lofi Chill Study Sleep' },
-      { id: 'anime', title: '🌸 Anime & Japanese OSTs', query: 'Anime Openings Japanese OST' }
-    ];
+  const CHART_CATEGORIES = [
+    {
+      id: 'trending_global',
+      title: '🔥 Trending Globally',
+      subtitle: 'Top songs across all languages right now',
+      query: 'Top Trending Songs 2026 Hits'
+    },
+    {
+      id: 'recently_released',
+      title: '🆕 Recently Released',
+      subtitle: 'Freshest drops of 2026',
+      query: 'New Songs 2026 Latest Release Hindi English'
+    },
+    {
+      id: 'bollywood',
+      title: '🇮🇳 Bollywood Hits',
+      subtitle: "Hindi cinema's biggest tracks",
+      query: 'Bollywood Hindi Film Songs 2026 Arijit Singh'
+    },
+    {
+      id: 'telugu',
+      title: '🎬 Telugu Tollywood',
+      subtitle: 'Trending Telugu cinema songs',
+      query: 'Telugu Film Songs 2026 DSP Devi Sri Prasad'
+    },
+    {
+      id: 'tamil',
+      title: '⚡ Tamil Kollywood',
+      subtitle: 'Chart-toppers from Tamil cinema',
+      query: 'Tamil Film Songs 2026 Anirudh Vijay Thalapathy'
+    },
+    {
+      id: 'kannada',
+      title: '🦁 Kannada Sandalwood',
+      subtitle: 'Hottest Kannada movie songs',
+      query: 'Kannada Film Songs 2026 Ravi Basrur'
+    },
+    {
+      id: 'malayalam',
+      title: '🌿 Malayalam Mollywood',
+      subtitle: 'Soulful Malayalam tracks',
+      query: 'Malayalam Film Songs 2026 Sushin Shyam'
+    },
+    {
+      id: 'punjabi',
+      title: '🥁 Punjabi Bangers',
+      subtitle: 'Desi beats from Punjab',
+      query: 'Punjabi Songs 2026 Diljit Dosanjh AP Dhillon'
+    },
+    {
+      id: 'kpop',
+      title: '🇰🇷 K-Pop Worldwide',
+      subtitle: 'Global K-Pop chart toppers',
+      query: 'BTS BLACKPINK Stray Kids K-Pop 2026'
+    },
+    {
+      id: 'global_pop',
+      title: '🌍 Global English Pop',
+      subtitle: 'International English hits',
+      query: 'English Pop Hits Olivia Rodrigo Sabrina Carpenter Taylor Swift 2026'
+    },
+    {
+      id: 'lofi',
+      title: '☕ Lo-Fi & Chill',
+      subtitle: 'Study, sleep and relax vibes',
+      query: 'Lofi Chill Study Beats Relaxing Hindi English'
+    },
+    {
+      id: 'anime',
+      title: '🌸 Anime & J-Pop',
+      subtitle: 'Japanese anime openings & OSTs',
+      query: 'Anime Opening Song Japanese OST Naruto'
+    },
+    {
+      id: 'devotional',
+      title: '🕉️ Devotional & Bhajans',
+      subtitle: 'Spiritual melodies & prayers',
+      query: 'Devotional Bhajan Mantra Songs Hanuman'
+    }
+  ];
 
-    const promises = categories.map(async (cat) => {
-      try {
-        const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=8&p=1&q=${encodeURIComponent(cat.query)}`;
-        const r = await axios.get(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0' },
-          timeout: 8000
-        });
-        const songs = (r.data.results || []).map(formatSong).filter(s => s && s.audio_url);
-        return {
-          id: cat.id,
-          title: cat.title,
-          songs: songs.slice(0, 8)
-        };
-      } catch (e) {
-        return { id: cat.id, title: cat.title, songs: [] };
-      }
-    });
+  const charts = [];
 
-    const charts = await Promise.all(promises);
-    res.json(charts);
-  } catch (error) {
-    console.error('[Music Controller Charts Error]:', error.message);
-    res.status(500).json({ error: 'Failed to fetch music charts' });
+  // Sequential fetching — one at a time with 250ms delay to avoid rate limiting
+  for (const cat of CHART_CATEGORIES) {
+    try {
+      const songs = await fetchSaavnSongs(cat.query, 8);
+      charts.push({
+        id: cat.id,
+        title: cat.title,
+        subtitle: cat.subtitle,
+        songs: songs.slice(0, 8)
+      });
+    } catch (e) {
+      console.warn(`[Charts] Failed to fetch ${cat.id}:`, e.message);
+      charts.push({ id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [] });
+    }
+    // 250ms gap between each request
+    await delay(250);
   }
+
+  res.json(charts);
 };
 
 // 4. Get Song Details by ID
