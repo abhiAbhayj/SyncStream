@@ -16,8 +16,6 @@ import {
   ChevronDown,
   ListMusic,
   FileText,
-  Maximize,
-  Minimize,
   X,
   Loader2,
   Music2,
@@ -76,7 +74,6 @@ export default function MusicModal() {
       return 'player';
     }
   });
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [lyricsData, setLyricsData] = useState({
     loading: false,
@@ -90,43 +87,7 @@ export default function MusicModal() {
   const scrubberRef = useRef(null);
   const lyricsContainerRef = useRef(null);
 
-  const toggleBrowserFullscreen = () => {
-    try {
-      const doc = document;
-      const docEl = document.documentElement;
-      const isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
-
-      if (!isFull) {
-        const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
-        if (req) {
-          req.call(docEl).then(() => setIsFullscreen(true)).catch(() => setIsFullscreen(true));
-        } else {
-          setIsFullscreen(true);
-        }
-      } else {
-        const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
-        if (exit) {
-          exit.call(doc).then(() => setIsFullscreen(false)).catch(() => setIsFullscreen(false));
-        } else {
-          setIsFullscreen(false);
-        }
-      }
-    } catch (err) {
-      console.warn('Fullscreen toggle:', err);
-      setIsFullscreen(!isFullscreen);
-    }
-  };
-
-  const exitNativeFullscreen = useCallback(() => {
-    try {
-      const doc = document;
-      if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
-        const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
-        if (exit) exit.call(doc);
-      }
-    } catch (e) {}
-  }, []);
-
+  // Sync tab when modal opens or tab changes in global window object
   useEffect(() => {
     if (isExpanded) {
       try {
@@ -139,26 +100,10 @@ export default function MusicModal() {
           if (stored) setActiveTab(stored);
         }
       } catch (e) {}
-    } else {
-      exitNativeFullscreen();
     }
-  }, [isExpanded, exitNativeFullscreen]);
+  }, [isExpanded]);
 
-  useEffect(() => {
-    const handleFSChange = () => {
-      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-      setIsFullscreen(isFull);
-    };
-    document.addEventListener('fullscreenchange', handleFSChange);
-    document.addEventListener('webkitfullscreenchange', handleFSChange);
-    document.addEventListener('mozfullscreenchange', handleFSChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFSChange);
-      document.removeEventListener('webkitfullscreenchange', handleFSChange);
-      document.removeEventListener('mozfullscreenchange', handleFSChange);
-    };
-  }, []);
-
+  // Fetch Lyrics when currentTrack changes
   useEffect(() => {
     if (!currentTrack || !isExpanded) return;
 
@@ -239,13 +184,11 @@ export default function MusicModal() {
   }, [activeLyricIndex, activeTab]);
 
   const handleCloseModal = () => {
-    exitNativeFullscreen();
     setIsExpanded(false);
     closePlayer();
   };
 
   const handleMinimizeModal = () => {
-    exitNativeFullscreen();
     setIsExpanded(false);
   };
 
@@ -297,36 +240,38 @@ export default function MusicModal() {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col justify-between bg-[#0c0d18] text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
+    <div className="fixed inset-0 z-[9999] flex flex-col justify-between bg-gradient-to-b from-[#0f1224] via-[#141a38] to-[#0b0e1b] text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
       
+      {/* Dynamic Blurred Album Background Glow */}
       {currentTrack.image && (
         <div
-          className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-60 pointer-events-none scale-125 transition-all duration-1000"
+          className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 pointer-events-none scale-125 transition-all duration-1000"
           style={{ backgroundImage: `url(${currentTrack.image})` }}
         />
       )}
 
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accentPurple/35 blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-accentCyan/35 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-accentPink/25 blur-3xl pointer-events-none animate-pulse [animation-delay:0.5s]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d18] via-[#0c0d18]/50 to-[#0c0d18]/20 pointer-events-none" />
+      {/* Ambient Neon Lighting */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accentPurple/25 blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-accentCyan/25 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
 
-      {/* Top Navigation Bar */}
+      {/* ── Top Navigation Bar ── */}
       <div className="relative z-20 flex items-center justify-between max-w-5xl mx-auto w-full gap-2 pt-[env(safe-area-inset-top,0.5rem)]">
         
+        {/* Minimize Button */}
         <button
           onClick={handleMinimizeModal}
-          className="flex items-center gap-1.5 min-w-[44px] min-h-[44px] px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/20 shadow-lg"
-          title="Minimize to Floating Bar"
+          className="flex items-center gap-1.5 min-w-[44px] min-h-[44px] px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/15 shadow-lg"
+          title="Minimize to Bottom Bar"
         >
           <ChevronDown className="w-5 h-5 text-accentCyan" />
           <span className="hidden sm:inline">Minimize</span>
         </button>
 
+        {/* Center Tab Switcher */}
         <div className="flex items-center gap-1 bg-black/40 border border-white/20 p-1.5 rounded-full backdrop-blur-2xl shadow-xl">
           <button
             onClick={() => handleTabChange('player')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
               activeTab === 'player'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_18px_rgba(99,210,255,0.5)]'
                 : 'text-gray-300 hover:text-white'
@@ -337,7 +282,7 @@ export default function MusicModal() {
           </button>
           <button
             onClick={() => handleTabChange('lyrics')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
               activeTab === 'lyrics'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_18px_rgba(99,210,255,0.5)]'
                 : 'text-gray-300 hover:text-white'
@@ -348,42 +293,35 @@ export default function MusicModal() {
           </button>
           <button
             onClick={() => handleTabChange('queue')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
               activeTab === 'queue'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_18px_rgba(99,210,255,0.5)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
             <ListMusic className="w-4 h-4" />
-            <span>Queue</span>
+            <span>Queue ({queue.length})</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={toggleBrowserFullscreen}
-            className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 text-white transition active:scale-95 border border-white/20 shadow-lg"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          >
-            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-          </button>
-          <button
-            onClick={handleCloseModal}
-            className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/15 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-300 transition border border-white/20 shadow-lg"
-            title="Close Player"
-          >
-            <X className="w-6 h-6 stroke-[2.5]" />
-          </button>
-        </div>
+        {/* Close Button */}
+        <button
+          onClick={handleCloseModal}
+          className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/15 shadow-lg shrink-0"
+          title="Close Player"
+        >
+          <X className="w-6 h-6 stroke-[2.5]" />
+        </button>
       </div>
 
-      {/* Main Stage */}
+      {/* ── Main Stage ── */}
       <div className="relative z-10 max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center py-2 overflow-hidden">
         
-        {/* 1. PLAYER FULLSCREEN VIEW */}
+        {/* 1. PLAYER VIEW */}
         {activeTab === 'player' && (
-          <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 w-full animate-fade-in text-center">
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-5 md:gap-6 w-full animate-fade-in text-center">
             
+            {/* View Mode Switcher (Poster vs Vinyl) */}
             <div className="flex items-center gap-1 bg-white/10 border border-white/15 p-1 rounded-full text-[11px] font-bold text-gray-300 backdrop-blur-md">
               <button
                 onClick={() => setViewStyle('poster')}
@@ -404,13 +342,12 @@ export default function MusicModal() {
             {/* HD Poster View */}
             {viewStyle === 'poster' && (
               <div className="relative group shrink-0">
-                <div className="w-60 h-60 sm:w-80 sm:h-80 md:w-[380px] md:h-[380px] rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative bg-black/40">
+                <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-[350px] md:h-[350px] rounded-3xl overflow-hidden border-2 border-white/30 shadow-[0_20px_60px_rgba(0,0,0,0.7)] relative bg-black/40">
                   <img
                     src={currentTrack.image || 'https://placehold.co/400x400/1e1e24/fff?text=Music'}
                     alt={currentTrack.title}
                     className={`w-full h-full object-cover transition-transform duration-700 ${isPlaying ? 'scale-105' : 'scale-100'}`}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                 </div>
                 {isPlaying && (
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 px-4 py-1.5 bg-black/90 backdrop-blur-md rounded-full border border-white/20 shadow-[0_0_25px_rgba(99,210,255,0.6)]">
@@ -428,7 +365,7 @@ export default function MusicModal() {
             {viewStyle === 'vinyl' && (
               <div className="relative flex items-center justify-center shrink-0">
                 <div
-                  className={`w-52 h-52 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-full p-2.5 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_60px_rgba(99,210,255,0.45)] transition-all duration-700 ${
+                  className={`w-52 h-52 sm:w-64 sm:h-64 md:w-76 md:h-76 rounded-full p-2.5 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_60px_rgba(99,210,255,0.45)] transition-all duration-700 ${
                     isPlaying ? 'animate-spin-slow shadow-[0_0_90px_rgba(99,210,255,0.7)]' : ''
                   }`}
                 >
@@ -436,13 +373,13 @@ export default function MusicModal() {
                     <div className="absolute inset-2 sm:inset-4 rounded-full border border-white/10 pointer-events-none" />
                     <div className="absolute inset-5 sm:inset-8 rounded-full border border-white/10 pointer-events-none" />
                     <div className="absolute inset-8 sm:inset-12 rounded-full border border-white/15 pointer-events-none" />
-                    <div className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
+                    <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
                       <img
                         src={currentTrack.image || 'https://placehold.co/300x300/1e1e24/fff?text=Music'}
                         alt={currentTrack.title}
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 m-auto w-6 h-6 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
+                      <div className="absolute inset-0 m-auto w-5 h-5 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
                     </div>
                   </div>
                 </div>
@@ -469,9 +406,9 @@ export default function MusicModal() {
           </div>
         )}
 
-        {/* 2. FULLSCREEN LYRICS VIEW */}
+        {/* 2. LYRICS VIEW */}
         {activeTab === 'lyrics' && (
-          <div className="w-full max-w-4xl h-[68vh] sm:h-[74vh] flex flex-col gap-4 animate-fade-in glass-panel rounded-3xl border border-white/20 p-5 sm:p-8 backdrop-blur-3xl bg-[#0e0f1e]/90 shadow-2xl">
+          <div className="w-full max-w-4xl h-[68vh] sm:h-[74vh] flex flex-col gap-4 animate-fade-in glass-panel rounded-3xl border border-white/20 p-5 sm:p-8 backdrop-blur-3xl bg-[#12162d]/90 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
               <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
                 <img
@@ -542,7 +479,7 @@ export default function MusicModal() {
                 </div>
                 <div className="space-y-1 max-w-md">
                   <h3 className="text-base font-bold text-white font-outfit">{currentTrack.title}</h3>
-                  <p className="text-xs text-gray-400">{currentTrack.artist}</p>
+                  <p className="text-xs text-gray-300">{currentTrack.artist}</p>
                   <p className="text-xs text-accentCyan/90 font-mono pt-2">
                     ♪ Synchronized lyrics are not available for this track yet. Enjoy the music!
                   </p>
@@ -554,7 +491,7 @@ export default function MusicModal() {
 
         {/* 3. QUEUE VIEW */}
         {activeTab === 'queue' && (
-          <div className="w-full max-w-4xl bg-[#0e0f1e]/90 border border-white/20 rounded-3xl p-5 sm:p-8 backdrop-blur-3xl h-[68vh] sm:h-[74vh] flex flex-col gap-4 animate-fade-in shadow-2xl">
+          <div className="w-full max-w-4xl bg-[#12162d]/90 border border-white/20 rounded-3xl p-5 sm:p-8 backdrop-blur-3xl h-[68vh] sm:h-[74vh] flex flex-col gap-4 animate-fade-in shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
               <h2 className="text-base sm:text-lg font-bold text-white font-outfit flex items-center gap-2">
                 <ListMusic className="w-5 h-5 text-accentCyan" />
@@ -606,7 +543,7 @@ export default function MusicModal() {
 
       </div>
 
-      {/* Timeline Scrubber & Audio Controls */}
+      {/* ── Scrubber & Audio Controls ── */}
       <div className="relative z-20 max-w-2xl mx-auto w-full space-y-3 pb-[env(safe-area-inset-bottom,0.5rem)]">
         
         <div className="space-y-1">
