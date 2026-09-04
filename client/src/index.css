@@ -12,9 +12,9 @@
    DEFAULT THEME: Deep Ocean (Electric Blue)
 ───────────────────────────────────────────── */
 :root {
-  --dark-bg:     5 5 12;
-  --dark-card:   11 11 24;
-  --dark-surf:   15 15 32;
+  --dark-bg:     15 18 36;       /* #0f1224 - Rich Electric Midnight Blue */
+  --dark-card:   24 29 56;       /* #181d38 - Elevated Crisp Card */
+  --dark-surf:   32 38 72;       /* #202648 - High-Contrast Surface */
   --dark-border: 255 255 255;
 
   --accent-cyan:   99 210 255;
@@ -23,18 +23,18 @@
   --accent-gold:   255 196 60;
   --accent-green:  72 240 180;
 
-  --glow-1: rgba(149, 100, 255, 0.12);
-  --glow-2: rgba(99,  210, 255, 0.08);
-  --glow-3: rgba(255,  85, 173, 0.06);
+  --glow-1: rgba(149, 100, 255, 0.30);
+  --glow-2: rgba(99,  210, 255, 0.25);
+  --glow-3: rgba(255,  85, 173, 0.20);
 }
 
 /* ─────────────────────────────────────────────
    THEME: Inferno 🔥  (Fire / Lava)
 ───────────────────────────────────────────── */
 .theme-inferno {
-  --dark-bg:     8 3 1;
-  --dark-card:   16 6 2;
-  --dark-surf:   22 8 3;
+  --dark-bg:     26 12 8;        /* #1a0c08 - Rich Warm Lava Crimson */
+  --dark-card:   42 18 12;       /* #2a120c - Crisp Flame Card */
+  --dark-surf:   56 24 16;       /* #381810 - Elevated Surface */
   --dark-border: 255 255 255;
 
   --accent-cyan:   255 140 40;
@@ -43,18 +43,18 @@
   --accent-gold:   255 100 20;
   --accent-green:  255 175 55;
 
-  --glow-1: rgba(255,  55,  25, 0.16);
-  --glow-2: rgba(255, 140,  40, 0.11);
-  --glow-3: rgba(255, 200,   0, 0.07);
+  --glow-1: rgba(255,  55,  25, 0.35);
+  --glow-2: rgba(255, 140,  40, 0.25);
+  --glow-3: rgba(255, 200,   0, 0.18);
 }
 
 /* ─────────────────────────────────────────────
    THEME: Emerald 🌿  (Dark Forest / Neon Green)
 ───────────────────────────────────────────── */
 .theme-emerald {
-  --dark-bg:     2 8 5;
-  --dark-card:   4 16 9;
-  --dark-surf:   5 22 12;
+  --dark-bg:     10 26 18;       /* #0a1a12 - Vibrant Forest Emerald */
+  --dark-card:   16 40 28;       /* #10281c - Mint Emerald Card */
+  --dark-surf:   22 52 36;       /* #163424 - High-Contrast Surface */
   --dark-border: 255 255 255;
 
   --accent-cyan:   50 240 160;    /* neon mint */
@@ -63,18 +63,18 @@
   --accent-gold:   255 220 50;    /* golden highlight */
   --accent-green:  0 255 140;     /* bright neon green */
 
-  --glow-1: rgba(0,  200, 120, 0.18);
-  --glow-2: rgba(50, 240, 160, 0.12);
-  --glow-3: rgba(255, 220, 50, 0.07);
+  --glow-1: rgba(0,  200, 120, 0.35);
+  --glow-2: rgba(50, 240, 160, 0.25);
+  --glow-3: rgba(255, 220, 50, 0.18);
 }
 
 /* ─────────────────────────────────────────────
    THEME: Cyber Gold ⚡  (Dark Gunmetal + Gold)
 ───────────────────────────────────────────── */
 .theme-cyber {
-  --dark-bg:     6 6 4;
-  --dark-card:   12 12 8;
-  --dark-surf:   16 16 10;
+  --dark-bg:     22 22 16;       /* #161610 - Rich Gunmetal Gold */
+  --dark-card:   36 36 24;       /* #242418 - Cyber Gold Card */
+  --dark-surf:   48 48 32;       /* #303020 - High-Contrast Surface */
   --dark-border: 255 255 255;
 
   --accent-cyan:   255 205 0;     /* pure gold */
@@ -83,9 +83,9 @@
   --accent-gold:   255 240 140;   /* pale gold shimmer */
   --accent-green:  255 230 80;    /* yellow gold */
 
-  --glow-1: rgba(255, 205,   0, 0.15);
-  --glow-2: rgba(255, 120,   0, 0.10);
-  --glow-3: rgba(220, 165,   0, 0.07);
+  --glow-1: rgba(255, 205,   0, 0.32);
+  --glow-2: rgba(255, 120,   0, 0.22);
+  --glow-3: rgba(220, 165,   0, 0.18);
 }
 
 /* ─────────────────────────────────────────────
