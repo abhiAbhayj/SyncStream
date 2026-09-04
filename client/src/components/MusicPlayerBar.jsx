@@ -40,6 +40,7 @@ export default function MusicPlayerBar() {
     isLooping,
     isShuffling,
     isLoading,
+    isExpanded,
     togglePlay,
     seek,
     skipForward,
@@ -62,32 +63,19 @@ export default function MusicPlayerBar() {
   const [hoverPosition, setHoverPosition] = useState(null);
   const progressBarRef = useRef(null);
 
-  // If no track is loaded or full screen modal is open, keep bar completely unmounted
-  if (!currentTrack || isExpanded) return null;
-
-  const displayTime = isDragging ? dragTime : currentTime;
-  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
-
-  // Handle Scrubbing (Mouse & Touch Drag)
-  const calculateSeekTime = (e) => {
+  const calculateSeekTime = useCallback((e) => {
     if (!progressBarRef.current || duration <= 0) return 0;
     const rect = progressBarRef.current.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const offsetX = Math.max(0, Math.min(clientX - rect.left, rect.width));
     return (offsetX / rect.width) * duration;
-  };
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    const target = calculateSeekTime(e);
-    setDragTime(target);
-  };
+  }, [duration]);
 
   const handleMouseMove = useCallback((e) => {
     if (isDragging) {
       setDragTime(calculateSeekTime(e));
     }
-  }, [isDragging, duration]);
+  }, [isDragging, calculateSeekTime]);
 
   const handleMouseUp = useCallback((e) => {
     if (isDragging) {
@@ -95,7 +83,7 @@ export default function MusicPlayerBar() {
       seek(target);
       setIsDragging(false);
     }
-  }, [isDragging, seek]);
+  }, [isDragging, seek, calculateSeekTime]);
 
   useEffect(() => {
     if (isDragging) {
@@ -112,6 +100,18 @@ export default function MusicPlayerBar() {
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  // ALL hooks are above this line. Conditional returns are safe below.
+  if (!currentTrack || isExpanded) return null;
+
+  const displayTime = isDragging ? dragTime : currentTime;
+  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    const target = calculateSeekTime(e);
+    setDragTime(target);
+  };
+
   const handleProgressBarHover = (e) => {
     if (!progressBarRef.current || duration <= 0) return;
     const rect = progressBarRef.current.getBoundingClientRect();
@@ -125,7 +125,7 @@ export default function MusicPlayerBar() {
 
   return (
     <>
-      {/* ── Floating Music Bar ── */}
+      {/* Floating Music Bar */}
       <aside
         aria-label="Floating Music Player"
         className="fixed left-0 right-0 z-40 px-2 sm:px-4 bottom-[52px] md:bottom-0 max-w-7xl mx-auto transition-all duration-300 pointer-events-auto select-none"
@@ -141,17 +141,14 @@ export default function MusicPlayerBar() {
             onMouseLeave={() => setHoverPosition(null)}
             className="relative w-full h-1.5 md:h-2 bg-white/10 cursor-pointer overflow-visible group/bar"
           >
-            {/* Active Progress Gradient Fill */}
             <div
               className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_8px_rgba(99,210,255,0.8)]"
               style={{ width: `${progressPercent}%` }}
             />
-            {/* Scrubber Knob (Desktop hover) */}
             <div
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-white shadow-[0_0_8px_#fff] opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none"
               style={{ left: `${progressPercent}%` }}
             />
-            {/* Hover Tooltip (Desktop) */}
             {hoverPosition && (
               <div
                 className="hidden md:block absolute -top-7 -translate-x-1/2 bg-black/95 border border-white/20 text-[10px] font-mono font-bold text-accentCyan px-1.5 py-0.5 rounded shadow-xl pointer-events-none"
@@ -162,10 +159,9 @@ export default function MusicPlayerBar() {
             )}
           </div>
 
-          {/* ══════ MOBILE SLEEK MINI-PLAYER (< 768px) ══════ */}
+          {/* MOBILE MINI-PLAYER (< 768px) */}
           <div className="flex md:hidden items-center justify-between gap-2 px-2.5 py-1.5 h-13">
             
-            {/* Left: Artwork + Track Title (Tap opens full-screen player modal) */}
             <div
               onClick={() => setIsExpanded(true)}
               className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer active:opacity-75 transition-opacity"
@@ -191,10 +187,8 @@ export default function MusicPlayerBar() {
               </div>
             </div>
 
-            {/* Right: Clean, un-crowded touch buttons */}
             <div className="flex items-center gap-0.5 shrink-0">
               
-              {/* -10s Jump */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -207,7 +201,6 @@ export default function MusicPlayerBar() {
                 <span className="absolute text-[6.5px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
               </button>
 
-              {/* Glowing Play / Pause Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -226,7 +219,6 @@ export default function MusicPlayerBar() {
                 )}
               </button>
 
-              {/* +10s Jump */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -239,7 +231,6 @@ export default function MusicPlayerBar() {
                 <span className="absolute text-[6.5px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
               </button>
 
-              {/* Fullscreen Expand Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -255,7 +246,6 @@ export default function MusicPlayerBar() {
                 <Maximize2 className="w-4 h-4" />
               </button>
 
-              {/* Close Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -269,19 +259,17 @@ export default function MusicPlayerBar() {
             </div>
           </div>
 
-          {/* ══════ DESKTOP BAR (>= 768px) ══════ */}
+          {/* DESKTOP BAR (>= 768px) */}
           <div className="hidden md:flex flex-col gap-2 p-3 sm:p-4">
             
-            {/* Timestamps */}
             <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 font-semibold px-0.5">
               <span>{formatTime(displayTime)}</span>
               <span className="text-gray-500">{formatTime(duration)}</span>
             </div>
 
-            {/* Controls & Track Info Row */}
             <div className="flex items-center justify-between gap-4">
               
-              {/* 1. Track Info (Left) */}
+              {/* Track Info (Left) */}
               <div className="flex items-center gap-3 min-w-0 max-w-[28%] shrink-0">
                 <div
                   onClick={() => setIsExpanded(true)}
@@ -319,10 +307,9 @@ export default function MusicPlayerBar() {
                 </div>
               </div>
 
-              {/* 2. Center Audio Controls */}
+              {/* Center Audio Controls */}
               <div className="flex items-center justify-center gap-2 sm:gap-4 flex-1">
                 
-                {/* Shuffle */}
                 <button
                   onClick={toggleShuffle}
                   className={`p-2 rounded-xl text-xs transition-all ${
@@ -335,7 +322,6 @@ export default function MusicPlayerBar() {
                   <Shuffle className="w-4 h-4" />
                 </button>
 
-                {/* Previous Track */}
                 <button
                   onClick={prevTrack}
                   className="p-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition active:scale-90"
@@ -344,7 +330,6 @@ export default function MusicPlayerBar() {
                   <SkipBack className="w-5 h-5" />
                 </button>
 
-                {/* 10s Backward Jump */}
                 <button
                   onClick={() => skipBackward(10)}
                   className="group relative p-2 text-gray-300 hover:text-accentCyan hover:bg-accentCyan/10 rounded-xl transition active:scale-90 flex items-center justify-center"
@@ -356,7 +341,6 @@ export default function MusicPlayerBar() {
                   </span>
                 </button>
 
-                {/* Main Play / Pause Button */}
                 <button
                   onClick={togglePlay}
                   disabled={isLoading}
@@ -372,7 +356,6 @@ export default function MusicPlayerBar() {
                   )}
                 </button>
 
-                {/* 10s Forward Jump */}
                 <button
                   onClick={() => skipForward(10)}
                   className="group relative p-2 text-gray-300 hover:text-accentCyan hover:bg-accentCyan/10 rounded-xl transition active:scale-90 flex items-center justify-center"
@@ -384,7 +367,6 @@ export default function MusicPlayerBar() {
                   </span>
                 </button>
 
-                {/* Next Track */}
                 <button
                   onClick={nextTrack}
                   className="p-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition active:scale-90"
@@ -393,7 +375,6 @@ export default function MusicPlayerBar() {
                   <SkipForward className="w-5 h-5" />
                 </button>
 
-                {/* Loop Toggle */}
                 <button
                   onClick={toggleLoop}
                   className={`p-2 rounded-xl text-xs transition-all ${
@@ -407,10 +388,9 @@ export default function MusicPlayerBar() {
                 </button>
               </div>
 
-              {/* 3. Right Extra Controls (Volume, Queue, Lyrics, Fullscreen, Close) */}
+              {/* Right Extra Controls */}
               <div className="flex items-center justify-end gap-2 min-w-0 max-w-[28%] shrink-0">
                 
-                {/* Volume Slider */}
                 <div className="flex items-center gap-1.5 group/vol">
                   <button
                     onClick={toggleMute}
@@ -436,7 +416,6 @@ export default function MusicPlayerBar() {
                   />
                 </div>
 
-                {/* Queue Drawer Toggle */}
                 <button
                   onClick={() => setShowQueueDrawer(!showQueueDrawer)}
                   className={`relative p-2 rounded-xl transition ${
@@ -454,7 +433,6 @@ export default function MusicPlayerBar() {
                   )}
                 </button>
 
-                {/* Lyrics Button */}
                 <button
                   onClick={() => {
                     try {
@@ -469,7 +447,6 @@ export default function MusicPlayerBar() {
                   <FileText className="w-4 h-4" />
                 </button>
 
-                {/* Fullscreen Expand */}
                 <button
                   onClick={() => {
                     try {
@@ -484,7 +461,6 @@ export default function MusicPlayerBar() {
                   <Maximize2 className="w-4 h-4" />
                 </button>
 
-                {/* Close Player */}
                 <button
                   onClick={closePlayer}
                   className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition ml-0.5"
@@ -500,7 +476,7 @@ export default function MusicPlayerBar() {
         </div>
       </aside>
 
-      {/* ── Queue Drawer Popup (Desktop) ── */}
+      {/* Queue Drawer Popup (Desktop) */}
       {showQueueDrawer && (
         <div className="hidden md:flex fixed bottom-28 right-4 z-40 w-80 sm:w-96 max-h-[60vh] glass-panel rounded-2xl border border-white/10 bg-darkCard/95 backdrop-blur-2xl shadow-2xl p-4 flex-col gap-3 animate-slide-up">
           <div className="flex items-center justify-between pb-2 border-b border-white/10">
