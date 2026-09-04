@@ -62,8 +62,8 @@ export default function MusicPlayerBar() {
   const [hoverPosition, setHoverPosition] = useState(null);
   const progressBarRef = useRef(null);
 
-  // If no track is loaded, keep player completely unmounted
-  if (!currentTrack) return null;
+  // If no track is loaded or full screen modal is open, keep bar completely unmounted
+  if (!currentTrack || isExpanded) return null;
 
   const displayTime = isDragging ? dragTime : currentTime;
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
