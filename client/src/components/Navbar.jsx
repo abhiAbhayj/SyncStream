@@ -57,9 +57,11 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="relative">
               <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative bg-gradient-to-tr from-accentPurple to-accentCyan p-2 rounded-xl text-white shadow-lg">
-                <Tv className="w-5 h-5 animate-pulse-glow" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="SyncStream"
+                className="relative w-8 h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
+              />
             </div>
             <span className="font-orbitron font-extrabold text-xl tracking-widest text-gradient-aurora uppercase">
               SyncStream

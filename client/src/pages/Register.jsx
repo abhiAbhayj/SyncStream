@@ -57,9 +57,7 @@ export default function Register() {
         
         {/* Title / Logo */}
         <div className="text-center space-y-2">
-          <div className="inline-flex bg-gradient-to-tr from-accentPurple to-accentCyan p-3 rounded-2xl text-white shadow-lg shadow-accentPurple/20 mb-2">
-            <Tv className="w-8 h-8" />
-          </div>
+          <img src="/logo.png" alt="SyncStream" className="w-16 h-16 rounded-2xl object-cover shadow-2xl border border-white/20 mx-auto mb-2" />
           <h2 className="text-2xl font-extrabold tracking-tight text-white font-outfit">
             Create Free Account
           </h2>
