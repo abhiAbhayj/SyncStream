@@ -4,17 +4,20 @@ import axios from 'axios'
 import App from './App.jsx'
 import './index.css'
 
-// Dynamically set API baseURL to always point to Node.js backend on port 5000
-// Works for: Vite dev (localhost:5173), Apache/dist (localhost:80), mobile LAN (192.168.x.x:any)
+// Dynamically set API baseURL
 if (typeof window !== 'undefined') {
-  if (import.meta.env.VITE_API_URL) {
-    // Production: use env var (e.g. Render/Railway hosted backend)
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL;
-  } else {
-    // Local development (Vite or Apache): always connect to backend on port 5000
+  const envUrl = import.meta.env.VITE_API_URL;
+  const hostname = window.location.hostname || '';
+
+  if (envUrl) {
+    axios.defaults.baseURL = envUrl;
+  } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Local development: connect to backend on port 5000
     const protocol = window.location.protocol;
-    const hostname = window.location.hostname || 'localhost';
     axios.defaults.baseURL = `${protocol}//${hostname}:5000`;
+  } else {
+    // Production (Netlify / remote host): use relative API path so Netlify proxy redirects work
+    axios.defaults.baseURL = '';
   }
 }
 

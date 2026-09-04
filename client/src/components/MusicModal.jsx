@@ -23,6 +23,8 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
+
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return '00:00';
   const mins = Math.floor(seconds / 60);
@@ -65,11 +67,12 @@ export default function MusicModal() {
   const [activeTab, setActiveTab] = useState(() => {
     try {
       const winTab = (typeof window !== 'undefined' && window.__musicModalTab) ? window.__musicModalTab : null;
-      if (winTab) {
+      if (winTab && ['player', 'lyrics', 'queue'].includes(winTab)) {
         window.__musicModalTab = null;
         return winTab;
       }
-      return sessionStorage.getItem('syncstream_music_modal_tab') || 'player';
+      const stored = sessionStorage.getItem('syncstream_music_modal_tab');
+      return (stored && ['player', 'lyrics', 'queue'].includes(stored)) ? stored : 'player';
     } catch {
       return 'player';
     }
@@ -87,17 +90,22 @@ export default function MusicModal() {
   const scrubberRef = useRef(null);
   const lyricsContainerRef = useRef(null);
 
-  // Sync tab when modal opens or tab changes in global window object
+  // Guarantee validTab is always player, lyrics, or queue
+  const currentTab = ['player', 'lyrics', 'queue'].includes(activeTab) ? activeTab : 'player';
+
+  // Sync tab when modal opens
   useEffect(() => {
     if (isExpanded) {
       try {
         const winTab = (typeof window !== 'undefined' && window.__musicModalTab) ? window.__musicModalTab : null;
-        if (winTab) {
+        if (winTab && ['player', 'lyrics', 'queue'].includes(winTab)) {
           window.__musicModalTab = null;
           setActiveTab(winTab);
         } else {
           const stored = sessionStorage.getItem('syncstream_music_modal_tab');
-          if (stored) setActiveTab(stored);
+          if (stored && ['player', 'lyrics', 'queue'].includes(stored)) {
+            setActiveTab(stored);
+          }
         }
       } catch (e) {}
     }
@@ -172,7 +180,7 @@ export default function MusicModal() {
   });
 
   useEffect(() => {
-    if (activeTab === 'lyrics' && lyricsContainerRef.current && activeLyricIndex !== -1) {
+    if (currentTab === 'lyrics' && lyricsContainerRef.current && activeLyricIndex !== -1) {
       const activeEl = lyricsContainerRef.current.children[activeLyricIndex];
       if (activeEl) {
         activeEl.scrollIntoView({
@@ -181,7 +189,7 @@ export default function MusicModal() {
         });
       }
     }
-  }, [activeLyricIndex, activeTab]);
+  }, [activeLyricIndex, currentTab]);
 
   const handleCloseModal = () => {
     setIsExpanded(false);
@@ -196,6 +204,7 @@ export default function MusicModal() {
 
   const displayTime = isDragging ? dragTime : currentTime;
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
+  const trackImageUrl = currentTrack.image || FALLBACK_IMAGE;
 
   const calculateSeekTime = (e) => {
     if (!scrubberRef.current || duration <= 0) return 0;
@@ -243,12 +252,10 @@ export default function MusicModal() {
     <div className="fixed inset-0 z-[9999] flex flex-col justify-between bg-gradient-to-b from-[#0f1224] via-[#141a38] to-[#0b0e1b] text-white p-3 sm:p-6 md:p-8 select-none overflow-hidden animate-fade-in">
       
       {/* Dynamic Blurred Album Background Glow */}
-      {currentTrack.image && (
-        <div
-          className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 pointer-events-none scale-125 transition-all duration-1000"
-          style={{ backgroundImage: `url(${currentTrack.image})` }}
-        />
-      )}
+      <div
+        className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-35 pointer-events-none scale-125 transition-all duration-1000"
+        style={{ backgroundImage: `url(${trackImageUrl})` }}
+      />
 
       {/* Ambient Neon Lighting */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accentPurple/25 blur-3xl pointer-events-none animate-pulse" />
@@ -260,19 +267,19 @@ export default function MusicModal() {
         {/* Minimize Button */}
         <button
           onClick={handleMinimizeModal}
-          className="flex items-center gap-1.5 min-w-[44px] min-h-[44px] px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/15 shadow-lg"
-          title="Minimize to Bottom Bar"
+          className="flex items-center gap-1.5 min-w-[48px] min-h-[48px] px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/20 shadow-lg"
+          title="Minimize to Floating Player Bar"
         >
           <ChevronDown className="w-5 h-5 text-accentCyan" />
           <span className="hidden sm:inline">Minimize</span>
         </button>
 
         {/* Center Tab Switcher */}
-        <div className="flex items-center gap-1 bg-black/40 border border-white/20 p-1.5 rounded-full backdrop-blur-2xl shadow-xl">
+        <div className="flex items-center gap-1 bg-black/50 border border-white/20 p-1.5 rounded-full backdrop-blur-2xl shadow-2xl">
           <button
             onClick={() => handleTabChange('player')}
             className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
-              activeTab === 'player'
+              currentTab === 'player'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_18px_rgba(99,210,255,0.5)]'
                 : 'text-gray-300 hover:text-white'
             }`}
@@ -283,7 +290,7 @@ export default function MusicModal() {
           <button
             onClick={() => handleTabChange('lyrics')}
             className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
-              activeTab === 'lyrics'
+              currentTab === 'lyrics'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_18px_rgba(99,210,255,0.5)]'
                 : 'text-gray-300 hover:text-white'
             }`}
@@ -294,7 +301,7 @@ export default function MusicModal() {
           <button
             onClick={() => handleTabChange('queue')}
             className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
-              activeTab === 'queue'
+              currentTab === 'queue'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_18px_rgba(99,210,255,0.5)]'
                 : 'text-gray-300 hover:text-white'
             }`}
@@ -307,7 +314,7 @@ export default function MusicModal() {
         {/* Close Button */}
         <button
           onClick={handleCloseModal}
-          className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/15 shadow-lg shrink-0"
+          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/15 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/20 shadow-lg shrink-0"
           title="Close Player"
         >
           <X className="w-6 h-6 stroke-[2.5]" />
@@ -318,7 +325,7 @@ export default function MusicModal() {
       <div className="relative z-10 max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center py-2 overflow-hidden">
         
         {/* 1. PLAYER VIEW */}
-        {activeTab === 'player' && (
+        {currentTab === 'player' && (
           <div className="flex flex-col items-center justify-center gap-3 sm:gap-5 md:gap-6 w-full animate-fade-in text-center">
             
             {/* View Mode Switcher (Poster vs Vinyl) */}
@@ -344,9 +351,13 @@ export default function MusicModal() {
               <div className="relative group shrink-0">
                 <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-[350px] md:h-[350px] rounded-3xl overflow-hidden border-2 border-white/30 shadow-[0_20px_60px_rgba(0,0,0,0.7)] relative bg-black/40">
                   <img
-                    src={currentTrack.image || 'https://placehold.co/400x400/1e1e24/fff?text=Music'}
+                    src={trackImageUrl}
                     alt={currentTrack.title}
                     className={`w-full h-full object-cover transition-transform duration-700 ${isPlaying ? 'scale-105' : 'scale-100'}`}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = FALLBACK_IMAGE;
+                    }}
                   />
                 </div>
                 {isPlaying && (
@@ -375,9 +386,13 @@ export default function MusicModal() {
                     <div className="absolute inset-8 sm:inset-12 rounded-full border border-white/15 pointer-events-none" />
                     <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
                       <img
-                        src={currentTrack.image || 'https://placehold.co/300x300/1e1e24/fff?text=Music'}
+                        src={trackImageUrl}
                         alt={currentTrack.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = FALLBACK_IMAGE;
+                        }}
                       />
                       <div className="absolute inset-0 m-auto w-5 h-5 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
                     </div>
@@ -407,14 +422,18 @@ export default function MusicModal() {
         )}
 
         {/* 2. LYRICS VIEW */}
-        {activeTab === 'lyrics' && (
+        {currentTab === 'lyrics' && (
           <div className="w-full max-w-4xl h-[68vh] sm:h-[74vh] flex flex-col gap-4 animate-fade-in glass-panel rounded-3xl border border-white/20 p-5 sm:p-8 backdrop-blur-3xl bg-[#12162d]/90 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
               <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
                 <img
-                  src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                  src={trackImageUrl}
                   alt={currentTrack.title}
                   className="w-12 h-12 rounded-xl object-cover border border-white/20 shadow-md shrink-0"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = FALLBACK_IMAGE;
+                  }}
                 />
                 <div className="space-y-0.5 min-w-0">
                   <h2 className="text-base sm:text-lg font-bold text-white font-outfit truncate flex items-center gap-1.5">
@@ -470,15 +489,19 @@ export default function MusicModal() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center flex-1 text-center p-6 space-y-4 my-auto">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/20 shadow-2xl shrink-0">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl shrink-0">
                   <img
-                    src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                    src={trackImageUrl}
                     alt={currentTrack.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = FALLBACK_IMAGE;
+                    }}
                   />
                 </div>
-                <div className="space-y-1 max-w-md">
-                  <h3 className="text-base font-bold text-white font-outfit">{currentTrack.title}</h3>
+                <div className="space-y-1.5 max-w-md">
+                  <h3 className="text-lg font-bold text-white font-outfit">{currentTrack.title}</h3>
                   <p className="text-xs text-gray-300">{currentTrack.artist}</p>
                   <p className="text-xs text-accentCyan/90 font-mono pt-2">
                     ♪ Synchronized lyrics are not available for this track yet. Enjoy the music!
@@ -490,7 +513,7 @@ export default function MusicModal() {
         )}
 
         {/* 3. QUEUE VIEW */}
-        {activeTab === 'queue' && (
+        {currentTab === 'queue' && (
           <div className="w-full max-w-4xl bg-[#12162d]/90 border border-white/20 rounded-3xl p-5 sm:p-8 backdrop-blur-3xl h-[68vh] sm:h-[74vh] flex flex-col gap-4 animate-fade-in shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
               <h2 className="text-base sm:text-lg font-bold text-white font-outfit flex items-center gap-2">
@@ -516,9 +539,13 @@ export default function MusicModal() {
                       className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
                     >
                       <img
-                        src={t.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                        src={t.image || FALLBACK_IMAGE}
                         alt={t.title}
                         className="w-12 h-12 rounded-xl object-cover border border-white/10 shrink-0 shadow-md"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = FALLBACK_IMAGE;
+                        }}
                       />
                       <div className="min-w-0 flex-1">
                         <p className={`font-bold text-xs sm:text-sm truncate ${isCurrent ? 'text-accentCyan' : 'text-white'}`}>
