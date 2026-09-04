@@ -1,0 +1,18 @@
+{
+  "name": "SyncStream - Watch Party & Music",
+  "short_name": "SyncStream",
+  "description": "Stream global movies, TV shows, anime, manga, and 320kbps regional music. Host real-time Watch Parties with live chat.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23090a0f'/><text y='.9em' font-size='85' x='5'>??</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
