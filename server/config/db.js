@@ -8,27 +8,50 @@ let isDbConnected = false;
 let retryInterval = null;
 
 export async function initDB() {
-  const host = process.env.DB_HOST || 'localhost';
-  const port = parseInt(process.env.DB_PORT || '3306', 10);
-  const user = process.env.DB_USER || 'root';
-  const password = process.env.DB_PASS || '';
-  const dbName = process.env.DB_NAME || 'syncstream_db';
-  const sslConfig = process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined;
+  let host = process.env.DB_HOST || 'localhost';
+  let port = parseInt(process.env.DB_PORT || '3306', 10);
+  let user = process.env.DB_USER || 'root';
+  let password = process.env.DB_PASS || '';
+  let dbName = process.env.DB_NAME || 'syncstream_db';
+
+  // Support connection strings like mysql://user:pass@host:port/dbname
+  const dbUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+  if (dbUrl) {
+    try {
+      const parsed = new URL(dbUrl);
+      host = parsed.hostname;
+      port = parseInt(parsed.port || '3306', 10);
+      user = decodeURIComponent(parsed.username || 'root');
+      password = decodeURIComponent(parsed.password || '');
+      dbName = parsed.pathname.replace(/^\//, '') || dbName;
+    } catch (e) {
+      console.warn('[DB] Could not parse DATABASE_URL, falling back to individual env variables.');
+    }
+  }
+
+  const isRemote = host !== 'localhost' && host !== '127.0.0.1';
+  const sslConfig = (process.env.DB_SSL === 'true' || (isRemote && process.env.DB_SSL !== 'false'))
+    ? { rejectUnauthorized: false }
+    : undefined;
 
   try {
-    // 1. Initial connection without database to bootstrap
-    const bootstrapConnection = await mysql.createConnection({
-      host,
-      port,
-      user,
-      password,
-      ssl: sslConfig,
-      connectTimeout: 3000
-    });
+    // 1. Initial connection to bootstrap database if permissions allow
+    try {
+      const bootstrapConnection = await mysql.createConnection({
+        host,
+        port,
+        user,
+        password,
+        ssl: sslConfig,
+        connectTimeout: 5000
+      });
 
-    console.log(`[DB] Connected to MySQL. Bootstrapping database '${dbName}' if needed...`);
-    await bootstrapConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    await bootstrapConnection.end();
+      console.log(`[DB] Connected to MySQL. Bootstrapping database '${dbName}' if needed...`);
+      await bootstrapConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+      await bootstrapConnection.end();
+    } catch (bootstrapErr) {
+      console.log(`[DB] Bootstrap notice (database may already exist or user has restricted create permissions): ${bootstrapErr.message}`);
+    }
 
     // 2. Create active database connection pool
     pool = mysql.createPool({
