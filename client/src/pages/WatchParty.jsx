@@ -23,6 +23,15 @@ export default function WatchParty() {
   const [error, setError] = useState(null);
   const [participantsCount, setParticipantsCount] = useState(1);
   const [copied, setCopied] = useState(false);
+  const [partyNotifications, setPartyNotifications] = useState([]);
+
+  const addNotification = (text, type = 'join') => {
+    const id = Date.now() + Math.random();
+    setPartyNotifications(prev => [...prev.slice(-3), { id, text, type }]);
+    setTimeout(() => {
+      setPartyNotifications(prev => prev.filter(n => n.id !== id));
+    }, 4500);
+  };
 
   // Streaming console states
   const [playbackMode, setPlaybackMode] = useState('trailer');
@@ -138,10 +147,16 @@ export default function WatchParty() {
 
     socket.on('user_joined', ({ username }) => {
       setParticipantsCount(prev => prev + 1);
+      if (username !== user.username) {
+        addNotification(`👋 ${username} joined the watch party!`, 'join');
+      }
     });
 
     socket.on('user_left', ({ username }) => {
       setParticipantsCount(prev => Math.max(prev - 1, 1));
+      if (username !== user.username) {
+        addNotification(`🚪 ${username} left the room`, 'leave');
+      }
     });
 
     // C. Leave room cleanup
@@ -271,8 +286,27 @@ export default function WatchParty() {
 
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 md:px-8 space-y-6">
+    <div className="max-w-7xl mx-auto py-6 px-4 md:px-8 space-y-6 relative">
       
+      {/* ── Floating Room Join/Leave Toast Notifications ── */}
+      {partyNotifications.length > 0 && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] flex flex-col gap-2 pointer-events-none items-center">
+          {partyNotifications.map((notif) => (
+            <div
+              key={notif.id}
+              className={`px-4 py-2.5 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center gap-2.5 text-xs font-bold animate-fade-in pointer-events-auto ${
+                notif.type === 'join'
+                  ? 'bg-darkCard/95 border-emerald-500/40 text-emerald-400 shadow-[0_0_25px_rgba(50,240,160,0.35)]'
+                  : 'bg-darkCard/95 border-amber-500/40 text-amber-400 shadow-[0_0_25px_rgba(255,200,0,0.25)]'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-accentCyan shrink-0" />
+              <span>{notif.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Top Controls Header Info */}
       <div className="flex flex-wrap items-center justify-between gap-4 glass-panel border border-darkBorder p-4 rounded-2xl shadow-xl">
         <div className="flex items-center gap-4">
