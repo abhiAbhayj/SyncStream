@@ -468,8 +468,8 @@ export const searchMusic = async (req, res) => {
   // Smart candidate queries
   const candidateQueries = [];
 
-  // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar
-  if (/wild\s*theme|om\s*chapter|sai\s*abhyankkar/i.test(rawQuery)) {
+  // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar / Spelling variations
+  if (/wild\s*theme|om\s*chapter|om\s*1|sai\s*ab[hy|hay|ay]+a?n+k+a?r|ab[hy|hay|ay]+a?n+k+a?r|katchi\s*sera|aasa\s*kooda/i.test(rawQuery)) {
     candidateQueries.push('The Wild Theme OM Chapter 1');
     candidateQueries.push('Sai Abhyankkar OM Chapter 1');
     candidateQueries.push('OM Chapter 1 Udhiram Sai Abhyankkar');
@@ -480,7 +480,7 @@ export const searchMusic = async (req, res) => {
     candidateQueries.push('Pavazha Malli Sai Abhyankkar');
     candidateQueries.push('Dude Sai Abhyankkar');
     candidateQueries.push('Sai Abhyankkar Hits');
-  } else if (/sanjith\s*hegde/i.test(rawQuery)) {
+  } else if (/sanjith|sanjith\s*hegde|sanjeeth|sanjith\s*hedge|hegde/i.test(rawQuery)) {
     candidateQueries.push('Sanjith Hegde Kannada');
     candidateQueries.push('Sanjith Hegde Hits');
     candidateQueries.push('Gunu Gunuguva Sanjith Hegde');
@@ -491,26 +491,41 @@ export const searchMusic = async (req, res) => {
     candidateQueries.push('Sanjith Hegde Telugu');
     candidateQueries.push('Sanjith Hegde Tamil');
     candidateQueries.push('Sanjith Hegde');
-  } else if (/sonu\s*nigam/i.test(rawQuery)) {
+  } else if (/sonu\s*nigam|sonu\s*neegam|sonu\s*nigum|sonu/i.test(rawQuery)) {
     candidateQueries.push('Sonu Nigam');
     candidateQueries.push('Sonu Nigam Hits');
     candidateQueries.push('Sonu Nigam Romantic');
     candidateQueries.push('Sonu Nigam Kannada');
     candidateQueries.push('Sonu Nigam Hindi');
     candidateQueries.push('Sonu Nigam All Time Hits');
-  } else if (/arijit\s*singh/i.test(rawQuery)) {
+  } else if (/arijit\s*singh|arijit|arijeet/i.test(rawQuery)) {
     candidateQueries.push('Arijit Singh');
     candidateQueries.push('Arijit Singh Hits');
     candidateQueries.push('Arijit Singh Romantic');
     candidateQueries.push('Arijit Singh 2026');
     candidateQueries.push('Arijit Singh Best Of');
-  } else if (/sid\s*sriram/i.test(rawQuery)) {
+  } else if (/sid\s*sriram|sriram|sid\s*shreeram/i.test(rawQuery)) {
     candidateQueries.push('Sid Sriram');
     candidateQueries.push('Sid Sriram Telugu');
     candidateQueries.push('Sid Sriram Tamil');
     candidateQueries.push('Sid Sriram Hits');
     candidateQueries.push('Sid Sriram Kannada');
-  } else if (/ravi\s*basrur/i.test(rawQuery)) {
+  } else if (/shreya\s*ghoshal|shreya|shreya\s*goshal/i.test(rawQuery)) {
+    candidateQueries.push('Shreya Ghoshal');
+    candidateQueries.push('Shreya Ghoshal Hits');
+    candidateQueries.push('Shreya Ghoshal Romantic');
+    candidateQueries.push('Shreya Ghoshal Best Of');
+  } else if (/anirudh|anirudh\s*ravichander|anirudh\s*ravichandran/i.test(rawQuery)) {
+    candidateQueries.push('Anirudh Ravichander');
+    candidateQueries.push('Anirudh Tamil Hits');
+    candidateQueries.push('Anirudh Telugu Hits');
+    candidateQueries.push('Anirudh Hits');
+  } else if (/a\.?\s*r\.?\s*rahman|ar\s*rahman|rahman/i.test(rawQuery)) {
+    candidateQueries.push('AR Rahman');
+    candidateQueries.push('AR Rahman Tamil Hits');
+    candidateQueries.push('AR Rahman Hindi Hits');
+    candidateQueries.push('AR Rahman Hits');
+  } else if (/ravi\s*basrur|basrur/i.test(rawQuery)) {
     candidateQueries.push('Ravi Basrur');
     candidateQueries.push('Ravi Basrur KGF Salaar');
     candidateQueries.push('Ravi Basrur Hits');
