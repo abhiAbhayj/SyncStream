@@ -27,8 +27,11 @@ const formatTime = (seconds) => {
 
 const LANGUAGES = [
   { id: 'all', label: 'All Hits', flag: '🔥' },
+  { id: 'blues_rap', label: 'Blues Rap', flag: '🎷' },
+  { id: 'rap', label: 'Rap & Hip-Hop', flag: '🎤' },
   { id: 'rock', label: 'Rock', flag: '🎸' },
   { id: 'kpop', label: 'K-Pop', flag: '🇰🇷' },
+  { id: 'korean', label: 'Korean', flag: '🇰🇷' },
   { id: 'hindi', label: 'Hindi', flag: '🇮🇳' },
   { id: 'anime', label: 'Anime', flag: '🌸' },
   { id: 'english', label: 'English', flag: '🌍' },
@@ -155,8 +158,11 @@ export default function Music() {
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400 py-0.5">
             <span className="font-semibold text-gray-500 shrink-0">Popular:</span>
             {[
+              'The Wild Theme',
               'Hunt You Down',
               'Imagine Dragons',
+              'Big Dawgs',
+              'Sai Abhyankkar',
               'Lady Gaga',
               'Alan Walker',
               'DJ Snake',
@@ -226,6 +232,7 @@ export default function Music() {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono shrink-0">Artists:</span>
         {[
+          'Sai Abhyankkar',
           'Imagine Dragons',
           'Lady Gaga',
           'Alan Walker',

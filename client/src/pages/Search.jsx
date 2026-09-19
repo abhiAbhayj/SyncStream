@@ -6,8 +6,11 @@ import { useSearchParams } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
 
 const MUSIC_LANGUAGES = [
+  { key: 'blues_rap', label: 'Blues Rap', flag: '🎷' },
+  { key: 'rap', label: 'Rap & Hip-Hop', flag: '🎤' },
   { key: 'rock', label: 'Rock', flag: '🎸' },
   { key: 'kpop', label: 'K-Pop', flag: '🇰🇷' },
+  { key: 'korean', label: 'Korean', flag: '🇰🇷' },
   { key: 'hindi', label: 'Hindi', flag: '🇮🇳' },
   { key: 'anime', label: 'Anime', flag: '🌸' },
   { key: 'english', label: 'English', flag: '🌍' },
