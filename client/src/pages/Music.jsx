@@ -47,7 +47,6 @@ const LANGUAGES = [
 const FAMOUS_ARTISTS = [
   'Sonu Nigam',
   'Sanjith Hegde',
-  'Sai Abhyankkar',
   'Arijit Singh',
   'Sid Sriram',
   'Shreya Ghoshal',
@@ -87,7 +86,6 @@ const POPULAR_SEARCH_TAGS = [
   'Hunt You Down',
   'Imagine Dragons',
   'Big Dawgs',
-  'Sai Abhyankkar',
   'Arijit Singh',
   'Sid Sriram',
   'Shreya Ghoshal',
