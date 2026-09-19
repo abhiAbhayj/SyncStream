@@ -348,8 +348,8 @@ export default function MusicModal() {
 
             {/* HD Poster View */}
             {viewStyle === 'poster' && (
-              <div className="relative group shrink-0">
-                <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-[350px] md:h-[350px] rounded-3xl overflow-hidden border-2 border-white/30 shadow-[0_20px_60px_rgba(0,0,0,0.7)] relative bg-black/40">
+              <div className="relative group shrink-0 my-auto">
+                <div className="w-[58vw] max-w-[220px] sm:max-w-none sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-[340px] lg:h-[340px] aspect-square max-h-[28vh] sm:max-h-none rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/30 shadow-[0_15px_50px_rgba(0,0,0,0.7)] relative bg-black/40">
                   <img
                     src={trackImageUrl}
                     alt={currentTrack.title}
@@ -361,12 +361,12 @@ export default function MusicModal() {
                   />
                 </div>
                 {isPlaying && (
-                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 px-4 py-1.5 bg-black/90 backdrop-blur-md rounded-full border border-white/20 shadow-[0_0_25px_rgba(99,210,255,0.6)]">
-                    <span className="w-1.5 h-4 bg-accentCyan rounded-full animate-pulse" />
-                    <span className="w-1.5 h-7 bg-accentPurple rounded-full animate-pulse [animation-delay:0.2s]" />
-                    <span className="w-1.5 h-5 bg-accentPink rounded-full animate-pulse [animation-delay:0.4s]" />
-                    <span className="w-1.5 h-6 bg-accentCyan rounded-full animate-pulse [animation-delay:0.1s]" />
-                    <span className="w-1.5 h-3.5 bg-accentPurple rounded-full animate-pulse [animation-delay:0.3s]" />
+                  <div className="absolute -bottom-2.5 sm:-bottom-3 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 sm:px-4 py-1 sm:py-1.5 bg-black/90 backdrop-blur-md rounded-full border border-white/20 shadow-[0_0_20px_rgba(99,210,255,0.6)]">
+                    <span className="w-1 sm:w-1.5 h-3 sm:h-4 bg-accentCyan rounded-full animate-pulse" />
+                    <span className="w-1 sm:w-1.5 h-5 sm:h-7 bg-accentPurple rounded-full animate-pulse [animation-delay:0.2s]" />
+                    <span className="w-1 sm:w-1.5 h-3.5 sm:h-5 bg-accentPink rounded-full animate-pulse [animation-delay:0.4s]" />
+                    <span className="w-1 sm:w-1.5 h-4.5 sm:h-6 bg-accentCyan rounded-full animate-pulse [animation-delay:0.1s]" />
+                    <span className="w-1 sm:w-1.5 h-2.5 sm:h-3.5 bg-accentPurple rounded-full animate-pulse [animation-delay:0.3s]" />
                   </div>
                 )}
               </div>
@@ -374,17 +374,17 @@ export default function MusicModal() {
 
             {/* Vinyl View */}
             {viewStyle === 'vinyl' && (
-              <div className="relative flex items-center justify-center shrink-0">
+              <div className="relative flex items-center justify-center shrink-0 my-auto">
                 <div
-                  className={`w-52 h-52 sm:w-64 sm:h-64 md:w-76 md:h-76 rounded-full p-2.5 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_60px_rgba(99,210,255,0.45)] transition-all duration-700 ${
-                    isPlaying ? 'animate-spin-slow shadow-[0_0_90px_rgba(99,210,255,0.7)]' : ''
+                  className={`w-[54vw] max-w-[200px] sm:max-w-none sm:w-60 sm:h-60 md:w-76 md:h-76 aspect-square max-h-[26vh] sm:max-h-none rounded-full p-2 sm:p-2.5 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_50px_rgba(99,210,255,0.45)] transition-all duration-700 ${
+                    isPlaying ? 'animate-spin-slow shadow-[0_0_80px_rgba(99,210,255,0.7)]' : ''
                   }`}
                 >
                   <div className="w-full h-full rounded-full bg-black border-2 sm:border-4 border-white/25 overflow-hidden relative flex items-center justify-center shadow-2xl">
                     <div className="absolute inset-2 sm:inset-4 rounded-full border border-white/10 pointer-events-none" />
                     <div className="absolute inset-5 sm:inset-8 rounded-full border border-white/10 pointer-events-none" />
                     <div className="absolute inset-8 sm:inset-12 rounded-full border border-white/15 pointer-events-none" />
-                    <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
+                    <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-44 md:h-44 rounded-full overflow-hidden border-2 sm:border-4 border-black relative shadow-2xl">
                       <img
                         src={trackImageUrl}
                         alt={currentTrack.title}
@@ -394,7 +394,7 @@ export default function MusicModal() {
                           e.target.src = FALLBACK_IMAGE;
                         }}
                       />
-                      <div className="absolute inset-0 m-auto w-5 h-5 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
+                      <div className="absolute inset-0 m-auto w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
                     </div>
                   </div>
                 </div>
@@ -402,19 +402,19 @@ export default function MusicModal() {
             )}
 
             {/* Track Info */}
-            <div className="space-y-1.5 max-w-sm sm:max-w-lg px-2">
-              <div className="flex items-center justify-center gap-2">
-                <span className="uppercase text-[10px] sm:text-[11px] font-extrabold px-3 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono shadow-sm">
+            <div className="space-y-1 sm:space-y-1.5 max-w-sm sm:max-w-lg px-2">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                <span className="uppercase text-[9px] sm:text-[11px] font-extrabold px-2.5 sm:px-3 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono shadow-sm">
                   {currentTrack.language || 'Global'}
                 </span>
                 {currentTrack.year && (
-                  <span className="text-xs text-gray-300 font-mono">&bull; {currentTrack.year}</span>
+                  <span className="text-[11px] sm:text-xs text-gray-300 font-mono">&bull; {currentTrack.year}</span>
                 )}
               </div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-2 drop-shadow-md">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-2 drop-shadow-md">
                 {currentTrack.title}
               </h1>
-              <p className="text-sm sm:text-base text-gray-200 font-medium font-sans truncate">
+              <p className="text-xs sm:text-sm md:text-base text-gray-200 font-medium font-sans truncate">
                 {currentTrack.artist}
               </p>
             </div>

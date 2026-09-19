@@ -14,8 +14,13 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 12);
+    const openPartyHandler = () => setShowJoinModal(true);
     window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
+    window.addEventListener('open-join-party', openPartyHandler);
+    return () => {
+      window.removeEventListener('scroll', handler);
+      window.removeEventListener('open-join-party', openPartyHandler);
+    };
   }, []);
 
   const isActive = (path) => location.pathname === path;
@@ -51,19 +56,19 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
 
           {/* ── Logo ── */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
             <div className="relative">
               <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
               <img
                 src="/logo.png"
                 alt="SyncStream"
-                className="relative w-8 h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
+                className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
               />
             </div>
-            <span className="font-orbitron font-extrabold text-xl tracking-widest text-gradient-aurora uppercase">
+            <span className="font-orbitron font-extrabold text-base sm:text-xl tracking-widest text-gradient-aurora uppercase">
               SyncStream
             </span>
           </Link>
@@ -94,17 +99,18 @@ export default function Navbar() {
           </div>
 
           {/* ── Right Actions ── */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
 
             {/* Join Party */}
             <button
               onClick={() => setShowJoinModal(true)}
-              className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-300
-                         border-accentPurple/30 text-accentPurple bg-accentPurple/[0.08]
-                         hover:bg-accentPurple/[0.18] hover:border-accentPurple/60 hover:shadow-[0_0_20px_rgba(149,100,255,0.2)]"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300
+                         border-accentPurple/40 text-accentPurple bg-accentPurple/[0.10]
+                         hover:bg-accentPurple/[0.22] hover:border-accentPurple/60 hover:shadow-[0_0_20px_rgba(149,100,255,0.25)] active:scale-95"
+              title="Join Watch Party by Code"
             >
-              <Users className="w-4 h-4" />
-              <span className="hidden lg:inline">Join Party</span>
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentPurple" />
+              <span>Join Party</span>
             </button>
 
             {/* Auth */}

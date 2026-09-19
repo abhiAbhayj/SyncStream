@@ -193,13 +193,14 @@ export default function Home() {
               <Search className="w-4 h-4" />
               <span>Explore Catalog</span>
             </Link>
-            <Link
-              to="/search"
-              className="btn-ghost flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-join-party'))}
+              className="btn-ghost flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95 cursor-pointer border-accentPurple/40 text-gray-200 hover:text-white hover:border-accentPurple/70"
             >
-              <Users className="w-4 h-4" />
+              <Users className="w-4 h-4 text-accentPurple" />
               <span>Join a Party</span>
-            </Link>
+            </button>
           </div>
 
           {/* Feature highlights */}

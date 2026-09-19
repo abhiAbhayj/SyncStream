@@ -9,20 +9,30 @@ export default function Profile() {
 
   const [username, setUsername] = useState(user?.username || '');
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar_url || '');
+  const [savedTheme, setSavedTheme] = useState(() => {
+    return localStorage.getItem('syncstream_theme') || 'ocean';
+  });
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('syncstream_theme') || 'ocean';
   });
 
   const ALL_THEME_CLASSES = ['theme-inferno', 'theme-emerald', 'theme-cyber'];
 
+  // Only select theme locally in state — do NOT auto-save to localStorage
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    localStorage.setItem('syncstream_theme', newTheme);
-    ALL_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
-    if (newTheme !== 'ocean') {
-      document.body.classList.add(`theme-${newTheme}`);
-    }
   };
+
+  // Revert body classes to saved theme if navigating away without saving
+  React.useEffect(() => {
+    return () => {
+      const currentPersisted = localStorage.getItem('syncstream_theme') || 'ocean';
+      ALL_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
+      if (currentPersisted !== 'ocean') {
+        document.body.classList.add(`theme-${currentPersisted}`);
+      }
+    };
+  }, []);
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -50,6 +60,15 @@ export default function Profile() {
       return;
     }
 
+    // 1. Save theme to localStorage and apply to DOM on explicit save
+    localStorage.setItem('syncstream_theme', theme);
+    setSavedTheme(theme);
+    ALL_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
+    if (theme !== 'ocean') {
+      document.body.classList.add(`theme-${theme}`);
+    }
+
+    // 2. Save username and avatar
     const res = await updateProfile(username, selectedAvatar);
     setLoading(false);
 
