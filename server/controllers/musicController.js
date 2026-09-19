@@ -560,12 +560,7 @@ export const searchMusic = async (req, res) => {
     let totalCount = 0;
 
     for (const q of candidateQueries) {
-      let searchQuery = q;
-      if (language && language !== 'all' && !searchQuery.toLowerCase().includes(language)) {
-        searchQuery += ` ${language}`;
-      }
-
-      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(searchQuery)}`;
+      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(q)}`;
 
       const response = await axios.get(url, {
         headers: {
