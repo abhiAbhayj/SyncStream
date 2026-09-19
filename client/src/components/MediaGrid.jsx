@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
-import { Star, Play, BookOpen, Music, ArrowRight, Clock, Sparkles } from 'lucide-react';
+import { Star, Play, Pause, BookOpen, Music, ArrowRight, Clock, Sparkles } from 'lucide-react';
+
+const FALLBACK_MUSIC_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=60';
+const FALLBACK_MEDIA_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';
 
 const TYPE_CONFIG = {
   movie: {
@@ -75,16 +78,17 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
         {items.map((item, index) => {
           const rating = item.vote_average ? parseFloat(item.vote_average).toFixed(1) : null;
           const targetId = item.external_media_id || item.id;
-          const cfg = TYPE_CONFIG[item.media_type] || TYPE_CONFIG.movie;
-          const isMusic = item.media_type === 'music';
+          const isMusic = item.media_type === 'music' || Boolean(item.audio_url);
+          const cfg = TYPE_CONFIG[isMusic ? 'music' : (item.media_type || 'movie')] || TYPE_CONFIG.movie;
           const isCurrentPlaying = isMusic && currentTrack?.id === item.id && isPlaying;
+          const posterSrc = item.poster_path || item.image || item.thumbnail || (isMusic ? FALLBACK_MUSIC_IMAGE : null);
 
           if (isMusic) {
             return (
               <div
                 key={`music-${targetId}-${index}`}
                 onClick={() => {
-                  const musicList = items.filter(i => i.media_type === 'music');
+                  const musicList = items.filter(i => i.media_type === 'music' || Boolean(i.audio_url));
                   playTrack(item, musicList.length > 0 ? musicList : [item]);
                 }}
                 className={`group media-card h-full rounded-2xl overflow-hidden transition-all duration-300 ${cfg.hoverGlow} animate-fade-up cursor-pointer border ${isCurrentPlaying ? 'border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.3)] bg-accentCyan/10' : 'border-white/10 bg-darkCard/60 hover:border-accentCyan/40'}`}
@@ -92,13 +96,17 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
               >
                 {/* ── Music Square Album Cover (1:1 Ratio) ── */}
                 <div className="relative w-full aspect-square overflow-hidden bg-black/40">
-                  {item.poster_path ? (
+                  {posterSrc ? (
                     <img
-                      src={item.poster_path}
+                      src={posterSrc}
                       alt={item.title || item.name}
                       loading="lazy"
                       className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = FALLBACK_MUSIC_IMAGE;
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-darkCard">

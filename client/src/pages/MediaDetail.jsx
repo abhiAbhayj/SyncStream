@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useMusic } from '../context/MusicContext';
 import MediaGrid from '../components/MediaGrid';
 import MangaReader from '../components/MangaReader';
 import VideoPlayer from '../components/VideoPlayer';
@@ -12,6 +13,7 @@ export default function MediaDetail() {
   const { type, id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { playTrack } = useMusic();
 
   const [detail, setDetail] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -43,6 +45,17 @@ export default function MediaDetail() {
   // Fetch all details
   useEffect(() => {
     const fetchDetails = async () => {
+      if (type === 'music') {
+        try {
+          const res = await axios.get(`/api/music/song/${id}`);
+          if (res.data) {
+            playTrack(res.data, [res.data]);
+          }
+        } catch (e) {}
+        navigate('/music');
+        return;
+      }
+
       setLoading(true);
       setError(null);
       setActiveChapterId(null);
