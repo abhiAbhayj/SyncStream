@@ -1,6 +1,6 @@
 {
   "name": "syncstream-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backend server for SyncStream Watch Party Platform",
   "type": "module",
   "main": "index.js",
