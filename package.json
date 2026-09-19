@@ -1,6 +1,6 @@
 {
   "name": "syncstream",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "build": "npm --prefix client install && npm --prefix client run build"

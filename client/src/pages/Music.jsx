@@ -168,7 +168,7 @@ export default function Music() {
   };
 
   // Search with explicit query and pagination
-  const handleSearchWithQuery = async (queryText, pageNum = 1, langParam = 'all') => {
+  const handleSearchWithQuery = async (queryText, pageNum = 1) => {
     if (!queryText || !queryText.trim()) {
       fetchTrending(selectedLang, 1);
       return;
@@ -183,7 +183,7 @@ export default function Music() {
     }
     try {
       const res = await axios.get('/api/music/search', {
-        params: { query: queryText.trim(), language: langParam, page: pageNum, limit: 30 }
+        params: { query: queryText.trim(), language: selectedLang, page: pageNum, limit: 30 }
       });
       const trackList = res.data.songs || [];
       if (pageNum === 1) {
@@ -208,16 +208,15 @@ export default function Music() {
   const handleSearch = (e) => {
     e?.preventDefault?.();
     setPage(1);
-    handleSearchWithQuery(searchQuery, 1, selectedLang);
+    handleSearchWithQuery(searchQuery, 1);
   };
 
   const handleArtistClick = (artist) => {
-    setSelectedLang('all');
     setSearchQuery(artist);
     setSearching(true);
     setPage(1);
     setHasMore(true);
-    handleSearchWithQuery(artist, 1, 'all');
+    handleSearchWithQuery(artist, 1);
     const songsEl = document.getElementById('music-songs-section');
     if (songsEl) {
       songsEl.scrollIntoView({ behavior: 'smooth' });
@@ -225,12 +224,11 @@ export default function Music() {
   };
 
   const handleTagClick = (tag) => {
-    setSelectedLang('all');
     setSearchQuery(tag);
     setSearching(true);
     setPage(1);
     setHasMore(true);
-    handleSearchWithQuery(tag, 1, 'all');
+    handleSearchWithQuery(tag, 1);
     const songsEl = document.getElementById('music-songs-section');
     if (songsEl) {
       songsEl.scrollIntoView({ behavior: 'smooth' });
@@ -241,7 +239,7 @@ export default function Music() {
     const nextPage = page + 1;
     setPage(nextPage);
     if (searchQuery.trim()) {
-      handleSearchWithQuery(searchQuery, nextPage, selectedLang);
+      handleSearchWithQuery(searchQuery, nextPage);
     } else {
       fetchTrending(selectedLang, nextPage);
     }
