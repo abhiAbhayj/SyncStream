@@ -90,18 +90,18 @@ const formatSong = (song) => {
 
 // Language specific trending search queries (rock, kpop, hindi, anime, english, kannada, malayalam, telugu, tamil, marathi)
 const TRENDING_QUERIES = {
-  all: 'Top 50 Hits 2026',
-  rock: 'Best Rock Songs Classic Modern Rock Band Hits',
-  kpop: 'K-Pop Korean Hits BTS BLACKPINK Stray Kids',
-  korean: 'K-Pop Korean Hits BTS BLACKPINK',
-  hindi: 'Hindi Top Hits Bollywood 2026',
-  anime: 'Anime Japanese OST Opening Songs',
-  english: 'English Pop Top Hits 2026',
-  kannada: 'Kannada Film Songs Hits 2026',
-  malayalam: 'Malayalam Film Songs Hits 2026',
-  telugu: 'Telugu Film Songs Hits 2026',
-  tamil: 'Tamil Film Songs Anirudh Hits 2026',
-  marathi: 'Marathi Film Songs Ajay Atul Hits 2026'
+  all: ['Arijit Singh Hits', 'Anirudh Hits', 'Trending Bollywood Hits', 'English Pop Hits'],
+  rock: ['Linkin Park', 'Queen Rock', 'Imagine Dragons', 'Coldplay Rock', 'Bon Jovi Rock'],
+  kpop: ['BTS Hits', 'BLACKPINK', 'Stray Kids', 'NewJeans K-Pop', 'TWICE'],
+  korean: ['BTS Hits', 'BLACKPINK', 'Stray Kids', 'NewJeans K-Pop'],
+  hindi: ['Arijit Singh Hits', 'Pritam Hits', 'Bollywood 2026 Hits', 'Shreya Ghoshal Hits'],
+  anime: ['Anime Opening OST', 'LiSA Anime', 'Kenshi Yonezu Anime', 'Naruto OST Opening'],
+  english: ['Taylor Swift Hits', 'The Weeknd Hits', 'Ed Sheeran Hits', 'Dua Lipa Hits'],
+  kannada: ['KGF Songs Ravi Basrur', 'Kantara Songs', 'Sonu Nigam Kannada Hits', 'Vijay Prakash Kannada'],
+  malayalam: ['Sushin Shyam Hits', 'Malayalam Film Hits', 'Jassie Gift Malayalam', 'Vineeth Sreenivasan Hits'],
+  telugu: ['DSP Telugu Hits', 'Thaman S Telugu Hits', 'Anirudh Telugu Hits', 'Pushpa Telugu Songs'],
+  tamil: ['Anirudh Tamil Hits', 'AR Rahman Tamil Hits', 'Harris Jayaraj Tamil', 'Yuvan Shankar Raja Tamil'],
+  marathi: ['Ajay Atul Marathi Hits', 'Sairat Marathi Songs', 'Avadhoot Gupte Marathi', 'Swapnil Bandodkar Marathi']
 };
 
 // Helper: fetch songs from JioSaavn by query
@@ -121,30 +121,47 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const getTrendingMusic = async (req, res) => {
   const language = (req.query.language || 'all').toLowerCase();
   const page = parseInt(req.query.page || '1', 10);
-  const limit = parseInt(req.query.limit || '20', 10);
+  const limit = parseInt(req.query.limit || '24', 10);
 
-  const query = TRENDING_QUERIES[language] || `${language} Top Hits 2026`;
+  const queryList = TRENDING_QUERIES[language] || [`${language} Hits`];
 
   try {
-    const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(query)}`;
-    
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      timeout: 10000
+    const fetchPromises = queryList.map(async (q) => {
+      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=12&p=${page}&q=${encodeURIComponent(q)}`;
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          },
+          timeout: 8000
+        });
+        const rawResults = response.data.results || [];
+        return rawResults.map(formatSong).filter(s => s && s.audio_url && s.duration > 30 && s.duration < 700);
+      } catch (err) {
+        return [];
+      }
     });
 
-    const rawResults = response.data.results || [];
-    const songs = rawResults
-      .map(formatSong)
-      .filter(s => s && s.audio_url);
+    const resultsArray = await Promise.all(fetchPromises);
+    const combined = resultsArray.flat();
+
+    // Deduplicate songs by title/id
+    const seen = new Set();
+    const uniqueSongs = [];
+    for (const song of combined) {
+      const key = (song.title || '').toLowerCase().trim();
+      if (!seen.has(key) && !seen.has(song.id)) {
+        seen.add(key);
+        seen.add(song.id);
+        uniqueSongs.push(song);
+      }
+    }
 
     res.json({
       language,
       page,
-      total: response.data.total || songs.length,
-      songs
+      total: uniqueSongs.length,
+      songs: uniqueSongs.slice(0, limit)
     });
   } catch (error) {
     console.error('[Music Controller Trending Error]:', error.message);
