@@ -88,20 +88,20 @@ const formatSong = (song) => {
   };
 };
 
-// Language specific trending search queries
+// Language specific trending search queries (rock, kpop, hindi, anime, english, kannada, malayalam, telugu, tamil, marathi)
 const TRENDING_QUERIES = {
   all: 'Top 50 Hits 2026',
+  rock: 'Best Rock Songs Classic Modern Rock Band Hits',
+  kpop: 'K-Pop Korean Hits BTS BLACKPINK Stray Kids',
+  korean: 'K-Pop Korean Hits BTS BLACKPINK',
   hindi: 'Hindi Top Hits Bollywood 2026',
+  anime: 'Anime Japanese OST Opening Songs',
   english: 'English Pop Top Hits 2026',
-  korean: 'K-Pop BTS BLACKPINK 2026',
-  kpop: 'K-Pop Korean Hits BTS',
-  tamil: 'Tamil Hits Anirudh 2026',
-  telugu: 'Telugu Hits 2026',
-  malayalam: 'Malayalam Hits 2026',
-  kannada: 'Kannada Hits 2026',
-  punjabi: 'Punjabi Hits Diljit Dosanjh 2026',
-  lofi: 'Lofi Chill Beats Study',
-  anime: 'Anime Japanese OST Opening'
+  kannada: 'Kannada Film Songs Hits 2026',
+  malayalam: 'Malayalam Film Songs Hits 2026',
+  telugu: 'Telugu Film Songs Hits 2026',
+  tamil: 'Tamil Film Songs Anirudh Hits 2026',
+  marathi: 'Marathi Film Songs Ajay Atul Hits 2026'
 };
 
 // Helper: fetch songs from JioSaavn by query
@@ -232,28 +232,34 @@ export const getMusicCharts = async (req, res) => {
       query: 'Top Trending Songs 2026 Hits'
     },
     {
-      id: 'recently_released',
-      title: '🆕 Recently Released',
-      subtitle: 'Freshest drops of 2026',
-      query: 'New Songs 2026 Latest Release Hindi English'
+      id: 'rock',
+      title: '🎸 Rock Anthems',
+      subtitle: 'Greatest classic and modern rock tracks',
+      query: 'Best Rock Songs Classic Modern Rock Hits Band'
+    },
+    {
+      id: 'kpop',
+      title: '🇰🇷 K-Pop Worldwide',
+      subtitle: 'Global K-Pop chart toppers',
+      query: 'BTS BLACKPINK Stray Kids K-Pop Hits 2026'
     },
     {
       id: 'bollywood',
-      title: '🇮🇳 Bollywood Hits',
+      title: '🇮🇳 Hindi Bollywood',
       subtitle: "Hindi cinema's biggest tracks",
       query: 'Bollywood Hindi Film Songs 2026 Arijit Singh'
     },
     {
-      id: 'telugu',
-      title: '🎬 Telugu Tollywood',
-      subtitle: 'Trending Telugu cinema songs',
-      query: 'Telugu Film Songs 2026 DSP Devi Sri Prasad'
+      id: 'anime',
+      title: '🌸 Anime & J-Pop',
+      subtitle: 'Japanese anime openings & OSTs',
+      query: 'Anime Opening Song Japanese OST Naruto'
     },
     {
-      id: 'tamil',
-      title: '⚡ Tamil Kollywood',
-      subtitle: 'Chart-toppers from Tamil cinema',
-      query: 'Tamil Film Songs 2026 Anirudh Vijay Thalapathy'
+      id: 'global_pop',
+      title: '🌍 Global English Pop',
+      subtitle: 'International English hits',
+      query: 'English Pop Hits Olivia Rodrigo Sabrina Carpenter Taylor Swift 2026'
     },
     {
       id: 'kannada',
@@ -268,40 +274,22 @@ export const getMusicCharts = async (req, res) => {
       query: 'Malayalam Film Songs 2026 Sushin Shyam'
     },
     {
-      id: 'punjabi',
-      title: '🥁 Punjabi Bangers',
-      subtitle: 'Desi beats from Punjab',
-      query: 'Punjabi Songs 2026 Diljit Dosanjh AP Dhillon'
+      id: 'telugu',
+      title: '🎬 Telugu Tollywood',
+      subtitle: 'Trending Telugu cinema songs',
+      query: 'Telugu Film Songs 2026 DSP Devi Sri Prasad'
     },
     {
-      id: 'kpop',
-      title: '🇰🇷 K-Pop Worldwide',
-      subtitle: 'Global K-Pop chart toppers',
-      query: 'BTS BLACKPINK Stray Kids K-Pop 2026'
+      id: 'tamil',
+      title: '⚡ Tamil Kollywood',
+      subtitle: 'Chart-toppers from Tamil cinema',
+      query: 'Tamil Film Songs 2026 Anirudh Vijay Thalapathy'
     },
     {
-      id: 'global_pop',
-      title: '🌍 Global English Pop',
-      subtitle: 'International English hits',
-      query: 'English Pop Hits Olivia Rodrigo Sabrina Carpenter Taylor Swift 2026'
-    },
-    {
-      id: 'lofi',
-      title: '☕ Lo-Fi & Chill',
-      subtitle: 'Study, sleep and relax vibes',
-      query: 'Lofi Chill Study Beats Relaxing Hindi English'
-    },
-    {
-      id: 'anime',
-      title: '🌸 Anime & J-Pop',
-      subtitle: 'Japanese anime openings & OSTs',
-      query: 'Anime Opening Song Japanese OST Naruto'
-    },
-    {
-      id: 'devotional',
-      title: '🕉️ Devotional & Bhajans',
-      subtitle: 'Spiritual melodies & prayers',
-      query: 'Devotional Bhajan Mantra Songs Hanuman'
+      id: 'marathi',
+      title: '🚩 Marathi Cinema',
+      subtitle: 'Energetic & soulful Marathi tracks',
+      query: 'Marathi Film Songs Ajay Atul Sairat 2026'
     }
   ];
 

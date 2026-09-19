@@ -27,16 +27,16 @@ const formatTime = (seconds) => {
 
 const LANGUAGES = [
   { id: 'all', label: 'All Hits', flag: '🔥' },
-  { id: 'hindi', label: 'Bollywood', flag: '🇮🇳' },
-  { id: 'telugu', label: 'Tollywood', flag: '🎬' },
-  { id: 'tamil', label: 'Kollywood', flag: '⚡' },
-  { id: 'kannada', label: 'Sandalwood', flag: '🦁' },
-  { id: 'malayalam', label: 'Mollywood', flag: '🌿' },
-  { id: 'punjabi', label: 'Punjabi', flag: '🥁' },
-  { id: 'english', label: 'Global Pop', flag: '🌍' },
-  { id: 'korean', label: 'K-Pop', flag: '🇰🇷' },
-  { id: 'lofi', label: 'Lo-Fi Chill', flag: '☕' },
-  { id: 'anime', label: 'Anime', flag: '🌸' }
+  { id: 'rock', label: 'Rock', flag: '🎸' },
+  { id: 'kpop', label: 'K-Pop', flag: '🇰🇷' },
+  { id: 'hindi', label: 'Hindi', flag: '🇮🇳' },
+  { id: 'anime', label: 'Anime', flag: '🌸' },
+  { id: 'english', label: 'English', flag: '🌍' },
+  { id: 'kannada', label: 'Kannada', flag: '🦁' },
+  { id: 'malayalam', label: 'Malayalam', flag: '🌿' },
+  { id: 'telugu', label: 'Telugu', flag: '🎬' },
+  { id: 'tamil', label: 'Tamil', flag: '⚡' },
+  { id: 'marathi', label: 'Marathi', flag: '🚩' }
 ];
 
 export default function Music() {
@@ -154,7 +154,7 @@ export default function Music() {
           {/* Quick Suggestions */}
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400 py-0.5">
             <span className="font-semibold text-gray-500 shrink-0">Try:</span>
-            {['Kesariya', 'Pushpa 2', 'BTS Butter', 'Anirudh', 'Diljit', 'Ramaite'].map((tag) => (
+            {['Kesariya', 'Rock Classics', 'BTS K-Pop', 'Anirudh', 'Pushpa 2', 'Ajay Atul', 'Kantara'].map((tag) => (
               <button
                 key={tag}
                 type="button"

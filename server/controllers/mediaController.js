@@ -389,9 +389,27 @@ export const getTrending = async (req, res) => {
 };
 
 export const searchMedia = async (req, res) => {
-  const { query, type = 'movie', genre, country, sort } = req.query;
+  const { query, type = 'movie', genre, country, language, sort } = req.query;
   const page = parseInt(req.query.page || '1', 10);
   const today = new Date().toISOString().split('T')[0];
+
+  // Map language codes
+  const langToIso = {
+    'hindi': 'hi',
+    'kpop': 'ko',
+    'korean': 'ko',
+    'anime': 'ja',
+    'japanese': 'ja',
+    'english': 'en',
+    'kannada': 'kn',
+    'malayalam': 'ml',
+    'telugu': 'te',
+    'tamil': 'ta',
+    'marathi': 'mr',
+    'rock': 'en'
+  };
+
+  const selectedIso = language ? (langToIso[language.toLowerCase()] || language.toLowerCase()) : null;
 
   // Determine TMDB sort_by value:
   const getSortBy = (mediaType) => {
@@ -418,7 +436,7 @@ export const searchMedia = async (req, res) => {
             const sortBy = getSortBy(tmdbType);
             let url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=${sortBy}&page=${page}`;
 
-            // Exclude future unreleased entries (e.g., year 2040+ entries)
+            // Exclude future unreleased entries
             if (tmdbType === 'movie') {
               url += `&primary_release_date.lte=${today}`;
               if (sort === 'latest') url += `&vote_count.gte=1`;
@@ -434,6 +452,9 @@ export const searchMedia = async (req, res) => {
                 url += `,${cleanGenre}`;
               }
             } else {
+              if (selectedIso) {
+                url += `&with_original_language=${selectedIso}`;
+              }
               if (genre) {
                 if (genre.startsWith('k_')) {
                   url += `&with_keywords=${genre.replace('k_', '')}`;
@@ -442,7 +463,7 @@ export const searchMedia = async (req, res) => {
                 }
               }
               if (country === 'IN') {
-                url += `&with_origin_country=IN&with_original_language=ta|te|kn|ml|hi`;
+                url += `&with_origin_country=IN&with_original_language=ta|te|kn|ml|hi|mr`;
               } else if (country) {
                 url += `&with_origin_country=${country}`;
               }
@@ -466,7 +487,11 @@ export const searchMedia = async (req, res) => {
             const searchRes = await axios.get(url);
             let combinedResults = searchRes.data.results || [];
             
-            // Apply filtering for Genre and Country
+            // Apply filtering for Language, Genre and Country
+            if (selectedIso) {
+              combinedResults = combinedResults.filter(r => r.original_language === selectedIso);
+            }
+
             if (type === 'anime') {
               combinedResults = combinedResults.filter(r => 
                 (r.genre_ids?.includes(16) || r.original_language === 'ja')
@@ -484,7 +509,7 @@ export const searchMedia = async (req, res) => {
               }
               if (country) {
                 if (country === 'IN') {
-                  const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi'];
+                  const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi', 'mr'];
                   combinedResults = combinedResults.filter(r => 
                     r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language)
                   );
