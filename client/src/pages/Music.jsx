@@ -285,7 +285,13 @@ export default function Music() {
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                onClick={() => playTrack(featuredSong, songs)}
+                onClick={() => {
+                  if (currentTrack?.id === featuredSong.id) {
+                    togglePlay();
+                  } else {
+                    playTrack(featuredSong, songs);
+                  }
+                }}
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-[0_0_20px_rgba(99,210,255,0.8)] transform scale-90 group-hover:scale-100 transition-transform active:scale-95"
               >
                 {currentTrack?.id === featuredSong.id && isPlaying ? (
@@ -314,7 +320,13 @@ export default function Music() {
             {/* Hero Quick Play Actions */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-0.5">
               <button
-                onClick={() => playTrack(featuredSong, songs)}
+                onClick={() => {
+                  if (currentTrack?.id === featuredSong.id) {
+                    togglePlay();
+                  } else {
+                    playTrack(featuredSong, songs);
+                  }
+                }}
                 className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white text-xs sm:text-sm font-bold shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95"
               >
                 {currentTrack?.id === featuredSong.id && isPlaying ? (
@@ -387,7 +399,13 @@ export default function Music() {
                 >
                   {/* Square Album Cover */}
                   <div
-                    onClick={() => playTrack(song, songs)}
+                    onClick={() => {
+                      if (currentTrack?.id === song.id) {
+                        togglePlay();
+                      } else {
+                        playTrack(song, songs);
+                      }
+                    }}
                     className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                   >
                     <img
@@ -410,7 +428,13 @@ export default function Music() {
                   {/* Meta */}
                   <div className="min-w-0 flex-1 space-y-0.5">
                     <h4
-                      onClick={() => playTrack(song, songs)}
+                      onClick={() => {
+                        if (currentTrack?.id === song.id) {
+                          togglePlay();
+                        } else {
+                          playTrack(song, songs);
+                        }
+                      }}
                       className={`text-xs sm:text-sm font-bold truncate font-outfit cursor-pointer transition-colors ${
                         isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
                       }`}
@@ -436,7 +460,13 @@ export default function Music() {
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => playTrack(song, songs)}
+                          onClick={() => {
+                            if (currentTrack?.id === song.id) {
+                              togglePlay();
+                            } else {
+                              playTrack(song, songs);
+                            }
+                          }}
                           className={`p-1.5 rounded-full transition active:scale-90 ${
                             isCurrentPlaying
                               ? 'bg-accentCyan text-black shadow-[0_0_8px_rgba(99,210,255,0.6)]'
@@ -500,7 +530,13 @@ export default function Music() {
                         return (
                           <div
                             key={`${s.id}-${idx}`}
-                            onClick={() => playTrack(s, chart.songs)}
+                            onClick={() => {
+                              if (currentTrack?.id === s.id) {
+                                togglePlay();
+                              } else {
+                                playTrack(s, chart.songs);
+                              }
+                            }}
                             className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-40 cursor-pointer p-2 rounded-xl border transition-all duration-300 ${isCur ? 'bg-accentCyan/15 border-accentCyan/40' : 'border-white/5 bg-darkCard/50 hover:bg-darkCard hover:border-accentCyan/25'}`}
                           >
                             <div className="relative aspect-square rounded-lg overflow-hidden border border-white/10 shadow-md">

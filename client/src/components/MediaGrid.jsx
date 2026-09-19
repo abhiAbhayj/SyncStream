@@ -80,7 +80,8 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
           const targetId = item.external_media_id || item.id;
           const isMusic = item.media_type === 'music' || Boolean(item.audio_url);
           const cfg = TYPE_CONFIG[isMusic ? 'music' : (item.media_type || 'movie')] || TYPE_CONFIG.movie;
-          const isCurrentPlaying = isMusic && currentTrack?.id === item.id && isPlaying;
+          const isCurrent = isMusic && currentTrack?.id === item.id;
+          const isCurrentPlaying = isCurrent && isPlaying;
           const posterSrc = item.poster_path || item.image || item.thumbnail || (isMusic ? FALLBACK_MUSIC_IMAGE : null);
 
           if (isMusic) {
@@ -88,8 +89,12 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
               <div
                 key={`music-${targetId}-${index}`}
                 onClick={() => {
-                  const musicList = items.filter(i => i.media_type === 'music' || Boolean(i.audio_url));
-                  playTrack(item, musicList.length > 0 ? musicList : [item]);
+                  if (isCurrent) {
+                    togglePlay();
+                  } else {
+                    const musicList = items.filter(i => i.media_type === 'music' || Boolean(i.audio_url));
+                    playTrack(item, musicList.length > 0 ? musicList : [item]);
+                  }
                 }}
                 className={`group media-card h-full rounded-2xl overflow-hidden transition-all duration-300 ${cfg.hoverGlow} animate-fade-up cursor-pointer border ${isCurrentPlaying ? 'border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.3)] bg-accentCyan/10' : 'border-white/10 bg-darkCard/60 hover:border-accentCyan/40'}`}
                 style={{ animationDelay: `${index * 0.04}s`, animationFillMode: 'both' }}
