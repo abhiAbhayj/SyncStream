@@ -326,9 +326,9 @@ const TRENDING_QUERIES = {
     'Pushpa Telugu Songs'
   ],
   tamil: [
-    'Tamil Film Hits 2026',
     'The Wild Theme OM Chapter 1 Tamil',
     'Sai Abhyankkar OM Chapter 1',
+    'Tamil Film Hits 2026',
     'Anirudh Tamil Hits',
     'AR Rahman Tamil Hits',
     'Harris Jayaraj Tamil',
@@ -345,7 +345,7 @@ const TRENDING_QUERIES = {
 };
 
 // Helper: fetch songs from JioSaavn by query
-const fetchSaavnSongs = async (query, n = 8) => {
+export const fetchSaavnSongs = async (query, n = 8) => {
   const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${n}&p=1&q=${encodeURIComponent(query)}`;
   const response = await axios.get(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
@@ -354,6 +354,40 @@ const fetchSaavnSongs = async (query, n = 8) => {
   return (response.data.results || [])
     .map(formatSong)
     .filter(s => s && s.audio_url && !isSpamTrack(s));
+};
+
+// Direct helper for Home page live trending music feed
+export const getTrendingMusicDirect = async (limit = 12) => {
+  const queries = [
+    'The Wild Theme OM Chapter 1',
+    'Big Dawgs Hanumankind',
+    'Hunt You Down Richardson',
+    'Latest Bollywood 2026 Hits',
+    'Tamil Film Hits 2026',
+    'Telugu Film Hits 2026',
+    'Imagine Dragons'
+  ];
+  const seen = new Set();
+  const songs = [];
+  for (const q of queries) {
+    try {
+      const results = await fetchSaavnSongs(q, 4);
+      for (const s of results) {
+        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(s.id)) {
+          seen.add(key);
+          seen.add(s.id);
+          songs.push({
+            ...s,
+            poster_path: s.image,
+            media_type: 'music'
+          });
+        }
+      }
+      if (songs.length >= limit) break;
+    } catch (e) {}
+  }
+  return songs.slice(0, limit);
 };
 
 // Delay helper to avoid JioSaavn rate limiting

@@ -304,6 +304,10 @@ export default function Home() {
                 </Link>
               </div>
 
+              {media.trending?.music && media.trending.music.length > 0 && (
+                <MediaGrid items={media.trending.music} title="🎵 Trending Music Hits" seeMoreLink="/music" />
+              )}
+
               <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Anime Releases" seeMoreLink="/catalog/trending/anime" />
               <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink="/catalog/trending/manga" />
             </div>

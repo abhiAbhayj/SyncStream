@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { db } from '../config/db.js';
 import dotenv from 'dotenv';
-import { getSongDetails } from './musicController.js';
+import { getSongDetails, getTrendingMusicDirect } from './musicController.js';
 
 dotenv.config();
 
@@ -336,11 +336,20 @@ export const getTrending = async (req, res) => {
       latestManga = fallback;
     }
 
+    // D. Fetch Trending Music (Live Daily Hits)
+    let trendingMusic = [];
+    try {
+      trendingMusic = await getTrendingMusicDirect(12);
+    } catch (err) {
+      console.warn('Trending music fetch in dashboard failed:', err.message);
+    }
+
     // Merge Dashboard response
     const dashboardData = {
       trending: {
         movies: tmdbMovies,
         tv: tmdbTv,
+        music: trendingMusic,
         anime: trendingAnime,
         manga: trendingManga
       },
