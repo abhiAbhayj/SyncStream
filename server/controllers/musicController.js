@@ -413,7 +413,7 @@ export const getTrendingMusic = async (req, res) => {
   }
 };
 
-// 2. Search Music (Songs, Artists, Albums, Themes, BGM, Remixes)
+// 2. Search Music (Songs, Artists, Albums, Themes, BGM, Remixes, Singles)
 export const searchMusic = async (req, res) => {
   const { query, language } = req.query;
   const page = parseInt(req.query.page || '1', 10);
@@ -431,22 +431,24 @@ export const searchMusic = async (req, res) => {
   // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar
   if (/wild\s*theme|om\s*chapter|sai\s*abhyankkar/i.test(rawQuery)) {
     candidateQueries.push('The Wild Theme OM Chapter 1');
-    candidateQueries.push('The Wild Theme');
     candidateQueries.push('OM Chapter 1 Udhiram');
+    candidateQueries.push('OM Chapter 1');
     candidateQueries.push('Sai Abhyankkar OM Chapter 1');
+    candidateQueries.push('The Wild Theme');
   }
 
   // Special match for Hunt You Down / Teach You a Lesson / Lee Richardson / Blues Rap
   if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson|blues\s*rap/i.test(rawQuery)) {
     candidateQueries.push('Hunt You Down Richardson');
-    candidateQueries.push('Lee Richardson Hunt You Down');
     candidateQueries.push('Lee Richardson Tom Ford');
+    candidateQueries.push('Teach You A Lesson');
     candidateQueries.push('Lee Richardson Blues Rap');
+    candidateQueries.push('Lee Richardson');
   }
 
-  // Clean candidate queries for complex natural language queries
+  // Clean candidate queries for natural language searches
   const cleaned = rawQuery
-    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3)\b/gi, ' ')
+    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   
@@ -459,7 +461,8 @@ export const searchMusic = async (req, res) => {
   }
 
   try {
-    let finalSongs = [];
+    const seen = new Set();
+    const collectedSongs = [];
     let totalCount = 0;
 
     for (const q of candidateQueries) {
@@ -482,30 +485,24 @@ export const searchMusic = async (req, res) => {
         .map(formatSong)
         .filter(s => s && s.audio_url && !isSpamTrack(s));
 
-      if (validSongs.length > 0) {
-        finalSongs = validSongs;
-        totalCount = response.data.total || validSongs.length;
-        break;
+      for (const s of validSongs) {
+        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(s.id)) {
+          seen.add(key);
+          seen.add(s.id);
+          collectedSongs.push(s);
+        }
       }
-    }
 
-    // Deduplicate
-    const seen = new Set();
-    const dedupedSongs = [];
-    for (const s of finalSongs) {
-      const key = `${(s.title || '').toLowerCase()}_${(s.artist || '').toLowerCase()}`;
-      if (!seen.has(key) && !seen.has(s.id)) {
-        seen.add(key);
-        seen.add(s.id);
-        dedupedSongs.push(s);
-      }
+      totalCount = Math.max(totalCount, response.data.total || collectedSongs.length);
+      if (collectedSongs.length >= limit) break;
     }
 
     res.json({
       query: rawQuery,
       page,
-      total: totalCount || dedupedSongs.length,
-      songs: dedupedSongs
+      total: totalCount || collectedSongs.length,
+      songs: collectedSongs.slice(0, limit)
     });
   } catch (error) {
     console.error('[Music Controller Search Error]:', error.message);

@@ -80,7 +80,13 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
           const targetId = item.external_media_id || item.id;
           const isMusic = item.media_type === 'music' || Boolean(item.audio_url);
           const cfg = TYPE_CONFIG[isMusic ? 'music' : (item.media_type || 'movie')] || TYPE_CONFIG.movie;
-          const isCurrent = isMusic && currentTrack?.id === item.id;
+          const itemTitle = (item.title || item.name || '').toLowerCase().trim();
+          const isCurrent = isMusic && Boolean(currentTrack) && (
+            String(currentTrack.id) === String(item.id) ||
+            String(currentTrack.id) === String(targetId) ||
+            (Boolean(currentTrack.audio_url) && Boolean(item.audio_url) && currentTrack.audio_url === item.audio_url) ||
+            (Boolean(currentTrack.title) && Boolean(itemTitle) && currentTrack.title.toLowerCase().trim() === itemTitle)
+          );
           const isCurrentPlaying = isCurrent && isPlaying;
           const posterSrc = item.poster_path || item.image || item.thumbnail || (isMusic ? FALLBACK_MUSIC_IMAGE : null);
 
@@ -88,7 +94,9 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             return (
               <div
                 key={`music-${targetId}-${index}`}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   if (isCurrent) {
                     togglePlay();
                   } else {
