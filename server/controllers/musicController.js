@@ -90,17 +90,32 @@ const formatSong = (song) => {
 
 // Language specific trending search queries (rock, kpop, hindi, anime, english, kannada, malayalam, telugu, tamil, marathi)
 const TRENDING_QUERIES = {
-  all: ['Arijit Singh Hits', 'Anirudh Hits', 'Trending Bollywood Hits', 'English Pop Hits'],
-  rock: ['Linkin Park', 'Queen Rock', 'Imagine Dragons', 'Coldplay Rock', 'Bon Jovi Rock'],
-  kpop: ['BTS Hits', 'BLACKPINK', 'Stray Kids', 'NewJeans K-Pop', 'TWICE'],
-  korean: ['BTS Hits', 'BLACKPINK', 'Stray Kids', 'NewJeans K-Pop'],
-  hindi: ['Arijit Singh Hits', 'Pritam Hits', 'Bollywood 2026 Hits', 'Shreya Ghoshal Hits'],
+  all: [
+    'Arijit Singh Hits',
+    'Imagine Dragons Hits',
+    'Lady Gaga Hits',
+    'Alan Walker Hits',
+    'DJ Snake Hits',
+    'BLACKPINK Hits',
+    'Harrdy Sandhu Hits',
+    'Guru Randhawa Hits',
+    'Hanumankind Hits',
+    'Sia Hits',
+    'Ed Sheeran Hits',
+    'Ellie Goulding Hits',
+    'Ravi Basrur Hits',
+    'Aish Songs'
+  ],
+  rock: ['Imagine Dragons Hits', 'Linkin Park', 'Queen Rock', 'Coldplay Rock', 'Lee Richardson Rock', 'Bon Jovi Rock'],
+  kpop: ['BLACKPINK Hits', 'BTS Hits', 'Stray Kids Hits', 'NewJeans K-Pop', 'TWICE Hits'],
+  korean: ['BLACKPINK Hits', 'BTS Hits', 'Stray Kids', 'NewJeans K-Pop'],
+  hindi: ['Arijit Singh Hits', 'Harrdy Sandhu Hits', 'Guru Randhawa Hits', 'Pritam Hits', 'Hanumankind Hits', 'Aish Songs', 'Shreya Ghoshal Hits'],
   anime: ['Anime Opening OST', 'LiSA Anime', 'Kenshi Yonezu Anime', 'Naruto OST Opening'],
-  english: ['Taylor Swift Hits', 'The Weeknd Hits', 'Ed Sheeran Hits', 'Dua Lipa Hits'],
-  kannada: ['KGF Songs Ravi Basrur', 'Kantara Songs', 'Sonu Nigam Kannada Hits', 'Vijay Prakash Kannada'],
-  malayalam: ['Sushin Shyam Hits', 'Malayalam Film Hits', 'Jassie Gift Malayalam', 'Vineeth Sreenivasan Hits'],
-  telugu: ['DSP Telugu Hits', 'Thaman S Telugu Hits', 'Anirudh Telugu Hits', 'Pushpa Telugu Songs'],
-  tamil: ['Anirudh Tamil Hits', 'AR Rahman Tamil Hits', 'Harris Jayaraj Tamil', 'Yuvan Shankar Raja Tamil'],
+  english: ['Lady Gaga Hits', 'Alan Walker Hits', 'DJ Snake Hits', 'Ed Sheeran Hits', 'Imagine Dragons Hits', 'Sia Hits', 'Ellie Goulding Hits', 'Taylor Swift Hits', 'The Weeknd Hits'],
+  kannada: ['Ravi Basrur KGF Salaar', 'Kantara Songs', 'Sonu Nigam Kannada Hits', 'Vijay Prakash Kannada'],
+  malayalam: ['Sushin Shyam Hits', 'Malayalam Film Hits', 'Jassie Gift Malayalam', 'Vineeth Sreenivasan Hits', 'Hanumankind'],
+  telugu: ['Ravi Basrur Telugu', 'DSP Telugu Hits', 'Thaman S Telugu Hits', 'Anirudh Telugu Hits', 'Pushpa Telugu Songs'],
+  tamil: ['Anirudh Tamil Hits', 'AR Rahman Tamil Hits', 'Harris Jayaraj Tamil', 'Ravi Basrur Tamil', 'Yuvan Shankar Raja Tamil'],
   marathi: ['Ajay Atul Marathi Hits', 'Sairat Marathi Songs', 'Avadhoot Gupte Marathi', 'Swapnil Bandodkar Marathi']
 };
 

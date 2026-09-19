@@ -151,10 +151,25 @@ export default function Music() {
             </button>
           </form>
 
-          {/* Quick Suggestions */}
+          {/* Quick Search Suggestions */}
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400 py-0.5">
-            <span className="font-semibold text-gray-500 shrink-0">Try:</span>
-            {['Kesariya', 'Rock Classics', 'BTS K-Pop', 'Anirudh', 'Pushpa 2', 'Ajay Atul', 'Kantara'].map((tag) => (
+            <span className="font-semibold text-gray-500 shrink-0">Popular:</span>
+            {[
+              'Imagine Dragons',
+              'Lady Gaga',
+              'Alan Walker',
+              'DJ Snake',
+              'BLACKPINK',
+              'Ravi Basrur',
+              'Harrdy Sandhu',
+              'Guru Randhawa',
+              'Hanumankind',
+              'Sia',
+              'Ed Sheeran',
+              'Ellie Goulding',
+              'Aish',
+              'Lee Richardson'
+            ].map((tag) => (
               <button
                 key={tag}
                 type="button"
@@ -167,7 +182,7 @@ export default function Music() {
                     .catch(console.error)
                     .finally(() => setLoading(false));
                 }}
-                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-accentCyan/10 hover:text-accentCyan border border-white/5 whitespace-nowrap transition active:scale-95"
+                className="px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-accentCyan/15 hover:text-accentCyan hover:border-accentCyan/30 border border-white/10 whitespace-nowrap transition active:scale-95 text-[10px] font-semibold"
               >
                 {tag}
               </button>
@@ -180,7 +195,7 @@ export default function Music() {
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider font-mono">
           <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
-          <span>Select Language / Region</span>
+          <span>Select Language / Genre</span>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
           {LANGUAGES.map((lang) => {
@@ -204,6 +219,44 @@ export default function Music() {
             );
           })}
         </div>
+      </div>
+
+      {/* ── Quick Artists Bar ── */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono shrink-0">Artists:</span>
+        {[
+          'Imagine Dragons',
+          'Lady Gaga',
+          'Alan Walker',
+          'DJ Snake',
+          'BLACKPINK',
+          'Ravi Basrur',
+          'Harrdy Sandhu',
+          'Guru Randhawa',
+          'Hanumankind',
+          'Sia',
+          'Ed Sheeran',
+          'Ellie Goulding',
+          'Aish',
+          'Lee Richardson'
+        ].map((artist) => (
+          <button
+            key={artist}
+            type="button"
+            onClick={() => {
+              setSearchQuery(artist);
+              setSearching(true);
+              setLoading(true);
+              axios.get('/api/music/search', { params: { query: artist, limit: 30 } })
+                .then(res => setSongs(res.data.songs || []))
+                .catch(console.error)
+                .finally(() => setLoading(false));
+            }}
+            className="px-2.5 py-1 rounded-xl bg-darkCard/60 hover:bg-accentCyan/10 hover:border-accentCyan/40 text-gray-300 hover:text-white border border-darkBorder whitespace-nowrap transition text-xs font-semibold shrink-0 active:scale-95"
+          >
+            {artist}
+          </button>
+        ))}
       </div>
 
       {/* ── Featured Hero Spotlight (Mobile & Desktop Responsive) ── */}
