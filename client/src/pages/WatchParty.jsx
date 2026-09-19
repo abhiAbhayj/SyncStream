@@ -6,7 +6,8 @@ import { useSocket } from '../context/SocketContext';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film } from 'lucide-react';
+import WatchPartyCall from '../components/WatchPartyCall';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio } from 'lucide-react';
 
 export default function WatchParty() {
   const { code } = useParams();
@@ -572,9 +573,12 @@ export default function WatchParty() {
           </div>
         </div>
 
-        {/* Interactive Chat Block */}
-        <div className="lg:col-span-1 h-[550px] lg:h-auto">
-          <ChatSidebar roomCode={code} />
+        {/* Interactive Call & Chat Block */}
+        <div className="lg:col-span-1 flex flex-col gap-4">
+          <WatchPartyCall roomCode={code} />
+          <div className="h-[450px] lg:h-[500px]">
+            <ChatSidebar roomCode={code} />
+          </div>
         </div>
 
       </div>

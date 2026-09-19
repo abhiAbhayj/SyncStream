@@ -46,6 +46,10 @@ app.get('/api/health', (req, res) => {
 // Format: { [roomCode]: { event: 'play'|'pause', time: 0, lastUpdated: timestamp } }
 const roomPlaybackStates = {};
 
+// Cache for active voice/video call participants
+// Format: { [roomCode]: { [socketId]: { socketId, user, audioEnabled, videoEnabled } } }
+const callParticipants = {};
+
 // Socket.io Server Setup
 const io = new Server(server, {
   cors: corsOptions
@@ -141,10 +145,81 @@ io.on('connection', (socket) => {
     socket.leave(roomCode);
     console.log(`[Socket] User '${username}' left room: ${roomCode}`);
     socket.to(roomCode).emit('user_left', { username });
+    
+    // Clean up call presence if user was in voice/video call
+    if (callParticipants[roomCode] && callParticipants[roomCode][socket.id]) {
+      delete callParticipants[roomCode][socket.id];
+      socket.to(roomCode).emit('webrtc_user_left_call', { socketId: socket.id });
+    }
+  });
+
+  // ── WebRTC Voice & Video Calling Signaling ──────────────────────────────────
+  socket.on('webrtc_join_call', ({ roomCode, user, audioEnabled, videoEnabled }) => {
+    if (!roomCode) return;
+    if (!callParticipants[roomCode]) {
+      callParticipants[roomCode] = {};
+    }
+
+    const participantInfo = {
+      socketId: socket.id,
+      user: user || { id: socket.id, username: 'Guest', avatar_url: 'default_avatar.png' },
+      audioEnabled: !!audioEnabled,
+      videoEnabled: !!videoEnabled,
+      joinedAt: Date.now()
+    };
+
+    callParticipants[roomCode][socket.id] = participantInfo;
+    console.log(`[WebRTC] User '${participantInfo.user.username}' (${socket.id}) joined call in room: ${roomCode}`);
+
+    // Send existing call peers back to the newly joined peer
+    const existingPeers = Object.values(callParticipants[roomCode]).filter(p => p.socketId !== socket.id);
+    socket.emit('webrtc_existing_peers', existingPeers);
+
+    // Broadcast to other peers in room that a new user joined the call
+    socket.to(roomCode).emit('webrtc_user_joined_call', participantInfo);
+  });
+
+  // Relay WebRTC signals (Offers, Answers, ICE candidates)
+  socket.on('webrtc_signal', ({ to, signal, user }) => {
+    if (!to || !signal) return;
+    io.to(to).emit('webrtc_signal', {
+      from: socket.id,
+      signal,
+      user
+    });
+  });
+
+  // Media toggle (Mute / Camera off sync)
+  socket.on('webrtc_media_toggle', ({ roomCode, audioEnabled, videoEnabled }) => {
+    if (roomCode && callParticipants[roomCode] && callParticipants[roomCode][socket.id]) {
+      callParticipants[roomCode][socket.id].audioEnabled = audioEnabled;
+      callParticipants[roomCode][socket.id].videoEnabled = videoEnabled;
+      socket.to(roomCode).emit('webrtc_user_media_toggle', {
+        socketId: socket.id,
+        audioEnabled,
+        videoEnabled
+      });
+    }
+  });
+
+  // Leave Voice/Video Call explicitly
+  socket.on('webrtc_leave_call', ({ roomCode }) => {
+    if (roomCode && callParticipants[roomCode] && callParticipants[roomCode][socket.id]) {
+      delete callParticipants[roomCode][socket.id];
+      console.log(`[WebRTC] User (${socket.id}) left call in room: ${roomCode}`);
+      socket.to(roomCode).emit('webrtc_user_left_call', { socketId: socket.id });
+    }
   });
 
   socket.on('disconnect', () => {
     console.log(`[Socket] Client disconnected: ${socket.id}`);
+    // Clean up call participant records across all rooms
+    for (const roomCode in callParticipants) {
+      if (callParticipants[roomCode][socket.id]) {
+        delete callParticipants[roomCode][socket.id];
+        io.to(roomCode).emit('webrtc_user_left_call', { socketId: socket.id });
+      }
+    }
   });
 });
 
