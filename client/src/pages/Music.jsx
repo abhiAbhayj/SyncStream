@@ -44,6 +44,68 @@ const LANGUAGES = [
   { id: 'marathi', label: 'Marathi', flag: '🚩' }
 ];
 
+const FAMOUS_ARTISTS = [
+  'Sonu Nigam',
+  'Sanjith Hegde',
+  'Sai Abhyankkar',
+  'Arijit Singh',
+  'Sid Sriram',
+  'Shreya Ghoshal',
+  'Anirudh Ravichander',
+  'A.R. Rahman',
+  'Armaan Malik',
+  'Ravi Basrur',
+  'Vijay Prakash',
+  'Sushin Shyam',
+  'Devi Sri Prasad',
+  'Imagine Dragons',
+  'Lady Gaga',
+  'Alan Walker',
+  'DJ Snake',
+  'BLACKPINK',
+  'BTS',
+  'Harrdy Sandhu',
+  'Guru Randhawa',
+  'Hanumankind',
+  'Sia',
+  'Ed Sheeran',
+  'Ellie Goulding',
+  'Aish',
+  'Lee Richardson',
+  'Taylor Swift',
+  'The Weeknd',
+  'Eminem',
+  'Kendrick Lamar',
+  'Coldplay',
+  'Linkin Park'
+];
+
+const POPULAR_SEARCH_TAGS = [
+  'Sonu Nigam Hits',
+  'Sanjith Hegde',
+  'The Wild Theme',
+  'Hunt You Down',
+  'Imagine Dragons',
+  'Big Dawgs',
+  'Sai Abhyankkar',
+  'Arijit Singh',
+  'Sid Sriram',
+  'Shreya Ghoshal',
+  'Lady Gaga',
+  'Alan Walker',
+  'DJ Snake',
+  'BLACKPINK',
+  'Ravi Basrur',
+  'Harrdy Sandhu',
+  'Guru Randhawa',
+  'Hanumankind',
+  'Sia',
+  'Ed Sheeran',
+  'Ellie Goulding',
+  'Aish',
+  'Lee Richardson'
+];
+
 export default function Music() {
   const { currentTrack, isPlaying, playTrack, playQueue, togglePlay, addToQueue } = useMusic();
 
@@ -105,10 +167,9 @@ export default function Music() {
     }
   };
 
-  // Handle Search with pagination
-  const handleSearch = async (e, pageNum = 1) => {
-    e?.preventDefault?.();
-    if (!searchQuery.trim()) {
+  // Search with explicit query and pagination
+  const handleSearchWithQuery = async (queryText, pageNum = 1) => {
+    if (!queryText || !queryText.trim()) {
       fetchTrending(selectedLang, 1);
       return;
     }
@@ -122,7 +183,7 @@ export default function Music() {
     }
     try {
       const res = await axios.get('/api/music/search', {
-        params: { query: searchQuery.trim(), language: selectedLang, page: pageNum, limit: 30 }
+        params: { query: queryText.trim(), language: selectedLang, page: pageNum, limit: 30 }
       });
       const trackList = res.data.songs || [];
       if (pageNum === 1) {
@@ -143,11 +204,42 @@ export default function Music() {
     }
   };
 
+  // Handle Search submit
+  const handleSearch = (e) => {
+    e?.preventDefault?.();
+    setPage(1);
+    handleSearchWithQuery(searchQuery, 1);
+  };
+
+  const handleArtistClick = (artist) => {
+    setSearchQuery(artist);
+    setSearching(true);
+    setPage(1);
+    setHasMore(true);
+    handleSearchWithQuery(artist, 1);
+    const songsEl = document.getElementById('music-songs-section');
+    if (songsEl) {
+      songsEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleTagClick = (tag) => {
+    setSearchQuery(tag);
+    setSearching(true);
+    setPage(1);
+    setHasMore(true);
+    handleSearchWithQuery(tag, 1);
+    const songsEl = document.getElementById('music-songs-section');
+    if (songsEl) {
+      songsEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
     if (searchQuery.trim()) {
-      handleSearch(null, nextPage);
+      handleSearchWithQuery(searchQuery, nextPage);
     } else {
       fetchTrending(selectedLang, nextPage);
     }
@@ -238,38 +330,11 @@ export default function Music() {
           {/* Quick Search Suggestions */}
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400 py-0.5">
             <span className="font-semibold text-gray-500 shrink-0">Popular:</span>
-            {[
-              'The Wild Theme',
-              'Hunt You Down',
-              'Imagine Dragons',
-              'Big Dawgs',
-              'Sai Abhyankkar',
-              'Lady Gaga',
-              'Alan Walker',
-              'DJ Snake',
-              'BLACKPINK',
-              'Ravi Basrur',
-              'Harrdy Sandhu',
-              'Guru Randhawa',
-              'Hanumankind',
-              'Sia',
-              'Ed Sheeran',
-              'Ellie Goulding',
-              'Aish',
-              'Lee Richardson'
-            ].map((tag) => (
+            {POPULAR_SEARCH_TAGS.map((tag) => (
               <button
                 key={tag}
                 type="button"
-                onClick={() => {
-                  setSearchQuery(tag);
-                  setSearching(true);
-                  setLoading(true);
-                  axios.get('/api/music/search', { params: { query: tag, limit: 30 } })
-                    .then(res => setSongs(res.data.songs || []))
-                    .catch(console.error)
-                    .finally(() => setLoading(false));
-                }}
+                onClick={() => handleTagClick(tag)}
                 className="px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-accentCyan/15 hover:text-accentCyan hover:border-accentCyan/30 border border-white/10 whitespace-nowrap transition active:scale-95 text-[10px] font-semibold"
               >
                 {tag}
@@ -294,6 +359,8 @@ export default function Music() {
                 onClick={() => {
                   setSelectedLang(lang.id);
                   setSearchQuery('');
+                  setPage(1);
+                  setHasMore(true);
                 }}
                 className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border active:scale-95 shrink-0 ${
                   isSelected
@@ -312,40 +379,23 @@ export default function Music() {
       {/* ── Quick Artists Bar ── */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono shrink-0">Artists:</span>
-        {[
-          'Sai Abhyankkar',
-          'Imagine Dragons',
-          'Lady Gaga',
-          'Alan Walker',
-          'DJ Snake',
-          'BLACKPINK',
-          'Ravi Basrur',
-          'Harrdy Sandhu',
-          'Guru Randhawa',
-          'Hanumankind',
-          'Sia',
-          'Ed Sheeran',
-          'Ellie Goulding',
-          'Aish',
-          'Lee Richardson'
-        ].map((artist) => (
-          <button
-            key={artist}
-            type="button"
-            onClick={() => {
-              setSearchQuery(artist);
-              setSearching(true);
-              setLoading(true);
-              axios.get('/api/music/search', { params: { query: artist, limit: 30 } })
-                .then(res => setSongs(res.data.songs || []))
-                .catch(console.error)
-                .finally(() => setLoading(false));
-            }}
-            className="px-2.5 py-1 rounded-xl bg-darkCard/60 hover:bg-accentCyan/10 hover:border-accentCyan/40 text-gray-300 hover:text-white border border-darkBorder whitespace-nowrap transition text-xs font-semibold shrink-0 active:scale-95"
-          >
-            {artist}
-          </button>
-        ))}
+        {FAMOUS_ARTISTS.map((artist) => {
+          const isSelected = searchQuery.toLowerCase() === artist.toLowerCase();
+          return (
+            <button
+              key={artist}
+              type="button"
+              onClick={() => handleArtistClick(artist)}
+              className={`px-3 py-1 rounded-xl whitespace-nowrap transition text-xs font-semibold shrink-0 active:scale-95 border ${
+                isSelected
+                  ? 'bg-accentCyan text-black border-accentCyan font-bold shadow-[0_0_10px_rgba(99,210,255,0.4)]'
+                  : 'bg-darkCard/60 hover:bg-accentCyan/10 hover:border-accentCyan/40 text-gray-300 hover:text-white border-darkBorder'
+              }`}
+            >
+              {artist}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Featured Hero Spotlight (Mobile & Desktop Responsive) ── */}

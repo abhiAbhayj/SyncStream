@@ -465,10 +465,29 @@ export const searchMusic = async (req, res) => {
   // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar
   if (/wild\s*theme|om\s*chapter|sai\s*abhyankkar/i.test(rawQuery)) {
     candidateQueries.push('The Wild Theme OM Chapter 1');
+    candidateQueries.push('Sai Abhyankkar OM Chapter 1');
     candidateQueries.push('OM Chapter 1 Udhiram');
     candidateQueries.push('OM Chapter 1');
-    candidateQueries.push('Sai Abhyankkar OM Chapter 1');
+    candidateQueries.push('Sai Abhyankkar Hits');
     candidateQueries.push('The Wild Theme');
+  }
+
+  // Special match for Sonu Nigam
+  if (/sonu\s*nigam/i.test(rawQuery)) {
+    candidateQueries.push('Sonu Nigam');
+    candidateQueries.push('Sonu Nigam Hits');
+    candidateQueries.push('Sonu Nigam Romantic');
+    candidateQueries.push('Sonu Nigam Kannada');
+    candidateQueries.push('Sonu Nigam All Time Hits');
+  }
+
+  // Special match for Sanjith Hegde
+  if (/sanjith\s*hegde/i.test(rawQuery)) {
+    candidateQueries.push('Sanjith Hegde');
+    candidateQueries.push('Sanjith Hegde Hits');
+    candidateQueries.push('Sanjith Hegde Kannada');
+    candidateQueries.push('Sanjith Hegde Telugu');
+    candidateQueries.push('Sanjith Hegde Songs');
   }
 
   // Special match for Hunt You Down / Teach You a Lesson / Lee Richardson / Blues Rap
@@ -489,6 +508,8 @@ export const searchMusic = async (req, res) => {
   const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
 
   candidateQueries.push(rawQuery);
+  candidateQueries.push(`${rawQuery} Hits`);
+  candidateQueries.push(`${rawQuery} Songs`);
   if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
   if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
     candidateQueries.push(shortKeywords);
