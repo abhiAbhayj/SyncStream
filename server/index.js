@@ -97,39 +97,43 @@ io.on('connection', (socket) => {
   });
 
   // 3. Sync chat messages and save to MySQL
-  socket.on('send_message', async ({ roomCode, messageText, userId }) => {
+  socket.on('send_message', async ({ roomCode, messageText, userId, username, avatarUrl }) => {
     if (!roomCode || !messageText || !userId) return;
 
+    let messagePayload = {
+      id: Date.now(),
+      message_text: messageText,
+      sent_at: new Date().toISOString(),
+      user_id: userId,
+      username: username || 'User',
+      avatar_url: avatarUrl || 'default_avatar.png'
+    };
+
     try {
-      // Find room database ID
-      const [rooms] = await db.query('SELECT id FROM watch_rooms WHERE room_code = ?', [roomCode]);
-      if (rooms.length === 0) return;
-      const roomId = rooms[0].id;
-
-      // Insert message
-      const [result] = await db.query(
-        'INSERT INTO chat_messages (room_id, user_id, message_text) VALUES (?, ?, ?)',
-        [roomId, userId, messageText]
-      );
-
-      // Fetch sender details
-      const [users] = await db.query('SELECT username, avatar_url FROM users WHERE id = ?', [userId]);
-      const user = users[0];
-
-      const messagePayload = {
-        id: result.insertId,
-        message_text: messageText,
-        sent_at: new Date(),
-        user_id: userId,
-        username: user.username,
-        avatar_url: user.avatar_url
-      };
-
-      // Emit to all users in the room
-      io.to(roomCode).emit('receive_message', messagePayload);
+      if (db.isConnected()) {
+        const [rooms] = await db.query('SELECT id FROM watch_rooms WHERE room_code = ?', [roomCode]);
+        if (rooms.length > 0) {
+          const roomId = rooms[0].id;
+          const [result] = await db.query(
+            'INSERT INTO chat_messages (room_id, user_id, message_text) VALUES (?, ?, ?)',
+            [roomId, userId, messageText]
+          );
+          if (result?.insertId) {
+            messagePayload.id = result.insertId;
+          }
+          const [users] = await db.query('SELECT username, avatar_url FROM users WHERE id = ?', [userId]);
+          if (users.length > 0) {
+            messagePayload.username = users[0].username;
+            messagePayload.avatar_url = users[0].avatar_url;
+          }
+        }
+      }
     } catch (err) {
-      console.error('[Socket Message Error]:', err);
+      console.error('[Socket Message DB Error]:', err.message);
     }
+
+    // Broadcast message to all users in the room immediately
+    io.to(roomCode).emit('receive_message', messagePayload);
   });
 
   // 4. Leave Room

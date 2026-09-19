@@ -56,7 +56,9 @@ export default function ChatSidebar({ roomCode }) {
     socket.emit('send_message', {
       roomCode,
       messageText: newMessage.trim(),
-      userId: user.id
+      userId: user.id,
+      username: user.username,
+      avatarUrl: user.avatar_url
     });
 
     setNewMessage('');

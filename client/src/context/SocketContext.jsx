@@ -20,11 +20,23 @@ export const SocketProvider = ({ children }) => {
     }
 
     // Connect to Backend WebSocket server dynamically
-    const socketUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname || 'localhost'}:5000`;
+    const isLocal = typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1' || 
+       window.location.hostname.startsWith('192.168.'));
+    
+    // In local dev -> http://localhost:5000 (or LAN IP)
+    // In production (Vercel / Netlify / Render) -> https://syncstream-api-0vns.onrender.com
+    const socketUrl = import.meta.env.VITE_API_URL || (isLocal ? `${window.location.protocol}//${window.location.hostname}:5000` : 'https://syncstream-api-0vns.onrender.com');
+
+    console.log('[Socket] Connecting to:', socketUrl);
+
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
-      reconnection: true
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000
     });
 
     setSocket(newSocket);
