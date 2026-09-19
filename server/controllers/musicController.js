@@ -379,42 +379,42 @@ export const getLyrics = async (req, res) => {
 
   // Clean title (remove (From "Movie"), (Feat...), etc.)
   const cleanTitle = title
-    .replace(/\s*\(From.*?\)/gi, '')
-    .replace(/\s*\(Feat.*?\)/gi, '')
-    .replace(/\s*\[.*?\]/gi, '')
+    .replace(/\s*\((?:from|feat|ft|with|official|video|audio|remix|version)[^\)]*\)/gi, '')
+    .replace(/\s*\[(?:from|feat|ft|with|official|video|audio|remix|version)[^\]]*\]/gi, '')
+    .replace(/\s*-\s*(?:from|feat|ft|with|official|video|audio|remix|version|original).*$/gi, '')
     .replace(/\s*-\s*.*$/gi, '')
     .trim();
 
-  const cleanArtist = (artist || '').split(',')[0].trim();
+  const cleanArtist = (artist || '').split(',')[0].split('&')[0].trim();
+
+  const parseSyncedLyrics = (lrcString) => {
+    if (!lrcString) return [];
+    return lrcString
+      .split('\n')
+      .map((line) => {
+        const match = line.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
+        if (!match) return null;
+        return {
+          time: parseInt(match[1], 10) * 60 + parseFloat(match[2]),
+          text: match[3].trim()
+        };
+      })
+      .filter(Boolean);
+  };
 
   try {
-    // 1. Try LRCLIB for synchronized and plain lyrics
-    let lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
-    if (duration) lrcUrl += `&duration=${parseInt(duration, 10)}`;
-
+    // 1. Try LRCLIB exact get
     try {
+      let lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
+      if (duration) lrcUrl += `&duration=${parseInt(duration, 10)}`;
+
       const lrcRes = await axios.get(lrcUrl, {
         headers: { 'User-Agent': 'SyncStream/1.0 (https://github.com/abhiAbhayj/SyncStream)' },
-        timeout: 5000
+        timeout: 4500
       });
 
       if (lrcRes.data && (lrcRes.data.syncedLyrics || lrcRes.data.plainLyrics)) {
-        // Parse synced lyrics into timestamped array
-        let parsedLines = [];
-        if (lrcRes.data.syncedLyrics) {
-          parsedLines = lrcRes.data.syncedLyrics
-            .split('\n')
-            .map((line) => {
-              const match = line.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
-              if (!match) return null;
-              return {
-                time: parseInt(match[1], 10) * 60 + parseFloat(match[2]),
-                text: match[3].trim()
-              };
-            })
-            .filter(Boolean);
-        }
-
+        const parsedLines = parseSyncedLyrics(lrcRes.data.syncedLyrics);
         return res.json({
           has_lyrics: true,
           synced: parsedLines.length > 0,
@@ -423,35 +423,19 @@ export const getLyrics = async (req, res) => {
           source: 'LRCLIB'
         });
       }
-    } catch (e) {
-      // Fall through to search or JioSaavn
-    }
+    } catch (e) {}
 
-    // 2. Try LRCLIB search endpoint if exact get failed
+    // 2. Try LRCLIB search endpoint with cleanTitle + cleanArtist
     try {
       const searchLrcUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(`${cleanTitle} ${cleanArtist}`)}`;
       const sRes = await axios.get(searchLrcUrl, {
         headers: { 'User-Agent': 'SyncStream/1.0' },
-        timeout: 5000
+        timeout: 4500
       });
 
       const firstMatch = sRes.data?.[0];
       if (firstMatch && (firstMatch.syncedLyrics || firstMatch.plainLyrics)) {
-        let parsedLines = [];
-        if (firstMatch.syncedLyrics) {
-          parsedLines = firstMatch.syncedLyrics
-            .split('\n')
-            .map((line) => {
-              const match = line.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
-              if (!match) return null;
-              return {
-                time: parseInt(match[1], 10) * 60 + parseFloat(match[2]),
-                text: match[3].trim()
-              };
-            })
-            .filter(Boolean);
-        }
-
+        const parsedLines = parseSyncedLyrics(firstMatch.syncedLyrics);
         return res.json({
           has_lyrics: true,
           synced: parsedLines.length > 0,
@@ -460,17 +444,36 @@ export const getLyrics = async (req, res) => {
           source: 'LRCLIB'
         });
       }
-    } catch (e) {
-      // Fall through to JioSaavn
-    }
+    } catch (e) {}
 
-    // 3. Fallback to JioSaavn native lyrics if songId provided
+    // 3. Try LRCLIB search endpoint with cleanTitle only
+    try {
+      const searchLrcUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle)}`;
+      const sRes = await axios.get(searchLrcUrl, {
+        headers: { 'User-Agent': 'SyncStream/1.0' },
+        timeout: 4500
+      });
+
+      const firstMatch = sRes.data?.[0];
+      if (firstMatch && (firstMatch.syncedLyrics || firstMatch.plainLyrics)) {
+        const parsedLines = parseSyncedLyrics(firstMatch.syncedLyrics);
+        return res.json({
+          has_lyrics: true,
+          synced: parsedLines.length > 0,
+          syncedLyrics: parsedLines,
+          plainLyrics: firstMatch.plainLyrics || '',
+          source: 'LRCLIB'
+        });
+      }
+    } catch (e) {}
+
+    // 4. Fallback to JioSaavn native lyrics if songId provided
     if (songId) {
       try {
         const jioLyrUrl = `${JIOSAAVN_BASE}?__call=lyrics.getLyrics&_format=json&_marker=0&api_version=4&ctx=web6dot0&lyrics_id=${songId}`;
         const jioRes = await axios.get(jioLyrUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0' },
-          timeout: 5000
+          timeout: 4500
         });
 
         if (jioRes.data?.lyrics) {
@@ -490,7 +493,7 @@ export const getLyrics = async (req, res) => {
       has_lyrics: false,
       synced: false,
       syncedLyrics: [],
-      plainLyrics: 'No lyrics found for this track. Enjoy the instrumental vibe!',
+      plainLyrics: 'No synchronized or plain lyrics were found for this track. Enjoy the music!',
       source: null
     });
   } catch (err) {

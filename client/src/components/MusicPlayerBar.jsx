@@ -52,6 +52,8 @@ export default function MusicPlayerBar() {
     toggleLoop,
     toggleShuffle,
     setIsExpanded,
+    openPlayerModal,
+    openLyricsModal,
     removeFromQueue,
     playTrack,
     closePlayer
@@ -163,7 +165,7 @@ export default function MusicPlayerBar() {
           <div className="flex md:hidden items-center justify-between gap-2 px-2.5 py-1.5 h-13">
             
             <div
-              onClick={() => setIsExpanded(true)}
+              onClick={openPlayerModal}
               className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer active:opacity-75 transition-opacity"
             >
               <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-white/15 bg-black/40 shadow-sm">
@@ -234,13 +236,9 @@ export default function MusicPlayerBar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  try {
-                    window.__musicModalTab = 'lyrics';
-                    sessionStorage.setItem('syncstream_music_modal_tab', 'lyrics');
-                  } catch (e2) {}
-                  setIsExpanded(true);
+                  openLyricsModal();
                 }}
-                className="p-1.5 text-gray-300 hover:text-accentCyan active:scale-90 rounded-lg transition"
+                className="p-1.5 text-accentCyan hover:text-white bg-accentCyan/15 active:scale-90 rounded-lg transition border border-accentCyan/30"
                 title="Lyrics View"
               >
                 <FileText className="w-4 h-4" />
@@ -249,11 +247,7 @@ export default function MusicPlayerBar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  try {
-                    window.__musicModalTab = 'player';
-                    sessionStorage.setItem('syncstream_music_modal_tab', 'player');
-                  } catch (e2) {}
-                  setIsExpanded(true);
+                  openPlayerModal();
                 }}
                 className="p-1.5 text-gray-300 hover:text-accentCyan active:scale-90 rounded-lg transition"
                 title="Expand Fullscreen Player"
@@ -449,13 +443,7 @@ export default function MusicPlayerBar() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    try {
-                      window.__musicModalTab = 'lyrics';
-                      sessionStorage.setItem('syncstream_music_modal_tab', 'lyrics');
-                    } catch (e) {}
-                    setIsExpanded(true);
-                  }}
+                  onClick={() => openLyricsModal()}
                   className="p-2 text-gray-400 hover:text-accentCyan hover:bg-accentCyan/10 rounded-xl transition"
                   title="Lyrics View"
                 >
@@ -463,13 +451,7 @@ export default function MusicPlayerBar() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    try {
-                      window.__musicModalTab = 'player';
-                      sessionStorage.setItem('syncstream_music_modal_tab', 'player');
-                    } catch (e) {}
-                    setIsExpanded(true);
-                  }}
+                  onClick={() => openPlayerModal()}
                   className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition"
                   title="Fullscreen Player"
                 >

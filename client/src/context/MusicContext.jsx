@@ -55,6 +55,37 @@ export const MusicProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [playbackError, setPlaybackError] = useState(null);
+  const [modalTab, setModalTabState] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('syncstream_music_modal_tab');
+      return saved && ['player', 'lyrics', 'queue'].includes(saved) ? saved : 'player';
+    } catch {
+      return 'player';
+    }
+  });
+
+  const setModalTab = useCallback((tab) => {
+    const validTab = ['player', 'lyrics', 'queue'].includes(tab) ? tab : 'player';
+    setModalTabState(validTab);
+    try {
+      sessionStorage.setItem('syncstream_music_modal_tab', validTab);
+    } catch (e) {}
+  }, []);
+
+  const openPlayerModal = useCallback(() => {
+    setModalTab('player');
+    setIsExpanded(true);
+  }, [setModalTab]);
+
+  const openLyricsModal = useCallback(() => {
+    setModalTab('lyrics');
+    setIsExpanded(true);
+  }, [setModalTab]);
+
+  const openQueueModal = useCallback(() => {
+    setModalTab('queue');
+    setIsExpanded(true);
+  }, [setModalTab]);
 
   // Seek to specific second
   const seek = useCallback((time) => {
@@ -382,6 +413,11 @@ export const MusicProvider = ({ children }) => {
     isLoading,
     isExpanded,
     playbackError,
+    modalTab,
+    setModalTab,
+    openPlayerModal,
+    openLyricsModal,
+    openQueueModal,
     playTrack,
     playQueue,
     togglePlay,
