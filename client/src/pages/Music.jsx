@@ -15,7 +15,9 @@ import {
   Clock,
   Heart,
   TrendingUp,
-  Volume2
+  Volume2,
+  ArrowRight,
+  ChevronDown
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -50,30 +52,47 @@ export default function Music() {
   const [songs, setSongs] = useState([]);
   const [charts, setCharts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const [searching, setSearching] = useState(false);
   const [featuredSong, setFeaturedSong] = useState(null);
   const [chartsLoading, setChartsLoading] = useState(true);
 
-  // Fetch trending songs by language
-  const fetchTrending = async (lang = 'all') => {
-    setLoading(true);
+  // Fetch trending songs by language with pagination
+  const fetchTrending = async (lang = 'all', pageNum = 1) => {
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
     try {
       const res = await axios.get('/api/music/trending', {
-        params: { language: lang, limit: 24 }
+        params: { language: lang, page: pageNum, limit: 24 }
       });
       const trackList = res.data.songs || [];
-      setSongs(trackList);
-      if (trackList.length > 0) {
-        setFeaturedSong(trackList[0]);
+      if (pageNum === 1) {
+        setSongs(trackList);
+        if (trackList.length > 0) {
+          setFeaturedSong(trackList[0]);
+        }
+      } else {
+        setSongs(prev => {
+          const seen = new Set(prev.map(p => p.id));
+          const newUnique = trackList.filter(t => !seen.has(t.id));
+          return [...prev, ...newUnique];
+        });
       }
+      setHasMore(trackList.length >= 8);
     } catch (err) {
       console.error('Error fetching trending music:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  // Fetch curated charts (sequentially fetched on backend - takes a few seconds)
+  // Fetch curated charts
   const fetchCharts = async () => {
     setChartsLoading(true);
     try {
@@ -86,31 +105,93 @@ export default function Music() {
     }
   };
 
-  // Handle Search
-  const handleSearch = async (e) => {
-    e?.preventDefault();
+  // Handle Search with pagination
+  const handleSearch = async (e, pageNum = 1) => {
+    e?.preventDefault?.();
     if (!searchQuery.trim()) {
-      fetchTrending(selectedLang);
+      fetchTrending(selectedLang, 1);
       return;
     }
 
-    setSearching(true);
-    setLoading(true);
+    if (pageNum === 1) {
+      setSearching(true);
+      setLoading(true);
+      setPage(1);
+    } else {
+      setLoadingMore(true);
+    }
     try {
       const res = await axios.get('/api/music/search', {
-        params: { query: searchQuery.trim(), language: selectedLang, limit: 30 }
+        params: { query: searchQuery.trim(), language: selectedLang, page: pageNum, limit: 30 }
       });
-      setSongs(res.data.songs || []);
+      const trackList = res.data.songs || [];
+      if (pageNum === 1) {
+        setSongs(trackList);
+      } else {
+        setSongs(prev => {
+          const seen = new Set(prev.map(p => p.id));
+          const newUnique = trackList.filter(t => !seen.has(t.id));
+          return [...prev, ...newUnique];
+        });
+      }
+      setHasMore(trackList.length >= 8);
     } catch (err) {
       console.error('Error searching music:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    if (searchQuery.trim()) {
+      handleSearch(null, nextPage);
+    } else {
+      fetchTrending(selectedLang, nextPage);
+    }
+  };
+
+  const handleLanguageSelect = (langId) => {
+    setSelectedLang(langId);
+    setSearchQuery('');
+    setPage(1);
+    setHasMore(true);
+  };
+
+  const handleViewMoreChart = (chartId) => {
+    const chartToLang = {
+      trending_global: 'all',
+      blues_rap: 'blues_rap',
+      rap: 'rap',
+      rock: 'rock',
+      kpop: 'kpop',
+      korean: 'korean',
+      bollywood: 'hindi',
+      anime: 'anime',
+      global_pop: 'english',
+      kannada: 'kannada',
+      malayalam: 'malayalam',
+      telugu: 'telugu',
+      tamil: 'tamil',
+      marathi: 'marathi'
+    };
+    const targetLang = chartToLang[chartId] || chartId;
+    setSelectedLang(targetLang);
+    setSearchQuery('');
+    setPage(1);
+    setHasMore(true);
+    const songsEl = document.getElementById('music-songs-section');
+    if (songsEl) {
+      songsEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   useEffect(() => {
     setSearchQuery('');
-    fetchTrending(selectedLang);
+    setPage(1);
+    fetchTrending(selectedLang, 1);
   }, [selectedLang]);
 
   useEffect(() => {
@@ -355,7 +436,7 @@ export default function Music() {
       )}
 
       {/* ── Songs Grid / List ── */}
-      <div className="space-y-3 sm:space-y-4">
+      <div id="music-songs-section" className="space-y-3 sm:space-y-4 pt-2">
         <div className="flex items-center justify-between">
           <h3 className="text-base sm:text-xl font-extrabold text-white font-outfit flex items-center gap-2">
             <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-accentPink" />
@@ -383,51 +464,23 @@ export default function Music() {
             <p className="text-xs text-gray-500">Try searching for a different song title, artist, or language category.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-            {songs.map((song, idx) => {
-              const isCurrent = currentTrack?.id === song.id;
-              const isCurrentPlaying = isCurrent && isPlaying;
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              {songs.map((song, idx) => {
+                const isCurrent = currentTrack?.id === song.id;
+                const isCurrentPlaying = isCurrent && isPlaying;
 
-              return (
-                <div
-                  key={`${song.id}-${idx}`}
-                  className={`group relative glass-panel rounded-xl sm:rounded-2xl border p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden ${
-                    isCurrent
-                      ? 'bg-accentCyan/15 border-accentCyan/40 shadow-[0_0_15px_rgba(99,210,255,0.2)]'
-                      : 'border-white/5 bg-darkCard/40 hover:border-accentCyan/30 hover:bg-darkCard/70'
-                  }`}
-                >
-                  {/* Square Album Cover */}
+                return (
                   <div
-                    onClick={() => {
-                      if (currentTrack?.id === song.id) {
-                        togglePlay();
-                      } else {
-                        playTrack(song, songs);
-                      }
-                    }}
-                    className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
+                    key={`${song.id}-${idx}`}
+                    className={`group relative glass-panel rounded-xl sm:rounded-2xl border p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden ${
+                      isCurrent
+                        ? 'bg-accentCyan/15 border-accentCyan/40 shadow-[0_0_15px_rgba(99,210,255,0.2)]'
+                        : 'border-white/5 bg-darkCard/40 hover:border-accentCyan/30 hover:bg-darkCard/70'
+                    }`}
                   >
-                    <img
-                      src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
-                      alt={song.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isCurrentPlaying ? (
-                        <Pause className="w-6 h-6 text-accentCyan fill-current" />
-                      ) : (
-                        <Play className="w-6 h-6 text-white fill-current ml-0.5" />
-                      )}
-                    </div>
-                    {isCurrentPlaying && (
-                      <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
-                    )}
-                  </div>
-
-                  {/* Meta */}
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <h4
+                    {/* Square Album Cover */}
+                    <div
                       onClick={() => {
                         if (currentTrack?.id === song.id) {
                           togglePlay();
@@ -435,54 +488,108 @@ export default function Music() {
                           playTrack(song, songs);
                         }
                       }}
-                      className={`text-xs sm:text-sm font-bold truncate font-outfit cursor-pointer transition-colors ${
-                        isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                      }`}
-                      title={song.title}
+                      className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                     >
-                      {song.title}
-                    </h4>
-                    <p className="text-[10px] sm:text-[11px] text-gray-400 truncate font-medium">
-                      {song.artist}
-                    </p>
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[9px] sm:text-[10px] font-mono font-bold text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-gray-600" />
-                        {formatTime(song.duration)}
-                      </span>
-                      
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => addToQueue(song)}
-                          className="p-1 text-gray-400 hover:text-accentCyan hover:bg-white/10 rounded-md transition active:scale-90"
-                          title="Add to queue"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (currentTrack?.id === song.id) {
-                              togglePlay();
-                            } else {
-                              playTrack(song, songs);
-                            }
-                          }}
-                          className={`p-1.5 rounded-full transition active:scale-90 ${
-                            isCurrentPlaying
-                              ? 'bg-accentCyan text-black shadow-[0_0_8px_rgba(99,210,255,0.6)]'
-                              : 'bg-white/10 text-white hover:bg-accentCyan hover:text-black'
-                          }`}
-                          title={isCurrentPlaying ? 'Pause' : 'Play Now'}
-                        >
-                          {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
-                        </button>
+                      <img
+                        src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
+                        alt={song.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isCurrentPlaying ? (
+                          <Pause className="w-6 h-6 text-accentCyan fill-current" />
+                        ) : (
+                          <Play className="w-6 h-6 text-white fill-current ml-0.5" />
+                        )}
+                      </div>
+                      {isCurrentPlaying && (
+                        <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
+                      )}
+                    </div>
+
+                    {/* Meta */}
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <h4
+                        onClick={() => {
+                          if (currentTrack?.id === song.id) {
+                            togglePlay();
+                          } else {
+                            playTrack(song, songs);
+                          }
+                        }}
+                        className={`text-xs sm:text-sm font-bold truncate font-outfit cursor-pointer transition-colors ${
+                          isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                        }`}
+                        title={song.title}
+                      >
+                        {song.title}
+                      </h4>
+                      <p className="text-[10px] sm:text-[11px] text-gray-400 truncate font-medium">
+                        {song.artist}
+                      </p>
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[9px] sm:text-[10px] font-mono font-bold text-gray-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-gray-600" />
+                          {formatTime(song.duration)}
+                        </span>
+                        
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => addToQueue(song)}
+                            className="p-1 text-gray-400 hover:text-accentCyan hover:bg-white/10 rounded-md transition active:scale-90"
+                            title="Add to queue"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (currentTrack?.id === song.id) {
+                                togglePlay();
+                              } else {
+                                playTrack(song, songs);
+                              }
+                            }}
+                            className={`p-1.5 rounded-full transition active:scale-90 ${
+                              isCurrentPlaying
+                                ? 'bg-accentCyan text-black shadow-[0_0_8px_rgba(99,210,255,0.6)]'
+                                : 'bg-white/10 text-white hover:bg-accentCyan hover:text-black'
+                            }`}
+                            title={isCurrentPlaying ? 'Pause' : 'Play Now'}
+                          >
+                            {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                </div>
-              );
-            })}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Load More / View More Tracks Button */}
+            {hasMore && (
+              <div className="flex justify-center pt-3 pb-2">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan/20 to-accentPurple/20 hover:from-accentCyan/30 hover:to-accentPurple/30 border border-accentCyan/40 text-white font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(99,210,255,0.2)] hover:shadow-[0_0_25px_rgba(99,210,255,0.4)] transition active:scale-95 disabled:opacity-50"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-accentCyan animate-spin" />
+                      <span>Loading More Songs...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-accentCyan" />
+                      <span>View More {LANGUAGES.find(l => l.id === selectedLang)?.label || ''} Songs</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -514,13 +621,22 @@ export default function Music() {
                         <h4 className="text-sm sm:text-base font-bold text-white font-outfit">{chart.title}</h4>
                         {chart.subtitle && <p className="text-[11px] text-gray-500">{chart.subtitle}</p>}
                       </div>
-                      <button
-                        onClick={() => { if (chart.songs.length > 0) playQueue(chart.songs, 0); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accentCyan/10 hover:bg-accentCyan/20 text-accentCyan border border-accentCyan/20 text-xs font-bold transition active:scale-95"
-                      >
-                        <Play className="w-3 h-3 fill-current" />
-                        <span>Play All</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleViewMoreChart(chart.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white border border-white/10 text-xs font-bold transition active:scale-95"
+                        >
+                          <span>View More</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => { if (chart.songs.length > 0) playQueue(chart.songs, 0); }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accentCyan/10 hover:bg-accentCyan/20 text-accentCyan border border-accentCyan/20 text-xs font-bold transition active:scale-95"
+                        >
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>Play All</span>
+                        </button>
+                      </div>
                     </div>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
                       {chart.songs.map((s, idx) => {

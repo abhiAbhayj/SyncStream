@@ -964,6 +964,14 @@ export const getCatalog = async (req, res) => {
           media_type: 'manga'
         };
       });
+    } else if (type === 'music') {
+      const musicItems = await getTrendingMusicDirect(24);
+      results = musicItems.map(s => ({
+        ...s,
+        poster_path: s.image,
+        vote_average: '9.0',
+        media_type: 'music'
+      }));
     }
 
     res.json({ results, page, category, type });
