@@ -462,21 +462,28 @@ export const searchMusic = async (req, res) => {
   // Smart candidate queries
   const candidateQueries = [];
 
-  // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar / Spelling variations
-  if (/wild\s*theme|om\s*chapter|om\s*1|sai\s*ab[hy|hay|ay]+a?n+k+a?r|ab[hy|hay|ay]+a?n+k+a?r|katchi\s*sera|aasa\s*kooda|radhimaa|pavazha\s*malli/i.test(rawQuery)) {
+  // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar
+  if (/wild\s*theme|om\s*chapter|sai\s*abhyankkar/i.test(rawQuery)) {
     candidateQueries.push('The Wild Theme OM Chapter 1');
     candidateQueries.push('Sai Abhyankkar OM Chapter 1');
-    candidateQueries.push('Sai Abhyankkar');
-    candidateQueries.push('Sai Abyankkar');
-    candidateQueries.push('Alaakaa Loova Sai Abhyankkar');
-    candidateQueries.push('Katchi Sera Sai Abhyankkar');
-    candidateQueries.push('Aasa Kooda Sai Abhyankkar');
-    candidateQueries.push('Radhimaa Sai Abhyankkar');
-    candidateQueries.push('Pavazha Malli Sai Abhyankkar');
-    candidateQueries.push('Dude Sai Abhyankkar');
-    candidateQueries.push('Karuppu Sai Abhyankkar');
+    candidateQueries.push('OM Chapter 1 Udhiram');
+    candidateQueries.push('OM Chapter 1');
     candidateQueries.push('Sai Abhyankkar Hits');
-  } else if (/sanjith|sanjith\s*hegde|sanjeeth|hegde/i.test(rawQuery)) {
+    candidateQueries.push('The Wild Theme');
+  }
+
+  // Special match for Sonu Nigam
+  if (/sonu\s*nigam/i.test(rawQuery)) {
+    candidateQueries.push('Sonu Nigam');
+    candidateQueries.push('Sonu Nigam Hits');
+    candidateQueries.push('Sonu Nigam Romantic');
+    candidateQueries.push('Sonu Nigam Kannada');
+    candidateQueries.push('Sonu Nigam Hindi');
+    candidateQueries.push('Sonu Nigam All Time Hits');
+  }
+
+  // Special match for Sanjith Hegde
+  if (/sanjith\s*hegde/i.test(rawQuery)) {
     candidateQueries.push('Sanjith Hegde Kannada');
     candidateQueries.push('Sanjith Hegde Hits');
     candidateQueries.push('Gunu Gunuguva Sanjith Hegde');
@@ -487,65 +494,79 @@ export const searchMusic = async (req, res) => {
     candidateQueries.push('Sanjith Hegde Telugu');
     candidateQueries.push('Sanjith Hegde Tamil');
     candidateQueries.push('Sanjith Hegde');
-  } else if (/sonu\s*nigam|sonu\s*neegam|sonu/i.test(rawQuery)) {
-    candidateQueries.push('Sonu Nigam');
-    candidateQueries.push('Sonu Nigam Hits');
-    candidateQueries.push('Sonu Nigam Romantic');
-    candidateQueries.push('Sonu Nigam Kannada');
-    candidateQueries.push('Sonu Nigam Hindi');
-    candidateQueries.push('Sonu Nigam All Time Hits');
-  } else if (/arijit\s*singh|arijit/i.test(rawQuery)) {
+  }
+
+  // Special match for Arijit Singh
+  if (/arijit\s*singh/i.test(rawQuery)) {
     candidateQueries.push('Arijit Singh');
     candidateQueries.push('Arijit Singh Hits');
     candidateQueries.push('Arijit Singh Romantic');
     candidateQueries.push('Arijit Singh Best Of');
-  } else if (/sid\s*sriram|sriram/i.test(rawQuery)) {
+  }
+
+  // Special match for Sid Sriram
+  if (/sid\s*sriram/i.test(rawQuery)) {
     candidateQueries.push('Sid Sriram');
     candidateQueries.push('Sid Sriram Telugu');
     candidateQueries.push('Sid Sriram Tamil');
     candidateQueries.push('Sid Sriram Hits');
-  } else if (/shreya\s*ghoshal|shreya/i.test(rawQuery)) {
+  }
+
+  // Special match for Shreya Ghoshal
+  if (/shreya\s*ghoshal/i.test(rawQuery)) {
     candidateQueries.push('Shreya Ghoshal');
     candidateQueries.push('Shreya Ghoshal Hits');
     candidateQueries.push('Shreya Ghoshal Romantic');
     candidateQueries.push('Shreya Ghoshal Best Of');
-  } else if (/anirudh|anirudh\s*ravichander/i.test(rawQuery)) {
+  }
+
+  // Special match for Anirudh Ravichander
+  if (/anirudh/i.test(rawQuery)) {
     candidateQueries.push('Anirudh Ravichander');
     candidateQueries.push('Anirudh Tamil Hits');
     candidateQueries.push('Anirudh Telugu Hits');
     candidateQueries.push('Anirudh Hits');
-  } else if (/a\.?\s*r\.?\s*rahman|ar\s*rahman|rahman/i.test(rawQuery)) {
+  }
+
+  // Special match for A.R. Rahman
+  if (/rahman/i.test(rawQuery)) {
     candidateQueries.push('AR Rahman');
     candidateQueries.push('AR Rahman Tamil Hits');
     candidateQueries.push('AR Rahman Hindi Hits');
     candidateQueries.push('AR Rahman Hits');
-  } else if (/ravi\s*basrur|basrur/i.test(rawQuery)) {
+  }
+
+  // Special match for Ravi Basrur
+  if (/ravi\s*basrur/i.test(rawQuery)) {
     candidateQueries.push('Ravi Basrur');
     candidateQueries.push('Ravi Basrur KGF Salaar');
     candidateQueries.push('Ravi Basrur Hits');
     candidateQueries.push('Ravi Basrur Kannada');
-  } else if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson|blues\s*rap/i.test(rawQuery)) {
+  }
+
+  // Special match for Hunt You Down / Teach You a Lesson / Lee Richardson / Blues Rap
+  if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson|blues\s*rap/i.test(rawQuery)) {
     candidateQueries.push('Hunt You Down Richardson');
     candidateQueries.push('Lee Richardson Tom Ford');
     candidateQueries.push('Teach You A Lesson');
     candidateQueries.push('Lee Richardson Blues Rap');
     candidateQueries.push('Lee Richardson');
-  } else {
-    // Clean candidate queries for natural language searches
-    const cleaned = rawQuery
-      .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    
-    const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
+  }
 
-    candidateQueries.push(rawQuery);
-    candidateQueries.push(`${rawQuery} Hits`);
-    candidateQueries.push(`${rawQuery} Songs`);
-    if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
-    if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
-      candidateQueries.push(shortKeywords);
-    }
+  // Clean candidate queries for natural language searches
+  const cleaned = rawQuery
+    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
+
+  candidateQueries.push(rawQuery);
+  candidateQueries.push(`${rawQuery} Hits`);
+  candidateQueries.push(`${rawQuery} Songs`);
+  if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
+  if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
+    candidateQueries.push(shortKeywords);
   }
 
   try {
