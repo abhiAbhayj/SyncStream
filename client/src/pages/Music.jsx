@@ -155,6 +155,7 @@ export default function Music() {
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-400 py-0.5">
             <span className="font-semibold text-gray-500 shrink-0">Popular:</span>
             {[
+              'Hunt You Down',
               'Imagine Dragons',
               'Lady Gaga',
               'Alan Walker',

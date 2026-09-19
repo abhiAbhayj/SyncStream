@@ -16,6 +16,134 @@ const decodeHtml = (str) => {
     .replace(/&copy;/g, '©');
 };
 
+// ── Transliteration / Romanization Engine (Converts Hangul, Indic, Kana scripts to English Latin text) ──
+const KANA_MAP = {
+  'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+  'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+  'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+  'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+  'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+  'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+  'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+  'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+  'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+  'わ': 'wa', 'を': 'wo', 'ん': 'n',
+  'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
+  'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
+  'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'де': 'de', 'ど': 'do',
+  'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
+  'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
+  'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
+  'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko',
+  'サ': 'sa', 'シ': 'shi', 'ス': 'su', 'セ': 'se', 'ソ': 'so',
+  'タ': 'ta', 'チ': 'chi', 'ツ': 'tsu', 'テ': 'te', 'ト': 'to',
+  'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ネ': 'ne', 'ノ': 'no',
+  'ハ': 'ha', 'ヒ': 'hi', 'フ': 'fu', 'ヘ': 'he', 'ホ': 'ho',
+  'マ': 'ma', 'ミ': 'mi', 'ム': 'mu', 'メ': 'me', 'モ': 'mo',
+  'ヤ': 'ya', 'ユ': 'yu', 'ヨ': 'yo',
+  'ラ': 'ra', 'リ': 'ri', 'ル': 'ru', 'レ': 're', 'ロ': 'ro',
+  'ワ': 'wa', 'ヲ': 'wo', 'ン': 'n'
+};
+
+const HANGUL_CHO = ['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'];
+const HANGUL_JUNG = ['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'];
+const HANGUL_JONG = ['','k','k','ks','n','nj','nh','d','l','lg','lm','lb','ls','lt','lp','lh','m','p','ps','s','ss','ng','j','ch','k','t','p','h'];
+
+const INDIC_OFFSETS = {
+  devanagari: 0x0900,
+  bengali: 0x0980,
+  gurmukhi: 0x0A00,
+  gujarati: 0x0A80,
+  oriya: 0x0B00,
+  tamil: 0x0B80,
+  telugu: 0x0C00,
+  kannada: 0x0C80,
+  malayalam: 0x0D00
+};
+
+const INDIC_MAP = {
+  0x01: 'n', 0x02: 'm', 0x03: 'h',
+  0x05: 'a', 0x06: 'aa', 0x07: 'i', 0x08: 'ee', 0x09: 'u', 0x0A: 'oo', 0x0B: 'ri', 0x0C: 'li',
+  0x0E: 'e', 0x0F: 'e', 0x10: 'ai', 0x11: 'o', 0x12: 'o', 0x13: 'au', 0x14: 'au',
+  0x15: 'k', 0x16: 'kh', 0x17: 'g', 0x18: 'gh', 0x19: 'ng',
+  0x1A: 'ch', 0x1B: 'chh', 0x1C: 'j', 0x1D: 'jh', 0x1E: 'ny',
+  0x1F: 't', 0x20: 'th', 0x21: 'd', 0x22: 'dh', 0x23: 'n',
+  0x24: 't', 0x25: 'th', 0x26: 'd', 0x27: 'dh', 0x28: 'n', 0x29: 'nn',
+  0x2A: 'p', 0x2B: 'ph', 0x2C: 'b', 0x2D: 'bh', 0x2E: 'm',
+  0x2F: 'y', 0x30: 'r', 0x31: 'rr', 0x32: 'l', 0x33: 'l', 0x34: 'll', 0x35: 'v',
+  0x36: 'sh', 0x37: 'sh', 0x38: 's', 0x39: 'h',
+  0x3E: 'aa', 0x3F: 'i', 0x40: 'ee', 0x41: 'u', 0x42: 'oo', 0x43: 'ri', 0x44: 'rri',
+  0x46: 'e', 0x47: 'e', 0x48: 'ai', 0x4A: 'o', 0x4B: 'o', 0x4C: 'au',
+  0x4D: ''
+};
+
+export const toEnglishText = (text) => {
+  if (!text) return '';
+  let out = '';
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const code = text.charCodeAt(i);
+
+    // 1. Hangul (Korean) -> Revised Romanization English
+    if (code >= 0xAC00 && code <= 0xD7A3) {
+      const idx = code - 0xAC00;
+      const cho = Math.floor(idx / 588);
+      const jung = Math.floor((idx % 588) / 28);
+      const jong = idx % 28;
+      out += HANGUL_CHO[cho] + HANGUL_JUNG[jung] + HANGUL_JONG[jong];
+      continue;
+    }
+
+    // 2. Japanese Kana -> Romaji
+    if (KANA_MAP[char]) {
+      out += KANA_MAP[char];
+      continue;
+    }
+
+    // 3. Indic Scripts (Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi)
+    let isIndic = false;
+    for (const [, base] of Object.entries(INDIC_OFFSETS)) {
+      if (code >= base && code <= base + 0x7F) {
+        const offset = code - base;
+        const nextCode = i + 1 < text.length ? text.charCodeAt(i + 1) : 0;
+        const nextOffset = nextCode >= base && nextCode <= base + 0x7F ? nextCode - base : -1;
+        const isConsonant = (offset >= 0x15 && offset <= 0x39);
+        const charStr = INDIC_MAP[offset] !== undefined ? INDIC_MAP[offset] : '';
+
+        if (isConsonant) {
+          out += charStr;
+          if (nextOffset === 0x4D) {
+            // Halant (virama), omit implicit 'a'
+          } else if (nextOffset >= 0x3E && nextOffset <= 0x4C) {
+            // Followed by vowel sign, omit implicit 'a'
+          } else {
+            out += 'a';
+          }
+        } else {
+          out += charStr;
+        }
+        isIndic = true;
+        break;
+      }
+    }
+    if (isIndic) continue;
+
+    out += char;
+  }
+  return out;
+};
+
+// Filter out instrumental, karaoke, tribute, and cover garbage unless user requested it
+const isInstrumentalOrCover = (song, userQuery = '') => {
+  if (!song) return false;
+  const q = (userQuery || '').toLowerCase();
+  if (q.includes('instrumental') || q.includes('karaoke') || q.includes('tribute') || q.includes('cover')) {
+    return false;
+  }
+  const text = `${song.title || ''} ${song.album || ''} ${song.artist || ''} ${song.subtitle || ''}`.toLowerCase();
+  return /\b(instrumental|karaoke|tribute|piano version|guitar version|lofi version|lo-fi instrumental|bgm|backing track|ringtone|originally performed by|melody karaoke|zzang karaoke)\b/i.test(text);
+};
+
 // Decrypt DES-ECB encrypted media URL to direct 320kbps stream
 const decryptMediaUrl = (encryptedMediaUrl) => {
   if (!encryptedMediaUrl) return null;
@@ -73,7 +201,7 @@ const formatSong = (song) => {
   return {
     id: song.id || song.song_id,
     title: decodeHtml(song.title || song.song || 'Unknown Track'),
-    artist: decodeHtml(artistName || 'Unknown Artist'),
+    artist: decodeHtml(artistName || song.subtitle || 'Unknown Artist'),
     album: decodeHtml(moreInfo.album || song.album || 'Single'),
     album_id: moreInfo.album_id || song.album_id || null,
     duration: durationSec,
@@ -88,35 +216,108 @@ const formatSong = (song) => {
   };
 };
 
-// Language specific trending search queries (rock, kpop, hindi, anime, english, kannada, malayalam, telugu, tamil, marathi)
+// Language specific trending search queries (Clean vocal artist hits)
 const TRENDING_QUERIES = {
   all: [
     'Arijit Singh Hits',
-    'Imagine Dragons Hits',
-    'Lady Gaga Hits',
-    'Alan Walker Hits',
-    'DJ Snake Hits',
-    'BLACKPINK Hits',
+    'Imagine Dragons',
+    'Lady Gaga',
+    'Alan Walker',
+    'DJ Snake',
+    'BLACKPINK',
     'Harrdy Sandhu Hits',
     'Guru Randhawa Hits',
     'Hanumankind Hits',
+    'Hunt You Down Richardson',
     'Sia Hits',
-    'Ed Sheeran Hits',
-    'Ellie Goulding Hits',
+    'Ed Sheeran',
+    'Ellie Goulding',
     'Ravi Basrur Hits',
     'Aish Songs'
   ],
-  rock: ['Imagine Dragons Hits', 'Linkin Park', 'Queen Rock', 'Coldplay Rock', 'Lee Richardson Rock', 'Bon Jovi Rock'],
-  kpop: ['BLACKPINK Hits', 'BTS Hits', 'Stray Kids Hits', 'NewJeans K-Pop', 'TWICE Hits'],
-  korean: ['BLACKPINK Hits', 'BTS Hits', 'Stray Kids', 'NewJeans K-Pop'],
-  hindi: ['Arijit Singh Hits', 'Harrdy Sandhu Hits', 'Guru Randhawa Hits', 'Pritam Hits', 'Hanumankind Hits', 'Aish Songs', 'Shreya Ghoshal Hits'],
-  anime: ['Anime Opening OST', 'LiSA Anime', 'Kenshi Yonezu Anime', 'Naruto OST Opening'],
-  english: ['Lady Gaga Hits', 'Alan Walker Hits', 'DJ Snake Hits', 'Ed Sheeran Hits', 'Imagine Dragons Hits', 'Sia Hits', 'Ellie Goulding Hits', 'Taylor Swift Hits', 'The Weeknd Hits'],
-  kannada: ['Ravi Basrur KGF Salaar', 'Kantara Songs', 'Sonu Nigam Kannada Hits', 'Vijay Prakash Kannada'],
-  malayalam: ['Sushin Shyam Hits', 'Malayalam Film Hits', 'Jassie Gift Malayalam', 'Vineeth Sreenivasan Hits', 'Hanumankind'],
-  telugu: ['Ravi Basrur Telugu', 'DSP Telugu Hits', 'Thaman S Telugu Hits', 'Anirudh Telugu Hits', 'Pushpa Telugu Songs'],
-  tamil: ['Anirudh Tamil Hits', 'AR Rahman Tamil Hits', 'Harris Jayaraj Tamil', 'Ravi Basrur Tamil', 'Yuvan Shankar Raja Tamil'],
-  marathi: ['Ajay Atul Marathi Hits', 'Sairat Marathi Songs', 'Avadhoot Gupte Marathi', 'Swapnil Bandodkar Marathi']
+  rock: [
+    'Imagine Dragons',
+    'Linkin Park',
+    'Queen Bohemian Rhapsody',
+    'Coldplay',
+    'Hunt You Down Richardson',
+    'Lee Richardson',
+    'Bon Jovi Rock'
+  ],
+  kpop: [
+    'BLACKPINK',
+    'BTS Dynamite',
+    'Stray Kids',
+    'NewJeans Hype Boy',
+    'TWICE Feel Special'
+  ],
+  korean: [
+    'BLACKPINK',
+    'BTS Dynamite',
+    'Stray Kids',
+    'NewJeans Hype Boy',
+    'TWICE Feel Special'
+  ],
+  hindi: [
+    'Arijit Singh Hits',
+    'Harrdy Sandhu Hits',
+    'Guru Randhawa Hits',
+    'Pritam Hits',
+    'Hanumankind Hits',
+    'Aish Songs',
+    'Shreya Ghoshal Hits'
+  ],
+  anime: [
+    'Anime Opening OST',
+    'LiSA Gurenge',
+    'Kenshi Yonezu Peace Sign',
+    'Naruto Blue Bird Opening',
+    'Attack on Titan Opening'
+  ],
+  english: [
+    'Lady Gaga',
+    'Alan Walker',
+    'DJ Snake',
+    'Ed Sheeran',
+    'Imagine Dragons',
+    'Sia',
+    'Ellie Goulding',
+    'Taylor Swift',
+    'The Weeknd'
+  ],
+  kannada: [
+    'Ravi Basrur KGF Salaar',
+    'Kantara Songs',
+    'Sonu Nigam Kannada Hits',
+    'Vijay Prakash Kannada'
+  ],
+  malayalam: [
+    'Sushin Shyam Hits',
+    'Malayalam Film Hits',
+    'Jassie Gift Malayalam',
+    'Vineeth Sreenivasan Hits',
+    'Hanumankind'
+  ],
+  telugu: [
+    'Ravi Basrur Telugu',
+    'DSP Telugu Hits',
+    'Thaman S Telugu Hits',
+    'Anirudh Telugu Hits',
+    'Pushpa Telugu Songs'
+  ],
+  tamil: [
+    'Anirudh Tamil Hits',
+    'AR Rahman Tamil Hits',
+    'Harris Jayaraj Tamil',
+    'Ravi Basrur Tamil',
+    'Yuvan Shankar Raja Tamil'
+  ],
+  marathi: [
+    'Ajay Atul Marathi Hits',
+    'Sairat Marathi Songs',
+    'Avadhoot Gupte Marathi',
+    'Swapnil Bandodkar Marathi'
+  ]
 };
 
 // Helper: fetch songs from JioSaavn by query
@@ -126,7 +327,9 @@ const fetchSaavnSongs = async (query, n = 8) => {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
     timeout: 10000
   });
-  return (response.data.results || []).map(formatSong).filter(s => s && s.audio_url);
+  return (response.data.results || [])
+    .map(formatSong)
+    .filter(s => s && s.audio_url && !isInstrumentalOrCover(s, query));
 };
 
 // Delay helper to avoid JioSaavn rate limiting
@@ -151,7 +354,9 @@ export const getTrendingMusic = async (req, res) => {
           timeout: 8000
         });
         const rawResults = response.data.results || [];
-        return rawResults.map(formatSong).filter(s => s && s.audio_url && s.duration > 30 && s.duration < 700);
+        return rawResults
+          .map(formatSong)
+          .filter(s => s && s.audio_url && s.duration > 30 && s.duration < 700 && !isInstrumentalOrCover(s, q));
       } catch (err) {
         return [];
       }
@@ -195,15 +400,26 @@ export const searchMusic = async (req, res) => {
   }
 
   const rawQuery = query.trim();
-  // Generate cleaned candidate queries for complex searches like "hunt you down a rock music from teach you a lesson"
+
+  // Smart candidate queries
+  const candidateQueries = [];
+
+  // Special match for Hunt You Down / Teach You a Lesson / Lee Richardson
+  if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson/i.test(rawQuery)) {
+    candidateQueries.push('Hunt You Down Richardson');
+    candidateQueries.push('Lee Richardson Hunt You Down');
+    candidateQueries.push('Lee Richardson Tom Ford');
+  }
+
+  // Clean candidate queries for complex searches
   const cleaned = rawQuery
-    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|rock|pop|soundtrack)\b/gi, ' ')
+    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|soundtrack)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   
   const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
 
-  const candidateQueries = [rawQuery];
+  candidateQueries.push(rawQuery);
   if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
   if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
     candidateQueries.push(shortKeywords);
@@ -215,7 +431,7 @@ export const searchMusic = async (req, res) => {
 
     for (const q of candidateQueries) {
       let searchQuery = q;
-      if (language && language !== 'all') {
+      if (language && language !== 'all' && !searchQuery.toLowerCase().includes(language)) {
         searchQuery += ` ${language}`;
       }
 
@@ -231,7 +447,7 @@ export const searchMusic = async (req, res) => {
       const rawResults = response.data.results || [];
       const validSongs = rawResults
         .map(formatSong)
-        .filter(s => s && s.audio_url);
+        .filter(s => s && s.audio_url && !isInstrumentalOrCover(s, rawQuery));
 
       if (validSongs.length > 0) {
         finalSongs = validSongs;
@@ -240,11 +456,23 @@ export const searchMusic = async (req, res) => {
       }
     }
 
+    // Deduplicate
+    const seen = new Set();
+    const dedupedSongs = [];
+    for (const s of finalSongs) {
+      const key = `${(s.title || '').toLowerCase()}_${(s.artist || '').toLowerCase()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
+        seen.add(key);
+        seen.add(s.id);
+        dedupedSongs.push(s);
+      }
+    }
+
     res.json({
       query: rawQuery,
       page,
-      total: totalCount,
-      songs: finalSongs
+      total: totalCount || dedupedSongs.length,
+      songs: dedupedSongs
     });
   } catch (error) {
     console.error('[Music Controller Search Error]:', error.message);
@@ -253,8 +481,6 @@ export const searchMusic = async (req, res) => {
 };
 
 // 3. Get Curated Regional Playlists / Charts
-// IMPORTANT: Sequential fetching with delays to avoid JioSaavn rate limiting.
-// Parallel Promise.all() caused rate limiting which returned garbage mixed results.
 export const getMusicCharts = async (req, res) => {
   const CHART_CATEGORIES = [
     {
@@ -267,13 +493,13 @@ export const getMusicCharts = async (req, res) => {
       id: 'rock',
       title: '🎸 Rock Anthems',
       subtitle: 'Greatest classic and modern rock tracks',
-      query: 'Best Rock Songs Classic Modern Rock Hits Band'
+      query: 'Imagine Dragons Linkin Park Queen Rock Hits'
     },
     {
       id: 'kpop',
       title: '🇰🇷 K-Pop Worldwide',
       subtitle: 'Global K-Pop chart toppers',
-      query: 'BTS BLACKPINK Stray Kids K-Pop Hits 2026'
+      query: 'BLACKPINK BTS Stray Kids NewJeans TWICE'
     },
     {
       id: 'bollywood',
@@ -285,7 +511,7 @@ export const getMusicCharts = async (req, res) => {
       id: 'anime',
       title: '🌸 Anime & J-Pop',
       subtitle: 'Japanese anime openings & OSTs',
-      query: 'Anime Opening Song Japanese OST Naruto'
+      query: 'Anime Opening Song Japanese OST Naruto LiSA'
     },
     {
       id: 'global_pop',
@@ -327,7 +553,6 @@ export const getMusicCharts = async (req, res) => {
 
   const charts = [];
 
-  // Sequential fetching — one at a time with 250ms delay to avoid rate limiting
   for (const cat of CHART_CATEGORIES) {
     try {
       const songs = await fetchSaavnSongs(cat.query, 8);
@@ -341,7 +566,6 @@ export const getMusicCharts = async (req, res) => {
       console.warn(`[Charts] Failed to fetch ${cat.id}:`, e.message);
       charts.push({ id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [] });
     }
-    // 250ms gap between each request
     await delay(250);
   }
 
@@ -373,7 +597,7 @@ export const getSongDetails = async (req, res) => {
       const recRes = await axios.get(recUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 6000 });
       recommendations = (recRes.data.results || [])
         .map(formatSong)
-        .filter(s => s && s.audio_url && s.id !== formatted.id)
+        .filter(s => s && s.audio_url && s.id !== formatted.id && !isInstrumentalOrCover(s, formatted.artist))
         .slice(0, 6);
     } catch (e) {
       // Recommendations non-blocking
@@ -389,7 +613,7 @@ export const getSongDetails = async (req, res) => {
   }
 };
 
-// 5. Get Lyrics (Synced & Plain) via LRCLIB & JioSaavn
+// 5. Get Lyrics (Synced & Plain) Transliterated into English Latin Text
 export const getLyrics = async (req, res) => {
   const { title, artist, duration, songId } = req.query;
 
@@ -416,7 +640,7 @@ export const getLyrics = async (req, res) => {
         if (!match) return null;
         return {
           time: parseInt(match[1], 10) * 60 + parseFloat(match[2]),
-          text: match[3].trim()
+          text: toEnglishText(match[3].trim())
         };
       })
       .filter(Boolean);
@@ -439,7 +663,7 @@ export const getLyrics = async (req, res) => {
           has_lyrics: true,
           synced: parsedLines.length > 0,
           syncedLyrics: parsedLines,
-          plainLyrics: lrcRes.data.plainLyrics || '',
+          plainLyrics: toEnglishText(lrcRes.data.plainLyrics || ''),
           source: 'LRCLIB'
         });
       }
@@ -460,7 +684,7 @@ export const getLyrics = async (req, res) => {
           has_lyrics: true,
           synced: parsedLines.length > 0,
           syncedLyrics: parsedLines,
-          plainLyrics: firstMatch.plainLyrics || '',
+          plainLyrics: toEnglishText(firstMatch.plainLyrics || ''),
           source: 'LRCLIB'
         });
       }
@@ -481,7 +705,7 @@ export const getLyrics = async (req, res) => {
           has_lyrics: true,
           synced: parsedLines.length > 0,
           syncedLyrics: parsedLines,
-          plainLyrics: firstMatch.plainLyrics || '',
+          plainLyrics: toEnglishText(firstMatch.plainLyrics || ''),
           source: 'LRCLIB'
         });
       }
@@ -502,7 +726,7 @@ export const getLyrics = async (req, res) => {
             has_lyrics: true,
             synced: false,
             syncedLyrics: [],
-            plainLyrics: rawPlain,
+            plainLyrics: toEnglishText(rawPlain),
             source: 'JioSaavn'
           });
         }
