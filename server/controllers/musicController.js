@@ -184,12 +184,18 @@ const formatSong = (song) => {
   const encryptedUrl = moreInfo.encrypted_media_url || song.encrypted_media_url;
   const audioUrl = decryptMediaUrl(encryptedUrl);
 
-  // Extract artist string
-  let artistName = moreInfo.music || song.music || '';
-  if (!artistName && moreInfo.artistMap?.primary_artists?.length) {
+  // Extract artist string (prefer primary artists / singers, fall back to music director)
+  let artistName = '';
+  if (moreInfo.artistMap?.primary_artists?.length) {
     artistName = moreInfo.artistMap.primary_artists.map(a => a.name).join(', ');
-  } else if (!artistName && moreInfo.singers) {
+  } else if (moreInfo.singers) {
     artistName = moreInfo.singers;
+  } else if (moreInfo.music) {
+    artistName = moreInfo.music;
+  } else if (song.music) {
+    artistName = song.music;
+  } else if (song.subtitle) {
+    artistName = song.subtitle;
   }
 
   const durationSec = parseInt(moreInfo.duration || song.duration || '0', 10);
@@ -466,53 +472,71 @@ export const searchMusic = async (req, res) => {
   if (/wild\s*theme|om\s*chapter|sai\s*abhyankkar/i.test(rawQuery)) {
     candidateQueries.push('The Wild Theme OM Chapter 1');
     candidateQueries.push('Sai Abhyankkar OM Chapter 1');
-    candidateQueries.push('OM Chapter 1 Udhiram');
-    candidateQueries.push('OM Chapter 1');
+    candidateQueries.push('OM Chapter 1 Udhiram Sai Abhyankkar');
+    candidateQueries.push('Sai Abhyankkar');
+    candidateQueries.push('Katchi Sera Sai Abhyankkar');
+    candidateQueries.push('Aasa Kooda Sai Abhyankkar');
+    candidateQueries.push('Radhimaa Sai Abhyankkar');
+    candidateQueries.push('Pavazha Malli Sai Abhyankkar');
+    candidateQueries.push('Dude Sai Abhyankkar');
     candidateQueries.push('Sai Abhyankkar Hits');
-    candidateQueries.push('The Wild Theme');
-  }
-
-  // Special match for Sonu Nigam
-  if (/sonu\s*nigam/i.test(rawQuery)) {
+  } else if (/sanjith\s*hegde/i.test(rawQuery)) {
+    candidateQueries.push('Sanjith Hegde Kannada');
+    candidateQueries.push('Sanjith Hegde Hits');
+    candidateQueries.push('Gunu Gunuguva Sanjith Hegde');
+    candidateQueries.push('Kush Kush Sanjith Hegde');
+    candidateQueries.push('Shaakuntle Sanjith Hegde');
+    candidateQueries.push('Marali Manasaagide Sanjith Hegde');
+    candidateQueries.push('Soul Of Dia Sanjith Hegde');
+    candidateQueries.push('Sanjith Hegde Telugu');
+    candidateQueries.push('Sanjith Hegde Tamil');
+    candidateQueries.push('Sanjith Hegde');
+  } else if (/sonu\s*nigam/i.test(rawQuery)) {
     candidateQueries.push('Sonu Nigam');
     candidateQueries.push('Sonu Nigam Hits');
     candidateQueries.push('Sonu Nigam Romantic');
     candidateQueries.push('Sonu Nigam Kannada');
+    candidateQueries.push('Sonu Nigam Hindi');
     candidateQueries.push('Sonu Nigam All Time Hits');
-  }
-
-  // Special match for Sanjith Hegde
-  if (/sanjith\s*hegde/i.test(rawQuery)) {
-    candidateQueries.push('Sanjith Hegde');
-    candidateQueries.push('Sanjith Hegde Hits');
-    candidateQueries.push('Sanjith Hegde Kannada');
-    candidateQueries.push('Sanjith Hegde Telugu');
-    candidateQueries.push('Sanjith Hegde Songs');
-  }
-
-  // Special match for Hunt You Down / Teach You a Lesson / Lee Richardson / Blues Rap
-  if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson|blues\s*rap/i.test(rawQuery)) {
+  } else if (/arijit\s*singh/i.test(rawQuery)) {
+    candidateQueries.push('Arijit Singh');
+    candidateQueries.push('Arijit Singh Hits');
+    candidateQueries.push('Arijit Singh Romantic');
+    candidateQueries.push('Arijit Singh 2026');
+    candidateQueries.push('Arijit Singh Best Of');
+  } else if (/sid\s*sriram/i.test(rawQuery)) {
+    candidateQueries.push('Sid Sriram');
+    candidateQueries.push('Sid Sriram Telugu');
+    candidateQueries.push('Sid Sriram Tamil');
+    candidateQueries.push('Sid Sriram Hits');
+    candidateQueries.push('Sid Sriram Kannada');
+  } else if (/ravi\s*basrur/i.test(rawQuery)) {
+    candidateQueries.push('Ravi Basrur');
+    candidateQueries.push('Ravi Basrur KGF Salaar');
+    candidateQueries.push('Ravi Basrur Hits');
+    candidateQueries.push('Ravi Basrur Kannada');
+  } else if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson|blues\s*rap/i.test(rawQuery)) {
     candidateQueries.push('Hunt You Down Richardson');
     candidateQueries.push('Lee Richardson Tom Ford');
     candidateQueries.push('Teach You A Lesson');
     candidateQueries.push('Lee Richardson Blues Rap');
     candidateQueries.push('Lee Richardson');
-  }
+  } else {
+    // Clean candidate queries for natural language searches
+    const cleaned = rawQuery
+      .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
 
-  // Clean candidate queries for natural language searches
-  const cleaned = rawQuery
-    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
-
-  candidateQueries.push(rawQuery);
-  candidateQueries.push(`${rawQuery} Hits`);
-  candidateQueries.push(`${rawQuery} Songs`);
-  if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
-  if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
-    candidateQueries.push(shortKeywords);
+    candidateQueries.push(rawQuery);
+    candidateQueries.push(`${rawQuery} Hits`);
+    candidateQueries.push(`${rawQuery} Songs`);
+    if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
+    if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
+      candidateQueries.push(shortKeywords);
+    }
   }
 
   try {
