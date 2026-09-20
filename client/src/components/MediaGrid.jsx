@@ -45,7 +45,7 @@ const TYPE_CONFIG = {
 };
 
 export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
-  const { playTrack, currentTrack, isPlaying } = useMusic();
+  const { playTrack, currentTrack, isPlaying, togglePlay } = useMusic();
   if (!items || items.length === 0) {
     return (
       <div className="py-16 text-center">

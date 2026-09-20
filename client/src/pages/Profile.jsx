@@ -1,29 +1,155 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Settings, Check, Sparkles, LogOut, Loader2 } from 'lucide-react';
+import { User, Settings, Check, Sparkles, LogOut, Loader2, Upload, Image as ImageIcon, RefreshCw, X, Palette, Bot, Gamepad2, Smile, Wand2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const ALL_THEME_CLASSES = [
+  'theme-inferno',
+  'theme-emerald',
+  'theme-cyber',
+  'theme-tokyo',
+  'theme-sunset',
+  'theme-amethyst',
+  'theme-matrix'
+];
+
+const THEME_OPTIONS = [
+  {
+    id: 'ocean',
+    name: '🌊 Deep Ocean',
+    desc: 'Electric blue & violet glow',
+    swatch: ['#63d2ff', '#9564ff', '#ff55ad'],
+  },
+  {
+    id: 'inferno',
+    name: '🔥 Inferno',
+    desc: 'Fire, lava & molten gold',
+    swatch: ['#ff3719', '#ff8c28', '#ffc800'],
+  },
+  {
+    id: 'emerald',
+    name: '🌿 Emerald',
+    desc: 'Dark forest & neon mint',
+    swatch: ['#32f0a0', '#00c878', '#8cff64'],
+  },
+  {
+    id: 'cyber',
+    name: '⚡ Cyber Gold',
+    desc: 'Gunmetal dark & pure gold',
+    swatch: ['#ffcd00', '#dc8500', '#fff08c'],
+  },
+  {
+    id: 'tokyo',
+    name: '🌸 Tokyo Neon',
+    desc: 'Tokyo plum & hot cyber pink',
+    swatch: ['#ff2a85', '#00f5d4', '#fee440'],
+  },
+  {
+    id: 'sunset',
+    name: '🌇 Sunset Horizon',
+    desc: 'Outrun coral & dusk magenta',
+    swatch: ['#ff5e62', '#e056fd', '#ff9966'],
+  },
+  {
+    id: 'amethyst',
+    name: '🔮 Amethyst Void',
+    desc: 'Royal velvet & violet fuchsia',
+    swatch: ['#8b5cf6', '#ec4899', '#c084fc'],
+  },
+  {
+    id: 'matrix',
+    name: '⚡ Phantom Matrix',
+    desc: 'Obsidian void & terminal lime',
+    swatch: ['#10b981', '#06b6d4', '#22c55e'],
+  },
+];
+
+const AVATAR_COLLECTIONS = {
+  bots: {
+    label: 'Cyber Bots',
+    icon: Bot,
+    items: [
+      { id: 'bot-optimus', name: 'Optimus', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus' },
+      { id: 'bot-shadow', name: 'Shadow', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Shadow' },
+      { id: 'bot-ruby', name: 'Ruby', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ruby' },
+      { id: 'bot-spike', name: 'Spike', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Spike' },
+      { id: 'bot-alpha', name: 'Alpha', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Alpha' },
+      { id: 'bot-matrix', name: 'Matrix', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Matrix' },
+      { id: 'bot-nexus', name: 'Nexus', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Nexus' },
+      { id: 'bot-titan', name: 'Titan', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Titan' }
+    ]
+  },
+  anime: {
+    label: 'Anime Personas',
+    icon: Wand2,
+    items: [
+      { id: 'ani-aoi', name: 'Aoi', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aoi' },
+      { id: 'ani-ren', name: 'Ren', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ren' },
+      { id: 'ani-sakura', name: 'Sakura', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sakura' },
+      { id: 'ani-ryu', name: 'Ryu', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ryu' },
+      { id: 'ani-kenji', name: 'Kenji', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kenji' },
+      { id: 'ani-kaori', name: 'Kaori', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kaori' },
+      { id: 'ani-yuki', name: 'Yuki', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Yuki' },
+      { id: 'ani-hikaru', name: 'Hikaru', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Hikaru' }
+    ]
+  },
+  pixel: {
+    label: 'Retro Pixel',
+    icon: Gamepad2,
+    items: [
+      { id: 'pix-hero', name: 'Pixel Hero', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelHero' },
+      { id: 'pix-arcade', name: 'Arcade84', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Arcade84' },
+      { id: 'pix-knight', name: 'Retro Knight', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=RetroKnight' },
+      { id: 'pix-byte', name: 'Byte', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Byte' },
+      { id: 'pix-voxel', name: 'Voxel', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Voxel' },
+      { id: 'pix-mage', name: 'Pixel Mage', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelMage' },
+      { id: 'pix-ninja', name: 'Pixel Ninja', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelNinja' },
+      { id: 'pix-chiptune', name: 'Chiptune', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Chiptune' }
+    ]
+  },
+  emojis: {
+    label: '3D Emojis',
+    icon: Smile,
+    items: [
+      { id: 'emo-sparky', name: 'Sparky', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Sparky' },
+      { id: 'emo-cosmo', name: 'Cosmo', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Cosmo' },
+      { id: 'emo-nova', name: 'Nova', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Nova' },
+      { id: 'emo-blaze', name: 'Blaze', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Blaze' },
+      { id: 'emo-aurora', name: 'Aurora', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Aurora' },
+      { id: 'emo-eclipse', name: 'Eclipse', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Eclipse' },
+      { id: 'emo-zenith', name: 'Zenith', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Zenith' },
+      { id: 'emo-pulse', name: 'Pulse', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Pulse' }
+    ]
+  }
+};
 
 export default function Profile() {
   const { user, updateProfile, logout } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const [username, setUsername] = useState(user?.username || '');
-  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar_url || '');
-  const [savedTheme, setSavedTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'ocean';
+  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus');
+  const [activeAvatarTab, setActiveAvatarTab] = useState('bots');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [isCustomUploaded, setIsCustomUploaded] = useState(() => {
+    return Boolean(user?.avatar_url && user.avatar_url.startsWith('data:image/'));
   });
+
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('syncstream_theme') || 'ocean';
   });
 
-  const ALL_THEME_CLASSES = ['theme-inferno', 'theme-emerald', 'theme-cyber'];
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Only select theme locally in state — do NOT auto-save to localStorage
+  // Live preview theme selection without persisting until save
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
   };
 
-  // Revert body classes to saved theme if navigating away without saving
+  // Revert body classes to saved theme if user leaves page without saving
   React.useEffect(() => {
     return () => {
       const currentPersisted = localStorage.getItem('syncstream_theme') || 'ocean';
@@ -33,19 +159,72 @@ export default function Profile() {
       }
     };
   }, []);
-  
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(null);
 
-  // Dicebear avatar templates with seed values
-  const AVATAR_SEEDS = [
-    'Optimus', 'Shadow', 'Ruby', 'Spike', 
-    'Alpha', 'Beta', 'Neon', 'Widget'
-  ];
+  // Handle image upload with canvas resizing (max 256x256, lightweight JPEG)
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const getDicebearUrl = (seed) => {
-    return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}`;
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file (PNG, JPG, WebP, etc.)');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image file is too large (max 10MB).');
+      return;
+    }
+
+    setUploadingImage(true);
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setSelectedAvatar(dataUrl);
+        setIsCustomUploaded(true);
+        setUploadingImage(false);
+      };
+      img.onerror = () => {
+        setError('Failed to process the uploaded image.');
+        setUploadingImage(false);
+      };
+      img.src = event.target.result;
+    };
+    reader.onerror = () => {
+      setError('Could not read image file.');
+      setUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSelectPresetAvatar = (avatarUrl) => {
+    setSelectedAvatar(avatarUrl);
+    setIsCustomUploaded(false);
   };
 
   const handleSave = async (e) => {
@@ -62,7 +241,6 @@ export default function Profile() {
 
     // 1. Save theme to localStorage and apply to DOM on explicit save
     localStorage.setItem('syncstream_theme', theme);
-    setSavedTheme(theme);
     ALL_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
     if (theme !== 'ocean') {
       document.body.classList.add(`theme-${theme}`);
@@ -74,9 +252,9 @@ export default function Profile() {
 
     if (res.success) {
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(() => setSuccess(false), 3500);
     } else {
-      setError(res.error);
+      setError(res.error || 'Failed to update profile settings.');
     }
   };
 
@@ -86,28 +264,28 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
+    <div className="max-w-4xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
       {/* Title */}
       <div className="space-y-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
-          <Settings className="w-8 h-8 text-accentPurple" />
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
+          <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-accentPurple" />
           Profile Customization
         </h1>
-        <p className="text-sm text-gray-400">
-          Modify your watch party credentials and choose your gaming bot identity.
+        <p className="text-xs sm:text-sm text-gray-400">
+          Upload custom photos, choose creative avatar personas, and style your dashboard theme.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-start">
         
-        {/* Left Side: Avatar Preview */}
-        <div className="md:col-span-1 glass-panel border border-darkBorder rounded-3xl p-6 text-center space-y-4 shadow-xl">
+        {/* Left Side: Avatar Preview & Actions */}
+        <div className="md:col-span-1 glass-panel border border-white/10 rounded-3xl p-5 sm:p-6 text-center space-y-4 shadow-xl">
           <div className="relative inline-block">
             <img
               src={selectedAvatar}
               alt="Profile avatar preview"
-              className="w-32 h-32 rounded-full border-2 border-accentCyan bg-darkBg object-cover mx-auto p-1 shadow-2xl"
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-accentCyan bg-darkBg object-cover mx-auto p-1 shadow-2xl"
             />
             <div className="absolute bottom-0 right-0 bg-accentPurple text-white p-2 rounded-full shadow-lg">
               <Sparkles className="w-4 h-4 animate-pulse" />
@@ -115,74 +293,146 @@ export default function Profile() {
           </div>
 
           <div className="space-y-1">
-            <h3 className="font-bold text-lg text-white">{user?.username}</h3>
-            <p className="text-xs text-gray-500 font-medium">Joined {new Date(user?.created_at).toLocaleDateString()}</p>
+            <h3 className="font-bold text-base sm:text-lg text-white truncate">{user?.username}</h3>
+            <p className="text-[11px] sm:text-xs text-gray-400 font-medium">
+              {isCustomUploaded ? '📸 Custom Uploaded Photo' : '🎨 Preset Identity'}
+            </p>
+            {user?.created_at && (
+              <p className="text-[10px] text-gray-500">Joined {new Date(user.created_at).toLocaleDateString()}</p>
+            )}
           </div>
 
-          <button
-            onClick={handleSignOut}
-            className="w-full py-2.5 rounded-xl border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs font-bold transition flex items-center justify-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out Account
-          </button>
+          {/* Quick Photo Upload Button */}
+          <div className="space-y-2 pt-2 border-t border-white/5">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            <button
+              type="button"
+              disabled={uploadingImage}
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full py-2.5 px-3 rounded-xl bg-accentCyan/15 hover:bg-accentCyan/25 border border-accentCyan/40 text-accentCyan font-bold text-xs transition flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+            >
+              {uploadingImage ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              <span>Upload Custom Photo</span>
+            </button>
+
+            {isCustomUploaded && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleSelectPresetAvatar('https://api.dicebear.com/7.x/bottts/svg?seed=Optimus');
+                }}
+                className="w-full py-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-[11px] font-semibold transition flex items-center justify-center gap-1.5"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Reset to Preset Avatar
+              </button>
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-white/5">
+            <button
+              onClick={handleSignOut}
+              className="w-full py-2.5 rounded-xl border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs font-bold transition flex items-center justify-center gap-2 active:scale-95"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out Account
+            </button>
+          </div>
         </div>
 
         {/* Right Side: Configuration form */}
-        <form onSubmit={handleSave} className="md:col-span-2 glass-panel border border-darkBorder rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+        <form onSubmit={handleSave} className="md:col-span-2 glass-panel border border-white/10 rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xl">
           
           {/* Notifications */}
           {success && (
-            <div className="bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold p-4 rounded-xl text-center">
-              Settings updated successfully!
+            <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold p-4 rounded-xl text-center shadow-lg animate-fade-in">
+              ✨ Profile settings &amp; dashboard theme updated successfully!
             </div>
           )}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold p-4 rounded-xl text-center">
+            <div className="bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold p-4 rounded-xl text-center shadow-lg animate-fade-in">
               {error}
             </div>
           )}
 
           {/* Username Input */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400">Display Username</label>
+            <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">Display Username</label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                className="w-full bg-darkBg border border-darkBorder rounded-xl pl-11 pr-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition"
+                placeholder="Enter username"
+                className="w-full bg-darkBg/90 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner font-medium"
               />
             </div>
           </div>
 
-          {/* Avatar Selector Grid */}
+          {/* Avatar Selector Section */}
           <div className="space-y-3">
-            <label className="text-xs font-bold text-gray-400 block">Choose Bot Avatar Identity</label>
-            
-            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-              {AVATAR_SEEDS.map((seed) => {
-                const avatarUrl = getDicebearUrl(seed);
-                const isSelected = selectedAvatar === avatarUrl;
-                
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                Creative Avatar Identities (28+ Options)
+              </label>
+              
+              {/* Category tabs */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
+                {Object.entries(AVATAR_COLLECTIONS).map(([key, col]) => {
+                  const Icon = col.icon;
+                  const isActive = activeAvatarTab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setActiveAvatarTab(key)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition active:scale-95 border ${
+                        isActive
+                          ? 'bg-accentPurple/25 border-accentPurple text-white shadow-sm'
+                          : 'bg-white/5 border-transparent text-gray-400 hover:text-gray-200'
+                      }`}
+                    >
+                      <Icon className="w-3 h-3 text-accentCyan" />
+                      <span>{col.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Avatar Grid */}
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 p-3 rounded-2xl bg-black/30 border border-white/5">
+              {AVATAR_COLLECTIONS[activeAvatarTab]?.items.map((item) => {
+                const isSelected = selectedAvatar === item.url;
                 return (
                   <button
-                    key={seed}
+                    key={item.id}
                     type="button"
-                    onClick={() => setSelectedAvatar(avatarUrl)}
-                    className={`relative aspect-square rounded-xl overflow-hidden border p-1 bg-black/40 hover:scale-105 transition-all duration-300 ${
-                      isSelected 
-                        ? 'border-accentCyan shadow-lg shadow-accentCyan/20' 
-                        : 'border-darkBorder hover:border-white/20'
+                    onClick={() => handleSelectPresetAvatar(item.url)}
+                    title={item.name}
+                    className={`group relative aspect-square rounded-xl overflow-hidden border p-1 bg-darkBg/80 transition-all duration-300 active:scale-95 ${
+                      isSelected
+                        ? 'border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/50 scale-105'
+                        : 'border-white/10 hover:border-white/30 hover:scale-105'
                     }`}
                   >
                     <img
-                      src={avatarUrl}
-                      alt={seed}
+                      src={item.url}
+                      alt={item.name}
                       className="w-full h-full object-cover rounded-lg"
+                      loading="lazy"
                     />
                     {isSelected && (
                       <div className="absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow">
@@ -195,78 +445,63 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Theme Picker */}
+          {/* Dashboard Theme Picker */}
           <div className="space-y-3">
-            <label className="text-xs font-bold text-gray-400 block uppercase tracking-wider">Dashboard Theme</label>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                {
-                  id: 'ocean',
-                  name: '🌊 Deep Ocean',
-                  desc: 'Electric blue & violet',
-                  swatch: ['#63d2ff', '#9564ff', '#ff55ad'],
-                },
-                {
-                  id: 'inferno',
-                  name: '🔥 Inferno',
-                  desc: 'Fire, lava & molten gold',
-                  swatch: ['#ff3719', '#ff8c28', '#ffc800'],
-                },
-                {
-                  id: 'emerald',
-                  name: '🌿 Emerald',
-                  desc: 'Dark forest + neon green',
-                  swatch: ['#32f0a0', '#00c878', '#8cff64'],
-                },
-                {
-                  id: 'cyber',
-                  name: '⚡ Cyber Gold',
-                  desc: 'Gunmetal dark + pure gold',
-                  swatch: ['#ffcd00', '#dc8500', '#fff08c'],
-                },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => handleThemeChange(t.id)}
-                  className={`relative p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden ${
-                    theme === t.id
-                      ? 'border-white/20 bg-white/[0.08] shadow-lg shadow-black/30'
-                      : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10'
-                  }`}
-                >
-                  {/* Color swatch bar */}
-                  <div className="flex gap-1 mb-3">
-                    {t.swatch.map((color) => (
-                      <div
-                        key={color}
-                        className="h-2 flex-1 rounded-full"
-                        style={{ background: color, boxShadow: `0 0 8px ${color}66` }}
-                      />
-                    ))}
-                  </div>
-                  <p className="font-bold text-sm text-white">{t.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{t.desc}</p>
-                  {theme === t.id && (
-                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentPurple flex items-center justify-center shadow">
-                      <Check className="w-3 h-3 text-white stroke-[3]" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+              <Palette className="w-3.5 h-3.5 text-accentCyan" />
+              <span>Dashboard Theme ({THEME_OPTIONS.length} Color Combos)</span>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {THEME_OPTIONS.map((t) => {
+                const isSelected = theme === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleThemeChange(t.id)}
+                    className={`relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] ${
+                      isSelected
+                        ? 'border-accentPurple/80 bg-white/[0.08] shadow-[0_0_20px_rgba(149,100,255,0.2)] ring-1 ring-accentPurple/40'
+                        : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/15'
+                    }`}
+                  >
+                    {/* Color swatch bar */}
+                    <div className="flex gap-1.5 mb-2.5">
+                      {t.swatch.map((color) => (
+                        <div
+                          key={color}
+                          className="h-2.5 flex-1 rounded-full"
+                          style={{ background: color, boxShadow: `0 0 8px ${color}66` }}
+                        />
+                      ))}
                     </div>
-                  )}
-                </button>
-              ))}
+                    <p className="font-bold text-sm text-white flex items-center justify-between">
+                      <span>{t.name}</span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
+                    
+                    {isSelected && (
+                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentPurple text-white flex items-center justify-center shadow-[0_0_10px_rgba(149,100,255,0.6)]">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Save Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-accentPurple/25 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2 btn-glow-purple"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-accentPurple/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-4 active:scale-95 cursor-pointer"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin text-black" />
             ) : (
-              'Save Profile Settings'
+              'Save Profile & Dashboard Changes'
             )}
           </button>
 

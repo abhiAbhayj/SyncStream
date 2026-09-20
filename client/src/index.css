@@ -89,6 +89,86 @@
 }
 
 /* ─────────────────────────────────────────────
+   THEME: Tokyo Cyber Neon 🌸 (Cyberpunk Plum & Hot Pink)
+───────────────────────────────────────────── */
+.theme-tokyo {
+  --dark-bg:     18 9 28;        /* #12091c - Tokyo Plum Midnight */
+  --dark-card:   32 15 48;       /* #200f30 - Neon Plum Card */
+  --dark-surf:   46 22 68;       /* #2e1644 - Elevated Violet Surface */
+  --dark-border: 255 255 255;
+
+  --accent-cyan:   0 245 212;     /* #00f5d4 - Electric Cyan */
+  --accent-purple: 255 42 133;    /* #ff2a85 - Hot Cyber Pink */
+  --accent-pink:   254 228 64;    /* #fee440 - Neon Yellow */
+  --accent-gold:   254 117 197;   /* #fe75c5 - Soft Pink */
+  --accent-green:  0 245 212;     /* #00f5d4 - Electric Teal */
+
+  --glow-1: rgba(255,  42, 133, 0.35);
+  --glow-2: rgba(0,   245, 212, 0.28);
+  --glow-3: rgba(254, 228,  64, 0.20);
+}
+
+/* ─────────────────────────────────────────────
+   THEME: Sunset Horizon / Outrun 🌇 (Wine, Coral & Gold)
+───────────────────────────────────────────── */
+.theme-sunset {
+  --dark-bg:     24 10 20;       /* #180a14 - Deep Outrun Wine */
+  --dark-card:   40 16 32;       /* #281020 - Sunset Crimson Card */
+  --dark-surf:   56 22 44;       /* #38162c - Velvet Dusk Surface */
+  --dark-border: 255 255 255;
+
+  --accent-cyan:   255 94 98;     /* #ff5e62 - Coral Sunset */
+  --accent-purple: 224 86 253;    /* #e056fd - Outrun Magenta */
+  --accent-pink:   255 153 102;   /* #ff9966 - Warm Horizon Gold */
+  --accent-gold:   255 179 71;    /* #ffb347 - Golden Hour */
+  --accent-green:  255 110 199;   /* #ff6ec7 - Neon Peach */
+
+  --glow-1: rgba(224,  86, 253, 0.35);
+  --glow-2: rgba(255,  94,  98, 0.30);
+  --glow-3: rgba(255, 153, 102, 0.20);
+}
+
+/* ─────────────────────────────────────────────
+   THEME: Midnight Amethyst 🔮 (Royal Velvet & Violet)
+───────────────────────────────────────────── */
+.theme-amethyst {
+  --dark-bg:     16 10 38;       /* #100a26 - Royal Velvet Void */
+  --dark-card:   27 17 62;       /* #1b113e - Deep Amethyst Card */
+  --dark-surf:   39 25 88;       /* #271958 - Elevated Royal Surface */
+  --dark-border: 255 255 255;
+
+  --accent-cyan:   192 132 252;   /* #c084fc - Lilac Glow */
+  --accent-purple: 139 92 246;    /* #8b5cf6 - Electric Violet */
+  --accent-pink:   236 72 153;    /* #ec4899 - Vibrant Fuchsia */
+  --accent-gold:   244 114 182;   /* #f472b6 - Rose Quartz */
+  --accent-green:  167 139 250;   /* #a78bfa - Soft Violet */
+
+  --glow-1: rgba(139,  92, 246, 0.38);
+  --glow-2: rgba(236,  72, 153, 0.28);
+  --glow-3: rgba(192, 132, 252, 0.22);
+}
+
+/* ─────────────────────────────────────────────
+   THEME: Phantom Matrix ⚡ (Void Obsidian & Lime Green)
+───────────────────────────────────────────── */
+.theme-matrix {
+  --dark-bg:     6 11 9;         /* #060b09 - Obsidian Void */
+  --dark-card:   12 24 18;       /* #0c1812 - Cyber Black Card */
+  --dark-surf:   18 36 27;       /* #12241b - Matrix Terminal Surface */
+  --dark-border: 255 255 255;
+
+  --accent-cyan:   6 182 212;     /* #06b6d4 - Laser Cyan */
+  --accent-purple: 16 185 129;    /* #10b981 - Cyber Emerald */
+  --accent-pink:   34 197 94;     /* #22c55e - Matrix Neon Lime */
+  --accent-gold:   132 204 22;    /* #84cc16 - Electric Chartreuse */
+  --accent-green:  74 222 128;    /* #4ade80 - Bright Terminal Green */
+
+  --glow-1: rgba(16,  185, 129, 0.35);
+  --glow-2: rgba(6,   182, 212, 0.28);
+  --glow-3: rgba(34,  197,  94, 0.22);
+}
+
+/* ─────────────────────────────────────────────
    BASE
 ───────────────────────────────────────────── */
 @layer base {
