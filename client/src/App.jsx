@@ -37,7 +37,7 @@ function AppContent() {
   const { currentTrack } = useMusic();
 
   React.useEffect(() => {
-    const ALL_THEMES = ['theme-inferno', 'theme-emerald', 'theme-cyber', 'theme-tokyo', 'theme-sunset', 'theme-amethyst', 'theme-matrix'];
+    const ALL_THEMES = ['theme-inferno', 'theme-matrix', 'theme-monochrome', 'theme-arctic', 'theme-tokyo', 'theme-cyber', 'theme-amethyst'];
     const savedTheme = localStorage.getItem('syncstream_theme') || 'ocean';
     // Remove all theme classes first
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));

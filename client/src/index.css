@@ -9,163 +9,163 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   DEFAULT THEME: Deep Ocean (Electric Blue)
+   THEME 1 (Default): Deep Ocean Abyss 🌊
 ───────────────────────────────────────────── */
 :root {
-  --dark-bg:     15 18 36;       /* #0f1224 - Rich Electric Midnight Blue */
-  --dark-card:   24 29 56;       /* #181d38 - Elevated Crisp Card */
-  --dark-surf:   32 38 72;       /* #202648 - High-Contrast Surface */
+  --dark-bg:     10 14 26;       /* #0a0e1a - Deep Oceanic Trench */
+  --dark-card:   18 27 45;       /* #121b2d - Crisp Indigo Navy Card */
+  --dark-surf:   26 38 64;       /* #1a2640 - High-Contrast Surface */
   --dark-border: 255 255 255;
 
-  --accent-cyan:   99 210 255;
-  --accent-purple: 149 100 255;
-  --accent-pink:   255 85 173;
-  --accent-gold:   255 196 60;
-  --accent-green:  72 240 180;
+  --accent-cyan:   99 210 255;    /* Electric Cyan */
+  --accent-purple: 149 100 255;   /* Royal Purple */
+  --accent-pink:   255 85 173;    /* Neon Pink */
+  --accent-gold:   255 196 60;    /* Amber */
+  --accent-green:  72 240 180;    /* Aqua Green */
 
-  --glow-1: rgba(149, 100, 255, 0.30);
-  --glow-2: rgba(99,  210, 255, 0.25);
+  --glow-1: rgba(149, 100, 255, 0.35);
+  --glow-2: rgba(99,  210, 255, 0.30);
   --glow-3: rgba(255,  85, 173, 0.20);
 }
 
 /* ─────────────────────────────────────────────
-   THEME: Inferno 🔥  (Fire / Lava)
+   THEME 2: Inferno Magma 🔥 (Crimson Red & Molten Flame)
 ───────────────────────────────────────────── */
 .theme-inferno {
-  --dark-bg:     26 12 8;        /* #1a0c08 - Rich Warm Lava Crimson */
-  --dark-card:   42 18 12;       /* #2a120c - Crisp Flame Card */
-  --dark-surf:   56 24 16;       /* #381810 - Elevated Surface */
-  --dark-border: 255 255 255;
+  --dark-bg:     18 4 4;         /* #120404 - Pure Volcanic Obsidian */
+  --dark-card:   34 9 9;         /* #220909 - Crimson Fire Card */
+  --dark-surf:   52 14 14;       /* #340e0e - Molten Lava Surface */
+  --dark-border: 255 80 80;
 
-  --accent-cyan:   255 140 40;
-  --accent-purple: 255 55 25;
-  --accent-pink:   255 200 0;
-  --accent-gold:   255 100 20;
-  --accent-green:  255 175 55;
+  --accent-cyan:   255 69 0;      /* #ff4500 - Blazing Orange */
+  --accent-purple: 255 30 39;     /* #ff1e27 - Fire Red */
+  --accent-pink:   255 170 0;     /* #ffaa00 - Molten Gold */
+  --accent-gold:   255 215 0;     /* #ffd700 - Gold Flare */
+  --accent-green:  255 120 40;    /* #ff7828 - Coral Ember */
 
-  --glow-1: rgba(255,  55,  25, 0.35);
-  --glow-2: rgba(255, 140,  40, 0.25);
-  --glow-3: rgba(255, 200,   0, 0.18);
+  --glow-1: rgba(255,  30,  39, 0.45);
+  --glow-2: rgba(255,  69,   0, 0.35);
+  --glow-3: rgba(255, 170,   0, 0.25);
 }
 
 /* ─────────────────────────────────────────────
-   THEME: Emerald 🌿  (Dark Forest / Neon Green)
-───────────────────────────────────────────── */
-.theme-emerald {
-  --dark-bg:     10 26 18;       /* #0a1a12 - Vibrant Forest Emerald */
-  --dark-card:   16 40 28;       /* #10281c - Mint Emerald Card */
-  --dark-surf:   22 52 36;       /* #163424 - High-Contrast Surface */
-  --dark-border: 255 255 255;
-
-  --accent-cyan:   50 240 160;    /* neon mint */
-  --accent-purple: 0 200 120;     /* emerald green */
-  --accent-pink:   140 255 100;   /* lime glow */
-  --accent-gold:   255 220 50;    /* golden highlight */
-  --accent-green:  0 255 140;     /* bright neon green */
-
-  --glow-1: rgba(0,  200, 120, 0.35);
-  --glow-2: rgba(50, 240, 160, 0.25);
-  --glow-3: rgba(255, 220, 50, 0.18);
-}
-
-/* ─────────────────────────────────────────────
-   THEME: Cyber Gold ⚡  (Dark Gunmetal + Gold)
-───────────────────────────────────────────── */
-.theme-cyber {
-  --dark-bg:     22 22 16;       /* #161610 - Rich Gunmetal Gold */
-  --dark-card:   36 36 24;       /* #242418 - Cyber Gold Card */
-  --dark-surf:   48 48 32;       /* #303020 - High-Contrast Surface */
-  --dark-border: 255 255 255;
-
-  --accent-cyan:   255 205 0;     /* pure gold */
-  --accent-purple: 220 165 0;     /* deep gold */
-  --accent-pink:   255 120 0;     /* amber orange */
-  --accent-gold:   255 240 140;   /* pale gold shimmer */
-  --accent-green:  255 230 80;    /* yellow gold */
-
-  --glow-1: rgba(255, 205,   0, 0.32);
-  --glow-2: rgba(255, 120,   0, 0.22);
-  --glow-3: rgba(220, 165,   0, 0.18);
-}
-
-/* ─────────────────────────────────────────────
-   THEME: Tokyo Cyber Neon 🌸 (Cyberpunk Plum & Hot Pink)
-───────────────────────────────────────────── */
-.theme-tokyo {
-  --dark-bg:     18 9 28;        /* #12091c - Tokyo Plum Midnight */
-  --dark-card:   32 15 48;       /* #200f30 - Neon Plum Card */
-  --dark-surf:   46 22 68;       /* #2e1644 - Elevated Violet Surface */
-  --dark-border: 255 255 255;
-
-  --accent-cyan:   0 245 212;     /* #00f5d4 - Electric Cyan */
-  --accent-purple: 255 42 133;    /* #ff2a85 - Hot Cyber Pink */
-  --accent-pink:   254 228 64;    /* #fee440 - Neon Yellow */
-  --accent-gold:   254 117 197;   /* #fe75c5 - Soft Pink */
-  --accent-green:  0 245 212;     /* #00f5d4 - Electric Teal */
-
-  --glow-1: rgba(255,  42, 133, 0.35);
-  --glow-2: rgba(0,   245, 212, 0.28);
-  --glow-3: rgba(254, 228,  64, 0.20);
-}
-
-/* ─────────────────────────────────────────────
-   THEME: Sunset Horizon / Outrun 🌇 (Wine, Coral & Gold)
-───────────────────────────────────────────── */
-.theme-sunset {
-  --dark-bg:     24 10 20;       /* #180a14 - Deep Outrun Wine */
-  --dark-card:   40 16 32;       /* #281020 - Sunset Crimson Card */
-  --dark-surf:   56 22 44;       /* #38162c - Velvet Dusk Surface */
-  --dark-border: 255 255 255;
-
-  --accent-cyan:   255 94 98;     /* #ff5e62 - Coral Sunset */
-  --accent-purple: 224 86 253;    /* #e056fd - Outrun Magenta */
-  --accent-pink:   255 153 102;   /* #ff9966 - Warm Horizon Gold */
-  --accent-gold:   255 179 71;    /* #ffb347 - Golden Hour */
-  --accent-green:  255 110 199;   /* #ff6ec7 - Neon Peach */
-
-  --glow-1: rgba(224,  86, 253, 0.35);
-  --glow-2: rgba(255,  94,  98, 0.30);
-  --glow-3: rgba(255, 153, 102, 0.20);
-}
-
-/* ─────────────────────────────────────────────
-   THEME: Midnight Amethyst 🔮 (Royal Velvet & Violet)
-───────────────────────────────────────────── */
-.theme-amethyst {
-  --dark-bg:     16 10 38;       /* #100a26 - Royal Velvet Void */
-  --dark-card:   27 17 62;       /* #1b113e - Deep Amethyst Card */
-  --dark-surf:   39 25 88;       /* #271958 - Elevated Royal Surface */
-  --dark-border: 255 255 255;
-
-  --accent-cyan:   192 132 252;   /* #c084fc - Lilac Glow */
-  --accent-purple: 139 92 246;    /* #8b5cf6 - Electric Violet */
-  --accent-pink:   236 72 153;    /* #ec4899 - Vibrant Fuchsia */
-  --accent-gold:   244 114 182;   /* #f472b6 - Rose Quartz */
-  --accent-green:  167 139 250;   /* #a78bfa - Soft Violet */
-
-  --glow-1: rgba(139,  92, 246, 0.38);
-  --glow-2: rgba(236,  72, 153, 0.28);
-  --glow-3: rgba(192, 132, 252, 0.22);
-}
-
-/* ─────────────────────────────────────────────
-   THEME: Phantom Matrix ⚡ (Void Obsidian & Lime Green)
+   THEME 3: Matrix Terminal ⚡ (Void Obsidian & Pure Cyber Green)
 ───────────────────────────────────────────── */
 .theme-matrix {
-  --dark-bg:     6 11 9;         /* #060b09 - Obsidian Void */
-  --dark-card:   12 24 18;       /* #0c1812 - Cyber Black Card */
-  --dark-surf:   18 36 27;       /* #12241b - Matrix Terminal Surface */
+  --dark-bg:     2 8 4;          /* #020804 - Void Terminal Black */
+  --dark-card:   6 21 11;        /* #06150b - Cyber Hacker Card */
+  --dark-surf:   10 34 18;       /* #0a2212 - Elevated Terminal Surface */
+  --dark-border: 50 255 120;
+
+  --accent-cyan:   0 255 136;     /* #00ff88 - Laser Cyber Green */
+  --accent-purple: 16 185 129;    /* #10b981 - Terminal Emerald */
+  --accent-pink:   57 255 20;     /* #39ff14 - Neon Matrix Lime */
+  --accent-gold:   163 230 53;    /* #a3e635 - Electric Chartreuse */
+  --accent-green:  0 255 170;     /* #00ffaa - Mint Terminal */
+
+  --glow-1: rgba(0,   255, 136, 0.40);
+  --glow-2: rgba(16,  185, 129, 0.35);
+  --glow-3: rgba(57,  255,  20, 0.25);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 4: Lunar Noir & Diamond White ⚪ (High-Contrast Black & White)
+───────────────────────────────────────────── */
+.theme-monochrome {
+  --dark-bg:     6 6 6;          /* #060606 - Pitch Black Void */
+  --dark-card:   18 18 18;       /* #121212 - Pure Charcoal Noir Card */
+  --dark-surf:   31 31 31;       /* #1f1f1f - Crisp Elevated Graphite */
   --dark-border: 255 255 255;
 
-  --accent-cyan:   6 182 212;     /* #06b6d4 - Laser Cyan */
-  --accent-purple: 16 185 129;    /* #10b981 - Cyber Emerald */
-  --accent-pink:   34 197 94;     /* #22c55e - Matrix Neon Lime */
-  --accent-gold:   132 204 22;    /* #84cc16 - Electric Chartreuse */
-  --accent-green:  74 222 128;    /* #4ade80 - Bright Terminal Green */
+  --accent-cyan:   255 255 255;   /* #ffffff - Diamond White */
+  --accent-purple: 228 228 231;   /* #e4e4e7 - Platinum Silver */
+  --accent-pink:   161 161 170;   /* #a1a1aa - Chrome Gray */
+  --accent-gold:   255 255 255;   /* Pure White */
+  --accent-green:  212 212 216;   /* Ice White */
 
-  --glow-1: rgba(16,  185, 129, 0.35);
-  --glow-2: rgba(6,   182, 212, 0.28);
-  --glow-3: rgba(34,  197,  94, 0.22);
+  --glow-1: rgba(255, 255, 255, 0.30);
+  --glow-2: rgba(200, 200, 210, 0.22);
+  --glow-3: rgba(255, 255, 255, 0.15);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 5: Arctic Frost & Glacial Ice ❄️ (Ice Cyan & Frost White)
+───────────────────────────────────────────── */
+.theme-arctic {
+  --dark-bg:     6 16 30;        /* #06101e - Deep Glacial Night */
+  --dark-card:   12 27 46;       /* #0c1b2e - Frosted Glacier Card */
+  --dark-surf:   18 40 68;       /* #122844 - Elevated Ice Surface */
+  --dark-border: 150 220 255;
+
+  --accent-cyan:   56 189 248;    /* #38bdf8 - Glacial Ice Blue */
+  --accent-purple: 45 212 191;    /* #2dd4bf - Aurora Borealis Teal */
+  --accent-pink:   248 250 252;   /* #f8fafc - Diamond Blizzard White */
+  --accent-gold:   125 211 252;   /* #7dd3fc - Crystal Cyan */
+  --accent-green:  165 243 252;   /* #a5f3fc - Frost Glow */
+
+  --glow-1: rgba(56,  189, 248, 0.45);
+  --glow-2: rgba(45,  212, 191, 0.35);
+  --glow-3: rgba(165, 243, 252, 0.25);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 6: Tokyo Vaporwave Neon 🌸 (Ultraviolet Plum & Cyber Pink)
+───────────────────────────────────────────── */
+.theme-tokyo {
+  --dark-bg:     20 2 36;        /* #140224 - Ultraviolet Midnight */
+  --dark-card:   36 4 59;        /* #24043b - Synthwave Plum Card */
+  --dark-surf:   54 8 86;        /* #360856 - Elevated Neon Surface */
+  --dark-border: 255 0 127;
+
+  --accent-cyan:   0 245 212;     /* #00f5d4 - Laser Turquoise */
+  --accent-purple: 255 0 127;     /* #ff007f - Cyber Hot Pink */
+  --accent-pink:   255 230 0;     /* #ffe600 - Glitch Yellow */
+  --accent-gold:   255 64 160;    /* #ff40a0 - Electric Rose */
+  --accent-green:  0 245 212;     /* #00f5d4 - Laser Cyan */
+
+  --glow-1: rgba(255,   0, 127, 0.45);
+  --glow-2: rgba(0,   245, 212, 0.35);
+  --glow-3: rgba(255, 230,   0, 0.25);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 7: Solar Gold Luxe 👑 (Royal Gunmetal & 24K Gold)
+───────────────────────────────────────────── */
+.theme-cyber {
+  --dark-bg:     13 12 7;        /* #0d0c07 - Royal Onyx Gunmetal */
+  --dark-card:   26 23 13;       /* #1a170d - 24K Gold Card */
+  --dark-surf:   42 37 20;       /* #2a2514 - High-Luxe Surface */
+  --dark-border: 255 215 0;
+
+  --accent-cyan:   255 215 0;     /* #ffd700 - Pure 24K Gold */
+  --accent-purple: 255 153 0;     /* #ff9900 - Amber Sunfire */
+  --accent-pink:   255 240 160;   /* #fff0a0 - Champagne Glow */
+  --accent-gold:   255 180 20;    /* #ffb414 - Royal Gold */
+  --accent-green:  255 225 90;    /* #ffe15a - Sun Shimmer */
+
+  --glow-1: rgba(255, 215,   0, 0.45);
+  --glow-2: rgba(255, 153,   0, 0.32);
+  --glow-3: rgba(255, 240, 160, 0.20);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 8: Cosmic Nebula Void 🔮 (Deep Space Violet & Plasma)
+───────────────────────────────────────────── */
+.theme-amethyst {
+  --dark-bg:     11 4 28;        /* #0b041c - Deep Space Black Hole */
+  --dark-card:   22 9 53;        /* #160935 - Royal Nebula Card */
+  --dark-surf:   36 14 84;       /* #240e54 - Elevated Cosmic Surface */
+  --dark-border: 168 85 247;
+
+  --accent-cyan:   192 132 252;   /* #c084fc - Star Lilac */
+  --accent-purple: 168 85 247;    /* #a855f7 - Electric Ultraviolet */
+  --accent-pink:   244 63 94;     /* #f43f5e - Hot Plasma Magenta */
+  --accent-gold:   232 121 249;   /* #e879f9 - Cosmic Pink */
+  --accent-green:  147 51 234;    /* #9333ea - Velvet Violet */
+
+  --glow-1: rgba(168,  85, 247, 0.48);
+  --glow-2: rgba(244,  63,  94, 0.35);
+  --glow-3: rgba(192, 132, 252, 0.25);
 }
 
 /* ─────────────────────────────────────────────
@@ -185,6 +185,11 @@
       radial-gradient(ellipse 50% 30% at 50%  50%, var(--glow-3) 0%, transparent 70%);
     background-attachment: fixed;
     min-height: 100vh;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  .glass-panel, .glass-card, .media-card {
+    transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {

@@ -5,62 +5,62 @@ import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
   'theme-inferno',
-  'theme-emerald',
-  'theme-cyber',
+  'theme-matrix',
+  'theme-monochrome',
+  'theme-arctic',
   'theme-tokyo',
-  'theme-sunset',
-  'theme-amethyst',
-  'theme-matrix'
+  'theme-cyber',
+  'theme-amethyst'
 ];
 
 const THEME_OPTIONS = [
   {
     id: 'ocean',
-    name: '🌊 Deep Ocean',
-    desc: 'Electric blue & violet glow',
-    swatch: ['#63d2ff', '#9564ff', '#ff55ad'],
+    name: '🌊 Ocean Abyss',
+    desc: 'Deep oceanic trench & electric blue aura',
+    swatch: ['#0f1224', '#63d2ff', '#9564ff'],
   },
   {
     id: 'inferno',
-    name: '🔥 Inferno',
-    desc: 'Fire, lava & molten gold',
-    swatch: ['#ff3719', '#ff8c28', '#ffc800'],
-  },
-  {
-    id: 'emerald',
-    name: '🌿 Emerald',
-    desc: 'Dark forest & neon mint',
-    swatch: ['#32f0a0', '#00c878', '#8cff64'],
-  },
-  {
-    id: 'cyber',
-    name: '⚡ Cyber Gold',
-    desc: 'Gunmetal dark & pure gold',
-    swatch: ['#ffcd00', '#dc8500', '#fff08c'],
-  },
-  {
-    id: 'tokyo',
-    name: '🌸 Tokyo Neon',
-    desc: 'Tokyo plum & hot cyber pink',
-    swatch: ['#ff2a85', '#00f5d4', '#fee440'],
-  },
-  {
-    id: 'sunset',
-    name: '🌇 Sunset Horizon',
-    desc: 'Outrun coral & dusk magenta',
-    swatch: ['#ff5e62', '#e056fd', '#ff9966'],
-  },
-  {
-    id: 'amethyst',
-    name: '🔮 Amethyst Void',
-    desc: 'Royal velvet & violet fuchsia',
-    swatch: ['#8b5cf6', '#ec4899', '#c084fc'],
+    name: '🔥 Inferno Magma',
+    desc: 'Volcanic obsidian & crimson magma flame',
+    swatch: ['#ff1e27', '#ff4500', '#ffaa00'],
   },
   {
     id: 'matrix',
-    name: '⚡ Phantom Matrix',
-    desc: 'Obsidian void & terminal lime',
-    swatch: ['#10b981', '#06b6d4', '#22c55e'],
+    name: '⚡ Matrix Terminal',
+    desc: 'Pitch void black & laser cyber green',
+    swatch: ['#00ff88', '#10b981', '#39ff14'],
+  },
+  {
+    id: 'monochrome',
+    name: '⚪ Lunar Noir (Black & White)',
+    desc: 'Pure jet black & diamond white silver',
+    swatch: ['#060606', '#ffffff', '#e4e4e7'],
+  },
+  {
+    id: 'arctic',
+    name: '❄️ Arctic Frost & Ice',
+    desc: 'Glacial frosted navy & laser ice cyan',
+    swatch: ['#06101e', '#38bdf8', '#f8fafc'],
+  },
+  {
+    id: 'tokyo',
+    name: '🌸 Tokyo Vaporwave Neon',
+    desc: 'Ultraviolet midnight & hot cyber pink',
+    swatch: ['#140224', '#ff007f', '#00f5d4'],
+  },
+  {
+    id: 'cyber',
+    name: '👑 Solar Gold Luxe',
+    desc: 'Royal onyx gunmetal & pure 24K gold',
+    swatch: ['#0d0c07', '#ffd700', '#ff9900'],
+  },
+  {
+    id: 'amethyst',
+    name: '🔮 Cosmic Nebula Void',
+    desc: 'Deep space black hole & plasma violet',
+    swatch: ['#0b041c', '#a855f7', '#f43f5e'],
   },
 ];
 

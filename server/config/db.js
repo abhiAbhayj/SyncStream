@@ -77,7 +77,7 @@ export async function initDB() {
         password_hash VARCHAR(255) NOT NULL,
         reset_otp VARCHAR(255) DEFAULT NULL,
         reset_otp_expiry DATETIME DEFAULT NULL,
-        avatar_url VARCHAR(255) DEFAULT 'default_avatar.png',
+        avatar_url MEDIUMTEXT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -162,6 +162,20 @@ export async function initDB() {
     if (expiryCols.length === 0) {
       await pool.query('ALTER TABLE users ADD COLUMN reset_otp_expiry DATETIME DEFAULT NULL');
       console.log('[DB] Migration: Added reset_otp_expiry column ✓');
+    }
+
+    // 5. Upgrade avatar_url to MEDIUMTEXT so custom high-res photo uploads are saved without truncation
+    try {
+      const [avatarCols] = await pool.query(
+        `SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'avatar_url'`
+      );
+      if (avatarCols.length > 0 && avatarCols[0].DATA_TYPE !== 'mediumtext' && avatarCols[0].DATA_TYPE !== 'longtext' && avatarCols[0].DATA_TYPE !== 'text') {
+        await pool.query('ALTER TABLE users MODIFY COLUMN avatar_url MEDIUMTEXT');
+        console.log('[DB] Migration: Altered avatar_url to MEDIUMTEXT ✓');
+      }
+    } catch (avatarErr) {
+      console.warn('[DB] Avatar migration notice:', avatarErr.message);
     }
 
     console.log('[DB] Database tables and migrations initialized successfully.');
