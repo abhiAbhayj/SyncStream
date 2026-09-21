@@ -11,6 +11,7 @@ import VoiceAssistant from './components/VoiceAssistant';
 import ServerWakeup from './components/ServerWakeup';
 import MusicPlayerBar from './components/MusicPlayerBar';
 import MusicModal from './components/MusicModal';
+import ThemeBackground from './components/ThemeBackground';
 
 // Pages
 import Home from './pages/Home';
@@ -48,7 +49,8 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
+      <ThemeBackground />
       <ScrollRestoration />
       <Navbar />
       <main className={`flex-grow transition-all duration-300 ${currentTrack ? 'pb-36 md:pb-24' : 'pb-20 md:pb-0'}`}>

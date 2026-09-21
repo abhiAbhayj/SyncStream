@@ -17,49 +17,57 @@ const THEME_OPTIONS = [
   {
     id: 'ocean',
     name: '🌊 Ocean Abyss',
-    desc: 'Deep oceanic trench & electric blue aura',
+    desc: 'Deep oceanic trench & bioluminescent glowing bubbles',
+    animation: 'Floating bubbles & deep ocean glow',
     swatch: ['#0f1224', '#63d2ff', '#9564ff'],
   },
   {
     id: 'inferno',
     name: '🔥 Inferno Magma',
-    desc: 'Volcanic obsidian & crimson magma flame',
+    desc: 'Volcanic obsidian, rising embers & fiery sparks',
+    animation: 'Rising magma embers & fire heat',
     swatch: ['#ff1e27', '#ff4500', '#ffaa00'],
   },
   {
     id: 'matrix',
     name: '⚡ Matrix Terminal',
-    desc: 'Pitch void black & laser cyber green',
+    desc: 'Pitch void black & falling digital matrix code rain',
+    animation: 'Falling matrix cyber glyph rain',
     swatch: ['#00ff88', '#10b981', '#39ff14'],
   },
   {
     id: 'monochrome',
     name: '⚪ Lunar Noir (Black & White)',
-    desc: 'Pure jet black & diamond white silver',
-    swatch: ['#060606', '#ffffff', '#e4e4e7'],
+    desc: 'High-contrast charcoal & floating silver stardust',
+    animation: 'Minimalist floating stardust & noir',
+    swatch: ['#0a0a0c', '#ffffff', '#94a3b8'],
   },
   {
     id: 'arctic',
     name: '❄️ Arctic Frost & Ice',
-    desc: 'Glacial frosted navy & laser ice cyan',
+    desc: 'Glacial frosted navy, ice cyan & falling snow crystals',
+    animation: 'Drifting snowflakes & ice crystals',
     swatch: ['#06101e', '#38bdf8', '#f8fafc'],
   },
   {
     id: 'tokyo',
     name: '🌸 Tokyo Vaporwave Neon',
-    desc: 'Ultraviolet midnight & hot cyber pink',
+    desc: 'Ultraviolet midnight & moving 80s synthwave perspective grid',
+    animation: 'Synthwave moving grid & neon particles',
     swatch: ['#140224', '#ff007f', '#00f5d4'],
   },
   {
     id: 'cyber',
     name: '👑 Solar Gold Luxe',
-    desc: 'Royal onyx gunmetal & pure 24K gold',
+    desc: 'Royal onyx gunmetal, 24K gold & rising solar sparkles',
+    animation: 'Rising 24K gold dust & sparkles',
     swatch: ['#0d0c07', '#ffd700', '#ff9900'],
   },
   {
     id: 'amethyst',
     name: '🔮 Cosmic Nebula Void',
-    desc: 'Deep space black hole & plasma violet',
+    desc: 'Deep space cosmic starfield & shooting meteors',
+    animation: 'Twinkling stars & shooting meteors',
     swatch: ['#0b041c', '#a855f7', '#f43f5e'],
   },
 ];
@@ -144,9 +152,13 @@ export default function Profile() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
 
-  // Live preview theme selection without persisting until save
+  // Live preview theme selection and apply to DOM immediately
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
+    ALL_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
+    if (newTheme !== 'ocean') {
+      document.body.classList.add(`theme-${newTheme}`);
+    }
   };
 
   // Revert body classes to saved theme if user leaves page without saving
@@ -480,6 +492,10 @@ export default function Profile() {
                       <span>{t.name}</span>
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-accentCyan">
+                      <Sparkles className="w-2.5 h-2.5 animate-pulse" />
+                      <span>{t.animation}</span>
+                    </div>
                     
                     {isSelected && (
                       <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentPurple text-white flex items-center justify-center shadow-[0_0_10px_rgba(149,100,255,0.6)]">

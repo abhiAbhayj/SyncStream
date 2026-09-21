@@ -72,20 +72,67 @@
    THEME 4: Lunar Noir & Diamond White ⚪ (High-Contrast Black & White)
 ───────────────────────────────────────────── */
 .theme-monochrome {
-  --dark-bg:     6 6 6;          /* #060606 - Pitch Black Void */
-  --dark-card:   18 18 18;       /* #121212 - Pure Charcoal Noir Card */
-  --dark-surf:   31 31 31;       /* #1f1f1f - Crisp Elevated Graphite */
+  --dark-bg:     8 8 10;         /* #08080a - Pure Obsidian Pitch Black */
+  --dark-card:   20 20 24;       /* #141418 - Deep Charcoal Noir Card */
+  --dark-surf:   34 34 40;       /* #222228 - Elevated Slate Surface */
   --dark-border: 255 255 255;
 
-  --accent-cyan:   255 255 255;   /* #ffffff - Diamond White */
-  --accent-purple: 228 228 231;   /* #e4e4e7 - Platinum Silver */
-  --accent-pink:   161 161 170;   /* #a1a1aa - Chrome Gray */
-  --accent-gold:   255 255 255;   /* Pure White */
-  --accent-green:  212 212 216;   /* Ice White */
+  --accent-cyan:   244 244 245;   /* #f4f4f5 - Crisp Platinum White */
+  --accent-purple: 161 161 170;   /* #a1a1aa - Cool Steel Silver */
+  --accent-pink:   212 212 216;   /* #d4d4d8 - Silver Shimmer */
+  --accent-gold:   250 250 250;   /* #fafafa - Pure Diamond White */
+  --accent-green:  161 161 170;   /* #a1a1aa - Chrome Gray */
 
-  --glow-1: rgba(255, 255, 255, 0.30);
-  --glow-2: rgba(200, 200, 210, 0.22);
-  --glow-3: rgba(255, 255, 255, 0.15);
+  --glow-1: rgba(255, 255, 255, 0.22);
+  --glow-2: rgba(161, 161, 170, 0.18);
+  --glow-3: rgba(255, 255, 255, 0.10);
+}
+
+.theme-monochrome .btn-primary,
+.theme-monochrome .btn-glow-purple,
+.theme-monochrome button[class*="from-accentCyan"] {
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%) !important;
+  color: #09090b !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.25) !important;
+}
+
+.theme-monochrome .btn-primary *,
+.theme-monochrome button[class*="from-accentCyan"] * {
+  color: #09090b !important;
+}
+
+.theme-monochrome .text-gradient,
+.theme-monochrome .text-gradient-aurora {
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.theme-monochrome .badge-movie,
+.theme-monochrome .badge-tv,
+.theme-monochrome .badge-anime,
+.theme-monochrome .badge-manga {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.theme-monochrome .rating-pill {
+  background: rgba(0, 0, 0, 0.85) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.theme-monochrome input,
+.theme-monochrome textarea {
+  background-color: rgba(20, 20, 24, 0.95) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.theme-monochrome input::placeholder {
+  color: #71717a !important;
 }
 
 /* ─────────────────────────────────────────────
