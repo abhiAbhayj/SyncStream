@@ -536,7 +536,7 @@ export default function Profile() {
   const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.bots;
 
   return (
-    <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-6 md:px-8 space-y-5 sm:space-y-8 min-h-[75vh]">
+    <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-6 md:px-8 space-y-5 sm:space-y-8 min-h-[75vh] pb-28 sm:pb-12">
       {/* Title */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
@@ -741,7 +741,7 @@ export default function Profile() {
                       </div>
                     )}
 
-                    {/* Quick Edit & Delete Action Pill (Always visible on mobile, hover on desktop) */}
+                    {/* Quick Edit & Delete Action Pill */}
                     <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 p-0.5 rounded-lg bg-black/80 backdrop-blur-xs opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         type="button"
@@ -836,11 +836,11 @@ export default function Profile() {
 
       {/* ── Mobile-Optimized AI Avatar Generator Modal / Sheet ── */}
       {showAiModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-lg glass-panel border border-white/15 rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl max-h-[92vh] sm:max-h-[85vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-hidden">
+          <div className="relative w-full max-w-lg glass-panel border border-white/15 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-darkCard/95 border-b-0 sm:border-b">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/10 shrink-0 bg-darkBg/60 rounded-t-3xl">
+              <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-accentPurple/20 border border-accentPurple/40">
                   <Wand2 className="w-5 h-5 text-accentCyan animate-pulse" />
                 </div>
@@ -848,7 +848,7 @@ export default function Profile() {
                   <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">
                     {editingAvatarTarget ? 'Edit Avatar with AI' : 'AI Prompt Avatar Studio'}
                   </h3>
-                  <p className="text-[11px] text-gray-400">Target Category: {avatarCollections[aiTargetCategory]?.label}</p>
+                  <p className="text-[11px] text-gray-400">Target Category: <span className="text-accentCyan font-semibold">{avatarCollections[aiTargetCategory]?.label}</span></p>
                 </div>
               </div>
               <button
@@ -857,117 +857,123 @@ export default function Profile() {
                   setShowAiModal(false);
                   setEditingAvatarTarget(null);
                 }}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition"
+                className="p-2 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition active:scale-95 cursor-pointer"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Target Category Selector */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono">
-                Save Target Style &amp; Category
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                {Object.entries(avatarCollections).map(([key, col]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setAiTargetCategory(key);
-                      setAiStyle(key);
-                    }}
-                    className={`py-1.5 px-2 rounded-xl text-xs font-bold transition text-center border ${
-                      aiTargetCategory === key
-                        ? 'bg-accentPurple/30 border-accentCyan text-white shadow-sm'
-                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
-                    }`}
-                  >
-                    {col.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Prompt Input Form */}
-            <form onSubmit={handleGenerateAiAvatar} className="space-y-3">
+            {/* Modal Body (Scrollable with safe bottom padding) */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 pb-12 sm:pb-6">
+              {/* Target Category Selector */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono">
-                  Avatar Prompt Description
+                  Save Target Style &amp; Category
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
-                    placeholder="e.g. Cyberpunk samurai robot with glowing katana..."
-                    className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition"
-                  />
-                </div>
-              </div>
-
-              {/* Quick Inspiration Chips */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-gray-400">Quick Ideas:</span>
-                <div className="flex flex-wrap gap-1">
-                  {PROMPT_SUGGESTIONS.map((sug) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {Object.entries(avatarCollections).map(([key, col]) => (
                     <button
-                      key={sug}
+                      key={key}
                       type="button"
-                      onClick={() => setAiPrompt(sug)}
-                      className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-accentCyan/15 border border-white/10 hover:border-accentCyan/30 text-[9.5px] font-medium text-gray-300 hover:text-accentCyan transition"
+                      onClick={() => {
+                        setAiTargetCategory(key);
+                        setAiStyle(key);
+                      }}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-bold transition text-center border active:scale-95 ${
+                        aiTargetCategory === key
+                          ? 'bg-gradient-to-r from-accentPurple/30 to-accentCyan/30 border-accentCyan text-white shadow-md'
+                          : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
+                      }`}
                     >
-                      {sug}
+                      {col.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Generate Action Button */}
-              <button
-                type="submit"
-                disabled={aiGenerating || !aiPrompt.trim()}
-                className="w-full py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 active:scale-95 cursor-pointer"
-              >
-                {aiGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-black" />
-                    <span>Synthesizing AI Artwork...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-black" />
-                    <span>{editingAvatarTarget ? 'Regenerate Artwork' : 'Generate AI Avatar'}</span>
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Result Preview */}
-            {aiPreviewUrl && (
-              <div className="p-3 sm:p-4 rounded-2xl bg-black/60 border border-white/10 flex items-center gap-3 sm:gap-4 animate-scale-in">
-                <img
-                  src={aiPreviewUrl}
-                  alt="AI Avatar Preview"
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-accentCyan shadow-lg shrink-0"
-                />
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <h4 className="font-bold text-xs sm:text-sm text-white truncate">{aiPrompt}</h4>
-                  <p className="text-[9.5px] text-accentCyan font-mono">
-                    Adding to: {avatarCollections[aiTargetCategory]?.label}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleSaveAiAvatar}
-                    className="py-1.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs transition flex items-center justify-center gap-1 shadow-md active:scale-95"
-                  >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    <span>Save to {avatarCollections[aiTargetCategory]?.label}</span>
-                  </button>
+              {/* Prompt Input Form */}
+              <form onSubmit={handleGenerateAiAvatar} className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono">
+                    Avatar Prompt Description
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      placeholder="e.g. Cyberpunk samurai robot with glowing katana..."
+                      className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-3 text-xs sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition"
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+
+                {/* Quick Inspiration Chips */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-wider">Quick Ideas:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PROMPT_SUGGESTIONS.map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setAiPrompt(sug)}
+                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-accentCyan/15 border border-white/10 hover:border-accentCyan/30 text-[10px] font-medium text-gray-300 hover:text-accentCyan transition active:scale-95"
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Generate Action Button */}
+                <button
+                  type="submit"
+                  disabled={aiGenerating || !aiPrompt.trim()}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 active:scale-95 cursor-pointer mt-1 hover:opacity-95"
+                >
+                  {aiGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-black" />
+                      <span>Synthesizing AI Artwork...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-black" />
+                      <span>{editingAvatarTarget ? 'Regenerate Artwork' : 'Generate AI Avatar'}</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Result Preview & Save Action */}
+              {aiPreviewUrl && (
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-black/70 border-2 border-accentCyan/40 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 shadow-xl animate-scale-in">
+                  <img
+                    src={aiPreviewUrl}
+                    alt="AI Avatar Preview"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] shrink-0 bg-darkBg"
+                  />
+                  <div className="space-y-2 flex-1 w-full text-center sm:text-left min-w-0">
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-white truncate">{aiPrompt || 'Generated Avatar'}</h4>
+                      <p className="text-[10px] text-accentCyan font-mono">
+                        Will be saved to: {avatarCollections[aiTargetCategory]?.label}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSaveAiAvatar}
+                      className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.4)] active:scale-95 cursor-pointer"
+                    >
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>Save &amp; Apply Avatar</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
