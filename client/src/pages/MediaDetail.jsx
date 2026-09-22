@@ -272,6 +272,23 @@ export default function MediaDetail() {
                   </span>
                 )}
               </div>
+
+              {/* Genres Badges */}
+              {detail.genres && detail.genres.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-1">
+                  {detail.genres.map((g, idx) => (
+                    <button
+                      key={g.id || `${g.name}-${idx}`}
+                      type="button"
+                      onClick={() => navigate(`/search?type=${type}&genre=${g.id || encodeURIComponent(g.name)}`)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 hover:bg-accentCyan/20 text-gray-300 hover:text-accentCyan border border-white/10 hover:border-accentCyan/40 transition-all cursor-pointer backdrop-blur-md active:scale-95 shadow-sm"
+                      title={`Explore more ${g.name} ${type === 'movie' ? 'movies' : type}`}
+                    >
+                      {g.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Synopsis */}

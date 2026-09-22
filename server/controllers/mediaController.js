@@ -18,6 +18,7 @@ const MOCK_MOVIES = [
     backdrop_path: 'https://durian.blender.org/wp-content/uploads/2010/10/sintel_concept_artwork.jpg',
     release_date: '2010-09-27',
     vote_average: 8.2,
+    genres: [{ id: '16', name: 'Animation' }, { id: '14', name: 'Fantasy' }, { id: '28', name: 'Action' }],
     media_type: 'movie',
     video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
     youtube_trailer: 'eRsGyueVLvQ'
@@ -30,6 +31,7 @@ const MOCK_MOVIES = [
     backdrop_path: 'https://mango.blender.org/wp-content/uploads/2012/03/robot_concept_art.jpg',
     release_date: '2012-09-26',
     vote_average: 7.9,
+    genres: [{ id: '878', name: 'Science Fiction' }, { id: '28', name: 'Action' }],
     media_type: 'movie',
     video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
     youtube_trailer: 'R6MlUcmO1Mc'
@@ -42,6 +44,7 @@ const MOCK_MOVIES = [
     backdrop_path: 'https://peach.blender.org/wp-content/uploads/peach_bunny_small.jpg',
     release_date: '2008-05-30',
     vote_average: 7.5,
+    genres: [{ id: '16', name: 'Animation' }, { id: '35', name: 'Comedy' }, { id: '10751', name: 'Family' }],
     media_type: 'movie',
     video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     youtube_trailer: 'YE7VzlLtp-4'
@@ -54,6 +57,7 @@ const MOCK_MOVIES = [
     backdrop_path: 'https://orange.blender.org/wp-content/uploads/2006/03/production_design_02.jpg',
     release_date: '2006-03-24',
     vote_average: 7.0,
+    genres: [{ id: '16', name: 'Animation' }, { id: '878', name: 'Science Fiction' }],
     media_type: 'movie',
     video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     youtube_trailer: 'TLkA04hqLY0'
@@ -69,6 +73,7 @@ const MOCK_TV = [
     backdrop_path: 'https://gooseberry.blender.org/wp-content/uploads/2015/03/laundromat_inside.jpg',
     first_air_date: '2015-08-10',
     vote_average: 8.5,
+    genres: [{ id: '16', name: 'Animation' }, { id: '10765', name: 'Sci-Fi & Fantasy' }, { id: '35', name: 'Comedy' }],
     media_type: 'tv',
     video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4', // Example video
     youtube_trailer: 'YOF538VwV6A'
@@ -457,8 +462,13 @@ export const searchMedia = async (req, res) => {
             if (type === 'anime') {
               url += `&with_original_language=ja&with_genres=16`;
               if (genre) {
-                const cleanGenre = genre.replace('k_', '').replace('g_', '');
-                url += `,${cleanGenre}`;
+                if (genre.startsWith('k_')) {
+                  url += `&with_keywords=${genre.replace('k_', '')}`;
+                } else if (genre.startsWith('g_')) {
+                  url += `,${genre.replace('g_', '')}`;
+                } else {
+                  url += `,${genre}`;
+                }
               }
             } else {
               if (selectedIso) {
@@ -467,6 +477,8 @@ export const searchMedia = async (req, res) => {
               if (genre) {
                 if (genre.startsWith('k_')) {
                   url += `&with_keywords=${genre.replace('k_', '')}`;
+                } else if (genre.startsWith('g_')) {
+                  url += `&with_genres=${genre.replace('g_', '')}`;
                 } else {
                   url += `&with_genres=${genre}`;
                 }
@@ -488,6 +500,7 @@ export const searchMedia = async (req, res) => {
               poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
               release_date: r.release_date || r.first_air_date || '',
               vote_average: r.vote_average || 0,
+              genre_ids: r.genre_ids || [],
               media_type: type
             }));
           } else {
@@ -505,9 +518,13 @@ export const searchMedia = async (req, res) => {
               combinedResults = combinedResults.filter(r => 
                 (r.genre_ids?.includes(16) || r.original_language === 'ja')
               );
-              if (genre && genre.startsWith('g_')) {
-                const genreIdInt = parseInt(genre.replace('g_', ''), 10);
-                combinedResults = combinedResults.filter(r => r.genre_ids?.includes(genreIdInt));
+              if (genre) {
+                const cleanGenreId = genre.startsWith('g_') 
+                  ? parseInt(genre.replace('g_', ''), 10) 
+                  : (genre.startsWith('k_') ? null : parseInt(genre, 10));
+                if (cleanGenreId && !isNaN(cleanGenreId)) {
+                  combinedResults = combinedResults.filter(r => r.genre_ids?.includes(cleanGenreId));
+                }
               }
             } else {
               if (genre) {
@@ -541,6 +558,7 @@ export const searchMedia = async (req, res) => {
               poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
               release_date: r.release_date || r.first_air_date || '',
               vote_average: r.vote_average || 0,
+              genre_ids: r.genre_ids || [],
               media_type: type
             }));
 
@@ -637,7 +655,7 @@ export const getMediaDetail = async (req, res) => {
       if (isTmdbConfigured()) {
         try {
           const tmdbType = type === 'anime' ? 'tv' : type;
-          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos,recommendations,credits`);
+          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos,recommendations,credits,keywords`);
           const d = detailRes.data;
           
           const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key;
@@ -649,6 +667,49 @@ export const getMediaDetail = async (req, res) => {
             media_type: type
           })) || [];
 
+          const tmdbGenres = (d.genres || []).map(g => ({
+            id: g.id.toString(),
+            name: g.name
+          }));
+
+          const keywordsList = d.keywords?.keywords || d.keywords?.results || [];
+          const subGenreKeywords = {
+            'ecchi': 'Ecchi',
+            'harem': 'Harem',
+            'isekai': 'Isekai',
+            'mecha': 'Mecha',
+            'supernatural': 'Supernatural',
+            'slice of life': 'Slice of Life',
+            'school': 'School Life',
+            'school life': 'School Life',
+            'high school': 'School Life',
+            'magic': 'Magic',
+            'martial arts': 'Martial Arts',
+            'sports': 'Sports',
+            'shounen': 'Shounen',
+            'seinen': 'Seinen',
+            'shoujo': 'Shoujo',
+            'demons': 'Demons',
+            'vampire': 'Vampire',
+            'superhero': 'Superhero',
+            'dark fantasy': 'Dark Fantasy',
+            'cyberpunk': 'Cyberpunk',
+            'psychological': 'Psychological'
+          };
+
+          const extraGenres = [];
+          for (const kw of keywordsList) {
+            const kwName = (kw.name || '').toLowerCase().trim();
+            if (subGenreKeywords[kwName]) {
+              const label = subGenreKeywords[kwName];
+              if (!tmdbGenres.some(g => g.name.toLowerCase() === label.toLowerCase()) && !extraGenres.some(g => g.name === label)) {
+                extraGenres.push({ id: `k_${kw.id}`, name: label });
+              }
+            }
+          }
+
+          const genres = [...tmdbGenres, ...extraGenres];
+
           details = {
             id: d.id.toString(),
             title: d.title || d.name,
@@ -657,6 +718,7 @@ export const getMediaDetail = async (req, res) => {
             backdrop_path: d.backdrop_path ? `https://image.tmdb.org/t/p/original${d.backdrop_path}` : null,
             release_date: d.release_date || d.first_air_date,
             vote_average: d.vote_average,
+            genres,
             seasons: d.seasons || null, // Map TMDB TV seasons structure
             youtube_trailer: trailer || null,
             cast,
@@ -696,6 +758,16 @@ export const getMediaDetail = async (req, res) => {
         const title = m.attributes.title.en || Object.values(m.attributes.title)[0] || 'Unknown Manga';
         const overview = m.attributes.description.en || 'No description available.';
 
+        const mangaGenres = (m.attributes.tags || []).map(t => ({
+          id: t.id,
+          name: t.attributes?.name?.en || t.attributes?.name?.['ja-ro'] || 'Genre'
+        }));
+        if (m.attributes?.publicationDemographic) {
+          const demo = m.attributes.publicationDemographic;
+          const demoName = demo.charAt(0).toUpperCase() + demo.slice(1);
+          mangaGenres.unshift({ id: `d_${demo}`, name: demoName });
+        }
+
         details = {
           id: m.id,
           title,
@@ -704,6 +776,7 @@ export const getMediaDetail = async (req, res) => {
           backdrop_path: posterUrl,
           release_date: m.attributes.createdAt?.split('T')[0],
           vote_average: 8.0,
+          genres: mangaGenres,
           youtube_trailer: null,
           cast: m.relationships.filter(r => r.type === 'author').map(a => ({ name: 'Author', character: a.id })),
           recommendations: [],

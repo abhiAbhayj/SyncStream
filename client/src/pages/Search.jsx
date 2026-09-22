@@ -37,26 +37,14 @@ const MOVIE_GENRES = [
   { key: '9648', label: 'Mystery' },
   { key: '10749', label: 'Romance' },
   { key: '878', label: 'Science Fiction' },
-  { key: '10770', label: 'TV Movie' },
   { key: '53', label: 'Thriller' },
   { key: '10752', label: 'War' },
   { key: '37', label: 'Western' },
-  { key: '10769', label: 'Foreign' },
-  { key: '10754', label: 'Supernatural' },
-  { key: '10761', label: 'Sport' },
-  { key: '10763', label: 'Short' },
-  { key: '10755', label: 'Superhero' },
-  { key: '10756', label: 'Disaster' },
-  { key: '10757', label: 'Biography' },
-  { key: '10758', label: 'Legal Drama' },
-  { key: '10759', label: 'Medical Drama' },
-  { key: '10760', label: 'Political' },
-  { key: '10762', label: 'Spy' },
-  { key: '10764', label: 'Heist' },
-  { key: '10765', label: 'Psychological' },
-  { key: '10766', label: 'Martial Arts' },
-  { key: '10767', label: 'Vampire' },
-  { key: '10768', label: 'Zombie' }
+  { key: 'k_9715', label: 'Superhero' },
+  { key: 'k_779', label: 'Martial Arts' },
+  { key: 'k_272553', label: 'Psychological' },
+  { key: 'k_6152', label: 'Supernatural' },
+  { key: 'k_12377', label: 'Zombie' }
 ];
 
 const TV_GENRES = [
@@ -67,91 +55,45 @@ const TV_GENRES = [
   { key: '99', label: 'Documentary' },
   { key: '18', label: 'Drama' },
   { key: '10751', label: 'Family' },
-  { key: '10764', label: 'Game Show' },
-  { key: '36', label: 'History' },
-  { key: '27', label: 'Horror' },
   { key: '10762', label: 'Kids' },
-  { key: '10749', label: 'Romance' },
   { key: '9648', label: 'Mystery' },
-  { key: '10763', label: 'News' },
   { key: '10764', label: 'Reality' },
   { key: '10765', label: 'Sci-Fi & Fantasy' },
-  { key: '10766', label: 'Soap' },
-  { key: '10767', label: 'Talk' },
+  { key: 'k_9840', label: 'Romance' },
+  { key: 'k_315058', label: 'Horror & Thriller' },
+  { key: 'k_9715', label: 'Superhero' },
+  { key: 'k_6152', label: 'Supernatural' },
+  { key: 'k_10770', label: 'Medical Drama' },
+  { key: 'k_10771', label: 'Legal Drama' },
   { key: '10768', label: 'War & Politics' },
   { key: '37', label: 'Western' },
-  { key: '10402', label: 'Music' },
-  { key: '878', label: 'Science Fiction' },
-  { key: '10770', label: 'Medical Drama' },
-  { key: '10771', label: 'Legal Drama' },
-  { key: '10772', label: 'Political Drama' },
-  { key: '10773', label: 'Period Drama' },
-  { key: '10774', label: 'Teen Drama' },
-  { key: '10775', label: 'Superhero' },
-  { key: '10776', label: 'Spy / Espionage' },
-  { key: '10777', label: 'Psychological Thriller' },
-  { key: '10778', label: 'True Crime' },
-  { key: '10779', label: 'Anthology' },
-  { key: '10780', label: 'Mockumentary' },
-  { key: '10781', label: 'Miniseries' },
-  { key: '10782', label: 'Sitcom' },
-  { key: '10783', label: 'Disaster' },
-  { key: '10784', label: 'Supernatural' },
-  { key: '10785', label: 'Zombie' },
-  { key: '10786', label: 'Vampire' },
-  { key: '10787', label: 'Martial Arts' },
-  { key: '10788', label: 'Sports Drama' },
-  { key: '10789', label: 'Historical Fiction' },
-  { key: '10790', label: 'Workplace Drama' },
-  { key: '10791', label: 'Detective' },
-  { key: '10792', label: 'Prison Drama' },
-  { key: '10793', label: 'Buddy Comedy' },
-  { key: '10794', label: 'Dark Comedy' },
-  { key: '10795', label: 'Romantic Comedy' },
-  { key: '10796', label: 'Heist' },
-  { key: '10797', label: 'Survival' },
-  { key: '10798', label: 'Military' }
+  { key: 'k_9755', label: 'Sitcom' }
 ];
 
 const ANIME_GENRES = [
-  { key: 'g_10759', label: 'Action & Adventure' },
-  { key: 'k_286354', label: 'Cars' },
+  { key: 'g_10759', label: 'Action' },
   { key: 'g_35', label: 'Comedy' },
-  { key: 'k_2689', label: 'Dementia' },
-  { key: 'k_361426', label: 'Demons' },
   { key: 'g_18', label: 'Drama' },
-  { key: 'k_195669', label: 'Ecchi' },
-  { key: 'k_18249', label: 'Game' },
-  { key: 'k_9194', label: 'Harem' },
-  { key: 'k_15126', label: 'Historical' },
-  { key: 'k_315058', label: 'Horror' },
-  { key: 'k_237451', label: 'Isekai' },
-  { key: 'k_229074', label: 'Josei' },
-  { key: 'g_10762', label: 'Kids' },
-  { key: 'k_2343', label: 'Magic' },
-  { key: 'k_779', label: 'Martial Arts' },
-  { key: 'k_10046', label: 'Mecha' },
-  { key: 'k_162365', label: 'Military' },
-  { key: 'k_283297', label: 'Music' },
-  { key: 'g_9648', label: 'Mystery' },
-  { key: 'k_9755', label: 'Parody' },
-  { key: 'k_6149', label: 'Police' },
-  { key: 'k_272553', label: 'Psychological' },
-  { key: 'k_9840', label: 'Romance' },
-  { key: 'k_1462', label: 'Samurai' },
-  { key: 'k_10873', label: 'School' },
   { key: 'g_10765', label: 'Sci-Fi & Fantasy' },
+  { key: 'k_9840', label: 'Romance' },
+  { key: 'k_195669', label: 'Ecchi' },
+  { key: 'k_9194', label: 'Harem' },
+  { key: 'k_237451', label: 'Isekai' },
+  { key: 'k_6152', label: 'Supernatural' },
+  { key: 'k_207826', label: 'Shounen' },
   { key: 'k_195668', label: 'Seinen' },
   { key: 'k_206437', label: 'Shoujo' },
-  { key: 'k_207469', label: 'Shoujo Ai' },
-  { key: 'k_207826', label: 'Shounen' },
+  { key: 'k_10873', label: 'School Life' },
   { key: 'k_9914', label: 'Slice of Life' },
-  { key: 'k_9882', label: 'Space' },
+  { key: 'k_10046', label: 'Mecha' },
   { key: 'k_6075', label: 'Sports' },
-  { key: 'k_33637', label: 'Super Power' },
-  { key: 'k_6152', label: 'Supernatural' },
-  { key: 'k_288394', label: 'Suspense' },
-  { key: 'k_316362', label: 'Thriller' },
+  { key: 'g_9648', label: 'Mystery' },
+  { key: 'k_315058', label: 'Horror' },
+  { key: 'k_272553', label: 'Psychological' },
+  { key: 'k_2343', label: 'Magic' },
+  { key: 'k_779', label: 'Martial Arts' },
+  { key: 'k_361426', label: 'Demons' },
+  { key: 'k_283297', label: 'Music' },
   { key: 'k_3133', label: 'Vampire' }
 ];
 
@@ -159,37 +101,33 @@ const MANGA_GENRES = [
   { key: '391b0423-d847-456f-aff0-8b0cfc03066b', label: 'Action' },
   { key: '87cc87cd-a395-47af-b27a-93258283bbc6', label: 'Adventure' },
   { key: '4d32cc48-9f00-4cca-9b5a-a839f0764984', label: 'Comedy' },
-  { key: '39730448-9a5f-48a2-85b0-a70db87b1233', label: 'Demons' },
-  { key: 'b9af3a63-f058-46de-a9a0-e0c13906197a', label: 'Drama' },
-  { key: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc', label: 'Fantasy' },
-  { key: 'aafb99c1-7f60-43fa-b75f-fc9502ce29c7', label: 'Harem' },
-  { key: '33771934-028e-4cb3-8744-691e866a923e', label: 'Historical' },
-  { key: 'cdad7e68-1419-41dd-bdce-27753074a640', label: 'Horror' },
-  { key: 'ace04997-f6bd-436e-b261-779182193d3d', label: 'Isekai' },
-  { key: 'd_josei', label: 'Josei' },
-  { key: 'a1f53773-c69a-4ce5-8cab-fffcd90b1565', label: 'Magic' },
-  { key: '799c202e-7daa-44eb-9cf7-8a3c0441531e', label: 'Martial Arts' },
-  { key: '50880a9d-5440-4732-9afb-8f457127e836', label: 'Mecha' },
-  { key: 'ac72833b-c4e9-4878-b9db-6c8a4a99444a', label: 'Military' },
-  { key: 'f42fbf9e-188a-447b-9fdc-f19dc1e4d685', label: 'Music' },
-  { key: 'ee968100-4191-4968-93d3-f82d72be7e46', label: 'Mystery' },
-  { key: 'df33b754-73a3-4c54-80e6-1a74a8058539', label: 'Police' },
-  { key: '3b60b75c-a2d7-4860-ab56-05f391bb889c', label: 'Psychological' },
   { key: '423e2eae-a7a2-4a8b-ac03-a8351462d71d', label: 'Romance' },
-  { key: '81183756-1453-4c81-aa9e-f6e1b63be016', label: 'Samurai' },
+  { key: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc', label: 'Fantasy' },
+  { key: 'b9af3a63-f058-46de-a9a0-e0c13906197a', label: 'Drama' },
   { key: '256c8bd9-4904-4360-bf4f-508a76d67183', label: 'Sci-Fi' },
+  { key: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75', label: 'Supernatural' },
+  { key: 'ace04997-f6bd-436e-b261-779182193d3d', label: 'Isekai' },
+  { key: 'aafb99c1-7f60-43fa-b75f-fc9502ce29c7', label: 'Harem' },
+  { key: '2d1f5d56-a1e5-4d0d-a961-29734e194866', label: 'Ecchi' },
+  { key: 'ee968100-4191-4968-93d3-f82d72be7e46', label: 'Mystery' },
+  { key: 'cdad7e68-1419-41dd-bdce-27753074a640', label: 'Horror' },
+  { key: '3b60b75c-a2d7-4860-ab56-05f391bb889c', label: 'Psychological' },
+  { key: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9', label: 'Slice of Life' },
+  { key: '50880a9d-5440-4732-9afb-8f457127e836', label: 'Mecha' },
+  { key: '69964a64-2f90-4d33-beeb-f3ed2875eb4c', label: 'Sports' },
+  { key: '799c202e-7daa-44eb-9cf7-8a3c0441531e', label: 'Martial Arts' },
+  { key: 'a1f53773-c69a-4ce5-8cab-fffcd90b1565', label: 'Magic' },
+  { key: '39730448-9a5f-48a2-85b0-a70db87b1233', label: 'Demons' },
+  { key: 'd_shounen', label: 'Shounen' },
   { key: 'd_seinen', label: 'Seinen' },
   { key: 'd_shoujo', label: 'Shoujo' },
-  { key: 'd_shounen', label: 'Shounen' },
-  { key: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9', label: 'Slice of Life' },
-  { key: '69964a64-2f90-4d33-beeb-f3ed2875eb4c', label: 'Sports' },
-  { key: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75', label: 'Supernatural' },
-  { key: '07251805-a27e-4d59-b488-f0bfbec15168', label: 'Thriller' }
+  { key: 'd_josei', label: 'Josei' }
 ];
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { playTrack } = useMusic();
+  
   const initialQuery = searchParams.get('q') || '';
   const initialType = searchParams.get('type') || 'movie';
   const initialGenre = searchParams.get('genre') || '';
@@ -210,9 +148,32 @@ export default function Search() {
   const [page, setPage] = useState(1);
   const MAX_PAGES = 30;
 
+  // React to searchParams updates (e.g. from MediaDetail click or back navigation)
   useEffect(() => {
-    executeSearch(initialQuery, initialType, initialGenre, initialLanguage, initialCountry, 1, sort, 'all');
-  }, []);
+    const q = searchParams.get('q') || '';
+    const t = searchParams.get('type') || 'movie';
+    let g = searchParams.get('genre') || '';
+    const l = searchParams.get('lang') || searchParams.get('language') || '';
+    const c = searchParams.get('country') || '';
+
+    // If genre was passed as a label (e.g. 'Action'), resolve it to key
+    if (g && !g.startsWith('k_') && !g.startsWith('g_') && !g.startsWith('d_') && isNaN(parseInt(g, 10))) {
+      const allGenresForType = t === 'movie' ? MOVIE_GENRES : (t === 'tv' ? TV_GENRES : (t === 'anime' ? ANIME_GENRES : MANGA_GENRES));
+      const matched = allGenresForType.find(x => x.label.toLowerCase() === g.toLowerCase());
+      if (matched) {
+        g = matched.key;
+      }
+    }
+
+    setQuery(q);
+    setType(t);
+    setGenre(g);
+    setLanguage(l);
+    setCountry(c);
+    setPage(1);
+    
+    executeSearch(q, t, g, l, c, 1, sort, 'all');
+  }, [searchParams]);
 
   const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory) => {
     if (pageNum === 1) setLoading(true);
@@ -570,44 +531,79 @@ export default function Search() {
             );
           })
         ) : (
-          (type === 'movie' || type === 'tv'
-            ? [
-                { label: 'Action', type: 'genre', value: '28' },
-                { label: 'Comedy', type: 'genre', value: '35' },
-                { label: 'Sci-Fi', type: 'genre', value: '878' },
-                { label: 'Horror', type: 'genre', value: '27' },
-                { label: 'Animation', type: 'genre', value: '16' },
-                { label: 'Korean', type: 'country', value: 'KR' },
-                { label: 'Japan', type: 'country', value: 'JP' },
-                { label: 'India', type: 'country', value: 'IN' }
-              ]
-            : [
-                { label: 'Action', type: 'genre', value: 'g_10759' },
-                { label: 'Comedy', type: 'genre', value: 'g_35' },
-                { label: 'Fantasy', type: 'genre', value: 'g_10765' },
-                { label: 'Romance', type: 'genre', value: 'k_9840' },
-                { label: 'Mystery', type: 'genre', value: 'g_9648' }
-              ]
-          ).map((shortcut) => (
-            <button
-              key={shortcut.label}
-              type="button"
-              onClick={() => {
-                if (shortcut.type === 'genre') {
-                  setGenre(shortcut.value);
-                  setSearchParams({ q: query, type, genre: shortcut.value, country });
-                  executeSearch(query, type, shortcut.value, language, country, 1);
-                } else {
-                  setCountry(shortcut.value);
-                  setSearchParams({ q: query, type, genre, country: shortcut.value });
-                  executeSearch(query, type, genre, language, shortcut.value, 1);
-                }
-              }}
-              className="px-3 py-1 rounded-full text-xs font-bold border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:border-accentCyan/30 hover:bg-accentCyan/5 transition"
-            >
-              {shortcut.label}
-            </button>
-          ))
+          (() => {
+            const quickList = type === 'movie'
+              ? [
+                  { label: 'Action', key: '28' },
+                  { label: 'Comedy', key: '35' },
+                  { label: 'Sci-Fi', key: '878' },
+                  { label: 'Horror', key: '27' },
+                  { label: 'Romance', key: '10749' },
+                  { label: 'Thriller', key: '53' },
+                  { label: 'Animation', key: '16' },
+                  { label: 'Superhero', key: 'k_9715' },
+                  { label: 'Fantasy', key: '14' }
+                ]
+              : type === 'tv'
+              ? [
+                  { label: 'Action & Adventure', key: '10759' },
+                  { label: 'Comedy', key: '35' },
+                  { label: 'Sci-Fi & Fantasy', key: '10765' },
+                  { label: 'Drama', key: '18' },
+                  { label: 'Crime', key: '80' },
+                  { label: 'Mystery', key: '9648' },
+                  { label: 'Romance', key: 'k_9840' },
+                  { label: 'Horror & Thriller', key: 'k_315058' },
+                  { label: 'Superhero', key: 'k_9715' }
+                ]
+              : type === 'anime'
+              ? [
+                  { label: 'Action', key: 'g_10759' },
+                  { label: 'Comedy', key: 'g_35' },
+                  { label: 'Romance', key: 'k_9840' },
+                  { label: 'Ecchi', key: 'k_195669' },
+                  { label: 'Harem', key: 'k_9194' },
+                  { label: 'Isekai', key: 'k_237451' },
+                  { label: 'Supernatural', key: 'k_6152' },
+                  { label: 'Shounen', key: 'k_207826' },
+                  { label: 'Slice of Life', key: 'k_9914' },
+                  { label: 'Mecha', key: 'k_10046' }
+                ]
+              : [
+                  { label: 'Action', key: '391b0423-d847-456f-aff0-8b0cfc03066b' },
+                  { label: 'Romance', key: '423e2eae-a7a2-4a8b-ac03-a8351462d71d' },
+                  { label: 'Comedy', key: '4d32cc48-9f00-4cca-9b5a-a839f0764984' },
+                  { label: 'Fantasy', key: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc' },
+                  { label: 'Isekai', key: 'ace04997-f6bd-436e-b261-779182193d3d' },
+                  { label: 'Harem', key: 'aafb99c1-7f60-43fa-b75f-fc9502ce29c7' },
+                  { label: 'Ecchi', key: '2d1f5d56-a1e5-4d0d-a961-29734e194866' },
+                  { label: 'Supernatural', key: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75' },
+                  { label: 'Shounen', key: 'd_shounen' }
+                ];
+
+            return quickList.map((item) => {
+              const isSelected = genre === item.key;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    const nextG = isSelected ? '' : item.key;
+                    setGenre(nextG);
+                    setSearchParams({ q: query, type, genre: nextG, country, lang: language });
+                    executeSearch(query, type, nextG, language, country, 1);
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition active:scale-95 cursor-pointer ${
+                    isSelected
+                      ? 'bg-accentCyan text-black border-accentCyan font-extrabold shadow-[0_0_12px_rgba(99,210,255,0.4)]'
+                      : 'border-darkBorder bg-darkCard/40 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-accentCyan/5'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            });
+          })()
         )}
       </div>
 
