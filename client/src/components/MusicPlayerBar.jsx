@@ -21,6 +21,19 @@ import {
   X
 } from 'lucide-react';
 
+const cleanText = (str) => {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\\"/g, '"')
+    .trim();
+};
+
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return '00:00';
   const mins = Math.floor(seconds / 60);
@@ -188,10 +201,10 @@ export default function MusicPlayerBar() {
 
               <div className="min-w-0 flex-1 pr-1">
                 <p className="text-xs font-bold text-white truncate font-outfit leading-snug">
-                  {currentTrack.title}
+                  {cleanText(currentTrack.title)}
                 </p>
                 <p className="text-[10.5px] text-gray-400 truncate leading-tight font-medium">
-                  {currentTrack.artist}
+                  {cleanText(currentTrack.artist)}
                 </p>
               </div>
             </div>
@@ -279,19 +292,19 @@ export default function MusicPlayerBar() {
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════════
-              DESKTOP BAR (>= 768px)
+              DESKTOP / TABLET BAR (>= 768px)
              ══════════════════════════════════════════════════════════════════════ */}
-          <div className="hidden md:flex items-center justify-between px-4 py-2.5 gap-4">
+          <div className="hidden md:flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 gap-2 sm:gap-4">
             
-            {/* 1. Track Info (Left - 28%) */}
-            <div className="flex items-center gap-3 w-[28%] min-w-[200px] shrink-0">
+            {/* 1. Track Info (Left) */}
+            <div className="flex items-center gap-2.5 w-[28%] min-w-[160px] max-w-[260px] shrink-0">
               <div
                 onClick={() => setIsExpanded(true)}
-                className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/15 shadow-xl cursor-pointer group bg-black/40"
+                className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shrink-0 border border-white/15 shadow-xl cursor-pointer group bg-black/40"
               >
                 <img
                   src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
-                  alt={currentTrack.title}
+                  alt={cleanText(currentTrack.title)}
                   className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
                     isPlaying ? 'animate-spin-slow' : ''
                   }`}
@@ -302,12 +315,12 @@ export default function MusicPlayerBar() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <h4
                     onClick={() => setIsExpanded(true)}
-                    className="text-sm font-bold text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors"
+                    className="text-xs sm:text-sm font-bold text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors"
                   >
-                    {currentTrack.title}
+                    {cleanText(currentTrack.title)}
                   </h4>
 
                   {/* Add to Playlist button */}
@@ -317,7 +330,7 @@ export default function MusicPlayerBar() {
                       e.stopPropagation();
                       openAddToPlaylist(currentTrack);
                     }}
-                    className="p-1 text-gray-400 hover:text-accentCyan hover:bg-accentCyan/10 rounded-lg transition"
+                    className="p-1 text-gray-400 hover:text-accentCyan hover:bg-accentCyan/10 rounded-lg transition shrink-0"
                     title="Add to Playlist"
                   >
                     <FolderPlus className="w-3.5 h-3.5" />
@@ -330,26 +343,26 @@ export default function MusicPlayerBar() {
                       e.stopPropagation();
                       toggleFavorite(currentTrack);
                     }}
-                    className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                    className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition shrink-0"
                     title={isFavorite(currentTrack.id) ? 'Liked' : 'Like Track'}
                   >
                     <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
                   </button>
 
                   {currentTrack.language && (
-                    <span className="uppercase text-[9px] font-bold px-1.5 py-0.2 rounded bg-accentCyan/15 text-accentCyan border border-accentCyan/30 shrink-0">
+                    <span className="hidden lg:inline-block uppercase text-[9px] font-bold px-1.5 py-0.2 rounded bg-accentCyan/15 text-accentCyan border border-accentCyan/30 shrink-0">
                       {currentTrack.language}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-400 truncate hover:text-gray-300 font-medium">
-                  {currentTrack.artist}
+                <p className="text-[11px] sm:text-xs text-gray-400 truncate hover:text-gray-300 font-medium">
+                  {cleanText(currentTrack.artist)}
                 </p>
               </div>
             </div>
 
             {/* 2. Center Audio Controls */}
-            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-1">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 md:gap-3 flex-1">
               
               {/* Shuffle */}
               <button
@@ -443,11 +456,11 @@ export default function MusicPlayerBar() {
               </button>
             </div>
 
-            {/* 3. Right Extra Controls (28%) */}
-            <div className="flex items-center justify-end gap-2.5 w-[28%] min-w-[200px] shrink-0">
+            {/* 3. Right Extra Controls */}
+            <div className="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-2.5 w-[28%] min-w-[160px] max-w-[260px] shrink-0">
               
               {/* Time Indicators */}
-              <div className="text-[11px] font-mono text-gray-400 font-semibold shrink-0">
+              <div className="hidden lg:block text-[11px] font-mono text-gray-400 font-semibold shrink-0">
                 <span className="text-white">{formatTime(displayTime)}</span>
                 <span className="text-gray-600 mx-1">/</span>
                 <span className="text-gray-500">{formatTime(duration)}</span>
@@ -476,7 +489,7 @@ export default function MusicPlayerBar() {
                   step="0.01"
                   value={isMuted ? 0 : volume}
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-16 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accentCyan hover:bg-white/20 transition-all"
+                  className="w-12 sm:w-16 md:w-20 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accentCyan hover:bg-white/20 transition-all"
                 />
               </div>
 
