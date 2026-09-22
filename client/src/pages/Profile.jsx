@@ -78,9 +78,9 @@ const THEME_OPTIONS = [
   {
     id: 'cyber',
     name: '👑 Solar Gold Luxe',
-    desc: 'Royal onyx gunmetal, 24K gold stars & sweeping light shafts',
-    animation: 'Rotating diamond stars & gold rays',
-    swatch: ['#0d0c07', '#ffd700', '#ff9900'],
+    desc: 'Imperial 24K gold, champagne aurora & celestial solar flares',
+    animation: 'Solar coronal flares & golden stardust',
+    swatch: ['#0e0c08', '#ffd700', '#f59e0b', '#fef08a'],
   },
   {
     id: 'amethyst',

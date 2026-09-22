@@ -176,23 +176,44 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 7: Solar Gold Luxe 👑 (Royal Gunmetal & 24K Gold)
+   THEME 7: Solar Gold Luxe 👑 (Imperial Onyx Bronze & 24K Gold)
 ───────────────────────────────────────────── */
 .theme-cyber {
-  --dark-bg:     13 12 7;        /* #0d0c07 - Royal Onyx Gunmetal */
-  --dark-card:   26 23 13;       /* #1a170d - 24K Gold Card */
-  --dark-surf:   42 37 20;       /* #2a2514 - High-Luxe Surface */
+  --dark-bg:     14 12 8;        /* #0e0c08 - Imperial Onyx Bronze */
+  --dark-card:   28 24 14;       /* #1c180e - 24K Brushed Gold Card */
+  --dark-surf:   46 39 20;       /* #2e2714 - Opulent Imperial Surface */
   --dark-border: 255 215 0;
 
-  --accent-cyan:   255 215 0;     /* #ffd700 - Pure 24K Gold */
-  --accent-purple: 255 153 0;     /* #ff9900 - Amber Sunfire */
-  --accent-pink:   255 240 160;   /* #fff0a0 - Champagne Glow */
-  --accent-gold:   255 180 20;    /* #ffb414 - Royal Gold */
-  --accent-green:  255 225 90;    /* #ffe15a - Sun Shimmer */
+  --accent-cyan:   255 215 0;     /* #ffd700 - 24K Pure Imperial Gold */
+  --accent-purple: 245 158 11;    /* #f59e0b - Warm Honey Amber */
+  --accent-pink:   254 240 138;   /* #fef08a - Champagne Diamond */
+  --accent-gold:   251 191 36;    /* #fbbf24 - Royal Solar Gold */
+  --accent-green:  253 230 138;   /* #fde68a - Sunlight Ivory */
 
-  --glow-1: rgba(255, 215,   0, 0.45);
-  --glow-2: rgba(255, 153,   0, 0.32);
-  --glow-3: rgba(255, 240, 160, 0.20);
+  --glow-1: rgba(255, 215,   0, 0.42);
+  --glow-2: rgba(245, 158,  11, 0.30);
+  --glow-3: rgba(254, 240, 138, 0.22);
+}
+
+.theme-cyber .btn-primary,
+.theme-cyber .btn-glow-purple,
+.theme-cyber button[class*="from-accentCyan"] {
+  background: linear-gradient(135deg, #ffd700 0%, #f59e0b 50%, #d97706 100%) !important;
+  color: #1c1303 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.35) !important;
+}
+
+.theme-cyber .btn-primary *,
+.theme-cyber button[class*="from-accentCyan"] * {
+  color: #1c1303 !important;
+}
+
+.theme-cyber .text-gradient,
+.theme-cyber .text-gradient-aurora {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef08a 35%, #ffd700 70%, #f59e0b 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 /* ─────────────────────────────────────────────

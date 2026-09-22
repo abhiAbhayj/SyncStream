@@ -2,15 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 
 /**
  * ThemeBackground — High-performance real-time animated background canvas
- * Completely unique animations for each theme:
- * - ocean: Harmonic deep-sea fluid tidal current waves & soft sonar ripple rings
- * - inferno: Turbulent surging molten magma lake & dynamic roaring flame tongues
- * - matrix: Subtle dark-emerald cyber circuit grid & gentle scanning radar beam (non-distracting)
- * - cyber: Rotating 4-point solar diamond stars & sweeping golden light shafts
- * - monochrome: Geometric constellation stardust with clean connected lines
- * - arctic: Falling hexagonal ice crystals & gentle crystalline snow
- * - tokyo: 80s Synthwave perspective rolling wireframe grid & neon vapor motes
- * - amethyst: Deep-space 3D parallax starfield with occasional shooting meteors
+ * Crafted visual identities for every theme:
+ * - ocean (🌊 Ocean Abyss): Multi-layered deep trench sine-wave currents, expanding sonar acoustic ripples & bioluminescent plankton
+ * - inferno (🔥 Inferno Magma): Volcanic obsidian lake, multi-harmonic molten lava waves, soaring flame shards & incandescent embers
+ * - matrix (⚡ Matrix Terminal): Pitch void black, orthogonal cyber circuit grid, dynamic PCB data pulses & sweeping 360° radar beam
+ * - cyber (👑 Solar Gold Luxe): Opulent 24K pure gold & champagne auroral light curtains, rotating celestial diamond stars & ascending solar stardust
+ * - monochrome (⚪ Lunar Noir): Deep obsidian pitch with connected geometric constellation stardust & silver filaments
+ * - arctic (❄️ Arctic Frost): Glacial frosted night, drifting crystalline hexagonal snowflakes & swaying ice dust
+ * - tokyo (🌸 Tokyo Vaporwave): 80s Synthwave perspective rolling neon wireframe grid & cyber motes
+ * - amethyst (🔮 Cosmic Nebula): Deep-space 3D parallax starfield with violet plasma dust & shooting star trails
  */
 export default function ThemeBackground() {
   const canvasRef = useRef(null);
@@ -74,94 +74,262 @@ export default function ThemeBackground() {
     // State collections
     let particles = [];
     let waves = [];
+    let sonarSources = [];
     let sonarRings = [];
     let circuitNodes = [];
-    let circuitLines = [];
+    let circuitSegments = [];
+    let dataPackets = [];
+    let radarAngle = 0;
     let solarStars = [];
+    let solarMotes = [];
+    let solarWaves = [];
     let shootingStars = [];
     let gridOffset = 0;
-    let scanlineY = 0;
-    let lightBeamAngle = 0;
 
     function initScene(theme) {
       particles = [];
       waves = [];
+      sonarSources = [];
       sonarRings = [];
       circuitNodes = [];
-      circuitLines = [];
+      circuitSegments = [];
+      dataPackets = [];
       solarStars = [];
+      solarMotes = [];
+      solarWaves = [];
       shootingStars = [];
       gridOffset = 0;
-      scanlineY = 0;
+      radarAngle = 0;
+
+      const isMobile = width < 768;
 
       if (theme === 'ocean') {
-        // 1. Ocean Abyss: Multi-layered Sine Wave Currents + Sonar Ripples
+        // 🌊 1. Ocean Abyss: Multi-layered Sine Wave Currents + Sonar Ripples + Bioluminescent Plankton
         waves = [
-          { amp: 30, freq: 0.003, speed: 0.015, phase: 0, yRatio: 0.85, color: 'rgba(99, 210, 255, 0.08)' },
-          { amp: 22, freq: 0.005, speed: -0.012, phase: 2, yRatio: 0.90, color: 'rgba(149, 100, 255, 0.06)' },
-          { amp: 38, freq: 0.002, speed: 0.008, phase: 4, yRatio: 0.95, color: 'rgba(56, 189, 248, 0.10)' }
+          {
+            yRatio: 0.70,
+            amp1: 28,
+            freq1: 0.0022,
+            amp2: 12,
+            freq2: 0.0055,
+            speed: 0.009,
+            phase: 0,
+            gradTop: 'rgba(56, 189, 248, 0.10)',
+            gradBot: 'rgba(14, 165, 233, 0.02)',
+            crestColor: 'rgba(99, 210, 255, 0.28)'
+          },
+          {
+            yRatio: 0.80,
+            amp1: 34,
+            freq1: 0.0018,
+            amp2: 16,
+            freq2: 0.0042,
+            speed: -0.007,
+            phase: 1.8,
+            gradTop: 'rgba(45, 212, 191, 0.08)',
+            gradBot: 'rgba(20, 184, 166, 0.01)',
+            crestColor: 'rgba(45, 212, 191, 0.25)'
+          },
+          {
+            yRatio: 0.88,
+            amp1: 42,
+            freq1: 0.0014,
+            amp2: 20,
+            freq2: 0.0035,
+            speed: 0.011,
+            phase: 3.2,
+            gradTop: 'rgba(99, 102, 241, 0.12)',
+            gradBot: 'rgba(59, 130, 246, 0.04)',
+            crestColor: 'rgba(129, 140, 248, 0.32)'
+          },
+          {
+            yRatio: 0.95,
+            amp1: 22,
+            freq1: 0.0040,
+            amp2: 10,
+            freq2: 0.0080,
+            speed: -0.013,
+            phase: 4.5,
+            gradTop: 'rgba(99, 210, 255, 0.16)',
+            gradBot: 'rgba(14, 116, 144, 0.08)',
+            crestColor: 'rgba(99, 210, 255, 0.40)'
+          }
         ];
-        sonarRings = [
-          { x: width * 0.25, y: height * 0.45, r: 20, maxR: 220, speed: 0.8, alpha: 0.35 },
-          { x: width * 0.75, y: height * 0.65, r: 80, maxR: 260, speed: 0.7, alpha: 0.3 }
+
+        // Sonar ping stations
+        sonarSources = [
+          { x: width * 0.22, y: height * 0.38, timer: 0, interval: 140 },
+          { x: width * 0.78, y: height * 0.55, timer: 70, interval: 160 },
+          { x: width * 0.50, y: height * 0.72, timer: 110, interval: 180 }
         ];
+
+        // Bioluminescent Plankton
+        const planktonCount = isMobile ? 24 : 45;
+        for (let i = 0; i < planktonCount; i++) {
+          particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 1.2 + Math.random() * 2.8,
+            speedY: -(0.2 + Math.random() * 0.6),
+            swaySpeed: 0.015 + Math.random() * 0.02,
+            swayOffset: Math.random() * Math.PI * 2,
+            swayAmp: 0.8 + Math.random() * 1.5,
+            hue: Math.random() > 0.4 ? 195 : 170, // Cyan / Teal bioluminescence
+            baseAlpha: 0.2 + Math.random() * 0.5,
+            pulseSpeed: 0.03 + Math.random() * 0.04,
+            pulsePhase: Math.random() * Math.PI * 2
+          });
+        }
       } else if (theme === 'inferno') {
-        // 2. Inferno Magma: Surging Lava Waves at bottom + Flaming Shards
+        // 🔥 2. Inferno Magma: Volcanic Lake, Multi-Harmonic Magma Waves & Dynamic Flame Shards
         waves = [
-          { amp: 28, freq: 0.006, speed: 0.03, phase: 0, yRatio: 0.92, color: 'rgba(255, 69, 0, 0.15)' },
-          { amp: 20, freq: 0.010, speed: -0.025, phase: 1.5, yRatio: 0.95, color: 'rgba(255, 30, 39, 0.20)' }
+          {
+            yRatio: 0.84,
+            amp: 30,
+            freq: 0.004,
+            turbAmp: 10,
+            turbFreq: 0.018,
+            speed: 0.022,
+            phase: 0,
+            gradTop: 'rgba(255, 69, 0, 0.18)',
+            gradBot: 'rgba(180, 20, 0, 0.05)',
+            crestColor: 'rgba(255, 120, 40, 0.45)'
+          },
+          {
+            yRatio: 0.91,
+            amp: 24,
+            freq: 0.007,
+            turbAmp: 14,
+            turbFreq: 0.025,
+            speed: -0.018,
+            phase: 1.5,
+            gradTop: 'rgba(255, 30, 39, 0.25)',
+            gradBot: 'rgba(120, 10, 10, 0.10)',
+            crestColor: 'rgba(255, 80, 50, 0.6)'
+          },
+          {
+            yRatio: 0.96,
+            amp: 18,
+            freq: 0.010,
+            turbAmp: 8,
+            turbFreq: 0.035,
+            speed: 0.028,
+            phase: 3.0,
+            gradTop: 'rgba(255, 170, 0, 0.35)',
+            gradBot: 'rgba(200, 40, 0, 0.20)',
+            crestColor: 'rgba(255, 220, 60, 0.8)'
+          }
         ];
-        const shardCount = Math.min(width > 768 ? 45 : 22, 50);
+
+        // Flame Shards & Fire Bursts
+        const shardCount = isMobile ? 28 : 55;
         for (let i = 0; i < shardCount; i++) {
           particles.push({
             x: Math.random() * width,
-            y: height * 0.7 + Math.random() * (height * 0.3),
-            size: 2 + Math.random() * 5,
-            speedY: -(1.5 + Math.random() * 3.5),
-            speedX: (Math.random() - 0.5) * 1.8,
+            y: height * 0.7 + Math.random() * (height * 0.32),
+            size: 2.5 + Math.random() * 5.5,
+            speedY: -(1.8 + Math.random() * 3.8),
+            speedX: (Math.random() - 0.5) * 2.2,
             rotation: Math.random() * Math.PI * 2,
-            rotSpeed: (Math.random() - 0.5) * 0.15,
-            hue: Math.random() > 0.4 ? 15 + Math.random() * 25 : 355 + Math.random() * 15,
-            life: 0,
-            maxLife: 40 + Math.random() * 70,
-            opacity: 0.5 + Math.random() * 0.5
+            rotSpeed: (Math.random() - 0.5) * 0.18,
+            hue: Math.random() > 0.5 ? 15 + Math.random() * 25 : 355 + Math.random() * 18,
+            lightness: 55 + Math.random() * 20,
+            life: Math.random() * 50,
+            maxLife: 45 + Math.random() * 65,
+            opacity: 0.45 + Math.random() * 0.55
           });
         }
       } else if (theme === 'matrix') {
-        // 3. Matrix Terminal: Subtle Dark Emerald Cyber Circuit Grid & Scanning Radar Line
-        const nodeCols = Math.floor(width / 120);
-        const nodeRows = Math.floor(height / 100);
+        // ⚡ 3. Matrix Terminal: Pitch Void Black, Orthogonal Cyber Circuit Grid & Scanning Radar Beam
+        const spacingX = isMobile ? 90 : 110;
+        const spacingY = isMobile ? 80 : 95;
+        const cols = Math.ceil(width / spacingX) + 1;
+        const rows = Math.ceil(height / spacingY) + 1;
+
         circuitNodes = [];
-        for (let r = 0; r <= nodeRows; r++) {
-          for (let c = 0; c <= nodeCols; c++) {
+        circuitSegments = [];
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const nx = c * spacingX;
+            const ny = r * spacingY;
+            const isHub = (r + c) % 4 === 0;
             circuitNodes.push({
-              x: c * 120 + (r % 2 === 0 ? 0 : 60),
-              y: r * 100,
+              x: nx,
+              y: ny,
+              isHub,
               pulse: Math.random() * Math.PI * 2,
               pulseSpeed: 0.02 + Math.random() * 0.03,
-              active: Math.random() > 0.5
+              radarHitAlpha: 0
             });
+
+            // Add horizontal & vertical PCB segments
+            if (c < cols - 1) {
+              circuitSegments.push({ x1: nx, y1: ny, x2: nx + spacingX, y2: ny, dir: 'h' });
+            }
+            if (r < rows - 1) {
+              circuitSegments.push({ x1: nx, y1: ny, x2: nx, y2: ny + spacingY, dir: 'v' });
+            }
           }
         }
+
+        // Live Data Packets travelling on circuit traces
+        const packetCount = isMobile ? 12 : 25;
+        for (let i = 0; i < packetCount; i++) {
+          const seg = circuitSegments[Math.floor(Math.random() * circuitSegments.length)];
+          dataPackets.push({
+            x1: seg.x1,
+            y1: seg.y1,
+            x2: seg.x2,
+            y2: seg.y2,
+            progress: Math.random(),
+            speed: 0.008 + Math.random() * 0.015,
+            size: 2.2 + Math.random() * 1.8
+          });
+        }
       } else if (theme === 'cyber') {
-        // 4. Solar Gold Luxe: Rotating 4-point Diamond Stars & Golden Light Shafts
-        const starCount = Math.min(width > 768 ? 35 : 18, 40);
+        // 👑 4. Solar Gold Luxe: Imperial 24K Gold Auroral Curtains, Rotating Diamond Stars & Golden Stardust
+        const starCount = isMobile ? 20 : 38;
         solarStars = [];
         for (let i = 0; i < starCount; i++) {
           solarStars.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            size: 8 + Math.random() * 16,
-            rot: Math.random() * Math.PI,
-            rotSpeed: (Math.random() - 0.5) * 0.02,
+            size: 7 + Math.random() * 16,
+            points: Math.random() > 0.65 ? 8 : 4,
+            rot: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.016,
             phase: Math.random() * Math.PI * 2,
-            pulseSpeed: 0.03 + Math.random() * 0.04,
-            opacity: 0.25 + Math.random() * 0.55
+            pulseSpeed: 0.025 + Math.random() * 0.035,
+            opacity: 0.35 + Math.random() * 0.55
           });
         }
+
+        // Ascending Golden Stardust & Amber Motes
+        const moteCount = isMobile ? 25 : 50;
+        solarMotes = [];
+        for (let i = 0; i < moteCount; i++) {
+          solarMotes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 1.2 + Math.random() * 2.8,
+            speedY: -(0.3 + Math.random() * 0.8),
+            speedX: (Math.random() - 0.5) * 0.4,
+            opacity: 0.25 + Math.random() * 0.6,
+            hue: Math.random() > 0.4 ? 45 : 38, // 24K Pure Gold (45) / Honey Amber (38)
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.03 + Math.random() * 0.04
+          });
+        }
+
+        // Solar Coronal Wave Curtains
+        solarWaves = [
+          { phase: 0, speed: 0.006, yOffset: height * 0.15, amp: 35 },
+          { phase: 2.5, speed: -0.005, yOffset: height * 0.35, amp: 45 }
+        ];
       } else if (theme === 'arctic') {
-        // 5. Arctic Frost: Crystalline Snow & Ice Flakes
-        const count = Math.min(width > 768 ? 75 : 35, 90);
+        // ❄️ 5. Arctic Frost: Crystalline Snow & Ice Flakes
+        const count = isMobile ? 35 : 75;
         for (let i = 0; i < count; i++) {
           particles.push({
             x: Math.random() * width,
@@ -175,8 +343,8 @@ export default function ThemeBackground() {
           });
         }
       } else if (theme === 'tokyo') {
-        // 6. Tokyo Vaporwave: 80s Perspective Moving Wireframe Grid + Neon Motes
-        const count = Math.min(width > 768 ? 50 : 25, 60);
+        // 🌸 6. Tokyo Vaporwave: 80s Perspective Moving Wireframe Grid + Neon Motes
+        const count = isMobile ? 25 : 50;
         for (let i = 0; i < count; i++) {
           particles.push({
             x: Math.random() * width,
@@ -189,8 +357,8 @@ export default function ThemeBackground() {
           });
         }
       } else if (theme === 'amethyst') {
-        // 7. Cosmic Nebula: 3D Parallax Starfield & Shooting Meteors
-        const count = Math.min(width > 768 ? 95 : 50, 120);
+        // 🔮 7. Cosmic Nebula: 3D Parallax Starfield & Shooting Meteors
+        const count = isMobile ? 50 : 95;
         for (let i = 0; i < count; i++) {
           particles.push({
             x: Math.random() * width,
@@ -205,8 +373,8 @@ export default function ThemeBackground() {
           });
         }
       } else if (theme === 'monochrome') {
-        // 8. Lunar Noir: Geometric Constellation Stardust
-        const count = Math.min(width > 768 ? 50 : 25, 60);
+        // ⚪ 8. Lunar Noir: Geometric Constellation Stardust
+        const count = isMobile ? 25 : 50;
         for (let i = 0; i < count; i++) {
           particles.push({
             x: Math.random() * width,
@@ -224,181 +392,426 @@ export default function ThemeBackground() {
 
     let frame = 0;
 
-    // ── Render Loop ──
+    // Helper: Draw 4-point or 8-point diamond star
+    function drawDiamondStar(cx, cy, size, points, rot, alpha, glowColor) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+
+      ctx.beginPath();
+      // Primary 4 points
+      ctx.moveTo(0, -size);
+      ctx.quadraticCurveTo(0, 0, size * 0.22, 0);
+      ctx.lineTo(size, 0);
+      ctx.quadraticCurveTo(0, 0, 0, size * 0.22);
+      ctx.lineTo(0, size);
+      ctx.quadraticCurveTo(0, 0, -size * 0.22, 0);
+      ctx.lineTo(-size, 0);
+      ctx.quadraticCurveTo(0, 0, 0, -size * 0.22);
+      ctx.closePath();
+
+      ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = size * 1.6;
+      ctx.fill();
+
+      // Additional 4 diagonal secondary points for 8-point stars
+      if (points === 8) {
+        ctx.save();
+        ctx.rotate(Math.PI / 4);
+        const subSize = size * 0.65;
+        ctx.beginPath();
+        ctx.moveTo(0, -subSize);
+        ctx.quadraticCurveTo(0, 0, subSize * 0.22, 0);
+        ctx.lineTo(subSize, 0);
+        ctx.quadraticCurveTo(0, 0, 0, subSize * 0.22);
+        ctx.lineTo(0, subSize);
+        ctx.quadraticCurveTo(0, 0, -subSize * 0.22, 0);
+        ctx.lineTo(-subSize, 0);
+        ctx.quadraticCurveTo(0, 0, 0, -subSize * 0.22);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(254, 240, 138, ${alpha * 0.8})`;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Center bright flare core
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(1, size * 0.15), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, alpha * 1.3)})`;
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // ── Main Render Loop ──
     const render = () => {
       frame++;
       ctx.clearRect(0, 0, width, height);
 
       if (activeTheme === 'ocean') {
-        // 🌊 1. Ocean Abyss: Flowing Sine-Wave Currents & Sonar Echo Rings
-        // Render expanding sonar rings
-        sonarRings.forEach((ring) => {
+        // 🌊 1. Ocean Abyss: Deep oceanic trench & undulating sine-wave currents + Sonar ripples
+        // Sonar Ping emitters
+        sonarSources.forEach((src) => {
+          src.timer++;
+          if (src.timer >= src.interval) {
+            src.timer = 0;
+            sonarRings.push({
+              x: src.x + (Math.random() - 0.5) * 40,
+              y: src.y + (Math.random() - 0.5) * 40,
+              r: 6,
+              maxR: 260 + Math.random() * 80,
+              speed: 0.85 + Math.random() * 0.35,
+              alpha: 0.45
+            });
+          }
+        });
+
+        // Update & draw sonar expanding ripples
+        for (let i = sonarRings.length - 1; i >= 0; i--) {
+          const ring = sonarRings[i];
           ring.r += ring.speed;
           if (ring.r > ring.maxR) {
-            ring.r = 10;
-            ring.x = Math.random() * width;
-            ring.y = height * 0.3 + Math.random() * (height * 0.6);
+            sonarRings.splice(i, 1);
+            continue;
           }
-          const ringAlpha = ring.alpha * (1 - ring.r / ring.maxR);
+
+          const progress = ring.r / ring.maxR;
+          const ringAlpha = ring.alpha * (1 - progress);
+
+          // Outer sonar wavefront
           ctx.beginPath();
           ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
           ctx.strokeStyle = `rgba(99, 210, 255, ${ringAlpha})`;
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 1.4;
           ctx.stroke();
 
-          // Second inner subtle ripple
-          if (ring.r > 30) {
+          // Inner echo ripple harmonic
+          if (ring.r > 28) {
             ctx.beginPath();
-            ctx.arc(ring.x, ring.y, ring.r - 25, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(149, 100, 255, ${ringAlpha * 0.6})`;
-            ctx.lineWidth = 1;
+            ctx.arc(ring.x, ring.y, ring.r - 22, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(129, 140, 248, ${ringAlpha * 0.6})`;
+            ctx.lineWidth = 1.0;
             ctx.stroke();
           }
-        });
 
-        // Render fluid tidal wave currents
-        waves.forEach((w) => {
-          w.phase += w.speed;
-          ctx.beginPath();
-          ctx.moveTo(0, height);
-          for (let x = 0; x <= width; x += 15) {
-            const y = height * w.yRatio + Math.sin(x * w.freq + w.phase) * w.amp;
-            ctx.lineTo(x, y);
+          // Center ping dot glow on initial trigger
+          if (progress < 0.25) {
+            ctx.beginPath();
+            ctx.arc(ring.x, ring.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(99, 210, 255, ${ringAlpha * 1.5})`;
+            ctx.shadowColor = '#38bdf8';
+            ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.shadowBlur = 0;
           }
-          ctx.lineTo(width, height);
-          ctx.closePath();
-          ctx.fillStyle = w.color;
-          ctx.fill();
-        });
-      } else if (activeTheme === 'inferno') {
-        // 🔥 2. Inferno Magma: Surging Lava Surface Waves & Roaring Flame Shards
+        }
+
+        // Multi-harmonic undulating Sine-Wave Currents
         waves.forEach((w) => {
           w.phase += w.speed;
           ctx.beginPath();
           ctx.moveTo(0, height);
+
           for (let x = 0; x <= width; x += 12) {
-            const y = height * w.yRatio + Math.sin(x * w.freq + w.phase) * w.amp + Math.sin(x * 0.02 + frame * 0.04) * 8;
+            const y =
+              height * w.yRatio +
+              Math.sin(x * w.freq1 + w.phase) * w.amp1 +
+              Math.cos(x * w.freq2 + w.phase * 0.75) * w.amp2;
             ctx.lineTo(x, y);
           }
+
           ctx.lineTo(width, height);
           ctx.closePath();
-          ctx.fillStyle = w.color;
+
+          const grad = ctx.createLinearGradient(0, height * w.yRatio - w.amp1, 0, height);
+          grad.addColorStop(0, w.gradTop);
+          grad.addColorStop(1, w.gradBot);
+          ctx.fillStyle = grad;
           ctx.fill();
+
+          // Bioluminescent wave crest glow line
+          ctx.beginPath();
+          for (let x = 0; x <= width; x += 12) {
+            const y =
+              height * w.yRatio +
+              Math.sin(x * w.freq1 + w.phase) * w.amp1 +
+              Math.cos(x * w.freq2 + w.phase * 0.75) * w.amp2;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = w.crestColor;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
         });
 
-        // Flame Shards (Triangles / Diamonds that rotate & burst)
+        // Bioluminescent Plankton
         particles.forEach((p) => {
           p.y += p.speedY;
-          p.x += p.speedX + Math.sin(frame * 0.08 + p.life) * 0.6;
+          p.swayOffset += p.swaySpeed;
+          p.x += Math.sin(p.swayOffset) * p.swayAmp;
+          p.pulsePhase += p.pulseSpeed;
+
+          if (p.y < -10) {
+            p.y = height + 10;
+            p.x = Math.random() * width;
+          }
+
+          const alpha = p.baseAlpha * (0.65 + 0.35 * Math.sin(p.pulsePhase));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, ${alpha})`;
+          ctx.shadowColor = `hsl(${p.hue}, 90%, 55%)`;
+          ctx.shadowBlur = p.size * 3;
+          ctx.fill();
+        });
+        ctx.shadowBlur = 0;
+      } else if (activeTheme === 'inferno') {
+        // 🔥 2. Inferno Magma: Volcanic obsidian lake, turbulent lava & flame shards
+        // Base thermal magma glow
+        const magmaBaseGrad = ctx.createLinearGradient(0, height * 0.75, 0, height);
+        magmaBaseGrad.addColorStop(0, 'rgba(255, 30, 39, 0)');
+        magmaBaseGrad.addColorStop(0.6, 'rgba(255, 69, 0, 0.08)');
+        magmaBaseGrad.addColorStop(1, 'rgba(255, 170, 0, 0.16)');
+        ctx.fillStyle = magmaBaseGrad;
+        ctx.fillRect(0, height * 0.75, width, height * 0.25);
+
+        // Turbulent Molten Magma Waves
+        waves.forEach((w) => {
+          w.phase += w.speed;
+          ctx.beginPath();
+          ctx.moveTo(0, height);
+
+          for (let x = 0; x <= width; x += 10) {
+            const y =
+              height * w.yRatio +
+              Math.sin(x * w.freq + w.phase) * w.amp +
+              Math.sin(x * w.turbFreq + frame * 0.04) * w.turbAmp;
+            ctx.lineTo(x, y);
+          }
+
+          ctx.lineTo(width, height);
+          ctx.closePath();
+
+          const grad = ctx.createLinearGradient(0, height * w.yRatio - w.amp, 0, height);
+          grad.addColorStop(0, w.gradTop);
+          grad.addColorStop(1, w.gradBot);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Glowing incandescent lava crest
+          ctx.beginPath();
+          for (let x = 0; x <= width; x += 10) {
+            const y =
+              height * w.yRatio +
+              Math.sin(x * w.freq + w.phase) * w.amp +
+              Math.sin(x * w.turbFreq + frame * 0.04) * w.turbAmp;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = w.crestColor;
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        });
+
+        // Flame Shards & Fire Bursts
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += p.speedX + Math.sin(frame * 0.06 + p.life) * 0.8;
           p.rotation += p.rotSpeed;
           p.life++;
 
-          if (p.y < height * 0.4 || p.life > p.maxLife) {
+          if (p.y < height * 0.35 || p.life > p.maxLife) {
             p.y = height + 10;
             p.x = Math.random() * width;
             p.life = 0;
-            p.speedY = -(1.5 + Math.random() * 3.5);
+            p.speedY = -(1.8 + Math.random() * 3.8);
           }
 
           const alpha = p.opacity * (1 - p.life / p.maxLife);
           ctx.save();
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
+
+          // Angular fiery diamond shard
           ctx.beginPath();
-          ctx.moveTo(0, -p.size * 2);
-          ctx.lineTo(p.size, p.size);
-          ctx.lineTo(-p.size, p.size);
+          ctx.moveTo(0, -p.size * 2.2);
+          ctx.lineTo(p.size * 0.9, p.size * 0.6);
+          ctx.lineTo(0, p.size * 1.4);
+          ctx.lineTo(-p.size * 0.9, p.size * 0.6);
           ctx.closePath();
-          ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha})`;
+
+          ctx.fillStyle = `hsla(${p.hue}, 100%, ${p.lightness}%, ${alpha})`;
           ctx.shadowColor = `hsl(${p.hue}, 100%, 50%)`;
-          ctx.shadowBlur = p.size * 3;
+          ctx.shadowBlur = p.size * 2.5;
           ctx.fill();
           ctx.restore();
         });
+        ctx.shadowBlur = 0;
       } else if (activeTheme === 'matrix') {
-        // ⚡ 3. Matrix Terminal: Calm, Elegant Cyber Circuit Grid & Scanning Radar Line (Non-Distracting)
-        scanlineY = (scanlineY + 1.2) % height;
+        // ⚡ 3. Matrix Terminal: Pitch void black & calm cyber circuit grid radar pulse
+        radarAngle = (radarAngle + 0.012) % (Math.PI * 2);
+        const radarCenterX = width * 0.5;
+        const radarCenterY = height * 0.5;
+        const maxRadarDist = Math.hypot(width, height) * 0.55;
 
-        // Subtle Circuit Grid Lines
-        ctx.strokeStyle = 'rgba(0, 255, 136, 0.05)';
+        // Subtle PCB Circuit Traces
+        ctx.strokeStyle = 'rgba(0, 255, 136, 0.055)';
         ctx.lineWidth = 1;
-        for (let x = 0; x < width; x += 120) {
+        circuitSegments.forEach((seg) => {
           ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, height);
+          ctx.moveTo(seg.x1, seg.y1);
+          ctx.lineTo(seg.x2, seg.y2);
           ctx.stroke();
-        }
-        for (let y = 0; y < height; y += 100) {
+        });
+
+        // 360° Scanning Radar Beam Sweep
+        const sweepAngleSpan = 0.55; // Radians of trailing phosphor glow
+        for (let i = 0; i < 6; i++) {
+          const subAngle = radarAngle - (i / 6) * sweepAngleSpan;
+          const beamAlpha = (0.07 * (6 - i)) / 6;
           ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(width, y);
-          ctx.stroke();
+          ctx.moveTo(radarCenterX, radarCenterY);
+          ctx.arc(radarCenterX, radarCenterY, maxRadarDist, subAngle, subAngle + sweepAngleSpan / 6);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(0, 255, 136, ${beamAlpha})`;
+          ctx.fill();
         }
 
-        // Circuit Nodes & Data Pulse Nodes
+        // Radar beam sweep line
+        ctx.beginPath();
+        ctx.moveTo(radarCenterX, radarCenterY);
+        ctx.lineTo(
+          radarCenterX + Math.cos(radarAngle) * maxRadarDist,
+          radarCenterY + Math.sin(radarAngle) * maxRadarDist
+        );
+        ctx.strokeStyle = 'rgba(57, 255, 20, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Circuit Nodes & Radar Intersection Excitation
         circuitNodes.forEach((node) => {
           node.pulse += node.pulseSpeed;
-          const alpha = 0.08 + 0.15 * Math.sin(node.pulse);
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(0, 255, 136, ${alpha})`;
-          ctx.fill();
 
-          if (node.active && Math.sin(node.pulse) > 0.7) {
+          // Check if radar beam passed near this node
+          const dx = node.x - radarCenterX;
+          const dy = node.y - radarCenterY;
+          let nodeAngle = Math.atan2(dy, dx);
+          if (nodeAngle < 0) nodeAngle += Math.PI * 2;
+          let angleDiff = Math.abs(nodeAngle - radarAngle);
+          if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
+
+          if (angleDiff < 0.12) {
+            node.radarHitAlpha = 0.9;
+          } else {
+            node.radarHitAlpha = Math.max(0, node.radarHitAlpha - 0.015);
+          }
+
+          const baseAlpha = 0.06 + 0.12 * Math.sin(node.pulse);
+          const totalAlpha = Math.min(1, baseAlpha + node.radarHitAlpha * 0.7);
+
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.isHub ? 3.5 : 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 255, 136, ${totalAlpha})`;
+          if (node.radarHitAlpha > 0.3) {
+            ctx.shadowColor = '#00ff88';
+            ctx.shadowBlur = 8;
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Micro hub crosshair
+          if (node.isHub && node.radarHitAlpha > 0.2) {
             ctx.beginPath();
-            ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(0, 255, 170, ${alpha * 0.8})`;
-            ctx.lineWidth = 1;
+            ctx.arc(node.x, node.y, 6, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(57, 255, 20, ${node.radarHitAlpha * 0.6})`;
+            ctx.lineWidth = 0.8;
             ctx.stroke();
           }
         });
 
-        // Soft Horizontal Radar Scan Beam
-        const scanGrad = ctx.createLinearGradient(0, scanlineY - 40, 0, scanlineY + 40);
-        scanGrad.addColorStop(0, 'rgba(0, 255, 136, 0)');
-        scanGrad.addColorStop(0.5, 'rgba(0, 255, 136, 0.08)');
-        scanGrad.addColorStop(1, 'rgba(0, 255, 136, 0)');
-        ctx.fillStyle = scanGrad;
-        ctx.fillRect(0, scanlineY - 40, width, 80);
-      } else if (activeTheme === 'cyber') {
-        // 👑 4. Solar Gold Luxe: Rotating 4-Point Diamond Stars & Sweeping Golden Light Beams
-        lightBeamAngle += 0.005;
+        // Live Data Packets
+        dataPackets.forEach((p) => {
+          p.progress += p.speed;
+          if (p.progress >= 1) {
+            const seg = circuitSegments[Math.floor(Math.random() * circuitSegments.length)];
+            p.x1 = seg.x1;
+            p.y1 = seg.y1;
+            p.x2 = seg.x2;
+            p.y2 = seg.y2;
+            p.progress = 0;
+            p.speed = 0.008 + Math.random() * 0.015;
+          }
 
-        // Sweeping Diagonal Gold Light Rays
-        const rayGrad = ctx.createLinearGradient(0, 0, width, height);
-        rayGrad.addColorStop(0, 'rgba(255, 215, 0, 0.04)');
-        rayGrad.addColorStop(0.5 + Math.sin(lightBeamAngle) * 0.2, 'rgba(255, 215, 0, 0.08)');
-        rayGrad.addColorStop(1, 'rgba(255, 153, 0, 0.03)');
-        ctx.fillStyle = rayGrad;
+          const curX = p.x1 + (p.x2 - p.x1) * p.progress;
+          const curY = p.y1 + (p.y2 - p.y1) * p.progress;
+
+          ctx.beginPath();
+          ctx.arc(curX, curY, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(57, 255, 20, 0.85)';
+          ctx.shadowColor = '#00ff88';
+          ctx.shadowBlur = 6;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      } else if (activeTheme === 'cyber') {
+        // 👑 4. Solar Gold Luxe: Imperial 24K Gold, Champagne Aurora Curtains, Rotating Diamond Stars & Golden Stardust
+        // Flowing Solar Coronal Aurora Curtains
+        solarWaves.forEach((w) => {
+          w.phase += w.speed;
+          const aurGrad = ctx.createLinearGradient(0, w.yOffset - w.amp, width, w.yOffset + w.amp);
+          aurGrad.addColorStop(0, 'rgba(255, 215, 0, 0.03)');
+          aurGrad.addColorStop(0.5 + Math.sin(w.phase) * 0.25, 'rgba(251, 191, 36, 0.09)');
+          aurGrad.addColorStop(1, 'rgba(245, 158, 11, 0.02)');
+
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          for (let x = 0; x <= width; x += 20) {
+            const y = w.yOffset + Math.sin(x * 0.002 + w.phase) * w.amp + Math.cos(x * 0.004 + w.phase * 0.6) * 15;
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(width, 0);
+          ctx.closePath();
+          ctx.fillStyle = aurGrad;
+          ctx.fill();
+        });
+
+        // Sweeping Diagonal Champagne Light Shaft
+        const beamPhase = frame * 0.006;
+        const shaftGrad = ctx.createLinearGradient(0, 0, width, height);
+        shaftGrad.addColorStop(0, 'rgba(255, 215, 0, 0.02)');
+        shaftGrad.addColorStop(0.45 + Math.sin(beamPhase) * 0.2, 'rgba(254, 240, 138, 0.07)');
+        shaftGrad.addColorStop(1, 'rgba(245, 158, 11, 0.015)');
+        ctx.fillStyle = shaftGrad;
         ctx.fillRect(0, 0, width, height);
 
-        // Rotating 4-Point Golden Diamond Stars (✦)
+        // Ascending Golden Stardust & Amber Motes
+        solarMotes.forEach((m) => {
+          m.y += m.speedY;
+          m.x += m.speedX + Math.sin(frame * 0.02 + m.pulse) * 0.4;
+          m.pulse += m.pulseSpeed;
+
+          if (m.y < -10) {
+            m.y = height + 10;
+            m.x = Math.random() * width;
+          }
+
+          const alpha = m.opacity * (0.6 + 0.4 * Math.sin(m.pulse));
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${m.hue}, 100%, 65%, ${alpha})`;
+          ctx.shadowColor = '#ffd700';
+          ctx.shadowBlur = m.size * 2.5;
+          ctx.fill();
+        });
+        ctx.shadowBlur = 0;
+
+        // Rotating 4-Point & 8-Point Diamond Stars (✦)
         solarStars.forEach((star) => {
           star.rot += star.rotSpeed;
           star.phase += star.pulseSpeed;
-          const currentAlpha = star.opacity * (0.6 + 0.4 * Math.sin(star.phase));
-
-          ctx.save();
-          ctx.translate(star.x, star.y);
-          ctx.rotate(star.rot);
-
-          ctx.beginPath();
-          // Draw 4-point diamond star
-          ctx.moveTo(0, -star.size);
-          ctx.quadraticCurveTo(0, 0, star.size * 0.25, 0);
-          ctx.lineTo(star.size, 0);
-          ctx.quadraticCurveTo(0, 0, 0, star.size * 0.25);
-          ctx.lineTo(0, star.size);
-          ctx.quadraticCurveTo(0, 0, -star.size * 0.25, 0);
-          ctx.lineTo(-star.size, 0);
-          ctx.quadraticCurveTo(0, 0, 0, -star.size * 0.25);
-          ctx.closePath();
-
-          ctx.fillStyle = `rgba(255, 215, 0, ${currentAlpha})`;
-          ctx.shadowColor = '#ffd700';
-          ctx.shadowBlur = star.size * 1.5;
-          ctx.fill();
-          ctx.restore();
+          const currentAlpha = star.opacity * (0.55 + 0.45 * Math.sin(star.phase));
+          drawDiamondStar(star.x, star.y, star.size, star.points, star.rot, currentAlpha, '#ffd700');
         });
         ctx.shadowBlur = 0;
       } else if (activeTheme === 'arctic') {
