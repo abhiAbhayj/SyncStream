@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
-import { Star, Play, Pause, BookOpen, Music, ArrowRight, Clock, Sparkles } from 'lucide-react';
+import { Star, Play, Pause, BookOpen, Music, ArrowRight, Clock, Sparkles, FolderPlus } from 'lucide-react';
 
 const FALLBACK_MUSIC_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=60';
 const FALLBACK_MEDIA_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';
@@ -45,7 +45,7 @@ const TYPE_CONFIG = {
 };
 
 export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
-  const { playTrack, currentTrack, isPlaying, togglePlay } = useMusic();
+  const { playTrack, currentTrack, isPlaying, togglePlay, openAddToPlaylist } = useMusic();
   if (!items || items.length === 0) {
     return (
       <div className="py-16 text-center">
@@ -140,6 +140,21 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                   <div className="badge badge-anime absolute bottom-2 left-2 text-[9px] px-2 py-0.5 backdrop-blur-md">
                     🎵 Music
                   </div>
+
+                  {/* Add to playlist button overlay */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openAddToPlaylist(item);
+                    }}
+                    className="absolute top-2 left-2 p-1.5 rounded-lg bg-black/60 hover:bg-accentCyan hover:text-black text-gray-200 border border-white/10 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                    title="Add to Playlist"
+                  >
+                    <FolderPlus className="w-3.5 h-3.5" />
+                  </button>
+
                   {isCurrentPlaying && (
                     <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
                   )}

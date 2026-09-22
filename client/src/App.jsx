@@ -11,6 +11,7 @@ import VoiceAssistant from './components/VoiceAssistant';
 import ServerWakeup from './components/ServerWakeup';
 import MusicPlayerBar from './components/MusicPlayerBar';
 import MusicModal from './components/MusicModal';
+import AddToPlaylistModal from './components/AddToPlaylistModal';
 import ThemeBackground from './components/ThemeBackground';
 
 // Pages
@@ -35,7 +36,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function AppContent() {
-  const { currentTrack } = useMusic();
+  const { currentTrack, songForPlaylistModal, closeAddToPlaylist } = useMusic();
 
   React.useEffect(() => {
     const ALL_THEMES = ['theme-inferno', 'theme-matrix', 'theme-monochrome', 'theme-arctic', 'theme-tokyo', 'theme-cyber', 'theme-amethyst'];
@@ -100,6 +101,11 @@ function AppContent() {
       <BottomNav />
       <MusicPlayerBar />
       <MusicModal />
+      <AddToPlaylistModal
+        song={songForPlaylistModal}
+        isOpen={Boolean(songForPlaylistModal)}
+        onClose={closeAddToPlaylist}
+      />
       <VoiceAssistant />
       <ServerWakeup />
     </div>

@@ -24,7 +24,8 @@ import {
   Disc3,
   Image as ImageIcon,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  FolderPlus
 } from 'lucide-react';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
@@ -51,6 +52,7 @@ export default function MusicModal() {
     isExpanded,
     isFavorite,
     toggleFavorite,
+    openAddToPlaylist,
     setIsExpanded,
     modalTab,
     setModalTab,
@@ -367,6 +369,14 @@ export default function MusicModal() {
                 {currentTrack.year && (
                   <span className="text-[10px] sm:text-xs text-gray-400 font-mono">&bull; {currentTrack.year}</span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => openAddToPlaylist(currentTrack)}
+                  className="p-1.5 rounded-full transition active:scale-90 bg-white/10 text-gray-300 hover:text-accentCyan hover:bg-accentCyan/20"
+                  title="Add to Playlist"
+                >
+                  <FolderPlus className="w-3.5 h-3.5" />
+                </button>
                 <button
                   type="button"
                   onClick={() => toggleFavorite(currentTrack)}

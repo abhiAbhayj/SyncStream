@@ -75,6 +75,7 @@ export const MusicProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [playbackError, setPlaybackError] = useState(null);
+  const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
   const [modalTab, setModalTabState] = useState(() => {
     try {
       const saved = sessionStorage.getItem('syncstream_music_modal_tab');
@@ -83,6 +84,16 @@ export const MusicProvider = ({ children }) => {
       return 'player';
     }
   });
+
+  const openAddToPlaylist = useCallback((song) => {
+    if (song) {
+      setSongForPlaylistModal(song);
+    }
+  }, []);
+
+  const closeAddToPlaylist = useCallback(() => {
+    setSongForPlaylistModal(null);
+  }, []);
 
   const setModalTab = useCallback((tab) => {
     const validTab = ['player', 'lyrics', 'queue'].includes(tab) ? tab : 'player';
@@ -601,6 +612,9 @@ export const MusicProvider = ({ children }) => {
     isExpanded,
     playbackError,
     modalTab,
+    songForPlaylistModal,
+    openAddToPlaylist,
+    closeAddToPlaylist,
     favorites,
     playlists,
     isFavorite,
