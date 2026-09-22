@@ -249,14 +249,14 @@ export default function VoiceAssistant() {
       if (newTheme !== 'ocean') document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        ocean: '🌊 Deep Ocean Abyss',
-        inferno: '🔥 Inferno Magma',
-        matrix: '⚡ Matrix Terminal',
-        monochrome: '⚪ Lunar Noir (Black & White)',
-        arctic: '❄️ Arctic Frost & Ice',
-        tokyo: '🌸 Tokyo Vaporwave Neon',
-        cyber: '👑 Solar Gold Luxe',
-        amethyst: '🔮 Cosmic Nebula Void'
+        ocean: '🌌 Cosmic Stargate',
+        inferno: '🌋 Inferno Solaris',
+        matrix: '⚡ Cyberpunk Holo-Matrix',
+        monochrome: '🌑 Monolith Chrono',
+        arctic: '🧊 Glacial Prism',
+        tokyo: '🪩 Retro Synthwave Highway',
+        cyber: '👑 Imperial Gold Luxe',
+        amethyst: '🌿 Bio-Luminescent Pandora'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;
