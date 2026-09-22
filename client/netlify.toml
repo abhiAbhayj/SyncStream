@@ -1,4 +1,5 @@
 [build]
+  ignore = "true"
   command = "npm run build"
   publish = "dist"
 
