@@ -121,6 +121,51 @@ export async function initDB() {
       );
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_playlists (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS playlist_songs (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        playlist_id INT NOT NULL,
+        song_id VARCHAR(100) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        artist VARCHAR(255),
+        album VARCHAR(255),
+        duration INT DEFAULT 0,
+        image TEXT,
+        audio_url TEXT NOT NULL,
+        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (playlist_id) REFERENCES user_playlists(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_playlist_song (playlist_id, song_id)
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_favorite_songs (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        song_id VARCHAR(100) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        artist VARCHAR(255),
+        album VARCHAR(255),
+        duration INT DEFAULT 0,
+        image TEXT,
+        audio_url TEXT NOT NULL,
+        saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_fav_song (user_id, song_id)
+      );
+    `);
+
     // ── Safe Auto-Migrations using INFORMATION_SCHEMA ──────────────────────
     // Check actual live column state before touching anything.
 

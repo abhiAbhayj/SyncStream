@@ -17,14 +17,14 @@ import {
   ChevronDown,
   ListMusic,
   FileText,
+  Heart,
   X,
   Loader2,
   Music2,
   Disc3,
   Image as ImageIcon,
   Sparkles,
-  RefreshCw,
-  Heart
+  RefreshCw
 } from 'lucide-react';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
@@ -49,6 +49,8 @@ export default function MusicModal() {
     isShuffling,
     isLoading,
     isExpanded,
+    isFavorite,
+    toggleFavorite,
     setIsExpanded,
     modalTab,
     setModalTab,
@@ -64,9 +66,7 @@ export default function MusicModal() {
     toggleShuffle,
     playTrack,
     removeFromQueue,
-    closePlayer,
-    isFavorite,
-    toggleFavorite
+    closePlayer
   } = useMusic();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -359,7 +359,7 @@ export default function MusicModal() {
             )}
 
             {/* Track Info */}
-            <div className="space-y-1 max-w-sm sm:max-w-lg px-2">
+            <div className="space-y-1.5 max-w-sm sm:max-w-lg px-2">
               <div className="flex items-center justify-center gap-1.5">
                 <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono shadow-sm">
                   {currentTrack.language || 'Global'}
@@ -367,6 +367,18 @@ export default function MusicModal() {
                 {currentTrack.year && (
                   <span className="text-[10px] sm:text-xs text-gray-400 font-mono">&bull; {currentTrack.year}</span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(currentTrack)}
+                  className={`p-1.5 rounded-full transition active:scale-90 ${
+                    isFavorite(currentTrack.id)
+                      ? 'bg-red-500/20 text-red-400'
+                      : 'bg-white/10 text-gray-300 hover:text-white'
+                  }`}
+                  title={isFavorite(currentTrack.id) ? 'Liked' : 'Add to Favorites'}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
+                </button>
               </div>
               <h1 className="text-base sm:text-xl md:text-2xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-2 drop-shadow-md">
                 {currentTrack.title}
@@ -374,19 +386,6 @@ export default function MusicModal() {
               <p className="text-xs sm:text-sm text-gray-300 font-medium truncate">
                 {currentTrack.artist}
               </p>
-              <div className="flex items-center justify-center pt-1.5">
-                <button
-                  onClick={() => toggleFavorite(currentTrack)}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition active:scale-95 ${
-                    isFavorite(currentTrack.id)
-                      ? 'bg-pink-500/20 border-pink-400 text-pink-300'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-pink-400' : ''}`} />
-                  <span>{isFavorite(currentTrack.id) ? 'Liked to Library' : 'Save to Favorites'}</span>
-                </button>
-              </div>
             </div>
           </div>
         )}

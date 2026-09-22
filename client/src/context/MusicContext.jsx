@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
+import axios from 'axios';
 
 const MusicContext = createContext();
 
@@ -12,6 +13,25 @@ export const useMusic = () => {
 
 export const MusicProvider = ({ children }) => {
   const audioRef = useRef(null);
+
+  // ── Favorites & Playlists State ──
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('syncstream_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [playlists, setPlaylists] = useState(() => {
+    try {
+      const saved = localStorage.getItem('syncstream_user_playlists');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [currentTrack, setCurrentTrack] = useState(() => {
     try {
@@ -63,122 +83,6 @@ export const MusicProvider = ({ children }) => {
       return 'player';
     }
   });
-
-  // ── User Music Library: Favorites (Liked Songs) ──
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem('syncstream_music_favorites');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // ── User Music Library: Custom Playlists ──
-  const [playlists, setPlaylists] = useState(() => {
-    try {
-      const saved = localStorage.getItem('syncstream_music_playlists');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'pl-default-1',
-          name: '🔥 My Top Jams',
-          description: 'Personal favorite hits and heavy rotation tracks',
-          createdAt: new Date().toISOString(),
-          songs: []
-        }
-      ];
-    } catch {
-      return [];
-    }
-  });
-
-  // Sync favorites & playlists to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('syncstream_music_favorites', JSON.stringify(favorites));
-    } catch (e) {}
-  }, [favorites]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('syncstream_music_playlists', JSON.stringify(playlists));
-    } catch (e) {}
-  }, [playlists]);
-
-  // Favorites Helpers
-  const isFavorite = useCallback((trackId) => {
-    if (!trackId) return false;
-    return favorites.some(f => f.id === trackId);
-  }, [favorites]);
-
-  const toggleFavorite = useCallback((track) => {
-    if (!track || !track.id) return;
-    setFavorites(prev => {
-      const exists = prev.some(f => f.id === track.id);
-      if (exists) {
-        return prev.filter(f => f.id !== track.id);
-      } else {
-        return [track, ...prev];
-      }
-    });
-  }, []);
-
-  // Playlist Management Helpers
-  const createPlaylist = useCallback((name, description = '') => {
-    if (!name || !name.trim()) return null;
-    const newPl = {
-      id: `pl-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      name: name.trim(),
-      description: description.trim(),
-      createdAt: new Date().toISOString(),
-      songs: []
-    };
-    setPlaylists(prev => [newPl, ...prev]);
-    return newPl;
-  }, []);
-
-  const deletePlaylist = useCallback((playlistId) => {
-    if (!playlistId) return;
-    setPlaylists(prev => prev.filter(p => p.id !== playlistId));
-  }, []);
-
-  const renamePlaylist = useCallback((playlistId, name, description) => {
-    setPlaylists(prev => prev.map(p => {
-      if (p.id !== playlistId) return p;
-      return {
-        ...p,
-        name: name !== undefined ? name.trim() : p.name,
-        description: description !== undefined ? description.trim() : p.description
-      };
-    }));
-  }, []);
-
-  const addToPlaylist = useCallback((playlistId, track) => {
-    if (!playlistId || !track || !track.id) return false;
-    let added = false;
-    setPlaylists(prev => prev.map(p => {
-      if (p.id !== playlistId) return p;
-      const alreadyIn = p.songs.some(s => s.id === track.id);
-      if (alreadyIn) return p;
-      added = true;
-      return {
-        ...p,
-        songs: [track, ...p.songs]
-      };
-    }));
-    return added;
-  }, []);
-
-  const removeFromPlaylist = useCallback((playlistId, trackId) => {
-    if (!playlistId || !trackId) return;
-    setPlaylists(prev => prev.map(p => {
-      if (p.id !== playlistId) return p;
-      return {
-        ...p,
-        songs: p.songs.filter(s => s.id !== trackId)
-      };
-    }));
-  }, []);
 
   const setModalTab = useCallback((tab) => {
     const validTab = ['player', 'lyrics', 'queue'].includes(tab) ? tab : 'player';
@@ -515,6 +419,173 @@ export const MusicProvider = ({ children }) => {
     } catch (e) {}
   }, [queue]);
 
+  // Fetch user favorites and playlists from server on mount / token change
+  const refreshLibrary = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const [favRes, playRes] = await Promise.allSettled([
+        axios.get('/api/music/favorites'),
+        axios.get('/api/music/playlists')
+      ]);
+
+      if (favRes.status === 'fulfilled' && Array.isArray(favRes.value.data)) {
+        setFavorites(favRes.value.data);
+        localStorage.setItem('syncstream_favorites', JSON.stringify(favRes.value.data));
+      }
+
+      if (playRes.status === 'fulfilled' && Array.isArray(playRes.value.data)) {
+        setPlaylists(playRes.value.data);
+        localStorage.setItem('syncstream_user_playlists', JSON.stringify(playRes.value.data));
+      }
+    } catch (e) {
+      console.warn('Library sync failed:', e.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshLibrary();
+  }, [refreshLibrary]);
+
+  // Is Favorite Check
+  const isFavorite = useCallback((songId) => {
+    if (!songId) return false;
+    return favorites.some(f => f.id === songId);
+  }, [favorites]);
+
+  // Toggle Favorite
+  const toggleFavorite = useCallback(async (song) => {
+    if (!song || !song.id) return;
+    const exists = favorites.some(f => f.id === song.id);
+    let updated;
+    if (exists) {
+      updated = favorites.filter(f => f.id !== song.id);
+    } else {
+      updated = [{ ...song, media_type: 'music' }, ...favorites];
+    }
+    setFavorites(updated);
+    try {
+      localStorage.setItem('syncstream_favorites', JSON.stringify(updated));
+    } catch (e) {}
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        if (exists) {
+          await axios.delete(`/api/music/favorites/${song.id}`);
+        } else {
+          await axios.post('/api/music/favorites', { song });
+        }
+      } catch (err) {
+        console.warn('Failed to sync favorite on server:', err.message);
+      }
+    }
+  }, [favorites]);
+
+  // Create Playlist
+  const createPlaylist = useCallback(async (name, description = '') => {
+    if (!name || !name.trim()) return null;
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      try {
+        const res = await axios.post('/api/music/playlists', { name: name.trim(), description });
+        const newPl = res.data;
+        setPlaylists(prev => [newPl, ...prev]);
+        return newPl;
+      } catch (err) {
+        console.warn('Server playlist creation failed, saving locally:', err.message);
+      }
+    }
+
+    const localPl = {
+      id: `pl-${Date.now()}`,
+      name: name.trim(),
+      description: description.trim(),
+      track_count: 0,
+      cover_image: null,
+      created_at: new Date().toISOString()
+    };
+    setPlaylists(prev => {
+      const updated = [localPl, ...prev];
+      try {
+        localStorage.setItem('syncstream_user_playlists', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return localPl;
+  }, []);
+
+  // Delete Playlist
+  const deletePlaylist = useCallback(async (playlistId) => {
+    if (!playlistId) return;
+    setPlaylists(prev => {
+      const updated = prev.filter(p => p.id !== playlistId);
+      try {
+        localStorage.setItem('syncstream_user_playlists', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    const token = localStorage.getItem('token');
+    if (token && typeof playlistId === 'number') {
+      try {
+        await axios.delete(`/api/music/playlists/${playlistId}`);
+      } catch (e) {}
+    }
+  }, []);
+
+  // Add Song to Playlist
+  const addSongToPlaylist = useCallback(async (playlistId, song) => {
+    if (!playlistId || !song) return false;
+
+    // Update local state and count
+    setPlaylists(prev => prev.map(p => {
+      if (p.id === playlistId) {
+        return {
+          ...p,
+          track_count: (p.track_count || 0) + 1,
+          cover_image: song.image || song.poster_path || p.cover_image
+        };
+      }
+      return p;
+    }));
+
+    const token = localStorage.getItem('token');
+    if (token && typeof playlistId === 'number') {
+      try {
+        await axios.post(`/api/music/playlists/${playlistId}/songs`, { song });
+        return true;
+      } catch (err) {
+        console.warn('Failed to add song to server playlist:', err.message);
+      }
+    }
+    return true;
+  }, []);
+
+  // Remove Song from Playlist
+  const removeSongFromPlaylist = useCallback(async (playlistId, songId) => {
+    if (!playlistId || !songId) return;
+
+    setPlaylists(prev => prev.map(p => {
+      if (p.id === playlistId) {
+        return {
+          ...p,
+          track_count: Math.max(0, (p.track_count || 1) - 1)
+        };
+      }
+      return p;
+    }));
+
+    const token = localStorage.getItem('token');
+    if (token && typeof playlistId === 'number') {
+      try {
+        await axios.delete(`/api/music/playlists/${playlistId}/songs/${songId}`);
+      } catch (e) {}
+    }
+  }, []);
+
   const value = {
     currentTrack,
     queue,
@@ -530,6 +601,15 @@ export const MusicProvider = ({ children }) => {
     isExpanded,
     playbackError,
     modalTab,
+    favorites,
+    playlists,
+    isFavorite,
+    toggleFavorite,
+    createPlaylist,
+    deletePlaylist,
+    addSongToPlaylist,
+    removeSongFromPlaylist,
+    refreshLibrary,
     setModalTab,
     openPlayerModal,
     openLyricsModal,
@@ -549,15 +629,6 @@ export const MusicProvider = ({ children }) => {
     toggleMute,
     toggleLoop,
     toggleShuffle,
-    favorites,
-    isFavorite,
-    toggleFavorite,
-    playlists,
-    createPlaylist,
-    deletePlaylist,
-    renamePlaylist,
-    addToPlaylist,
-    removeFromPlaylist,
     setIsExpanded,
     closePlayer
   };

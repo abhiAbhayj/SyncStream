@@ -198,6 +198,7 @@ export default function Search() {
 
   const [query, setQuery] = useState(initialQuery);
   const [type, setType] = useState(initialType);
+  const [musicCategory, setMusicCategory] = useState('all');
   const [genre, setGenre] = useState(initialGenre);
   const [language, setLanguage] = useState(initialLanguage);
   const [country, setCountry] = useState(initialCountry);
@@ -210,10 +211,10 @@ export default function Search() {
   const MAX_PAGES = 30;
 
   useEffect(() => {
-    executeSearch(initialQuery, initialType, initialGenre, initialLanguage, initialCountry, 1, sort);
+    executeSearch(initialQuery, initialType, initialGenre, initialLanguage, initialCountry, 1, sort, 'all');
   }, []);
 
-  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort) => {
+  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory) => {
     if (pageNum === 1) setLoading(true);
     else setLoadingMore(true);
     setSearched(true);
@@ -224,6 +225,7 @@ export default function Search() {
         const res = await axios.get(musicEndpoint, {
           params: {
             query: searchQuery.trim(),
+            category: activeMusicCat || 'all',
             language: activeLanguage || 'all',
             page: pageNum,
             limit: 24
@@ -389,17 +391,48 @@ export default function Search() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'songs, artists' : 'manga entries'}...`}
+              placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'Artist, Movie, Series, Anime, or Song name' : 'manga entries'}...`}
               className="w-full bg-darkCard border border-darkBorder rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-600 font-medium"
             />
           </div>
           <button
             type="submit"
-            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base"
+            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
           >
             Search
           </button>
         </div>
+
+        {/* Music Category Selector Pills (Only when Music is active) */}
+        {type === 'music' && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
+            {[
+              { id: 'all', label: 'All Music' },
+              { id: 'artist', label: '🎤 Artists' },
+              { id: 'movie', label: '🎬 Movie OSTs' },
+              { id: 'series', label: '📺 TV Series' },
+              { id: 'anime', label: '🌸 Anime OSTs' },
+              { id: 'song', label: '🎶 Songs' }
+            ].map(cat => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  setMusicCategory(cat.id);
+                  setPage(1);
+                  executeSearch(query, type, genre, language, country, 1, sort, cat.id);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 border ${
+                  musicCategory === cat.id
+                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_10px_rgba(99,210,255,0.4)]'
+                    : 'bg-darkCard/60 border-darkBorder text-gray-300 hover:text-white'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Filter controls row */}
         <div className="flex flex-wrap gap-4 items-center justify-start text-xs pt-2">

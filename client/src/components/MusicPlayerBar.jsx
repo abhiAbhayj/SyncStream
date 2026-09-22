@@ -42,6 +42,8 @@ export default function MusicPlayerBar() {
     isShuffling,
     isLoading,
     isExpanded,
+    isFavorite,
+    toggleFavorite,
     togglePlay,
     seek,
     skipForward,
@@ -57,9 +59,7 @@ export default function MusicPlayerBar() {
     openLyricsModal,
     removeFromQueue,
     playTrack,
-    closePlayer,
-    isFavorite,
-    toggleFavorite
+    closePlayer
   } = useMusic();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -241,12 +241,14 @@ export default function MusicPlayerBar() {
                   e.stopPropagation();
                   toggleFavorite(currentTrack);
                 }}
-                className={`p-1.5 active:scale-90 rounded-lg transition ${
-                  isFavorite(currentTrack.id) ? 'text-pink-400 bg-pink-500/15' : 'text-gray-300 hover:text-white'
+                className={`p-1.5 rounded-lg transition ${
+                  isFavorite(currentTrack.id)
+                    ? 'text-red-400 bg-red-500/20'
+                    : 'text-gray-300 hover:text-white'
                 }`}
-                title={isFavorite(currentTrack.id) ? 'Liked' : 'Like'}
+                title={isFavorite(currentTrack.id) ? 'Liked' : 'Like Track'}
               >
-                <Heart className={`w-4 h-4 ${isFavorite(currentTrack.id) ? 'fill-current' : ''}`} />
+                <Heart className={`w-4 h-4 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
               </button>
 
               <button
@@ -320,6 +322,16 @@ export default function MusicPlayerBar() {
                     >
                       {currentTrack.title}
                     </h4>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(currentTrack);
+                      }}
+                      className="p-1 text-gray-400 hover:text-red-400 transition"
+                      title={isFavorite(currentTrack.id) ? 'Liked' : 'Like Track'}
+                    >
+                      <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
+                    </button>
                     {currentTrack.language && (
                       <span className="uppercase text-[9px] font-bold px-1.5 py-0.2 rounded bg-accentCyan/15 text-accentCyan border border-accentCyan/30">
                         {currentTrack.language}
@@ -330,18 +342,6 @@ export default function MusicPlayerBar() {
                     {currentTrack.artist}
                   </p>
                 </div>
-
-                <button
-                  onClick={() => toggleFavorite(currentTrack)}
-                  className={`p-2 rounded-xl transition active:scale-90 ${
-                    isFavorite(currentTrack.id)
-                      ? 'text-pink-400 bg-pink-500/15'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
-                  title={isFavorite(currentTrack.id) ? 'Liked' : 'Add to Liked Songs'}
-                >
-                  <Heart className={`w-4 h-4 ${isFavorite(currentTrack.id) ? 'fill-current' : ''}`} />
-                </button>
               </div>
 
               {/* Center Audio Controls */}

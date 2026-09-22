@@ -1,5 +1,6 @@
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
+import { db } from '../config/db.js';
 
 const JIOSAAVN_BASE = 'https://www.jiosaavn.com/api.php';
 const DES_KEY = '38346591';
@@ -447,180 +448,98 @@ export const getTrendingMusic = async (req, res) => {
   }
 };
 
-// ── Curated Spotify & Billboard Top Charts Registry ──
-export const SPOTIFY_BILLBOARD_CHARTS = [
-  {
-    id: 'spotify_top_50',
-    title: '🏆 Spotify Top 50 - Global',
-    subtitle: 'The biggest and most streamed tracks in the world right now',
-    badge: 'Spotify Official',
-    gradient: 'from-emerald-600 via-teal-700 to-black',
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
-    query: 'Sabrina Carpenter Espresso Birds of a Feather Billie Eilish Die With A Smile Lady Gaga Bruno Mars Hanumankind Big Dawgs The Weeknd Taylor Swift'
-  },
-  {
-    id: 'todays_top_hits',
-    title: "🔥 Today's Top Hits",
-    subtitle: 'Global chart toppers, viral streaming phenomenons & pop anthems',
-    badge: 'Trending Now',
-    gradient: 'from-pink-600 via-purple-700 to-black',
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
-    query: 'Sabrina Carpenter Taste Chappell Roan Good Luck Babe Post Malone I Had Some Help Dua Lipa Houdini Benson Boone Beautiful Things'
-  },
-  {
-    id: 'billboard_hot_100',
-    title: '🌟 Billboard Hot 100 Hits',
-    subtitle: 'The definitive standard of the most popular global tracks',
-    badge: 'Billboard 2026',
-    gradient: 'from-amber-600 via-orange-700 to-black',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&auto=format&fit=crop&q=80',
-    query: 'Billboard Hot 100 Eminem Houdini Kendrick Lamar Not Like Us Shaboozey Teddy Swims Lose Control Hozier Too Sweet'
-  },
-  {
-    id: 'viral_50',
-    title: '⚡ Global Viral 50',
-    subtitle: 'Catchiest viral anthems taking over Reels, TikTok & social media',
-    badge: 'Viral Trends',
-    gradient: 'from-cyan-600 via-blue-700 to-black',
-    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
-    query: 'Big Dawgs Hanumankind Million Dollar Baby Tommy Richman Gata Only FloyyMenor Artemas I Like the Way You Kiss Me'
-  },
-  {
-    id: 'bollywood_top_50',
-    title: '🇮🇳 Bollywood Top 50',
-    subtitle: 'The undisputed chartbusters of Hindi cinema & Indian pop',
-    badge: 'Bollywood',
-    gradient: 'from-red-600 via-rose-700 to-black',
-    image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80',
-    query: 'Latest Bollywood 2026 Hits Arijit Singh Shreya Ghoshal Pritam Vishal Mishra Badshah Diljit Dosanjh Karan Aujla'
-  },
-  {
-    id: 'tollywood_top_50',
-    title: '🎬 Tollywood Top 50 (Telugu)',
-    subtitle: 'High-octane mass beats, soulful melodies & cinema anthems',
-    badge: 'Tollywood',
-    gradient: 'from-yellow-600 via-amber-700 to-black',
-    image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80',
-    query: 'Telugu Film Hits 2026 Devi Sri Prasad Pushpa Thaman S Anirudh Telugu Ram Miriyala Sid Sriram Telugu'
-  },
-  {
-    id: 'kollywood_top_50',
-    title: '⚡ Kollywood Top 50 (Tamil)',
-    subtitle: 'Electrifying Tamil cinema anthems & viral chartbusters',
-    badge: 'Kollywood',
-    gradient: 'from-purple-600 via-indigo-700 to-black',
-    image: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80',
-    query: 'The Wild Theme OM Chapter 1 Tamil Film Hits 2026 Anirudh Tamil AR Rahman Sai Abhyankkar Yuvan Shankar Raja'
-  },
-  {
-    id: 'punjabi_top_50',
-    title: '🚜 Punjabi Wave Top 50',
-    subtitle: 'Bhangra swagger, hip-hop fusion & Punjabi chart bangers',
-    badge: 'Punjabi Hits',
-    gradient: 'from-orange-500 via-red-600 to-black',
-    image: 'https://images.unsplash.com/photo-1520523839898-5071282543e2?w=600&auto=format&fit=crop&q=80',
-    query: 'Karan Aujla Tauba Tauba Diljit Dosanjh AP Dhillon Sidhu Moosewala Shubh Punjabi Hits 2026 Harrdy Sandhu'
-  },
-  {
-    id: 'kpop_top_50',
-    title: '🇰🇷 K-Pop Global Top 50',
-    subtitle: 'World-dominating Korean pop sensations & addictive dance choreo',
-    badge: 'K-Pop Top',
-    gradient: 'from-fuchsia-600 via-pink-700 to-black',
-    image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&auto=format&fit=crop&q=80',
-    query: 'BLACKPINK BTS Stray Kids NewJeans LE SSERAFIM aespa IVE TWICE Jungkook ILLIT Magnetic'
-  },
-  {
-    id: 'anime_top_50',
-    title: '🌸 Anime & J-Pop Global Hits',
-    subtitle: 'Iconic anime openings, hype battle themes & Japanese pop',
-    badge: 'Anime OST',
-    gradient: 'from-violet-600 via-purple-800 to-black',
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
-    query: 'Bling-Bang-Bang-Born Creepy Nuts YOASOBI Idol LiSA Gurenge Kenshi Yonezu Kick Back Anime Opening OST'
-  },
-  {
-    id: 'hiphop_top_50',
-    title: '🎤 Hip-Hop & Rap Top 50',
-    subtitle: 'Raw lyricism, 808 heavy bass and undisputed hip-hop icons',
-    badge: 'Hip-Hop Hits',
-    gradient: 'from-emerald-700 via-slate-800 to-black',
-    image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80',
-    query: 'Big Dawgs Hanumankind Eminem Rap God Kendrick Lamar Not Like Us Travis Scott FE!N Drake Future Metro Boomin'
-  },
-  {
-    id: 'rock_top_50',
-    title: '🎸 Rock & Heavy Anthems',
-    subtitle: 'Cinematic guitar riffs, stadium anthems & timeless rock legends',
-    badge: 'Rock Legends',
-    gradient: 'from-blue-700 via-indigo-900 to-black',
-    image: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&auto=format&fit=crop&q=80',
-    query: 'The Wild Theme Imagine Dragons Believer Linkin Park In The End Queen Bohemian Rhapsody Coldplay Bon Jovi'
-  }
-];
-
-// 2. Search Music with Multi-Pass Universal Fallback Engine
+// 2. Multi-Faceted Universal Search (Artists, Movies, Series, Anime, Songs, OSTs, Soundtracks)
 export const searchMusic = async (req, res) => {
-  const { query, language } = req.query;
+  const { query, language, category } = req.query;
   const page = parseInt(req.query.page || '1', 10);
-  const limit = parseInt(req.query.limit || '25', 10);
+  const limit = parseInt(req.query.limit || '30', 10);
+  const searchCat = (category || 'all').toLowerCase();
 
   if (!query || query.trim() === '') {
     return getTrendingMusic(req, res);
   }
 
   const rawQuery = query.trim();
-
-  // Multi-Pass Candidate Queries Strategy
   const candidateQueries = [];
 
-  // Pass 1: Exact raw query
+  // 1. Direct raw query
   candidateQueries.push(rawQuery);
 
-  // Pass 2: Cleaned query (strip out 'feat', 'ft', '(official audio)', etc.)
-  const cleanTitle = rawQuery
-    .replace(/\s*\((?:from|feat|ft|with|official|video|audio|remix|version|ost)[^\)]*\)/gi, '')
-    .replace(/\s*\[(?:from|feat|ft|with|official|video|audio|remix|version|ost)[^\]]*\]/gi, '')
-    .replace(/\s*-\s*(?:from|feat|ft|with|official|video|audio|remix|version|original).*$/gi, '')
+  // 2. Category-driven expansions
+  if (searchCat === 'artist') {
+    candidateQueries.push(`${rawQuery} Hits`);
+    candidateQueries.push(`${rawQuery} Best Of`);
+    candidateQueries.push(`${rawQuery} Top Songs`);
+  } else if (searchCat === 'movie') {
+    candidateQueries.push(`${rawQuery} Soundtrack`);
+    candidateQueries.push(`${rawQuery} Songs`);
+    candidateQueries.push(`${rawQuery} Movie`);
+    candidateQueries.push(`${rawQuery} Theme`);
+  } else if (searchCat === 'series') {
+    candidateQueries.push(`${rawQuery} Soundtrack`);
+    candidateQueries.push(`${rawQuery} Theme Song`);
+    candidateQueries.push(`${rawQuery} OST`);
+    candidateQueries.push(`${rawQuery} Series`);
+  } else if (searchCat === 'anime') {
+    candidateQueries.push(`${rawQuery} Anime Opening`);
+    candidateQueries.push(`${rawQuery} OST`);
+    candidateQueries.push(`${rawQuery} Anime Theme`);
+    candidateQueries.push(`${rawQuery} Anime Songs`);
+  } else if (searchCat === 'song') {
+    candidateQueries.push(`${rawQuery} Official`);
+    candidateQueries.push(`${rawQuery} Song`);
+  } else {
+    // 'all' category - Smart multi-faceted detection:
+
+    // Famous anime detection
+    if (/naruto|bleach|one\s*piece|attack\s*on\s*titan|demon\s*slayer|jujutsu|death\s*note|tokyo\s*ghoul|chainsaw\s*man|dragon\s*ball|my\s*hero|hunter\s*x|your\s*name|suzume|gurenge|unravel|blue\s*bird|shinzo/i.test(rawQuery)) {
+      candidateQueries.push(`${rawQuery} Anime Opening`);
+      candidateQueries.push(`${rawQuery} OST`);
+      candidateQueries.push(`${rawQuery} Anime Theme`);
+    }
+
+    // Famous TV Series detection
+    if (/stranger\s*things|peaky\s*blinders|game\s*of\s*thrones|money\s*heist|dark|wednesday|witcher|squid\s*game|euphoria|breaking\s*bad|boys|loki|sherlock|bella\s*ciao/i.test(rawQuery)) {
+      candidateQueries.push(`${rawQuery} Soundtrack`);
+      candidateQueries.push(`${rawQuery} Theme Song`);
+      candidateQueries.push(`${rawQuery} Series OST`);
+    }
+
+    // Movie / Soundtrack detection
+    if (/leo|kgf|pushpa|animal|interstellar|oppenheimer|rrr|salaar|jawan|kabir\s*singh|titanic|avatar|spider\s*man|batman|avengers|fast\s*and\s*furious|dune|gladiator/i.test(rawQuery)) {
+      candidateQueries.push(`${rawQuery} Soundtrack`);
+      candidateQueries.push(`${rawQuery} Songs`);
+      candidateQueries.push(`${rawQuery} Theme`);
+    }
+
+    // Famous Artist detection
+    candidateQueries.push(`${rawQuery} Hits`);
+    candidateQueries.push(`${rawQuery} Songs`);
+  }
+
+  // Clean candidate queries for natural language
+  const cleaned = rawQuery
+    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  if (cleanTitle && cleanTitle !== rawQuery) {
-    candidateQueries.push(cleanTitle);
+  
+  if (cleaned && cleaned !== rawQuery && !candidateQueries.includes(cleaned)) {
+    candidateQueries.push(cleaned);
   }
-
-  // Pass 3: Romanized / transliterated query for Non-Latin scripts
-  const romanized = toEnglishText(rawQuery);
-  if (romanized && romanized !== rawQuery) {
-    candidateQueries.push(romanized);
-  }
-
-  // Pass 4: Artist and song permutations
-  if (rawQuery.includes('-')) {
-    const parts = rawQuery.split('-').map(p => p.trim());
-    if (parts.length >= 2) {
-      candidateQueries.push(`${parts[1]} ${parts[0]}`);
-      candidateQueries.push(parts[0]);
-      candidateQueries.push(parts[1]);
-    }
-  }
-
-  // Pass 5: Fallback general keyword search
-  candidateQueries.push(`${rawQuery} song`);
-  candidateQueries.push(`${rawQuery} hits`);
 
   try {
     const seen = new Set();
     const collectedSongs = [];
     let totalCount = 0;
 
-    for (const q of candidateQueries) {
+    // Run searches with deduplication
+    const searchPromises = candidateQueries.slice(0, 5).map(async (q) => {
       let searchQuery = q;
       if (language && language !== 'all' && !searchQuery.toLowerCase().includes(language)) {
         searchQuery += ` ${language}`;
       }
 
       const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(searchQuery)}`;
-
       try {
         const response = await axios.get(url, {
           headers: {
@@ -628,13 +547,21 @@ export const searchMusic = async (req, res) => {
           },
           timeout: 8000
         });
-
         const rawResults = response.data.results || [];
-        const validSongs = rawResults
-          .map(formatSong)
-          .filter(s => s && s.audio_url && !isSpamTrack(s));
+        return {
+          total: response.data.total || 0,
+          songs: rawResults.map(formatSong).filter(s => s && s.audio_url && !isSpamTrack(s))
+        };
+      } catch (err) {
+        return { total: 0, songs: [] };
+      }
+    });
 
-        for (const s of validSongs) {
+    const searchResponses = await Promise.allSettled(searchPromises);
+    for (const resItem of searchResponses) {
+      if (resItem.status === 'fulfilled' && resItem.value) {
+        totalCount = Math.max(totalCount, resItem.value.total);
+        for (const s of resItem.value.songs) {
           const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
           if (!seen.has(key) && !seen.has(s.id)) {
             seen.add(key);
@@ -642,16 +569,12 @@ export const searchMusic = async (req, res) => {
             collectedSongs.push(s);
           }
         }
-
-        totalCount = Math.max(totalCount, response.data.total || collectedSongs.length);
-        if (collectedSongs.length >= limit) break;
-      } catch (err) {
-        // Continue to next candidate query on error
       }
     }
 
     res.json({
       query: rawQuery,
+      category: searchCat,
       page,
       total: totalCount || collectedSongs.length,
       songs: collectedSongs.slice(0, limit)
@@ -662,64 +585,114 @@ export const searchMusic = async (req, res) => {
   }
 };
 
-// 3. Get Spotify / Billboard Curated Charts Overview
+// 3. Get Curated Regional Playlists / Charts
 export const getMusicCharts = async (req, res) => {
-  try {
-    const chartsWithPreviews = [];
-
-    for (const chart of SPOTIFY_BILLBOARD_CHARTS) {
-      try {
-        const sampleSongs = await fetchSaavnSongs(chart.query, 6);
-        chartsWithPreviews.push({
-          id: chart.id,
-          title: chart.title,
-          subtitle: chart.subtitle,
-          badge: chart.badge,
-          gradient: chart.gradient,
-          image: chart.image,
-          songCount: 50,
-          previewSongs: sampleSongs.slice(0, 4)
-        });
-      } catch (e) {
-        chartsWithPreviews.push({
-          id: chart.id,
-          title: chart.title,
-          subtitle: chart.subtitle,
-          badge: chart.badge,
-          gradient: chart.gradient,
-          image: chart.image,
-          songCount: 50,
-          previewSongs: []
-        });
-      }
+  const CHART_CATEGORIES = [
+    {
+      id: 'trending_global',
+      title: '🔥 Trending Globally 2026',
+      subtitle: 'Top songs across all languages right now',
+      query: 'The Wild Theme OM Chapter 1 Top Trending 2026 Hits'
+    },
+    {
+      id: 'blues_rap',
+      title: '🎷 Blues Rap Anthems',
+      subtitle: 'Lee Richardson, blues riffs & heavy swagger beats',
+      query: 'Hunt You Down Lee Richardson Blues Rap'
+    },
+    {
+      id: 'rap',
+      title: '🎤 Rap & Hip-Hop',
+      subtitle: 'Heavy basslines, bars and global rap chart toppers',
+      query: 'Big Dawgs Hanumankind Eminem Rap God Kendrick Lamar'
+    },
+    {
+      id: 'rock',
+      title: '🎸 Rock & Themes',
+      subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
+      query: 'The Wild Theme Imagine Dragons Linkin Park Queen Rock Hits'
+    },
+    {
+      id: 'kpop',
+      title: '🇰🇷 K-Pop Worldwide',
+      subtitle: 'Global K-Pop chart toppers',
+      query: 'BLACKPINK BTS Stray Kids NewJeans TWICE'
+    },
+    {
+      id: 'korean',
+      title: '🇰🇷 Korean Drama & OSTs',
+      subtitle: 'Iconic Korean film & K-Drama soundtracks',
+      query: 'Korean Drama OST IU Hits K-Drama Soundtracks'
+    },
+    {
+      id: 'bollywood',
+      title: '🇮🇳 Hindi Bollywood 2026',
+      subtitle: "Hindi cinema's biggest fresh tracks & remixes",
+      query: 'Bollywood Hindi Film Songs 2026 Arijit Singh'
+    },
+    {
+      id: 'anime',
+      title: '🌸 Anime & J-Pop',
+      subtitle: 'Japanese anime openings, remixes & OSTs',
+      query: 'Anime Opening Song Japanese OST Naruto LiSA Gurenge'
+    },
+    {
+      id: 'global_pop',
+      title: '🌍 Global English Pop',
+      subtitle: 'International English hits & club remixes',
+      query: 'English Pop Hits Olivia Rodrigo Sabrina Carpenter Taylor Swift 2026'
+    },
+    {
+      id: 'kannada',
+      title: '🦁 Kannada Sandalwood',
+      subtitle: 'Hottest Kannada movie songs & BGM scores',
+      query: 'Kannada Film Songs 2026 Ravi Basrur'
+    },
+    {
+      id: 'malayalam',
+      title: '🌿 Malayalam Mollywood',
+      subtitle: 'Soulful Malayalam tracks & indie hits',
+      query: 'Malayalam Film Songs 2026 Sushin Shyam'
+    },
+    {
+      id: 'telugu',
+      title: '🎬 Telugu Tollywood',
+      subtitle: 'Trending Telugu cinema songs & mass themes',
+      query: 'Telugu Film Songs 2026 DSP Devi Sri Prasad'
+    },
+    {
+      id: 'tamil',
+      title: '⚡ Tamil Kollywood',
+      subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
+      query: 'Tamil Film Songs 2026 Sai Abhyankkar Anirudh'
+    },
+    {
+      id: 'marathi',
+      title: '🚩 Marathi Cinema',
+      subtitle: 'Energetic & soulful Marathi tracks',
+      query: 'Marathi Film Songs Ajay Atul Sairat 2026'
     }
+  ];
 
-    res.json(chartsWithPreviews);
-  } catch (err) {
-    console.error('[Music Controller Charts Error]:', err.message);
-    res.status(500).json({ error: 'Failed to fetch charts', charts: [] });
+  const charts = [];
+
+  for (const cat of CHART_CATEGORIES) {
+    try {
+      const songs = await fetchSaavnSongs(cat.query, 8);
+      charts.push({
+        id: cat.id,
+        title: cat.title,
+        subtitle: cat.subtitle,
+        songs: songs.slice(0, 8)
+      });
+    } catch (e) {
+      console.warn(`[Charts] Failed to fetch ${cat.id}:`, e.message);
+      charts.push({ id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [] });
+    }
+    await delay(250);
   }
-};
 
-// 4. Get Full Tracklist for a Specific Spotify / Billboard Chart
-export const getChartById = async (req, res) => {
-  const { chartId } = req.params;
-  const targetChart = SPOTIFY_BILLBOARD_CHARTS.find(c => c.id === chartId);
-
-  if (!targetChart) {
-    return res.status(404).json({ error: 'Chart not found' });
-  }
-
-  try {
-    const songs = await fetchSaavnSongs(targetChart.query, 30);
-    res.json({
-      ...targetChart,
-      songs
-    });
-  } catch (err) {
-    console.error(`[Music Controller Chart ${chartId} Error]:`, err.message);
-    res.status(500).json({ error: 'Failed to load chart songs', songs: [] });
-  }
+  res.json(charts);
 };
 
 // 4. Get Song Details by ID
@@ -893,5 +866,266 @@ export const getLyrics = async (req, res) => {
   } catch (err) {
     console.error('[Music Controller Lyrics Error]:', err.message);
     res.status(500).json({ error: 'Failed to retrieve lyrics' });
+  }
+};
+
+// ── Playlists & Favorite Library Controller Methods ────────────────────────
+
+const getUserId = (req) => {
+  return req.user?.id || req.headers['x-user-id'] || null;
+};
+
+// 1. Get all playlists for current user
+export const getUserPlaylists = async (req, res) => {
+  const userId = getUserId(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to view your playlists.' });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `SELECT p.id, p.user_id, p.name, p.description, p.created_at,
+              COUNT(s.id) as track_count,
+              (SELECT image FROM playlist_songs WHERE playlist_id = p.id ORDER BY added_at DESC LIMIT 1) as cover_image
+       FROM user_playlists p
+       LEFT JOIN playlist_songs s ON p.id = s.playlist_id
+       WHERE p.user_id = ?
+       GROUP BY p.id
+       ORDER BY p.created_at DESC`,
+      [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('[Music Controller Get Playlists Error]:', err.message);
+    res.status(500).json({ error: 'Failed to fetch playlists.' });
+  }
+};
+
+// 2. Create a new playlist
+export const createPlaylist = async (req, res) => {
+  const userId = getUserId(req);
+  const { name, description } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to create playlists.' });
+  }
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Playlist name is required.' });
+  }
+
+  try {
+    const [result] = await db.query(
+      'INSERT INTO user_playlists (user_id, name, description) VALUES (?, ?, ?)',
+      [userId, name.trim(), (description || '').trim()]
+    );
+    res.status(201).json({
+      id: result.insertId,
+      user_id: userId,
+      name: name.trim(),
+      description: (description || '').trim(),
+      track_count: 0,
+      cover_image: null,
+      created_at: new Date()
+    });
+  } catch (err) {
+    console.error('[Music Controller Create Playlist Error]:', err.message);
+    res.status(500).json({ error: 'Failed to create playlist.' });
+  }
+};
+
+// 3. Delete a playlist
+export const deletePlaylist = async (req, res) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to manage playlists.' });
+  }
+
+  try {
+    await db.query('DELETE FROM user_playlists WHERE id = ? AND user_id = ?', [id, userId]);
+    res.json({ success: true, message: 'Playlist deleted.' });
+  } catch (err) {
+    console.error('[Music Controller Delete Playlist Error]:', err.message);
+    res.status(500).json({ error: 'Failed to delete playlist.' });
+  }
+};
+
+// 4. Get songs inside a playlist
+export const getPlaylistSongs = async (req, res) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to view playlist tracks.' });
+  }
+
+  try {
+    const [playlists] = await db.query('SELECT * FROM user_playlists WHERE id = ? AND user_id = ?', [id, userId]);
+    if (!playlists.length) {
+      return res.status(404).json({ error: 'Playlist not found.' });
+    }
+
+    const [songs] = await db.query(
+      'SELECT song_id as id, title, artist, album, duration, image, audio_url, added_at FROM playlist_songs WHERE playlist_id = ? ORDER BY added_at DESC',
+      [id]
+    );
+
+    res.json({
+      playlist: playlists[0],
+      songs: songs.map(s => ({ ...s, media_type: 'music' }))
+    });
+  } catch (err) {
+    console.error('[Music Controller Get Playlist Songs Error]:', err.message);
+    res.status(500).json({ error: 'Failed to fetch playlist songs.' });
+  }
+};
+
+// 5. Add song to playlist
+export const addSongToPlaylist = async (req, res) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+  const { song } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to add songs.' });
+  }
+  if (!song || !song.id || !song.audio_url) {
+    return res.status(400).json({ error: 'Valid song payload is required.' });
+  }
+
+  try {
+    const [playlists] = await db.query('SELECT id FROM user_playlists WHERE id = ? AND user_id = ?', [id, userId]);
+    if (!playlists.length) {
+      return res.status(404).json({ error: 'Playlist not found.' });
+    }
+
+    await db.query(
+      `INSERT INTO playlist_songs (playlist_id, song_id, title, artist, album, duration, image, audio_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         title = VALUES(title),
+         artist = VALUES(artist),
+         album = VALUES(album),
+         duration = VALUES(duration),
+         image = VALUES(image),
+         audio_url = VALUES(audio_url)`,
+      [
+        id,
+        song.id,
+        song.title || 'Unknown Title',
+        song.artist || 'Unknown Artist',
+        song.album || 'Single',
+        parseInt(song.duration || '0', 10),
+        song.image || song.poster_path || '',
+        song.audio_url
+      ]
+    );
+
+    res.json({ success: true, message: 'Song added to playlist.' });
+  } catch (err) {
+    console.error('[Music Controller Add Playlist Song Error]:', err.message);
+    res.status(500).json({ error: 'Failed to add song to playlist.' });
+  }
+};
+
+// 6. Remove song from playlist
+export const removeSongFromPlaylist = async (req, res) => {
+  const userId = getUserId(req);
+  const { id, songId } = req.params;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to manage playlist songs.' });
+  }
+
+  try {
+    await db.query(
+      `DELETE s FROM playlist_songs s
+       JOIN user_playlists p ON s.playlist_id = p.id
+       WHERE s.playlist_id = ? AND s.song_id = ? AND p.user_id = ?`,
+      [id, songId, userId]
+    );
+    res.json({ success: true, message: 'Song removed from playlist.' });
+  } catch (err) {
+    console.error('[Music Controller Remove Playlist Song Error]:', err.message);
+    res.status(500).json({ error: 'Failed to remove song from playlist.' });
+  }
+};
+
+// 7. Get user's Favorite Songs / Liked Library
+export const getUserFavorites = async (req, res) => {
+  const userId = getUserId(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to view favorite songs.' });
+  }
+
+  try {
+    const [songs] = await db.query(
+      'SELECT song_id as id, title, artist, album, duration, image, audio_url, saved_at FROM user_favorite_songs WHERE user_id = ? ORDER BY saved_at DESC',
+      [userId]
+    );
+    res.json(songs.map(s => ({ ...s, media_type: 'music' })));
+  } catch (err) {
+    console.error('[Music Controller Get Favorites Error]:', err.message);
+    res.status(500).json({ error: 'Failed to fetch favorite songs.' });
+  }
+};
+
+// 8. Add song to user's favorites
+export const addFavoriteSong = async (req, res) => {
+  const userId = getUserId(req);
+  const { song } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to save favorites.' });
+  }
+  if (!song || !song.id || !song.audio_url) {
+    return res.status(400).json({ error: 'Valid song payload is required.' });
+  }
+
+  try {
+    await db.query(
+      `INSERT INTO user_favorite_songs (user_id, song_id, title, artist, album, duration, image, audio_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         title = VALUES(title),
+         artist = VALUES(artist),
+         album = VALUES(album),
+         duration = VALUES(duration),
+         image = VALUES(image),
+         audio_url = VALUES(audio_url)`,
+      [
+        userId,
+        song.id,
+        song.title || 'Unknown Title',
+        song.artist || 'Unknown Artist',
+        song.album || 'Single',
+        parseInt(song.duration || '0', 10),
+        song.image || song.poster_path || '',
+        song.audio_url
+      ]
+    );
+    res.json({ success: true, message: 'Added to favorites.' });
+  } catch (err) {
+    console.error('[Music Controller Add Favorite Error]:', err.message);
+    res.status(500).json({ error: 'Failed to save favorite song.' });
+  }
+};
+
+// 9. Remove song from user's favorites
+export const removeFavoriteSong = async (req, res) => {
+  const userId = getUserId(req);
+  const { songId } = req.params;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to remove favorite.' });
+  }
+
+  try {
+    await db.query('DELETE FROM user_favorite_songs WHERE user_id = ? AND song_id = ?', [userId, songId]);
+    res.json({ success: true, message: 'Removed from favorites.' });
+  } catch (err) {
+    console.error('[Music Controller Remove Favorite Error]:', err.message);
+    res.status(500).json({ error: 'Failed to remove favorite song.' });
   }
 };
