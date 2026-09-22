@@ -64,6 +64,122 @@ export const MusicProvider = ({ children }) => {
     }
   });
 
+  // ── User Music Library: Favorites (Liked Songs) ──
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('syncstream_music_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // ── User Music Library: Custom Playlists ──
+  const [playlists, setPlaylists] = useState(() => {
+    try {
+      const saved = localStorage.getItem('syncstream_music_playlists');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 'pl-default-1',
+          name: '🔥 My Top Jams',
+          description: 'Personal favorite hits and heavy rotation tracks',
+          createdAt: new Date().toISOString(),
+          songs: []
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sync favorites & playlists to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('syncstream_music_favorites', JSON.stringify(favorites));
+    } catch (e) {}
+  }, [favorites]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('syncstream_music_playlists', JSON.stringify(playlists));
+    } catch (e) {}
+  }, [playlists]);
+
+  // Favorites Helpers
+  const isFavorite = useCallback((trackId) => {
+    if (!trackId) return false;
+    return favorites.some(f => f.id === trackId);
+  }, [favorites]);
+
+  const toggleFavorite = useCallback((track) => {
+    if (!track || !track.id) return;
+    setFavorites(prev => {
+      const exists = prev.some(f => f.id === track.id);
+      if (exists) {
+        return prev.filter(f => f.id !== track.id);
+      } else {
+        return [track, ...prev];
+      }
+    });
+  }, []);
+
+  // Playlist Management Helpers
+  const createPlaylist = useCallback((name, description = '') => {
+    if (!name || !name.trim()) return null;
+    const newPl = {
+      id: `pl-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      name: name.trim(),
+      description: description.trim(),
+      createdAt: new Date().toISOString(),
+      songs: []
+    };
+    setPlaylists(prev => [newPl, ...prev]);
+    return newPl;
+  }, []);
+
+  const deletePlaylist = useCallback((playlistId) => {
+    if (!playlistId) return;
+    setPlaylists(prev => prev.filter(p => p.id !== playlistId));
+  }, []);
+
+  const renamePlaylist = useCallback((playlistId, name, description) => {
+    setPlaylists(prev => prev.map(p => {
+      if (p.id !== playlistId) return p;
+      return {
+        ...p,
+        name: name !== undefined ? name.trim() : p.name,
+        description: description !== undefined ? description.trim() : p.description
+      };
+    }));
+  }, []);
+
+  const addToPlaylist = useCallback((playlistId, track) => {
+    if (!playlistId || !track || !track.id) return false;
+    let added = false;
+    setPlaylists(prev => prev.map(p => {
+      if (p.id !== playlistId) return p;
+      const alreadyIn = p.songs.some(s => s.id === track.id);
+      if (alreadyIn) return p;
+      added = true;
+      return {
+        ...p,
+        songs: [track, ...p.songs]
+      };
+    }));
+    return added;
+  }, []);
+
+  const removeFromPlaylist = useCallback((playlistId, trackId) => {
+    if (!playlistId || !trackId) return;
+    setPlaylists(prev => prev.map(p => {
+      if (p.id !== playlistId) return p;
+      return {
+        ...p,
+        songs: p.songs.filter(s => s.id !== trackId)
+      };
+    }));
+  }, []);
+
   const setModalTab = useCallback((tab) => {
     const validTab = ['player', 'lyrics', 'queue'].includes(tab) ? tab : 'player';
     setModalTabState(validTab);
@@ -433,6 +549,15 @@ export const MusicProvider = ({ children }) => {
     toggleMute,
     toggleLoop,
     toggleShuffle,
+    favorites,
+    isFavorite,
+    toggleFavorite,
+    playlists,
+    createPlaylist,
+    deletePlaylist,
+    renamePlaylist,
+    addToPlaylist,
+    removeFromPlaylist,
     setIsExpanded,
     closePlayer
   };

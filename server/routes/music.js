@@ -3,6 +3,7 @@ import {
   getTrendingMusic,
   searchMusic,
   getMusicCharts,
+  getChartById,
   getSongDetails,
   getLyrics
 } from '../controllers/musicController.js';
@@ -17,6 +18,9 @@ router.get('/search', searchMusic);
 
 // GET /api/music/charts
 router.get('/charts', getMusicCharts);
+
+// GET /api/music/charts/:chartId
+router.get('/charts/:chartId', getChartById);
 
 // GET /api/music/song/:id
 router.get('/song/:id', getSongDetails);

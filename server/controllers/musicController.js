@@ -447,7 +447,119 @@ export const getTrendingMusic = async (req, res) => {
   }
 };
 
-// 2. Search Music (Songs, Artists, Albums, Themes, BGM, Remixes, Singles)
+// ── Curated Spotify & Billboard Top Charts Registry ──
+export const SPOTIFY_BILLBOARD_CHARTS = [
+  {
+    id: 'spotify_top_50',
+    title: '🏆 Spotify Top 50 - Global',
+    subtitle: 'The biggest and most streamed tracks in the world right now',
+    badge: 'Spotify Official',
+    gradient: 'from-emerald-600 via-teal-700 to-black',
+    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+    query: 'Sabrina Carpenter Espresso Birds of a Feather Billie Eilish Die With A Smile Lady Gaga Bruno Mars Hanumankind Big Dawgs The Weeknd Taylor Swift'
+  },
+  {
+    id: 'todays_top_hits',
+    title: "🔥 Today's Top Hits",
+    subtitle: 'Global chart toppers, viral streaming phenomenons & pop anthems',
+    badge: 'Trending Now',
+    gradient: 'from-pink-600 via-purple-700 to-black',
+    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
+    query: 'Sabrina Carpenter Taste Chappell Roan Good Luck Babe Post Malone I Had Some Help Dua Lipa Houdini Benson Boone Beautiful Things'
+  },
+  {
+    id: 'billboard_hot_100',
+    title: '🌟 Billboard Hot 100 Hits',
+    subtitle: 'The definitive standard of the most popular global tracks',
+    badge: 'Billboard 2026',
+    gradient: 'from-amber-600 via-orange-700 to-black',
+    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&auto=format&fit=crop&q=80',
+    query: 'Billboard Hot 100 Eminem Houdini Kendrick Lamar Not Like Us Shaboozey Teddy Swims Lose Control Hozier Too Sweet'
+  },
+  {
+    id: 'viral_50',
+    title: '⚡ Global Viral 50',
+    subtitle: 'Catchiest viral anthems taking over Reels, TikTok & social media',
+    badge: 'Viral Trends',
+    gradient: 'from-cyan-600 via-blue-700 to-black',
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+    query: 'Big Dawgs Hanumankind Million Dollar Baby Tommy Richman Gata Only FloyyMenor Artemas I Like the Way You Kiss Me'
+  },
+  {
+    id: 'bollywood_top_50',
+    title: '🇮🇳 Bollywood Top 50',
+    subtitle: 'The undisputed chartbusters of Hindi cinema & Indian pop',
+    badge: 'Bollywood',
+    gradient: 'from-red-600 via-rose-700 to-black',
+    image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80',
+    query: 'Latest Bollywood 2026 Hits Arijit Singh Shreya Ghoshal Pritam Vishal Mishra Badshah Diljit Dosanjh Karan Aujla'
+  },
+  {
+    id: 'tollywood_top_50',
+    title: '🎬 Tollywood Top 50 (Telugu)',
+    subtitle: 'High-octane mass beats, soulful melodies & cinema anthems',
+    badge: 'Tollywood',
+    gradient: 'from-yellow-600 via-amber-700 to-black',
+    image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80',
+    query: 'Telugu Film Hits 2026 Devi Sri Prasad Pushpa Thaman S Anirudh Telugu Ram Miriyala Sid Sriram Telugu'
+  },
+  {
+    id: 'kollywood_top_50',
+    title: '⚡ Kollywood Top 50 (Tamil)',
+    subtitle: 'Electrifying Tamil cinema anthems & viral chartbusters',
+    badge: 'Kollywood',
+    gradient: 'from-purple-600 via-indigo-700 to-black',
+    image: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80',
+    query: 'The Wild Theme OM Chapter 1 Tamil Film Hits 2026 Anirudh Tamil AR Rahman Sai Abhyankkar Yuvan Shankar Raja'
+  },
+  {
+    id: 'punjabi_top_50',
+    title: '🚜 Punjabi Wave Top 50',
+    subtitle: 'Bhangra swagger, hip-hop fusion & Punjabi chart bangers',
+    badge: 'Punjabi Hits',
+    gradient: 'from-orange-500 via-red-600 to-black',
+    image: 'https://images.unsplash.com/photo-1520523839898-5071282543e2?w=600&auto=format&fit=crop&q=80',
+    query: 'Karan Aujla Tauba Tauba Diljit Dosanjh AP Dhillon Sidhu Moosewala Shubh Punjabi Hits 2026 Harrdy Sandhu'
+  },
+  {
+    id: 'kpop_top_50',
+    title: '🇰🇷 K-Pop Global Top 50',
+    subtitle: 'World-dominating Korean pop sensations & addictive dance choreo',
+    badge: 'K-Pop Top',
+    gradient: 'from-fuchsia-600 via-pink-700 to-black',
+    image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&auto=format&fit=crop&q=80',
+    query: 'BLACKPINK BTS Stray Kids NewJeans LE SSERAFIM aespa IVE TWICE Jungkook ILLIT Magnetic'
+  },
+  {
+    id: 'anime_top_50',
+    title: '🌸 Anime & J-Pop Global Hits',
+    subtitle: 'Iconic anime openings, hype battle themes & Japanese pop',
+    badge: 'Anime OST',
+    gradient: 'from-violet-600 via-purple-800 to-black',
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
+    query: 'Bling-Bang-Bang-Born Creepy Nuts YOASOBI Idol LiSA Gurenge Kenshi Yonezu Kick Back Anime Opening OST'
+  },
+  {
+    id: 'hiphop_top_50',
+    title: '🎤 Hip-Hop & Rap Top 50',
+    subtitle: 'Raw lyricism, 808 heavy bass and undisputed hip-hop icons',
+    badge: 'Hip-Hop Hits',
+    gradient: 'from-emerald-700 via-slate-800 to-black',
+    image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80',
+    query: 'Big Dawgs Hanumankind Eminem Rap God Kendrick Lamar Not Like Us Travis Scott FE!N Drake Future Metro Boomin'
+  },
+  {
+    id: 'rock_top_50',
+    title: '🎸 Rock & Heavy Anthems',
+    subtitle: 'Cinematic guitar riffs, stadium anthems & timeless rock legends',
+    badge: 'Rock Legends',
+    gradient: 'from-blue-700 via-indigo-900 to-black',
+    image: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&auto=format&fit=crop&q=80',
+    query: 'The Wild Theme Imagine Dragons Believer Linkin Park In The End Queen Bohemian Rhapsody Coldplay Bon Jovi'
+  }
+];
+
+// 2. Search Music with Multi-Pass Universal Fallback Engine
 export const searchMusic = async (req, res) => {
   const { query, language } = req.query;
   const page = parseInt(req.query.page || '1', 10);
@@ -459,115 +571,42 @@ export const searchMusic = async (req, res) => {
 
   const rawQuery = query.trim();
 
-  // Smart candidate queries
+  // Multi-Pass Candidate Queries Strategy
   const candidateQueries = [];
 
-  // Special match for The Wild Theme / OM Chapter 1 / Sai Abhyankkar
-  if (/wild\s*theme|om\s*chapter|sai\s*abhyankkar/i.test(rawQuery)) {
-    candidateQueries.push('The Wild Theme OM Chapter 1');
-    candidateQueries.push('Sai Abhyankkar OM Chapter 1');
-    candidateQueries.push('OM Chapter 1 Udhiram');
-    candidateQueries.push('OM Chapter 1');
-    candidateQueries.push('Sai Abhyankkar Hits');
-    candidateQueries.push('The Wild Theme');
-  }
+  // Pass 1: Exact raw query
+  candidateQueries.push(rawQuery);
 
-  // Special match for Sonu Nigam
-  if (/sonu\s*nigam/i.test(rawQuery)) {
-    candidateQueries.push('Sonu Nigam');
-    candidateQueries.push('Sonu Nigam Hits');
-    candidateQueries.push('Sonu Nigam Romantic');
-    candidateQueries.push('Sonu Nigam Kannada');
-    candidateQueries.push('Sonu Nigam Hindi');
-    candidateQueries.push('Sonu Nigam All Time Hits');
-  }
-
-  // Special match for Sanjith Hegde
-  if (/sanjith\s*hegde/i.test(rawQuery)) {
-    candidateQueries.push('Sanjith Hegde Kannada');
-    candidateQueries.push('Sanjith Hegde Hits');
-    candidateQueries.push('Gunu Gunuguva Sanjith Hegde');
-    candidateQueries.push('Kush Kush Sanjith Hegde');
-    candidateQueries.push('Shaakuntle Sanjith Hegde');
-    candidateQueries.push('Marali Manasaagide Sanjith Hegde');
-    candidateQueries.push('Soul Of Dia Sanjith Hegde');
-    candidateQueries.push('Sanjith Hegde Telugu');
-    candidateQueries.push('Sanjith Hegde Tamil');
-    candidateQueries.push('Sanjith Hegde');
-  }
-
-  // Special match for Arijit Singh
-  if (/arijit\s*singh/i.test(rawQuery)) {
-    candidateQueries.push('Arijit Singh');
-    candidateQueries.push('Arijit Singh Hits');
-    candidateQueries.push('Arijit Singh Romantic');
-    candidateQueries.push('Arijit Singh Best Of');
-  }
-
-  // Special match for Sid Sriram
-  if (/sid\s*sriram/i.test(rawQuery)) {
-    candidateQueries.push('Sid Sriram');
-    candidateQueries.push('Sid Sriram Telugu');
-    candidateQueries.push('Sid Sriram Tamil');
-    candidateQueries.push('Sid Sriram Hits');
-  }
-
-  // Special match for Shreya Ghoshal
-  if (/shreya\s*ghoshal/i.test(rawQuery)) {
-    candidateQueries.push('Shreya Ghoshal');
-    candidateQueries.push('Shreya Ghoshal Hits');
-    candidateQueries.push('Shreya Ghoshal Romantic');
-    candidateQueries.push('Shreya Ghoshal Best Of');
-  }
-
-  // Special match for Anirudh Ravichander
-  if (/anirudh/i.test(rawQuery)) {
-    candidateQueries.push('Anirudh Ravichander');
-    candidateQueries.push('Anirudh Tamil Hits');
-    candidateQueries.push('Anirudh Telugu Hits');
-    candidateQueries.push('Anirudh Hits');
-  }
-
-  // Special match for A.R. Rahman
-  if (/rahman/i.test(rawQuery)) {
-    candidateQueries.push('AR Rahman');
-    candidateQueries.push('AR Rahman Tamil Hits');
-    candidateQueries.push('AR Rahman Hindi Hits');
-    candidateQueries.push('AR Rahman Hits');
-  }
-
-  // Special match for Ravi Basrur
-  if (/ravi\s*basrur/i.test(rawQuery)) {
-    candidateQueries.push('Ravi Basrur');
-    candidateQueries.push('Ravi Basrur KGF Salaar');
-    candidateQueries.push('Ravi Basrur Hits');
-    candidateQueries.push('Ravi Basrur Kannada');
-  }
-
-  // Special match for Hunt You Down / Teach You a Lesson / Lee Richardson / Blues Rap
-  if (/hunt\s*you\s*down|teach\s*you\s*a\s*lesson|lee\s*richardson|blues\s*rap/i.test(rawQuery)) {
-    candidateQueries.push('Hunt You Down Richardson');
-    candidateQueries.push('Lee Richardson Tom Ford');
-    candidateQueries.push('Teach You A Lesson');
-    candidateQueries.push('Lee Richardson Blues Rap');
-    candidateQueries.push('Lee Richardson');
-  }
-
-  // Clean candidate queries for natural language searches
-  const cleaned = rawQuery
-    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
+  // Pass 2: Cleaned query (strip out 'feat', 'ft', '(official audio)', etc.)
+  const cleanTitle = rawQuery
+    .replace(/\s*\((?:from|feat|ft|with|official|video|audio|remix|version|ost)[^\)]*\)/gi, '')
+    .replace(/\s*\[(?:from|feat|ft|with|official|video|audio|remix|version|ost)[^\]]*\]/gi, '')
+    .replace(/\s*-\s*(?:from|feat|ft|with|official|video|audio|remix|version|original).*$/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
-  
-  const shortKeywords = cleaned.split(' ').slice(0, 3).join(' ');
-
-  candidateQueries.push(rawQuery);
-  candidateQueries.push(`${rawQuery} Hits`);
-  candidateQueries.push(`${rawQuery} Songs`);
-  if (cleaned && cleaned !== rawQuery) candidateQueries.push(cleaned);
-  if (shortKeywords && shortKeywords !== cleaned && shortKeywords !== rawQuery) {
-    candidateQueries.push(shortKeywords);
+  if (cleanTitle && cleanTitle !== rawQuery) {
+    candidateQueries.push(cleanTitle);
   }
+
+  // Pass 3: Romanized / transliterated query for Non-Latin scripts
+  const romanized = toEnglishText(rawQuery);
+  if (romanized && romanized !== rawQuery) {
+    candidateQueries.push(romanized);
+  }
+
+  // Pass 4: Artist and song permutations
+  if (rawQuery.includes('-')) {
+    const parts = rawQuery.split('-').map(p => p.trim());
+    if (parts.length >= 2) {
+      candidateQueries.push(`${parts[1]} ${parts[0]}`);
+      candidateQueries.push(parts[0]);
+      candidateQueries.push(parts[1]);
+    }
+  }
+
+  // Pass 5: Fallback general keyword search
+  candidateQueries.push(`${rawQuery} song`);
+  candidateQueries.push(`${rawQuery} hits`);
 
   try {
     const seen = new Set();
@@ -582,29 +621,33 @@ export const searchMusic = async (req, res) => {
 
       const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(searchQuery)}`;
 
-      const response = await axios.get(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
-        timeout: 10000
-      });
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          },
+          timeout: 8000
+        });
 
-      const rawResults = response.data.results || [];
-      const validSongs = rawResults
-        .map(formatSong)
-        .filter(s => s && s.audio_url && !isSpamTrack(s));
+        const rawResults = response.data.results || [];
+        const validSongs = rawResults
+          .map(formatSong)
+          .filter(s => s && s.audio_url && !isSpamTrack(s));
 
-      for (const s of validSongs) {
-        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-        if (!seen.has(key) && !seen.has(s.id)) {
-          seen.add(key);
-          seen.add(s.id);
-          collectedSongs.push(s);
+        for (const s of validSongs) {
+          const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+          if (!seen.has(key) && !seen.has(s.id)) {
+            seen.add(key);
+            seen.add(s.id);
+            collectedSongs.push(s);
+          }
         }
-      }
 
-      totalCount = Math.max(totalCount, response.data.total || collectedSongs.length);
-      if (collectedSongs.length >= limit) break;
+        totalCount = Math.max(totalCount, response.data.total || collectedSongs.length);
+        if (collectedSongs.length >= limit) break;
+      } catch (err) {
+        // Continue to next candidate query on error
+      }
     }
 
     res.json({
@@ -619,114 +662,64 @@ export const searchMusic = async (req, res) => {
   }
 };
 
-// 3. Get Curated Regional Playlists / Charts
+// 3. Get Spotify / Billboard Curated Charts Overview
 export const getMusicCharts = async (req, res) => {
-  const CHART_CATEGORIES = [
-    {
-      id: 'trending_global',
-      title: '🔥 Trending Globally 2026',
-      subtitle: 'Top songs across all languages right now',
-      query: 'The Wild Theme OM Chapter 1 Top Trending 2026 Hits'
-    },
-    {
-      id: 'blues_rap',
-      title: '🎷 Blues Rap Anthems',
-      subtitle: 'Lee Richardson, blues riffs & heavy swagger beats',
-      query: 'Hunt You Down Lee Richardson Blues Rap'
-    },
-    {
-      id: 'rap',
-      title: '🎤 Rap & Hip-Hop',
-      subtitle: 'Heavy basslines, bars and global rap chart toppers',
-      query: 'Big Dawgs Hanumankind Eminem Rap God Kendrick Lamar'
-    },
-    {
-      id: 'rock',
-      title: '🎸 Rock & Themes',
-      subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
-      query: 'The Wild Theme Imagine Dragons Linkin Park Queen Rock Hits'
-    },
-    {
-      id: 'kpop',
-      title: '🇰🇷 K-Pop Worldwide',
-      subtitle: 'Global K-Pop chart toppers',
-      query: 'BLACKPINK BTS Stray Kids NewJeans TWICE'
-    },
-    {
-      id: 'korean',
-      title: '🇰🇷 Korean Drama & OSTs',
-      subtitle: 'Iconic Korean film & K-Drama soundtracks',
-      query: 'Korean Drama OST IU Hits K-Drama Soundtracks'
-    },
-    {
-      id: 'bollywood',
-      title: '🇮🇳 Hindi Bollywood 2026',
-      subtitle: "Hindi cinema's biggest fresh tracks & remixes",
-      query: 'Bollywood Hindi Film Songs 2026 Arijit Singh'
-    },
-    {
-      id: 'anime',
-      title: '🌸 Anime & J-Pop',
-      subtitle: 'Japanese anime openings, remixes & OSTs',
-      query: 'Anime Opening Song Japanese OST Naruto LiSA Gurenge'
-    },
-    {
-      id: 'global_pop',
-      title: '🌍 Global English Pop',
-      subtitle: 'International English hits & club remixes',
-      query: 'English Pop Hits Olivia Rodrigo Sabrina Carpenter Taylor Swift 2026'
-    },
-    {
-      id: 'kannada',
-      title: '🦁 Kannada Sandalwood',
-      subtitle: 'Hottest Kannada movie songs & BGM scores',
-      query: 'Kannada Film Songs 2026 Ravi Basrur'
-    },
-    {
-      id: 'malayalam',
-      title: '🌿 Malayalam Mollywood',
-      subtitle: 'Soulful Malayalam tracks & indie hits',
-      query: 'Malayalam Film Songs 2026 Sushin Shyam'
-    },
-    {
-      id: 'telugu',
-      title: '🎬 Telugu Tollywood',
-      subtitle: 'Trending Telugu cinema songs & mass themes',
-      query: 'Telugu Film Songs 2026 DSP Devi Sri Prasad'
-    },
-    {
-      id: 'tamil',
-      title: '⚡ Tamil Kollywood',
-      subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
-      query: 'Tamil Film Songs 2026 Sai Abhyankkar Anirudh'
-    },
-    {
-      id: 'marathi',
-      title: '🚩 Marathi Cinema',
-      subtitle: 'Energetic & soulful Marathi tracks',
-      query: 'Marathi Film Songs Ajay Atul Sairat 2026'
-    }
-  ];
+  try {
+    const chartsWithPreviews = [];
 
-  const charts = [];
-
-  for (const cat of CHART_CATEGORIES) {
-    try {
-      const songs = await fetchSaavnSongs(cat.query, 8);
-      charts.push({
-        id: cat.id,
-        title: cat.title,
-        subtitle: cat.subtitle,
-        songs: songs.slice(0, 8)
-      });
-    } catch (e) {
-      console.warn(`[Charts] Failed to fetch ${cat.id}:`, e.message);
-      charts.push({ id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [] });
+    for (const chart of SPOTIFY_BILLBOARD_CHARTS) {
+      try {
+        const sampleSongs = await fetchSaavnSongs(chart.query, 6);
+        chartsWithPreviews.push({
+          id: chart.id,
+          title: chart.title,
+          subtitle: chart.subtitle,
+          badge: chart.badge,
+          gradient: chart.gradient,
+          image: chart.image,
+          songCount: 50,
+          previewSongs: sampleSongs.slice(0, 4)
+        });
+      } catch (e) {
+        chartsWithPreviews.push({
+          id: chart.id,
+          title: chart.title,
+          subtitle: chart.subtitle,
+          badge: chart.badge,
+          gradient: chart.gradient,
+          image: chart.image,
+          songCount: 50,
+          previewSongs: []
+        });
+      }
     }
-    await delay(250);
+
+    res.json(chartsWithPreviews);
+  } catch (err) {
+    console.error('[Music Controller Charts Error]:', err.message);
+    res.status(500).json({ error: 'Failed to fetch charts', charts: [] });
+  }
+};
+
+// 4. Get Full Tracklist for a Specific Spotify / Billboard Chart
+export const getChartById = async (req, res) => {
+  const { chartId } = req.params;
+  const targetChart = SPOTIFY_BILLBOARD_CHARTS.find(c => c.id === chartId);
+
+  if (!targetChart) {
+    return res.status(404).json({ error: 'Chart not found' });
   }
 
-  res.json(charts);
+  try {
+    const songs = await fetchSaavnSongs(targetChart.query, 30);
+    res.json({
+      ...targetChart,
+      songs
+    });
+  } catch (err) {
+    console.error(`[Music Controller Chart ${chartId} Error]:`, err.message);
+    res.status(500).json({ error: 'Failed to load chart songs', songs: [] });
+  }
 };
 
 // 4. Get Song Details by ID

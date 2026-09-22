@@ -17,6 +17,7 @@ import {
   ListMusic,
   Disc3,
   FileText,
+  Heart,
   X
 } from 'lucide-react';
 
@@ -56,7 +57,9 @@ export default function MusicPlayerBar() {
     openLyricsModal,
     removeFromQueue,
     playTrack,
-    closePlayer
+    closePlayer,
+    isFavorite,
+    toggleFavorite
   } = useMusic();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -236,6 +239,19 @@ export default function MusicPlayerBar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  toggleFavorite(currentTrack);
+                }}
+                className={`p-1.5 active:scale-90 rounded-lg transition ${
+                  isFavorite(currentTrack.id) ? 'text-pink-400 bg-pink-500/15' : 'text-gray-300 hover:text-white'
+                }`}
+                title={isFavorite(currentTrack.id) ? 'Liked' : 'Like'}
+              >
+                <Heart className={`w-4 h-4 ${isFavorite(currentTrack.id) ? 'fill-current' : ''}`} />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   openLyricsModal();
                 }}
                 className="p-1.5 text-accentCyan hover:text-white bg-accentCyan/15 active:scale-90 rounded-lg transition border border-accentCyan/30"
@@ -314,6 +330,18 @@ export default function MusicPlayerBar() {
                     {currentTrack.artist}
                   </p>
                 </div>
+
+                <button
+                  onClick={() => toggleFavorite(currentTrack)}
+                  className={`p-2 rounded-xl transition active:scale-90 ${
+                    isFavorite(currentTrack.id)
+                      ? 'text-pink-400 bg-pink-500/15'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title={isFavorite(currentTrack.id) ? 'Liked' : 'Add to Liked Songs'}
+                >
+                  <Heart className={`w-4 h-4 ${isFavorite(currentTrack.id) ? 'fill-current' : ''}`} />
+                </button>
               </div>
 
               {/* Center Audio Controls */}

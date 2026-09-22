@@ -23,7 +23,8 @@ import {
   Disc3,
   Image as ImageIcon,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Heart
 } from 'lucide-react';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
@@ -63,7 +64,9 @@ export default function MusicModal() {
     toggleShuffle,
     playTrack,
     removeFromQueue,
-    closePlayer
+    closePlayer,
+    isFavorite,
+    toggleFavorite
   } = useMusic();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -371,6 +374,19 @@ export default function MusicModal() {
               <p className="text-xs sm:text-sm text-gray-300 font-medium truncate">
                 {currentTrack.artist}
               </p>
+              <div className="flex items-center justify-center pt-1.5">
+                <button
+                  onClick={() => toggleFavorite(currentTrack)}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition active:scale-95 ${
+                    isFavorite(currentTrack.id)
+                      ? 'bg-pink-500/20 border-pink-400 text-pink-300'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-pink-400' : ''}`} />
+                  <span>{isFavorite(currentTrack.id) ? 'Liked to Library' : 'Save to Favorites'}</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
