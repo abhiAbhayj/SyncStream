@@ -249,14 +249,14 @@ export default function VoiceAssistant() {
       if (newTheme !== 'ocean') document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        ocean: '🎬 Cinematic OLED',
-        arctic: '🧊 Glassmorphic Slate',
-        inferno: '🎨 Anime Ink & Cell',
-        amethyst: '🌌 Acoustic Aurora',
-        matrix: '⚡ Monochrome Quantum',
-        cyber: '👑 Premium Gold Luxe',
-        tokyo: '🪩 Vibrant Synth',
-        monochrome: '🏛️ Studio Minimal'
+        ocean: '⚔️ Cyber-Ronin (Anime Focus)',
+        monochrome: '⚪ Graphite Sketch (Manga Focus)',
+        inferno: '🌊 Abyssal Fluid (Movie Focus)',
+        amethyst: '🎵 Midnight Vinyl (Music Focus)',
+        arctic: '❄️ Oxygen Glare (Modern UI)',
+        tokyo: '👾 CRT Arcade (Action Series)',
+        cyber: '👑 Velvet Eclipse (Premium Focus)',
+        matrix: '⚡ Neon Matrix (Sci-Fi/Tech)'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;
