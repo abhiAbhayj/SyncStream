@@ -36,8 +36,8 @@ const THEME_OPTIONS = [
   {
     id: 'ocean',
     name: '🌌 Cosmic Stargate',
-    desc: 'Deep space void, 3D chromatic wormhole vortex & multi-color cosmic filaments',
-    animation: '3D chromatic wormhole vortex & cosmic dust',
+    desc: 'Deep space void, auroral plasma light curtains & linear hyperspace warp beams',
+    animation: 'Auroral curtains & hyperspace warp beams',
     swatch: ['#05040a', '#a855f7', '#00f5d4', '#ff5964', '#ffd166'],
   },
   {
@@ -57,8 +57,8 @@ const THEME_OPTIONS = [
   {
     id: 'monochrome',
     name: '🌑 Monolith Chrono',
-    desc: 'Pitch monolith, quantum gyroscope rings & floating liquid mercury drops',
-    animation: 'Quantum gyroscope & liquid mercury drops',
+    desc: 'Pitch monolith, 3D rotating tesseract hypercubes & digital oscilloscope beams',
+    animation: '3D tesseract hypercubes & oscilloscope lasers',
     swatch: ['#050505', '#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'],
   },
   {
@@ -78,8 +78,8 @@ const THEME_OPTIONS = [
   {
     id: 'cyber',
     name: '👑 Imperial Gold Luxe',
-    desc: 'Royal bronze noir, celestial solar crown, liquid gold waves & 24K diamond shimmer',
-    animation: 'Solar starburst crown & liquid gold waves',
+    desc: 'Royal bronze noir, cascading 24K gold silk streams & 3D rotating gold ingots',
+    animation: 'Liquid gold silk streams & 3D gold ingots',
     swatch: ['#0e0b06', '#ffc700', '#e07a00', '#fff0aa', '#00d4aa'],
   },
   {

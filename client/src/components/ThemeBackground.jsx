@@ -3,13 +3,13 @@ import React, { useEffect, useRef, useState } from 'react';
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
  * 8 Custom Mathematical Simulation Engines:
- * 1. ocean     — 🌌 Cosmic Stargate: Multi-Chromatic Nebula Vortex, Sacred Celestial Mandala & Hyperdrive Comets
+ * 1. ocean     — 🌌 Cosmic Stargate: Hyperspace Warp Streaks, Flowing Auroral Curtains & Diamond Constellations
  * 2. inferno   — 🌋 Inferno Solaris: Solar Plasma Prominence Arcs & Coronal Mass Ejection Sparks
  * 3. matrix    — ⚡ Cyberpunk Holo-Matrix: 3D Hexagonal Energy Shield & Laser Conduit Network
- * 4. monochrome— 🌑 Monolith Chrono: Quantum Gyroscope Rings & Floating Liquid Mercury Drops
+ * 4. monochrome— 🌑 Monolith Chrono: 3D Tesseract Monolith Hypercubes, Quantum Oscilloscope Beams & Chrome Shards
  * 5. arctic    — 🧊 Glacial Prism: 3D Projected Quartz Polyhedra & Soft Prismatic Refraction (Subtle Soft Glow)
  * 6. tokyo     — 🪩 Retro Synthwave Highway: Infinite Outrun 3D Wireframe Road & Neon Skyline (Balanced Dark Mode)
- * 7. cyber     — 👑 Imperial Gold Luxe: Liquid Gold Cascading Waterfall, Celestial Solar Crown & 24K Diamond Shimmer
+ * 7. cyber     — 👑 Imperial Gold Luxe: Cascading 24K Gold Silk Streams, 3D Floating Gold Bars & Diamond Stars
  * 8. amethyst  — 🌿 Bio-Luminescent Pandora: Ethereal Swimming Jellyfish Flora & Bioluminescent River Waves
  */
 export default function ThemeBackground() {
@@ -88,28 +88,46 @@ export default function ThemeBackground() {
       const isMobile = width < 768;
 
       if (theme === 'ocean') {
-        // 🌌 1. Cosmic Stargate (Multi-Chromatic Nebula Vortex, Sacred Mandala & Hyperdrive Comets)
-        const spiralCount = isMobile ? 85 : 160;
-        const colors = ['#00f5d4', '#a855f7', '#ff5964', '#ffd166', '#06d6a0', '#ffffff'];
-        for (let i = 0; i < spiralCount; i++) {
+        // 🌌 1. Cosmic Stargate (Hyperspace Warp Streaks, Flowing Auroral Plasma Curtains & Diamond Constellations - 100% NON-CIRCULAR)
+        // Multi-layered Diagonal Auroral Plasma Light Curtains
+        waves = [
+          { yRatio: 0.30, amp: 55, freq: 0.0016, speed: 0.005, phase: 0, color: 'rgba(168, 85, 247, 0.08)' }, // Celestial Violet
+          { yRatio: 0.50, amp: 70, freq: 0.0012, speed: -0.004, phase: 1.5, color: 'rgba(0, 245, 212, 0.07)' }, // Hyper Turquoise
+          { yRatio: 0.70, amp: 60, freq: 0.0018, speed: 0.006, phase: 3.0, color: 'rgba(255, 89, 100, 0.06)' }, // Solar Coral
+          { yRatio: 0.85, amp: 45, freq: 0.0022, speed: -0.005, phase: 4.2, color: 'rgba(255, 209, 102, 0.05)' } // Supernova Gold
+        ];
+
+        // Linear Hyperspace Warp Streaks
+        const streakCount = isMobile ? 35 : 75;
+        const colors = ['#00f5d4', '#a855f7', '#ff5964', '#ffd166', '#ffffff'];
+        for (let i = 0; i < streakCount; i++) {
           particles.push({
-            radius: 25 + Math.random() * (Math.min(width, height) * 0.48),
-            angle: Math.random() * Math.PI * 2,
-            speed: (0.005 + Math.random() * 0.012) * (Math.random() > 0.4 ? 1 : -1),
-            size: 1 + Math.random() * 2.6,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            opacity: 0.35 + Math.random() * 0.65,
-            zPhase: Math.random() * Math.PI * 2,
-            zSpeed: 0.02 + Math.random() * 0.03
+            x: Math.random() * width,
+            y: Math.random() * height,
+            len: 30 + Math.random() * 80,
+            speed: 3 + Math.random() * 6,
+            angle: -Math.PI / 6 + (Math.random() - 0.5) * 0.15,
+            width: 1 + Math.random() * 1.8,
+            color: colors[i % colors.length],
+            opacity: 0.25 + Math.random() * 0.65
           });
         }
 
-        const maxR = Math.min(width, height) * 0.42;
-        customEntities = [
-          { r: maxR * 0.35, rot: 0, speed: 0.006, points: 6, color: 'rgba(0, 245, 212, 0.28)' },
-          { r: maxR * 0.65, rot: Math.PI / 4, speed: -0.004, points: 8, color: 'rgba(168, 85, 247, 0.32)' },
-          { r: maxR * 0.95, rot: Math.PI / 6, speed: 0.003, points: 12, color: 'rgba(255, 209, 102, 0.22)' }
-        ];
+        // Drifting Diamond Star Constellations
+        const nodeCount = isMobile ? 12 : 24;
+        customEntities = [];
+        for (let i = 0; i < nodeCount; i++) {
+          customEntities.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            size: 2.5 + Math.random() * 3.5,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.02 + Math.random() * 0.03,
+            color: colors[i % colors.length]
+          });
+        }
       } else if (theme === 'inferno') {
         // 🌋 2. Inferno Solaris (Solar Surface Plasma Prominence Arcs)
         const arcCount = isMobile ? 3 : 5;
@@ -176,24 +194,66 @@ export default function ThemeBackground() {
           });
         }
       } else if (theme === 'monochrome') {
-        // 🌑 4. Monolith Chrono (Quantum Gyroscope Rings & Floating Liquid Mercury)
-        const maxRadius = Math.min(width, height) * 0.42;
+        // 🌑 4. Monolith Chrono (3D Rotating Tesseract Hypercube Monoliths & Quantum Oscilloscope Lasers - 100% NON-CIRCULAR)
+        // 3D Monolith Hypercube Frames
         customEntities = [
-          { rx: maxRadius * 0.85, ry: maxRadius * 0.45, rot: 0, speed: 0.008, color: 'rgba(226, 232, 240, 0.25)' },
-          { rx: maxRadius * 0.65, ry: maxRadius * 0.35, rot: Math.PI / 3, speed: -0.011, color: 'rgba(59, 130, 246, 0.35)' },
-          { rx: maxRadius * 0.45, ry: maxRadius * 0.25, rot: Math.PI / 1.5, speed: 0.014, color: 'rgba(239, 68, 68, 0.30)' }
+          // Outer Monolith Obelisk Frame
+          {
+            w: isMobile ? 50 : 75,
+            h: isMobile ? 100 : 155,
+            d: isMobile ? 50 : 75,
+            rotX: 0.3, rotY: 0.2, rotZ: 0,
+            speedX: 0.004, speedY: 0.007, speedZ: 0.003,
+            color: '#e2e8f0', // Liquid Chrome
+            alpha: 0.38,
+            lineWidth: 1.4
+          },
+          // Inner Quantum Cube Core
+          {
+            w: isMobile ? 26 : 40,
+            h: isMobile ? 26 : 40,
+            d: isMobile ? 26 : 40,
+            rotX: 0.8, rotY: -0.4, rotZ: 0.5,
+            speedX: -0.009, speedY: 0.008, speedZ: -0.006,
+            color: '#3b82f6', // Electric Cobalt
+            alpha: 0.55,
+            lineWidth: 1.6
+          },
+          // Secondary Satellite Monolith Slab
+          {
+            w: isMobile ? 16 : 24,
+            h: isMobile ? 60 : 90,
+            d: isMobile ? 16 : 24,
+            rotX: -0.5, rotY: 0.6, rotZ: 0.2,
+            speedX: 0.006, speedY: -0.005, speedZ: 0.007,
+            color: '#ef4444', // Neon Crimson
+            alpha: 0.45,
+            lineWidth: 1.2
+          }
         ];
 
-        const dropCount = isMobile ? 15 : 30;
-        for (let i = 0; i < dropCount; i++) {
+        // Quantum Oscilloscope Frequency Waveform Beams
+        waves = [
+          { yRatio: 0.38, freq: 0.008, speed: 0.04, amp: 22, color: 'rgba(59, 130, 246, 0.35)', phase: 0 },
+          { yRatio: 0.62, freq: 0.012, speed: -0.03, amp: 18, color: 'rgba(239, 68, 68, 0.30)', phase: 2 },
+          { yRatio: 0.82, freq: 0.006, speed: 0.02, amp: 14, color: 'rgba(226, 232, 240, 0.25)', phase: 4 }
+        ];
+
+        // Floating Chrome Geometric Shards (Rectangular / Diamond Polygons - NO circles)
+        const shardCount = isMobile ? 15 : 30;
+        const shardColors = ['#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'];
+        for (let i = 0; i < shardCount; i++) {
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            radius: 3 + Math.random() * 8,
-            vx: (Math.random() - 0.5) * 0.6,
-            vy: (Math.random() - 0.5) * 0.6,
-            deformPhase: Math.random() * Math.PI * 2,
-            deformSpeed: 0.03 + Math.random() * 0.03
+            w: 4 + Math.random() * 8,
+            h: 8 + Math.random() * 16,
+            vx: (Math.random() - 0.5) * 0.7,
+            vy: (Math.random() - 0.5) * 0.7,
+            rot: Math.random() * Math.PI,
+            rotSpeed: (Math.random() - 0.5) * 0.03,
+            color: shardColors[i % shardColors.length],
+            opacity: 0.25 + Math.random() * 0.5
           });
         }
       } else if (theme === 'arctic') {
@@ -258,32 +318,52 @@ export default function ThemeBackground() {
           });
         }
       } else if (theme === 'cyber') {
-        // 👑 7. Imperial Gold Luxe (NEW: Liquid Gold Waterfall & Celestial Solar Starburst Crown)
-        // Multi-layered Fluid Gold Waves
+        // 👑 7. Imperial Gold Luxe (Cascading 24K Gold Silk Streams, 3D Rotating Gold Ingots & Diamond Stars - 100% NON-CIRCULAR)
+        // Multi-layered Fluid 24K Gold & Emerald Silk Ribbons
         waves = [
-          { yRatio: 0.28, amp: 35, freq: 0.0018, speed: 0.006, phase: 0, color: 'rgba(255, 199, 0, 0.07)' },
-          { yRatio: 0.55, amp: 48, freq: 0.0014, speed: -0.005, phase: 1.8, color: 'rgba(224, 122, 0, 0.06)' },
-          { yRatio: 0.85, amp: 38, freq: 0.0022, speed: 0.007, phase: 3.4, color: 'rgba(0, 212, 170, 0.04)' }
+          { yRatio: 0.25, amp: 40, freq: 0.0016, speed: 0.005, phase: 0, color: 'rgba(255, 199, 0, 0.08)' }, // 24K Liquid Gold
+          { yRatio: 0.48, amp: 55, freq: 0.0013, speed: -0.004, phase: 1.6, color: 'rgba(224, 122, 0, 0.07)' }, // Royal Amber
+          { yRatio: 0.72, amp: 45, freq: 0.0020, speed: 0.006, phase: 3.2, color: 'rgba(0, 212, 170, 0.05)' }, // Emerald Glow
+          { yRatio: 0.90, amp: 35, freq: 0.0024, speed: -0.005, phase: 4.5, color: 'rgba(255, 240, 170, 0.06)' } // Champagne Diamond
         ];
 
-        // Central Celestial Solar Starburst Crown
-        customEntities = [
-          { size: 45, rot: 0, speed: 0.004, points: 8, color: 'rgba(255, 199, 0, 0.35)' },
-          { size: 75, rot: Math.PI / 8, speed: -0.003, points: 16, color: 'rgba(255, 240, 170, 0.22)' }
-        ];
+        // 3D Floating Rotating Gold Ingots / Rhomboid Diamond Gems
+        const gemCount = isMobile ? 3 : 5;
+        customEntities = [];
+        const gemColors = ['#ffc700', '#e07a00', '#00d4aa', '#fff0aa'];
+        for (let i = 0; i < gemCount; i++) {
+          customEntities.push({
+            x: (width * (i + 0.5)) / gemCount + (Math.random() - 0.5) * 40,
+            y: height * 0.25 + Math.random() * (height * 0.5),
+            w: 16 + Math.random() * 18,
+            h: 24 + Math.random() * 24,
+            d: 14 + Math.random() * 16,
+            rotX: Math.random() * Math.PI,
+            rotY: Math.random() * Math.PI,
+            rotZ: Math.random() * Math.PI,
+            speedX: 0.005 + Math.random() * 0.006,
+            speedY: 0.004 + Math.random() * 0.007,
+            speedZ: 0.003 + Math.random() * 0.005,
+            floatPhase: Math.random() * Math.PI * 2,
+            color: gemColors[i % gemColors.length]
+          });
+        }
 
-        // Ascending 24K Gold Dust & Champagne Bubbles
-        const dustCount = isMobile ? 25 : 55;
-        for (let i = 0; i < dustCount; i++) {
+        // Ascending 4-Point Diamond Sparkle Stars (NO circles!)
+        const starCount = isMobile ? 25 : 55;
+        for (let i = 0; i < starCount; i++) {
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            size: 1.2 + Math.random() * 3.2,
+            size: 2.2 + Math.random() * 4.5,
             speedY: -(0.3 + Math.random() * 0.8),
             speedX: (Math.random() - 0.5) * 0.4,
+            rot: Math.random() * Math.PI,
+            rotSpeed: 0.02 + Math.random() * 0.03,
             pulse: Math.random() * Math.PI * 2,
-            pulseSpeed: 0.02 + Math.random() * 0.03,
-            opacity: 0.25 + Math.random() * 0.55
+            pulseSpeed: 0.03 + Math.random() * 0.03,
+            color: Math.random() > 0.6 ? '#ffc700' : Math.random() > 0.3 ? '#fff0aa' : '#00d4aa',
+            opacity: 0.3 + Math.random() * 0.6
           });
         }
       } else if (theme === 'amethyst') {
@@ -337,114 +417,109 @@ export default function ThemeBackground() {
       ctx.clearRect(0, 0, width, height);
 
       if (activeTheme === 'ocean') {
-        // 🌌 1. Cosmic Stargate
-        const centerX = width * 0.5;
-        const centerY = height * 0.5;
-
-        // Atmospheric Multi-Color Nebula Light Plumes
-        const nebPhase = frame * 0.008;
-        const nebGrad1 = ctx.createRadialGradient(
-          centerX + Math.cos(nebPhase) * 60,
-          centerY + Math.sin(nebPhase) * 40,
-          20,
-          centerX,
-          centerY,
-          Math.min(width, height) * 0.45
-        );
-        nebGrad1.addColorStop(0, 'rgba(168, 85, 247, 0.16)');
-        nebGrad1.addColorStop(0.5, 'rgba(0, 245, 212, 0.08)');
-        nebGrad1.addColorStop(0.8, 'rgba(255, 89, 100, 0.04)');
-        nebGrad1.addColorStop(1, 'transparent');
-        ctx.fillStyle = nebGrad1;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, Math.min(width, height) * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw Sacred Geometry Mandala Polygons
-        customEntities.forEach((mandala) => {
-          mandala.rot += mandala.speed;
-          ctx.save();
-          ctx.translate(centerX, centerY);
-          ctx.rotate(mandala.rot);
-
+        // 🌌 1. Cosmic Stargate (Flowing Auroral Curtains, Hyperspace Warp Streaks & Diamond Constellations - 100% NON-CIRCULAR)
+        // 1. Flowing Multi-Layered Auroral Plasma Curtains
+        waves.forEach((w) => {
+          w.phase += w.speed;
           ctx.beginPath();
-          for (let i = 0; i < mandala.points; i++) {
-            const angle = ((Math.PI * 2) / mandala.points) * i;
-            const px = Math.cos(angle) * mandala.r;
-            const py = Math.sin(angle) * (mandala.r * 0.65);
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
+          ctx.moveTo(0, height);
+          for (let x = 0; x <= width; x += 20) {
+            const y = height * w.yRatio + Math.sin(x * w.freq + w.phase) * w.amp + Math.cos(x * w.freq * 0.6 - w.phase * 0.8) * (w.amp * 0.5);
+            ctx.lineTo(x, y);
           }
+          ctx.lineTo(width, height);
           ctx.closePath();
-          ctx.strokeStyle = mandala.color;
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-
-          // Vertex Dots
-          for (let i = 0; i < mandala.points; i++) {
-            const angle = ((Math.PI * 2) / mandala.points) * i;
-            const px = Math.cos(angle) * mandala.r;
-            const py = Math.sin(angle) * (mandala.r * 0.65);
-            ctx.beginPath();
-            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = mandala.color;
-            ctx.fill();
-          }
-          ctx.restore();
-        });
-
-        // Spiraling Vortex Particles
-        particles.forEach((p) => {
-          p.angle += p.speed;
-          p.zPhase += p.zSpeed;
-          const spiralR = p.radius + Math.sin(p.zPhase) * 16;
-          const x = centerX + Math.cos(p.angle) * spiralR;
-          const y = centerY + Math.sin(p.angle) * (spiralR * 0.65);
-
-          ctx.beginPath();
-          ctx.arc(x, y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = p.opacity;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = p.size * 3;
+          ctx.fillStyle = w.color;
           ctx.fill();
-          ctx.globalAlpha = 1;
         });
-        ctx.shadowBlur = 0;
 
-        // Hyperdrive Shooting Comets
-        if (Math.random() < 0.018 && comets.length < 3) {
-          comets.push({
-            x: Math.random() * width * 0.8,
-            y: Math.random() * height * 0.4,
-            speed: 12 + Math.random() * 8,
-            angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3,
-            length: 120 + Math.random() * 80,
-            opacity: 1
-          });
-        }
-        comets.forEach((c, idx) => {
-          c.x += Math.cos(c.angle) * c.speed;
-          c.y += Math.sin(c.angle) * c.speed;
-          c.opacity -= 0.025;
-          if (c.opacity <= 0) {
-            comets.splice(idx, 1);
-            return;
+        // 2. Linear Hyperspace Warp Streaks (No circles, pure linear speed beams)
+        particles.forEach((p) => {
+          p.x += Math.cos(p.angle) * p.speed;
+          p.y += Math.sin(p.angle) * p.speed;
+
+          if (p.x < -100 || p.y < -100 || p.x > width + 100 || p.y > height + 100) {
+            p.x = width + Math.random() * 100;
+            p.y = Math.random() * height * 0.9;
           }
-          const tailX = c.x - Math.cos(c.angle) * c.length;
-          const tailY = c.y - Math.sin(c.angle) * c.length;
-          const cGrad = ctx.createLinearGradient(c.x, c.y, tailX, tailY);
-          cGrad.addColorStop(0, `rgba(255, 255, 255, ${c.opacity})`);
-          cGrad.addColorStop(0.3, `rgba(0, 245, 212, ${c.opacity * 0.8})`);
-          cGrad.addColorStop(0.7, `rgba(168, 85, 247, ${c.opacity * 0.5})`);
-          cGrad.addColorStop(1, 'transparent');
+
+          const tailX = p.x - Math.cos(p.angle) * p.len;
+          const tailY = p.y - Math.sin(p.angle) * p.len;
+
+          const streakGrad = ctx.createLinearGradient(p.x, p.y, tailX, tailY);
+          streakGrad.addColorStop(0, p.color);
+          streakGrad.addColorStop(1, 'transparent');
+
           ctx.beginPath();
-          ctx.moveTo(c.x, c.y);
+          ctx.moveTo(p.x, p.y);
           ctx.lineTo(tailX, tailY);
-          ctx.strokeStyle = cGrad;
-          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = streakGrad;
+          ctx.lineWidth = p.width;
+          ctx.globalAlpha = p.opacity;
           ctx.stroke();
+          ctx.globalAlpha = 1;
+
+          // Diamond head glint (4-pointed star, NOT a circle)
+          const sz = p.width * 1.8;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y - sz);
+          ctx.lineTo(p.x + sz * 0.5, p.y);
+          ctx.lineTo(p.x, p.y + sz);
+          ctx.lineTo(p.x - sz * 0.5, p.y);
+          ctx.closePath();
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
         });
+
+        // 3. Drifting Diamond Constellation Laser Network (NO circles!)
+        for (let i = 0; i < customEntities.length; i++) {
+          const n1 = customEntities[i];
+          n1.x += n1.vx;
+          n1.y += n1.vy;
+          n1.pulse += n1.pulseSpeed;
+
+          if (n1.x < 0 || n1.x > width) n1.vx *= -1;
+          if (n1.y < 0 || n1.y > height) n1.vy *= -1;
+
+          // Constellation Connecting Laser Lines
+          for (let j = i + 1; j < customEntities.length; j++) {
+            const n2 = customEntities[j];
+            const dx = n2.x - n1.x;
+            const dy = n2.y - n1.y;
+            const dist = Math.hypot(dx, dy);
+            const maxDist = width < 768 ? 120 : 180;
+            if (dist < maxDist) {
+              const lineAlpha = (1 - dist / maxDist) * 0.28;
+              ctx.beginPath();
+              ctx.moveTo(n1.x, n1.y);
+              ctx.lineTo(n2.x, n2.y);
+              ctx.strokeStyle = `rgba(0, 245, 212, ${lineAlpha})`;
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+          }
+
+          // 4-Point Diamond Star Glint Node
+          const pulseSz = n1.size * (0.8 + 0.3 * Math.sin(n1.pulse));
+          ctx.beginPath();
+          ctx.moveTo(n1.x, n1.y - pulseSz * 1.5);
+          ctx.lineTo(n1.x + pulseSz * 0.45, n1.y);
+          ctx.lineTo(n1.x, n1.y + pulseSz * 1.5);
+          ctx.lineTo(n1.x - pulseSz * 0.45, n1.y);
+          ctx.closePath();
+          ctx.fillStyle = n1.color;
+          ctx.fill();
+
+          // Horizontal star cross
+          ctx.beginPath();
+          ctx.moveTo(n1.x - pulseSz * 1.5, n1.y);
+          ctx.lineTo(n1.x, n1.y - pulseSz * 0.45);
+          ctx.lineTo(n1.x + pulseSz * 1.5, n1.y);
+          ctx.lineTo(n1.x, n1.y + pulseSz * 0.45);
+          ctx.closePath();
+          ctx.fillStyle = n1.color;
+          ctx.fill();
+        }
       } else if (activeTheme === 'inferno') {
         // 🌋 2. Inferno Solaris (Solar Plasma Prominences)
         customEntities.forEach((arc) => {
@@ -537,49 +612,115 @@ export default function ThemeBackground() {
         });
         ctx.shadowBlur = 0;
       } else if (activeTheme === 'monochrome') {
-        // 🌑 4. Monolith Chrono (Quantum Gyroscope & Liquid Mercury)
+        // 🌑 4. Monolith Chrono (3D Tesseract Monoliths, Quantum Oscilloscope Beams & Geometric Shards - 100% NON-CIRCULAR)
         const centerX = width * 0.5;
-        const centerY = height * 0.5;
+        const centerY = height * 0.48;
 
-        // Crosshairs
-        ctx.strokeStyle = 'rgba(226, 232, 240, 0.08)';
+        // Precision Cyber Crosshair Grid
+        ctx.strokeStyle = 'rgba(226, 232, 240, 0.07)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(centerX, 0);
-        ctx.lineTo(centerX, height);
-        ctx.moveTo(0, centerY);
-        ctx.lineTo(width, centerY);
+        ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height);
+        ctx.moveTo(0, centerY); ctx.lineTo(width, centerY);
         ctx.stroke();
 
-        customEntities.forEach((ring) => {
-          ring.rot += ring.speed;
-          ctx.save();
-          ctx.translate(centerX, centerY);
-          ctx.rotate(ring.rot);
+        // 1. Quantum Oscilloscope Frequency Waveform Beams
+        waves.forEach((w) => {
+          w.phase += w.speed;
           ctx.beginPath();
-          ctx.ellipse(0, 0, ring.rx, ring.ry, 0, 0, Math.PI * 2);
-          ctx.strokeStyle = ring.color;
-          ctx.lineWidth = 1.5;
+          for (let x = 0; x <= width; x += 6) {
+            // Step-quantized digital quantum wave
+            const rawSin = Math.sin(x * w.freq + w.phase);
+            const stepped = Math.floor(rawSin * 3) / 3;
+            const y = height * w.yRatio + stepped * w.amp;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = w.color;
+          ctx.lineWidth = 1.3;
           ctx.stroke();
-          ctx.restore();
         });
 
+        // 2. 3D Rotating Monolith Tesseract Hypercubes
+        customEntities.forEach((cube) => {
+          cube.rotX += cube.speedX;
+          cube.rotY += cube.speedY;
+          cube.rotZ += cube.speedZ;
+
+          const rawVertices = [
+            [-cube.w, -cube.h, -cube.d],
+            [cube.w, -cube.h, -cube.d],
+            [cube.w, cube.h, -cube.d],
+            [-cube.w, cube.h, -cube.d],
+            [-cube.w, -cube.h, cube.d],
+            [cube.w, -cube.h, cube.d],
+            [cube.w, cube.h, cube.d],
+            [-cube.w, cube.h, cube.d]
+          ];
+
+          const proj = rawVertices.map(([vx, vy, vz]) => {
+            let y1 = vy * Math.cos(cube.rotX) - vz * Math.sin(cube.rotX);
+            let z1 = vy * Math.sin(cube.rotX) + vz * Math.cos(cube.rotX);
+            let x2 = vx * Math.cos(cube.rotY) + z1 * Math.sin(cube.rotY);
+            let z2 = -vx * Math.sin(cube.rotY) + z1 * Math.cos(cube.rotY);
+            let x3 = x2 * Math.cos(cube.rotZ) - y1 * Math.sin(cube.rotZ);
+            let y3 = x2 * Math.sin(cube.rotZ) + y1 * Math.cos(cube.rotZ);
+            return [centerX + x3, centerY + y3];
+          });
+
+          const edges = [
+            [0, 1], [1, 2], [2, 3], [3, 0],
+            [4, 5], [5, 6], [6, 7], [7, 4],
+            [0, 4], [1, 5], [2, 6], [3, 7]
+          ];
+
+          ctx.strokeStyle = cube.color;
+          ctx.lineWidth = cube.lineWidth;
+          ctx.globalAlpha = cube.alpha;
+          edges.forEach(([i1, i2]) => {
+            ctx.beginPath();
+            ctx.moveTo(proj[i1][0], proj[i1][1]);
+            ctx.lineTo(proj[i2][0], proj[i2][1]);
+            ctx.stroke();
+          });
+
+          // Monolith Diamond Vertices (No circles!)
+          proj.forEach(([px, py]) => {
+            ctx.beginPath();
+            ctx.moveTo(px, py - 3);
+            ctx.lineTo(px + 3, py);
+            ctx.lineTo(px, py + 3);
+            ctx.lineTo(px - 3, py);
+            ctx.closePath();
+            ctx.fillStyle = cube.color;
+            ctx.fill();
+          });
+          ctx.globalAlpha = 1;
+        });
+
+        // 3. Floating Chrome Geometric Diamond/Rectangular Shards (NO circles)
         particles.forEach((p) => {
           p.x += p.vx;
           p.y += p.vy;
-          p.deformPhase += p.deformSpeed;
-          if (p.x < 0 || p.x > width) p.vx *= -1;
-          if (p.y < 0 || p.y > height) p.vy *= -1;
+          p.rot += p.rotSpeed;
 
-          const deformRadius = p.radius * (1 + 0.25 * Math.sin(p.deformPhase));
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, deformRadius, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(226, 232, 240, 0.45)';
-          ctx.shadowColor = '#ffffff';
-          ctx.shadowBlur = 6;
-          ctx.fill();
+          if (p.x < -20) p.x = width + 20;
+          if (p.x > width + 20) p.x = -20;
+          if (p.y < -20) p.y = height + 20;
+          if (p.y > height + 20) p.y = -20;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.opacity;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 0.8;
+          ctx.strokeRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+          ctx.globalAlpha = 1;
         });
-        ctx.shadowBlur = 0;
       } else if (activeTheme === 'arctic') {
         // 🧊 5. Glacial Prism (Refined Subtle Crystals with Softer Glow)
         customEntities.forEach((crystal) => {
@@ -732,8 +873,8 @@ export default function ThemeBackground() {
           ctx.shadowBlur = 0;
         });
       } else if (activeTheme === 'cyber') {
-        // 👑 7. Imperial Gold Luxe (NEW: Liquid Gold Waves & Celestial Solar Crown)
-        // Multi-layered Fluid Gold Waves
+        // 👑 7. Imperial Gold Luxe (Cascading 24K Gold Silk Streams, 3D Gold Bars/Diamonds & Diamond Sparkles - 100% NON-CIRCULAR)
+        // 1. Cascading 24K Gold & Emerald Silk Streams
         waves.forEach((w) => {
           w.phase += w.speed;
           ctx.beginPath();
@@ -748,62 +889,120 @@ export default function ThemeBackground() {
           ctx.fill();
         });
 
-        // Celestial Solar Starburst Crown in upper center
-        const sunCenterX = width * 0.5;
-        const sunCenterY = height * 0.32;
-        customEntities.forEach((crown) => {
-          crown.rot += crown.speed;
-          ctx.save();
-          ctx.translate(sunCenterX, sunCenterY);
-          ctx.rotate(crown.rot);
+        // 2. Diagonal Celestial God-Ray Sheens
+        const rayGrad = ctx.createLinearGradient(0, 0, width * 0.8, height);
+        rayGrad.addColorStop(0, 'rgba(255, 199, 0, 0.06)');
+        rayGrad.addColorStop(0.5, 'rgba(0, 212, 170, 0.03)');
+        rayGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = rayGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(width * 0.4, 0);
+        ctx.lineTo(width, height * 0.8);
+        ctx.lineTo(width * 0.6, height);
+        ctx.closePath();
+        ctx.fill();
 
-          ctx.beginPath();
-          for (let i = 0; i < crown.points; i++) {
-            const angle = ((Math.PI * 2) / crown.points) * i;
-            const px = Math.cos(angle) * crown.size;
-            const py = Math.sin(angle) * crown.size;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.strokeStyle = crown.color;
+        // 3. 3D Rotating Floating Gold Bars / Emerald Diamond Polyhedra (NO circles!)
+        customEntities.forEach((gem) => {
+          gem.rotX += gem.speedX;
+          gem.rotY += gem.speedY;
+          gem.rotZ += gem.speedZ;
+          gem.floatPhase += 0.015;
+
+          const floatY = gem.y + Math.sin(gem.floatPhase) * 14;
+
+          // 3D Diamond Ingot Vertices: Top apex, 4-way equatorial ring, bottom apex
+          const rawVertices = [
+            [0, -gem.h, 0],
+            [gem.w, 0, 0],
+            [0, 0, gem.d],
+            [-gem.w, 0, 0],
+            [0, 0, -gem.d],
+            [0, gem.h, 0]
+          ];
+
+          const proj = rawVertices.map(([vx, vy, vz]) => {
+            let y1 = vy * Math.cos(gem.rotX) - vz * Math.sin(gem.rotX);
+            let z1 = vy * Math.sin(gem.rotX) + vz * Math.cos(gem.rotX);
+            let x2 = vx * Math.cos(gem.rotY) + z1 * Math.sin(gem.rotY);
+            let z2 = -vx * Math.sin(gem.rotY) + z1 * Math.cos(gem.rotY);
+            let x3 = x2 * Math.cos(gem.rotZ) - y1 * Math.sin(gem.rotZ);
+            let y3 = x2 * Math.sin(gem.rotZ) + y1 * Math.cos(gem.rotZ);
+            return [gem.x + x3, floatY + y3];
+          });
+
+          const edges = [
+            [0, 1], [0, 2], [0, 3], [0, 4],
+            [5, 1], [5, 2], [5, 3], [5, 4],
+            [1, 2], [2, 3], [3, 4], [4, 1]
+          ];
+
+          // Gold Wireframe Bevels
+          ctx.strokeStyle = `${gem.color}88`;
           ctx.lineWidth = 1.3;
-          ctx.stroke();
+          edges.forEach(([i1, i2]) => {
+            ctx.beginPath();
+            ctx.moveTo(proj[i1][0], proj[i1][1]);
+            ctx.lineTo(proj[i2][0], proj[i2][1]);
+            ctx.stroke();
+          });
 
-          // Star connection rays
-          ctx.beginPath();
-          for (let i = 0; i < crown.points; i++) {
-            const angle1 = ((Math.PI * 2) / crown.points) * i;
-            const angle2 = ((Math.PI * 2) / crown.points) * ((i + crown.points / 2) % crown.points);
-            ctx.moveTo(Math.cos(angle1) * crown.size, Math.sin(angle1) * crown.size);
-            ctx.lineTo(Math.cos(angle2) * crown.size, Math.sin(angle2) * crown.size);
-          }
-          ctx.strokeStyle = crown.color.replace('0.', '0.0');
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
-          ctx.restore();
+          // Sparkling Diamond Corner Vertices (4-point diamond star, NOT circle)
+          proj.forEach(([px, py]) => {
+            ctx.beginPath();
+            ctx.moveTo(px, py - 2.5);
+            ctx.lineTo(px + 1.5, py);
+            ctx.lineTo(px, py + 2.5);
+            ctx.lineTo(px - 1.5, py);
+            ctx.closePath();
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+          });
         });
 
-        // Ascending Gold Dust & Champagne Motes
+        // 4. Rising 4-Point Diamond Sparkle Stars (Pure non-circular diamond star geometry)
         particles.forEach((p) => {
           p.y += p.speedY;
           p.x += p.speedX;
+          p.rot += p.rotSpeed;
           p.pulse += p.pulseSpeed;
 
-          if (p.y < -10) {
-            p.y = height + 10;
+          if (p.y < -15) {
+            p.y = height + 15;
             p.x = Math.random() * width;
           }
 
+          const curSize = p.size * (0.8 + 0.35 * Math.sin(p.pulse));
           const alpha = p.opacity * (0.6 + 0.4 * Math.sin(p.pulse));
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.globalAlpha = alpha;
+
+          // 4-Point Diamond Star Polygon
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 199, 0, ${alpha})`;
-          ctx.shadowColor = '#ffc700';
-          ctx.shadowBlur = p.size * 2;
+          ctx.moveTo(0, -curSize);
+          ctx.lineTo(curSize * 0.35, 0);
+          ctx.lineTo(0, curSize);
+          ctx.lineTo(-curSize * 0.35, 0);
+          ctx.closePath();
+          ctx.fillStyle = p.color;
           ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(-curSize, 0);
+          ctx.lineTo(0, -curSize * 0.35);
+          ctx.lineTo(curSize, 0);
+          ctx.lineTo(0, curSize * 0.35);
+          ctx.closePath();
+          ctx.fillStyle = p.color;
+          ctx.fill();
+
+          ctx.restore();
+          ctx.globalAlpha = 1;
         });
-        ctx.shadowBlur = 0;
       } else if (activeTheme === 'amethyst') {
         // 🌿 8. Bio-Luminescent Pandora (NEW: Swimming Jellyfish Fauna & Bioluminescent River Waves)
         // Fluid Bioluminescent River Waves
