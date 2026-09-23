@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Search, Music, Heart, User, Users, LogOut, X, Zap } from 'lucide-react';
+import { Tv, Search, Music, Heart, User, Users, LogOut, X, Zap, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -118,43 +118,77 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 pr-3 rounded-full border border-white/[0.08] hover:border-accentPurple/40 transition-all duration-300 bg-white/[0.04] hover:bg-white/[0.07]"
+                  className={`flex items-center gap-2 p-1 pr-2.5 sm:pr-3 rounded-full border transition-all duration-300 ${
+                    dropdownOpen
+                      ? 'border-accentPurple/80 bg-accentPurple/15 shadow-[0_0_15px_rgba(149,100,255,0.35)] ring-1 ring-accentPurple/50'
+                      : 'border-white/10 hover:border-accentPurple/50 bg-darkCard/80 hover:bg-darkCard'
+                  }`}
+                  aria-expanded={dropdownOpen}
+                  aria-label="User profile menu"
                 >
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-accentPurple to-accentCyan blur-sm opacity-0 hover:opacity-60 transition-opacity" />
                     <img
                       src={user.avatar_url}
                       alt={user.username}
-                      className="relative w-7 h-7 rounded-full object-cover bg-darkCard ring-1 ring-white/10"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover bg-darkBg ring-1 ring-white/20 shadow-md"
                     />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-darkBg" />
                   </div>
-                  <span className="text-sm font-medium hidden lg:inline text-gray-200">{user.username}</span>
+                  <span className="text-xs sm:text-sm font-bold text-white max-w-[90px] sm:max-w-[120px] truncate">
+                    {user.username}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${
+                      dropdownOpen ? 'rotate-180 text-accentPurple' : ''
+                    }`}
+                  />
                 </button>
 
                 {dropdownOpen && (
                   <>
-                    <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-52 glass-panel rounded-2xl p-2 z-20 animate-scale-in shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/[0.08]">
-                      <div className="px-3 py-2 mb-1">
-                        <p className="text-xs text-gray-500">Logged in as</p>
-                        <p className="text-sm font-bold text-white truncate">{user.username}</p>
+                    {/* Click-away backdrop */}
+                    <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+
+                    {/* Prominent High-Contrast Dropdown Menu */}
+                    <div className="absolute right-0 top-full mt-2.5 w-64 rounded-2xl p-2.5 z-50 animate-scale-in shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_25px_rgba(0,0,0,0.8)] border border-white/20 bg-[#0e1222] bg-opacity-98 backdrop-blur-2xl ring-1 ring-white/10">
+                      {/* User Info Header Card */}
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-2">
+                        <img
+                          src={user.avatar_url}
+                          alt={user.username}
+                          className="w-10 h-10 rounded-full object-cover bg-darkBg border border-accentPurple/40 shadow-inner"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] uppercase font-bold tracking-wider text-accentCyan">Signed in as</p>
+                          <p className="text-sm font-extrabold text-white truncate">{user.username}</p>
+                        </div>
                       </div>
-                      <div className="h-px bg-white/[0.06] mx-1 mb-1" />
-                      <Link
-                        to="/profile"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-300 hover:text-white hover:bg-white/[0.06] transition"
-                      >
-                        <User className="w-4 h-4 text-accentPurple" />
-                        My Profile
-                      </Link>
-                      <div className="h-px bg-white/[0.06] mx-1 my-1" />
+
+                      {/* Navigation Links */}
+                      <div className="space-y-1">
+                        <Link
+                          to="/profile"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-accentPurple/15 text-accentPurple flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <span>My Profile &amp; Themes</span>
+                        </Link>
+                      </div>
+
+                      <div className="h-px bg-white/10 my-2 mx-1" />
+
+                      {/* Logout Button */}
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition text-left"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-red-200 hover:bg-red-500/20 transition text-left group"
                       >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
+                        <div className="w-8 h-8 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <LogOut className="w-4 h-4" />
+                        </div>
+                        <span>Sign Out</span>
                       </button>
                     </div>
                   </>
