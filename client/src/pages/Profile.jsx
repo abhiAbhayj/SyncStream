@@ -78,15 +78,15 @@ const THEME_OPTIONS = [
   {
     id: 'cyber',
     name: '👑 Imperial Gold Luxe',
-    desc: 'Royal bronze noir, cascading liquid gold silk ribbons & 8-point diamond stars',
-    animation: 'Liquid gold ribbons & diamond starbursts',
+    desc: 'Royal bronze noir, celestial solar crown, liquid gold waves & 24K diamond shimmer',
+    animation: 'Solar starburst crown & liquid gold waves',
     swatch: ['#0e0b06', '#ffc700', '#e07a00', '#fff0aa', '#00d4aa'],
   },
   {
     id: 'amethyst',
     name: '🌿 Bio-Luminescent Pandora',
-    desc: 'Deep alien night, sacred floating spores (Atokirina) & bioluminescent tendrils',
-    animation: 'Sacred floating spores & bio tendrils',
+    desc: 'Deep alien night, swimming bioluminescent jellyfish fauna & river of light waves',
+    animation: 'Swimming jellyfish fauna & bioluminescent river',
     swatch: ['#020b08', '#00ff88', '#ff2a85', '#00e5ff', '#b4ff39'],
   },
 ];

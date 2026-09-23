@@ -2,15 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
- * 8 Brand-New Ultra-Creative Mathematical Simulation Engines:
+ * 8 Custom Mathematical Simulation Engines:
  * 1. ocean     — 🌌 Cosmic Stargate: Multi-Chromatic Nebula Vortex, Sacred Celestial Mandala & Hyperdrive Comets
  * 2. inferno   — 🌋 Inferno Solaris: Solar Plasma Prominence Arcs & Coronal Mass Ejection Sparks
  * 3. matrix    — ⚡ Cyberpunk Holo-Matrix: 3D Hexagonal Energy Shield & Laser Conduit Network
  * 4. monochrome— 🌑 Monolith Chrono: Quantum Gyroscope Rings & Floating Liquid Mercury Drops
- * 5. arctic    — 🧊 Glacial Prism: 3D Projected Rotating Quartz Polyhedra & Refracting Spectral Beams
- * 6. tokyo     — 🪩 Retro Synthwave Highway: Infinite 3D Outrun Road, Megacity Skyline & Striped Neon Sun
- * 7. cyber     — 👑 Imperial Gold Luxe: 3D Golden Armillary Astrolabe, Liquid Molten Gold & 24K Leaf Flakes
- * 8. amethyst  — 🌿 Bio-Luminescent Pandora: Sacred Spores (Atokirina), Pulsing Mycelium Vines & Bio-Pollen
+ * 5. arctic    — 🧊 Glacial Prism: 3D Projected Quartz Polyhedra & Soft Prismatic Refraction (Subtle Soft Glow)
+ * 6. tokyo     — 🪩 Retro Synthwave Highway: Infinite Outrun 3D Wireframe Road & Neon Skyline (Balanced Dark Mode)
+ * 7. cyber     — 👑 Imperial Gold Luxe: Liquid Gold Cascading Waterfall, Celestial Solar Crown & 24K Diamond Shimmer
+ * 8. amethyst  — 🌿 Bio-Luminescent Pandora: Ethereal Swimming Jellyfish Flora & Bioluminescent River Waves
  */
 export default function ThemeBackground() {
   const canvasRef = useRef(null);
@@ -89,7 +89,7 @@ export default function ThemeBackground() {
 
       if (theme === 'ocean') {
         // 🌌 1. Cosmic Stargate (Multi-Chromatic Nebula Vortex, Sacred Mandala & Hyperdrive Comets)
-        const spiralCount = isMobile ? 90 : 180;
+        const spiralCount = isMobile ? 85 : 160;
         const colors = ['#00f5d4', '#a855f7', '#ff5964', '#ffd166', '#06d6a0', '#ffffff'];
         for (let i = 0; i < spiralCount; i++) {
           particles.push({
@@ -104,7 +104,6 @@ export default function ThemeBackground() {
           });
         }
 
-        // Concentric Sacred Geometry Mandala Rings
         const maxR = Math.min(width, height) * 0.42;
         customEntities = [
           { r: maxR * 0.35, rot: 0, speed: 0.006, points: 6, color: 'rgba(0, 245, 212, 0.28)' },
@@ -198,133 +197,133 @@ export default function ThemeBackground() {
           });
         }
       } else if (theme === 'arctic') {
-        // 🧊 5. Glacial Prism (3D Projected Rotating Quartz Crystals & Spectral Refraction Beams)
-        const crystalCount = isMobile ? 5 : 9;
+        // 🧊 5. Glacial Prism (Soft Subtle 3D Quartz Crystals & Delicate Refraction Rays)
+        const crystalCount = isMobile ? 4 : 7;
         customEntities = [];
         for (let i = 0; i < crystalCount; i++) {
           customEntities.push({
             x: (width * (i + 0.5)) / crystalCount + (Math.random() - 0.5) * 40,
             y: height * 0.25 + Math.random() * (height * 0.5),
-            size: 22 + Math.random() * 28,
+            size: 18 + Math.random() * 24,
             rotX: Math.random() * Math.PI,
             rotY: Math.random() * Math.PI,
             rotZ: Math.random() * Math.PI,
-            speedX: 0.008 + Math.random() * 0.012,
-            speedY: 0.006 + Math.random() * 0.010,
-            speedZ: 0.004 + Math.random() * 0.008,
+            speedX: 0.006 + Math.random() * 0.008,
+            speedY: 0.005 + Math.random() * 0.007,
+            speedZ: 0.003 + Math.random() * 0.005,
             floatPhase: Math.random() * Math.PI * 2,
             color: i % 3 === 0 ? '#38bdf8' : i % 3 === 1 ? '#ec4899' : '#34d399'
           });
         }
 
-        // Shimmering Crystalline Blizzard Dust
-        const dustCount = isMobile ? 40 : 80;
+        // Shimmering Soft Blizzard Dust
+        const dustCount = isMobile ? 30 : 60;
         for (let i = 0; i < dustCount; i++) {
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            size: 1 + Math.random() * 2.8,
-            speedY: 0.4 + Math.random() * 1.2,
-            speedX: (Math.random() - 0.5) * 0.5,
-            opacity: 0.25 + Math.random() * 0.65,
+            size: 1 + Math.random() * 2.2,
+            speedY: 0.3 + Math.random() * 0.9,
+            speedX: (Math.random() - 0.5) * 0.4,
+            opacity: 0.15 + Math.random() * 0.45,
             color: Math.random() > 0.6 ? '#38bdf8' : Math.random() > 0.3 ? '#ec4899' : '#34d399'
           });
         }
       } else if (theme === 'tokyo') {
-        // 🪩 6. Retro Synthwave Highway (Infinite 3D Outrun Road, Skyline & Striped Sun)
-        // Megacity Skyline Buildings
-        const buildingCount = isMobile ? 16 : 32;
-        const horizonY = height * 0.52;
+        // 🪩 6. Retro Synthwave Highway (Moody Outrun 3D Road & Megacity Skyline)
+        const buildingCount = isMobile ? 14 : 28;
+        const horizonY = height * 0.54;
         const bWidth = width / buildingCount;
         customEntities = [];
         for (let i = 0; i < buildingCount; i++) {
-          const bHeight = 25 + Math.random() * 85;
+          const bHeight = 20 + Math.random() * 75;
           customEntities.push({
             x: i * bWidth,
             w: bWidth + 2,
             h: bHeight,
-            hasAntenna: Math.random() > 0.65,
-            windowLit: Math.random() > 0.35,
-            color: i % 2 === 0 ? 'rgba(36, 8, 52, 0.95)' : 'rgba(58, 14, 82, 0.95)'
+            hasAntenna: Math.random() > 0.7,
+            color: i % 2 === 0 ? 'rgba(28, 6, 42, 0.95)' : 'rgba(48, 10, 68, 0.95)'
           });
         }
 
-        // Speeding Laser Cars on Highway
+        // Speeding Laser Cars
         particles = [];
-        const carCount = isMobile ? 8 : 16;
+        const carCount = isMobile ? 6 : 12;
         for (let i = 0; i < carCount; i++) {
           particles.push({
-            lane: (Math.random() - 0.5) * 1.6, // -0.8 to +0.8
+            lane: (Math.random() - 0.5) * 1.5,
             dist: Math.random(),
-            speed: 0.008 + Math.random() * 0.015,
+            speed: 0.006 + Math.random() * 0.012,
             color: Math.random() > 0.5 ? '#00f5ff' : '#ff455b'
           });
         }
       } else if (theme === 'cyber') {
-        // 👑 7. Imperial Gold Luxe (3D Golden Armillary Astrolabe & Liquid Molten Gold)
-        const centerX = width * 0.5;
-        const centerY = height * 0.5;
-        const maxRadius = Math.min(width, height) * 0.44;
-
-        // 3D Armillary Spheres / Astrolabe Rings
-        customEntities = [
-          { rx: maxRadius * 0.88, ry: maxRadius * 0.42, tilt: 0.4, rot: 0, speed: 0.006, color: 'rgba(255, 199, 0, 0.45)' },
-          { rx: maxRadius * 0.68, ry: maxRadius * 0.32, tilt: -0.6, rot: Math.PI / 3, speed: -0.008, color: 'rgba(224, 122, 0, 0.40)' },
-          { rx: maxRadius * 0.48, ry: maxRadius * 0.22, tilt: 0.8, rot: Math.PI / 1.5, speed: 0.011, color: 'rgba(0, 212, 170, 0.35)' }
+        // 👑 7. Imperial Gold Luxe (NEW: Liquid Gold Waterfall & Celestial Solar Starburst Crown)
+        // Multi-layered Fluid Gold Waves
+        waves = [
+          { yRatio: 0.28, amp: 35, freq: 0.0018, speed: 0.006, phase: 0, color: 'rgba(255, 199, 0, 0.07)' },
+          { yRatio: 0.55, amp: 48, freq: 0.0014, speed: -0.005, phase: 1.8, color: 'rgba(224, 122, 0, 0.06)' },
+          { yRatio: 0.85, amp: 38, freq: 0.0022, speed: 0.007, phase: 3.4, color: 'rgba(0, 212, 170, 0.04)' }
         ];
 
-        // 3D Rotating 24K Gold Leaf Flakes
-        const flakeCount = isMobile ? 22 : 45;
-        for (let i = 0; i < flakeCount; i++) {
+        // Central Celestial Solar Starburst Crown
+        customEntities = [
+          { size: 45, rot: 0, speed: 0.004, points: 8, color: 'rgba(255, 199, 0, 0.35)' },
+          { size: 75, rot: Math.PI / 8, speed: -0.003, points: 16, color: 'rgba(255, 240, 170, 0.22)' }
+        ];
+
+        // Ascending 24K Gold Dust & Champagne Bubbles
+        const dustCount = isMobile ? 25 : 55;
+        for (let i = 0; i < dustCount; i++) {
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            size: 6 + Math.random() * 12,
+            size: 1.2 + Math.random() * 3.2,
             speedY: -(0.3 + Math.random() * 0.8),
-            speedX: (Math.random() - 0.5) * 0.5,
-            rotX: Math.random() * Math.PI,
-            rotY: Math.random() * Math.PI,
-            speedRotX: 0.02 + Math.random() * 0.03,
-            speedRotY: 0.015 + Math.random() * 0.025,
-            opacity: 0.35 + Math.random() * 0.55
+            speedX: (Math.random() - 0.5) * 0.4,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.02 + Math.random() * 0.03,
+            opacity: 0.25 + Math.random() * 0.55
           });
         }
-
-        // Liquid Gold Silk Wave Ribbons
-        waves = [
-          { yRatio: 0.38, amp: 40, freq: 0.0016, speed: 0.008, phase: 0, color: 'rgba(255, 199, 0, 0.08)' },
-          { yRatio: 0.72, amp: 55, freq: 0.0022, speed: -0.007, phase: 2.5, color: 'rgba(224, 122, 0, 0.06)' }
-        ];
       } else if (theme === 'amethyst') {
-        // 🌿 8. Bio-Luminescent Pandora (Sacred Spores Atokirina & Pulsing Mycelium Vines)
-        // Living Mycelium Vine Branches
+        // 🌿 8. Bio-Luminescent Pandora (NEW: Swimming Jellyfish Fauna & Bioluminescent River Waves)
+        // Luminescent River Waves along bottom
+        waves = [
+          { yRatio: 0.75, amp: 30, freq: 0.0020, speed: 0.008, phase: 0, color: 'rgba(0, 255, 136, 0.07)' },
+          { yRatio: 0.88, amp: 42, freq: 0.0015, speed: -0.006, phase: 2.2, color: 'rgba(255, 42, 133, 0.06)' }
+        ];
+
+        // Swimming Bioluminescent Jellyfish Fauna
+        const jellyCount = isMobile ? 3 : 6;
         customEntities = [];
-        const branchCount = isMobile ? 4 : 7;
-        for (let i = 0; i < branchCount; i++) {
+        for (let i = 0; i < jellyCount; i++) {
           customEntities.push({
-            x: (width * i) / (branchCount - 1),
-            y: height,
-            heightMax: height * (0.35 + Math.random() * 0.45),
-            curvePhase: Math.random() * Math.PI * 2,
-            curveSpeed: 0.015 + Math.random() * 0.015,
-            pulseOffset: Math.random() * Math.PI * 2,
-            color: i % 2 === 0 ? '#00ff88' : '#ff2a85'
+            x: (width * (i + 0.5)) / jellyCount + (Math.random() - 0.5) * 50,
+            y: height * 0.3 + Math.random() * (height * 0.5),
+            size: 16 + Math.random() * 16,
+            speedY: -(0.4 + Math.random() * 0.6),
+            sway: Math.random() * Math.PI * 2,
+            swaySpeed: 0.015 + Math.random() * 0.015,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.03 + Math.random() * 0.02,
+            tentacleCount: 4 + Math.floor(Math.random() * 3),
+            color: i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#ff2a85' : '#00e5ff'
           });
         }
 
-        // Floating Sacred Spores (Atokirina Woods-prites)
-        const sporeCount = isMobile ? 14 : 26;
+        // Glowing Forest Firefly Spores
+        const sporeCount = isMobile ? 30 : 65;
         for (let i = 0; i < sporeCount; i++) {
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            radius: 7 + Math.random() * 12,
-            speedY: -(0.35 + Math.random() * 0.75),
-            sway: Math.random() * Math.PI * 2,
-            swaySpeed: 0.02 + Math.random() * 0.02,
-            tentacleCount: 5 + Math.floor(Math.random() * 3),
-            color: Math.random() > 0.5 ? '#00ff88' : '#ff2a85',
-            pulse: Math.random() * Math.PI * 2
+            size: 1 + Math.random() * 2.5,
+            speedY: -(0.2 + Math.random() * 0.5),
+            speedX: (Math.random() - 0.5) * 0.4,
+            color: Math.random() > 0.5 ? '#00ff88' : Math.random() > 0.25 ? '#ff2a85' : '#b4ff39',
+            pulse: Math.random() * Math.PI * 2,
+            opacity: 0.3 + Math.random() * 0.5
           });
         }
       }
@@ -338,7 +337,7 @@ export default function ThemeBackground() {
       ctx.clearRect(0, 0, width, height);
 
       if (activeTheme === 'ocean') {
-        // 🌌 1. Cosmic Stargate (Nebula Vortex, Sacred Mandala & Hyperdrive Comets)
+        // 🌌 1. Cosmic Stargate
         const centerX = width * 0.5;
         const centerY = height * 0.5;
 
@@ -368,7 +367,6 @@ export default function ThemeBackground() {
           ctx.translate(centerX, centerY);
           ctx.rotate(mandala.rot);
 
-          // Outer polygon
           ctx.beginPath();
           for (let i = 0; i < mandala.points; i++) {
             const angle = ((Math.PI * 2) / mandala.points) * i;
@@ -382,19 +380,7 @@ export default function ThemeBackground() {
           ctx.lineWidth = 1.2;
           ctx.stroke();
 
-          // Star connections
-          ctx.beginPath();
-          for (let i = 0; i < mandala.points; i++) {
-            const angle1 = ((Math.PI * 2) / mandala.points) * i;
-            const angle2 = ((Math.PI * 2) / mandala.points) * ((i + 2) % mandala.points);
-            ctx.moveTo(Math.cos(angle1) * mandala.r, Math.sin(angle1) * (mandala.r * 0.65));
-            ctx.lineTo(Math.cos(angle2) * mandala.r, Math.sin(angle2) * (mandala.r * 0.65));
-          }
-          ctx.strokeStyle = mandala.color.replace('0.', '0.0');
-          ctx.lineWidth = 0.8;
-          ctx.stroke();
-
-          // Starlight Vertex Dots
+          // Vertex Dots
           for (let i = 0; i < mandala.points; i++) {
             const angle = ((Math.PI * 2) / mandala.points) * i;
             const px = Math.cos(angle) * mandala.r;
@@ -404,7 +390,6 @@ export default function ThemeBackground() {
             ctx.fillStyle = mandala.color;
             ctx.fill();
           }
-
           ctx.restore();
         });
 
@@ -412,7 +397,6 @@ export default function ThemeBackground() {
         particles.forEach((p) => {
           p.angle += p.speed;
           p.zPhase += p.zSpeed;
-
           const spiralR = p.radius + Math.sin(p.zPhase) * 16;
           const x = centerX + Math.cos(p.angle) * spiralR;
           const y = centerY + Math.sin(p.angle) * (spiralR * 0.65);
@@ -504,7 +488,7 @@ export default function ThemeBackground() {
         });
         ctx.shadowBlur = 0;
       } else if (activeTheme === 'matrix') {
-        // ⚡ 3. Cyberpunk Holo-Matrix (Hexagonal Shield & Laser Ray Network)
+        // ⚡ 3. Cyberpunk Holo-Matrix (Hexagonal Shield)
         const scanY = (frame * 1.5) % height;
         ctx.lineWidth = 1;
         customEntities.forEach((hex) => {
@@ -597,51 +581,44 @@ export default function ThemeBackground() {
         });
         ctx.shadowBlur = 0;
       } else if (activeTheme === 'arctic') {
-        // 🧊 5. Glacial Prism (3D Projected Rotating Quartz Crystals & Spectral Beams)
-        // Draw 3D Rotating Polyhedra
+        // 🧊 5. Glacial Prism (Refined Subtle Crystals with Softer Glow)
         customEntities.forEach((crystal) => {
           crystal.rotX += crystal.speedX;
           crystal.rotY += crystal.speedY;
           crystal.rotZ += crystal.speedZ;
           crystal.floatPhase += 0.02;
 
-          const floatY = crystal.y + Math.sin(crystal.floatPhase) * 14;
+          const floatY = crystal.y + Math.sin(crystal.floatPhase) * 12;
           const s = crystal.size;
 
-          // 3D Octahedron vertices: (x, y, z)
           const rawVertices = [
-            [0, -s * 1.3, 0], // Top apex
-            [s, 0, 0],        // Right
-            [0, 0, s],        // Front
-            [-s, 0, 0],       // Left
-            [0, 0, -s],       // Back
-            [0, s * 1.3, 0]   // Bottom apex
+            [0, -s * 1.3, 0],
+            [s, 0, 0],
+            [0, 0, s],
+            [-s, 0, 0],
+            [0, 0, -s],
+            [0, s * 1.3, 0]
           ];
 
-          // Rotate 3D vertices
           const proj = rawVertices.map(([vx, vy, vz]) => {
-            // Rot X
             let y1 = vy * Math.cos(crystal.rotX) - vz * Math.sin(crystal.rotX);
             let z1 = vy * Math.sin(crystal.rotX) + vz * Math.cos(crystal.rotX);
-            // Rot Y
             let x2 = vx * Math.cos(crystal.rotY) + z1 * Math.sin(crystal.rotY);
             let z2 = -vx * Math.sin(crystal.rotY) + z1 * Math.cos(crystal.rotY);
-            // Rot Z
             let x3 = x2 * Math.cos(crystal.rotZ) - y1 * Math.sin(crystal.rotZ);
             let y3 = x2 * Math.sin(crystal.rotZ) + y1 * Math.cos(crystal.rotZ);
-
             return [crystal.x + x3, floatY + y3, z2];
           });
 
-          // Draw Octahedron Wireframe & Facets
           const edges = [
-            [0, 1], [0, 2], [0, 3], [0, 4], // Top edges
-            [5, 1], [5, 2], [5, 3], [5, 4], // Bottom edges
-            [1, 2], [2, 3], [3, 4], [4, 1]  // Equatorial edges
+            [0, 1], [0, 2], [0, 3], [0, 4],
+            [5, 1], [5, 2], [5, 3], [5, 4],
+            [1, 2], [2, 3], [3, 4], [4, 1]
           ];
 
-          ctx.strokeStyle = `${crystal.color}66`;
-          ctx.lineWidth = 1.4;
+          // Softer, non-glary wireframe lines
+          ctx.strokeStyle = `${crystal.color}40`;
+          ctx.lineWidth = 1.1;
           edges.forEach(([i1, i2]) => {
             ctx.beginPath();
             ctx.moveTo(proj[i1][0], proj[i1][1]);
@@ -649,23 +626,23 @@ export default function ThemeBackground() {
             ctx.stroke();
           });
 
-          // Spectral Refraction Laser Beams from crystal apex
+          // Soft subtle refraction beam
           const beamAngle = crystal.rotY * 2;
-          const beamLen = 140;
+          const beamLen = 100;
           const rx = proj[0][0] + Math.cos(beamAngle) * beamLen;
           const ry = proj[0][1] + Math.sin(beamAngle) * beamLen;
           const bGrad = ctx.createLinearGradient(proj[0][0], proj[0][1], rx, ry);
-          bGrad.addColorStop(0, `${crystal.color}aa`);
+          bGrad.addColorStop(0, `${crystal.color}55`);
           bGrad.addColorStop(1, 'transparent');
           ctx.beginPath();
           ctx.moveTo(proj[0][0], proj[0][1]);
           ctx.lineTo(rx, ry);
           ctx.strokeStyle = bGrad;
-          ctx.lineWidth = 1.8;
+          ctx.lineWidth = 1.2;
           ctx.stroke();
         });
 
-        // Blizzard Ice Dust
+        // Soft Blizzard Ice Dust
         particles.forEach((p) => {
           p.y += p.speedY;
           p.x += p.speedX;
@@ -681,23 +658,23 @@ export default function ThemeBackground() {
           ctx.globalAlpha = 1;
         });
       } else if (activeTheme === 'tokyo') {
-        // 🪩 6. Retro Synthwave Highway (Outrun 3D Road, Megacity Skyline & Striped Neon Sun)
-        const horizonY = height * 0.52;
-        const sunRadius = Math.min(width, height) * 0.22;
+        // 🪩 6. Retro Synthwave Highway (Balanced Dark Outrun Mode)
+        const horizonY = height * 0.54;
+        const sunRadius = Math.min(width, height) * 0.20;
         const sunCenterX = width * 0.5;
 
-        // Striped Neon Vector Sun with God-Rays
+        // Moody Striped Neon Sun (Reduced harsh glare)
         ctx.save();
         ctx.beginPath();
         ctx.arc(sunCenterX, horizonY - 10, sunRadius, Math.PI, 0, false);
         ctx.closePath();
         const sunGrad = ctx.createLinearGradient(0, horizonY - 10 - sunRadius, 0, horizonY - 10);
-        sunGrad.addColorStop(0, '#ffe600');
-        sunGrad.addColorStop(0.5, '#ff455b');
-        sunGrad.addColorStop(1, '#bf00ff');
+        sunGrad.addColorStop(0, 'rgba(255, 230, 0, 0.85)');
+        sunGrad.addColorStop(0.5, 'rgba(255, 69, 91, 0.85)');
+        sunGrad.addColorStop(1, 'rgba(191, 0, 255, 0.85)');
         ctx.fillStyle = sunGrad;
         ctx.shadowColor = '#ff455b';
-        ctx.shadowBlur = 30;
+        ctx.shadowBlur = 15; // Softened
         ctx.fill();
         ctx.restore();
 
@@ -705,42 +682,20 @@ export default function ThemeBackground() {
         for (let i = 1; i <= 6; i++) {
           const stripeY = horizonY - 10 - (i / 7) * sunRadius;
           ctx.fillStyle = '#12041a';
-          ctx.fillRect(sunCenterX - sunRadius, stripeY, sunRadius * 2, 3 + i * 0.8);
+          ctx.fillRect(sunCenterX - sunRadius, stripeY, sunRadius * 2, 2.5 + i * 0.7);
         }
 
-        // Megacity Skyline Buildings
+        // Megacity Skyline Silhouette
         customEntities.forEach((b) => {
           ctx.fillStyle = b.color;
           ctx.fillRect(b.x, horizonY - b.h, b.w, b.h);
-
-          // Roof antenna laser
-          if (b.hasAntenna) {
-            ctx.strokeStyle = '#00f5ff';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(b.x + b.w / 2, horizonY - b.h);
-            ctx.lineTo(b.x + b.w / 2, horizonY - b.h - 15);
-            ctx.stroke();
-
-            // Blinking beacon
-            if (Math.sin(frame * 0.08 + b.x) > 0.5) {
-              ctx.beginPath();
-              ctx.arc(b.x + b.w / 2, horizonY - b.h - 15, 2, 0, Math.PI * 2);
-              ctx.fillStyle = '#ff455b';
-              ctx.shadowColor = '#ff455b';
-              ctx.shadowBlur = 6;
-              ctx.fill();
-              ctx.shadowBlur = 0;
-            }
-          }
         });
 
-        // 3D Perspective Rolling Road
-        const roadOffset = (frame * 1.6) % 40;
-        ctx.strokeStyle = 'rgba(0, 245, 255, 0.35)';
-        ctx.lineWidth = 1.2;
+        // 3D Perspective Road (Balanced opacity)
+        const roadOffset = (frame * 1.4) % 40;
+        ctx.strokeStyle = 'rgba(0, 245, 255, 0.22)';
+        ctx.lineWidth = 1;
 
-        // Longitudinal Perspective Lines
         for (let x = -width * 0.5; x < width * 1.5; x += 60) {
           ctx.beginPath();
           ctx.moveTo(sunCenterX + (x - sunCenterX) * 0.04, horizonY);
@@ -748,11 +703,10 @@ export default function ThemeBackground() {
           ctx.stroke();
         }
 
-        // Latitudinal Perspective Lines
         for (let y = 0; y < height - horizonY; y += 20) {
           const curY = horizonY + Math.pow((y + roadOffset) / (height - horizonY), 2) * (height - horizonY);
           if (curY <= height) {
-            const lineAlpha = Math.min(0.5, ((curY - horizonY) / (height - horizonY)) * 0.5);
+            const lineAlpha = Math.min(0.35, ((curY - horizonY) / (height - horizonY)) * 0.35);
             ctx.strokeStyle = `rgba(255, 69, 91, ${lineAlpha})`;
             ctx.beginPath();
             ctx.moveTo(0, curY);
@@ -765,25 +719,21 @@ export default function ThemeBackground() {
         particles.forEach((car) => {
           car.dist += car.speed;
           if (car.dist >= 1) car.dist = 0;
-
           const curY = horizonY + Math.pow(car.dist, 2) * (height - horizonY);
           const spreadX = car.lane * car.dist * (width * 0.6);
           const curX = sunCenterX + spreadX;
 
           ctx.beginPath();
-          ctx.arc(curX, curY, 2 + car.dist * 3, 0, Math.PI * 2);
+          ctx.arc(curX, curY, 1.8 + car.dist * 2.5, 0, Math.PI * 2);
           ctx.fillStyle = car.color;
           ctx.shadowColor = car.color;
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = 6;
           ctx.fill();
           ctx.shadowBlur = 0;
         });
       } else if (activeTheme === 'cyber') {
-        // 👑 7. Imperial Gold Luxe (3D Armillary Sphere, Molten Gold Silk & 24K Leaf Flakes)
-        const centerX = width * 0.5;
-        const centerY = height * 0.5;
-
-        // Liquid Gold Waves
+        // 👑 7. Imperial Gold Luxe (NEW: Liquid Gold Waves & Celestial Solar Crown)
+        // Multi-layered Fluid Gold Waves
         waves.forEach((w) => {
           w.phase += w.speed;
           ctx.beginPath();
@@ -798,138 +748,155 @@ export default function ThemeBackground() {
           ctx.fill();
         });
 
-        // 3D Armillary Astrolabe Rings
-        customEntities.forEach((ring) => {
-          ring.rot += ring.speed;
+        // Celestial Solar Starburst Crown in upper center
+        const sunCenterX = width * 0.5;
+        const sunCenterY = height * 0.32;
+        customEntities.forEach((crown) => {
+          crown.rot += crown.speed;
           ctx.save();
-          ctx.translate(centerX, centerY);
-          ctx.rotate(ring.tilt);
+          ctx.translate(sunCenterX, sunCenterY);
+          ctx.rotate(crown.rot);
 
           ctx.beginPath();
-          ctx.ellipse(0, 0, ring.rx, ring.ry, ring.rot, 0, Math.PI * 2);
-          ctx.strokeStyle = ring.color;
-          ctx.lineWidth = 1.6;
+          for (let i = 0; i < crown.points; i++) {
+            const angle = ((Math.PI * 2) / crown.points) * i;
+            const px = Math.cos(angle) * crown.size;
+            const py = Math.sin(angle) * crown.size;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = crown.color;
+          ctx.lineWidth = 1.3;
           ctx.stroke();
 
-          // Golden bead on orbital ring
-          const bx = Math.cos(ring.rot * 2) * ring.rx;
-          const by = Math.sin(ring.rot * 2) * ring.ry;
+          // Star connection rays
           ctx.beginPath();
-          ctx.arc(bx, by, 3.5, 0, Math.PI * 2);
-          ctx.fillStyle = '#ffc700';
-          ctx.shadowColor = '#ffc700';
-          ctx.shadowBlur = 8;
-          ctx.fill();
-          ctx.shadowBlur = 0;
-
+          for (let i = 0; i < crown.points; i++) {
+            const angle1 = ((Math.PI * 2) / crown.points) * i;
+            const angle2 = ((Math.PI * 2) / crown.points) * ((i + crown.points / 2) % crown.points);
+            ctx.moveTo(Math.cos(angle1) * crown.size, Math.sin(angle1) * crown.size);
+            ctx.lineTo(Math.cos(angle2) * crown.size, Math.sin(angle2) * crown.size);
+          }
+          ctx.strokeStyle = crown.color.replace('0.', '0.0');
+          ctx.lineWidth = 0.7;
+          ctx.stroke();
           ctx.restore();
         });
 
-        // 3D Rotating 24K Gold Leaf Flakes
-        particles.forEach((flake) => {
-          flake.y += flake.speedY;
-          flake.x += flake.speedX;
-          flake.rotX += flake.speedRotX;
-          flake.rotY += flake.speedRotY;
+        // Ascending Gold Dust & Champagne Motes
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.pulse += p.pulseSpeed;
 
-          if (flake.y < -20) {
-            flake.y = height + 20;
-            flake.x = Math.random() * width;
+          if (p.y < -10) {
+            p.y = height + 10;
+            p.x = Math.random() * width;
           }
 
-          const scaleX = Math.cos(flake.rotX);
-          const scaleY = Math.sin(flake.rotY);
-
-          ctx.save();
-          ctx.translate(flake.x, flake.y);
-          ctx.scale(scaleX, scaleY);
+          const alpha = p.opacity * (0.6 + 0.4 * Math.sin(p.pulse));
           ctx.beginPath();
-          ctx.rect(-flake.size / 2, -flake.size / 2, flake.size, flake.size);
-          ctx.fillStyle = 'rgba(255, 199, 0, 0.45)';
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 199, 0, ${alpha})`;
           ctx.shadowColor = '#ffc700';
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = p.size * 2;
           ctx.fill();
-          ctx.restore();
         });
         ctx.shadowBlur = 0;
       } else if (activeTheme === 'amethyst') {
-        // 🌿 8. Bio-Luminescent Pandora (Sacred Spores Atokirina & Pulsing Mycelium Vines)
-        // Living Mycelium Vines
-        customEntities.forEach((vine) => {
-          vine.curvePhase += vine.curveSpeed;
-          const vineHeight = vine.heightMax * (0.85 + 0.15 * Math.sin(vine.curvePhase));
-          const swayX = Math.sin(vine.curvePhase) * 35;
-
+        // 🌿 8. Bio-Luminescent Pandora (NEW: Swimming Jellyfish Fauna & Bioluminescent River Waves)
+        // Fluid Bioluminescent River Waves
+        waves.forEach((w) => {
+          w.phase += w.speed;
           ctx.beginPath();
-          ctx.moveTo(vine.x, height);
-          ctx.quadraticCurveTo(vine.x + swayX, height - vineHeight * 0.5, vine.x + swayX * 0.5, height - vineHeight);
-          ctx.strokeStyle = `${vine.color}55`;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-
-          // Bio-energy pulse node along vine
-          const pulseProg = (Math.sin(frame * 0.04 + vine.pulseOffset) + 1) / 2;
-          const nodeY = height - vineHeight * pulseProg;
-          const nodeX = vine.x + swayX * pulseProg;
-          ctx.beginPath();
-          ctx.arc(nodeX, nodeY, 3, 0, Math.PI * 2);
-          ctx.fillStyle = vine.color;
-          ctx.shadowColor = vine.color;
-          ctx.shadowBlur = 8;
+          ctx.moveTo(0, height);
+          for (let x = 0; x <= width; x += 18) {
+            const y = height * w.yRatio + Math.sin(x * w.freq + w.phase) * w.amp;
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(width, height);
+          ctx.closePath();
+          ctx.fillStyle = w.color;
           ctx.fill();
-          ctx.shadowBlur = 0;
         });
 
-        // Floating Sacred Spores (Atokirina Woods-prites)
-        particles.forEach((spore) => {
-          spore.y += spore.speedY;
-          spore.sway += spore.swaySpeed;
-          spore.pulse += 0.03;
-          spore.x += Math.sin(spore.sway) * 0.8;
+        // Swimming Bioluminescent Jellyfish Fauna
+        customEntities.forEach((jelly) => {
+          jelly.y += jelly.speedY;
+          jelly.sway += jelly.swaySpeed;
+          jelly.pulse += jelly.pulseSpeed;
+          jelly.x += Math.sin(jelly.sway) * 0.7;
 
-          if (spore.y < -50) {
-            spore.y = height + 40;
-            spore.x = Math.random() * width;
+          if (jelly.y < -60) {
+            jelly.y = height + 40;
+            jelly.x = Math.random() * width;
           }
 
-          const pulseFactor = 0.85 + 0.25 * Math.sin(spore.pulse);
-          const r = spore.radius * pulseFactor;
+          const pulseFactor = 0.85 + 0.25 * Math.sin(jelly.pulse);
+          const r = jelly.size * pulseFactor;
 
           ctx.save();
-          ctx.translate(spore.x, spore.y);
+          ctx.translate(jelly.x, jelly.y);
 
           // Glowing Aura
           const aura = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2.2);
-          aura.addColorStop(0, `${spore.color}44`);
+          aura.addColorStop(0, `${jelly.color}35`);
           aura.addColorStop(1, 'transparent');
           ctx.fillStyle = aura;
           ctx.beginPath();
           ctx.arc(0, 0, r * 2.2, 0, Math.PI * 2);
           ctx.fill();
 
-          // Spore Core
+          // Dome Bell
           ctx.beginPath();
-          ctx.arc(0, 0, r * 0.35, 0, Math.PI * 2);
-          ctx.fillStyle = '#ffffff';
-          ctx.shadowColor = spore.color;
-          ctx.shadowBlur = 8;
+          ctx.arc(0, 0, r, Math.PI, 0, false);
+          ctx.quadraticCurveTo(r * 0.5, r * 0.25, 0, r * 0.15);
+          ctx.quadraticCurveTo(-r * 0.5, r * 0.25, -r, 0);
+          ctx.fillStyle = `${jelly.color}45`;
+          ctx.strokeStyle = `${jelly.color}99`;
+          ctx.lineWidth = 1.3;
           ctx.fill();
+          ctx.stroke();
 
-          // Ethereal Tendrils (Feathered Umbrella)
-          for (let t = 0; t < spore.tentacleCount; t++) {
-            const angle = ((Math.PI * 2) / spore.tentacleCount) * t + spore.sway * 0.5;
-            const tx = Math.cos(angle) * r * 1.6;
-            const ty = Math.sin(angle) * r * 1.6;
-
+          // Undulating Sinuous Tentacles
+          for (let t = 0; t < jelly.tentacleCount; t++) {
+            const offsetX = ((t - (jelly.tentacleCount - 1) / 2) * r * 1.4) / jelly.tentacleCount;
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(tx * 0.5, ty * 0.3, tx, ty);
-            ctx.strokeStyle = `${spore.color}88`;
+            ctx.moveTo(offsetX, r * 0.15);
+            for (let seg = 1; seg <= 4; seg++) {
+              const segY = r * 0.15 + seg * (r * 0.75);
+              const segX = offsetX + Math.sin(jelly.sway + seg * 0.8 + t) * (r * 0.3);
+              ctx.lineTo(segX, segY);
+            }
+            ctx.strokeStyle = `${jelly.color}55`;
             ctx.lineWidth = 1;
             ctx.stroke();
           }
 
           ctx.restore();
+        });
+
+        // Floating Forest Firefly Pollen
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.pulse += 0.03;
+
+          if (p.y < -10) {
+            p.y = height + 10;
+            p.x = Math.random() * width;
+          }
+
+          const alpha = p.opacity * (0.6 + 0.4 * Math.sin(p.pulse));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = alpha;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 4;
+          ctx.fill();
+          ctx.globalAlpha = 1;
         });
         ctx.shadowBlur = 0;
       }
