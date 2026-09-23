@@ -51,16 +51,6 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen relative">
-      <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }} aria-hidden="true">
-        <defs>
-          <filter id="abyssal-water-ripple">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.08" numOctaves="2" result="noise">
-              <animate attributeName="baseFrequency" dur="6s" values="0.04 0.08;0.02 0.04;0.04 0.08" repeatCount="indefinite" />
-            </feTurbulence>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-      </svg>
       <ThemeBackground />
       <ScrollRestoration />
       <Navbar />
