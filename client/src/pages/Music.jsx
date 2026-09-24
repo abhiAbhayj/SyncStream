@@ -26,10 +26,7 @@ import {
   Film,
   Tv,
   User,
-  Check,
-  Edit3,
-  AlertTriangle,
-  CheckCircle2
+  Check
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -99,7 +96,6 @@ export default function Music() {
     isFavorite,
     toggleFavorite,
     createPlaylist,
-    updatePlaylist,
     deletePlaylist,
     addSongToPlaylist,
     removeSongFromPlaylist
@@ -128,14 +124,6 @@ export default function Music() {
   const [selectedPlaylistDetails, setSelectedPlaylistDetails] = useState(null);
   const [playlistSongsLoading, setPlaylistSongsLoading] = useState(false);
   const [playlistSongs, setPlaylistSongs] = useState([]);
-
-  // Playlist Edit & Delete Confirmation States
-  const [editingPlaylist, setEditingPlaylist] = useState(null); // { id, name, description }
-  const [editPlaylistName, setEditPlaylistName] = useState('');
-  const [editPlaylistDesc, setEditPlaylistDesc] = useState('');
-  const [deletePlaylistConfirm, setDeletePlaylistConfirm] = useState(null); // { id, name }
-  const [deleteSongConfirm, setDeleteSongConfirm] = useState(null); // { songId, title, playlistId, playlistName }
-  const [playlistActionToast, setPlaylistActionToast] = useState(null);
 
   // Add to Playlist Modal State
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState(null);
@@ -317,71 +305,22 @@ export default function Music() {
     }, 1500);
   };
 
-  // Open Edit Playlist Modal
-  const handleOpenEditPlaylistModal = (pl, e) => {
-    e?.stopPropagation?.();
-    setEditingPlaylist(pl);
-    setEditPlaylistName(pl.name || '');
-    setEditPlaylistDesc(pl.description || '');
-  };
-
-  // Save Edit Playlist
-  const handleSaveEditPlaylist = async (e) => {
-    e.preventDefault();
-    if (!editingPlaylist || !editPlaylistName.trim()) return;
-    await updatePlaylist(editingPlaylist.id, editPlaylistName.trim(), editPlaylistDesc.trim());
-    if (selectedPlaylistDetails?.id === editingPlaylist.id) {
-      setSelectedPlaylistDetails(prev => ({
-        ...prev,
-        name: editPlaylistName.trim(),
-        description: editPlaylistDesc.trim()
-      }));
-    }
-    setEditingPlaylist(null);
-    setPlaylistActionToast('Playlist updated successfully!');
-    setTimeout(() => setPlaylistActionToast(null), 2500);
-  };
-
-  // Request Delete Playlist (Opens Confirmation Modal)
-  const handleRequestDeletePlaylist = (pl, e) => {
-    e?.stopPropagation?.();
-    setDeletePlaylistConfirm({ id: pl.id, name: pl.name });
-  };
-
-  // Execute Delete Playlist (after user confirms in modal)
-  const handleExecuteDeletePlaylist = async () => {
-    if (!deletePlaylistConfirm) return;
-    const { id, name } = deletePlaylistConfirm;
-    await deletePlaylist(id);
-    if (selectedPlaylistDetails?.id === id) {
-      setSelectedPlaylistDetails(null);
-    }
-    setDeletePlaylistConfirm(null);
-    setPlaylistActionToast(`Deleted playlist "${name}"`);
-    setTimeout(() => setPlaylistActionToast(null), 2500);
-  };
-
-  // Request Remove Song from Playlist (Opens Confirmation Modal)
-  const handleRequestRemoveSong = (song, e) => {
-    e?.stopPropagation?.();
+  // Delete song from current playlist details
+  const handleRemoveSongFromCurrentPlaylist = async (songId) => {
     if (!selectedPlaylistDetails) return;
-    setDeleteSongConfirm({
-      songId: song.id,
-      title: song.title,
-      playlistId: selectedPlaylistDetails.id,
-      playlistName: selectedPlaylistDetails.name
-    });
+    await removeSongFromPlaylist(selectedPlaylistDetails.id, songId);
+    setPlaylistSongs(prev => prev.filter(s => s.id !== songId));
   };
 
-  // Execute Remove Song from Playlist (after user confirms in modal)
-  const handleExecuteRemoveSong = async () => {
-    if (!deleteSongConfirm) return;
-    const { songId, title, playlistId } = deleteSongConfirm;
-    await removeSongFromPlaylist(playlistId, songId);
-    setPlaylistSongs(prev => prev.filter(s => s.id !== songId));
-    setDeleteSongConfirm(null);
-    setPlaylistActionToast(`Removed "${title}" from playlist`);
-    setTimeout(() => setPlaylistActionToast(null), 2500);
+  // Delete playlist confirmation
+  const handleDeletePlaylist = async (playlistId, e) => {
+    e?.stopPropagation?.();
+    if (window.confirm('Are you sure you want to delete this playlist?')) {
+      await deletePlaylist(playlistId);
+      if (selectedPlaylistDetails?.id === playlistId) {
+        setSelectedPlaylistDetails(null);
+      }
+    }
   };
 
   useEffect(() => {
@@ -1099,51 +1038,22 @@ export default function Music() {
                       <span>Play Playlist ({playlistSongs.length})</span>
                     </button>
                   )}
-
                   <button
                     type="button"
-                    onClick={(e) => handleOpenEditPlaylistModal(selectedPlaylistDetails, e)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-accentCyan/20 text-gray-300 hover:text-accentCyan border border-white/10 transition active:scale-95 text-xs font-bold"
-                    title="Edit Playlist Name & Description"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Edit</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => handleRequestDeletePlaylist(selectedPlaylistDetails, e)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition active:scale-95 text-xs font-bold"
+                    onClick={(e) => handleDeletePlaylist(selectedPlaylistDetails.id, e)}
+                    className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition active:scale-95"
                     title="Delete Playlist"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-2xl bg-darkCard/60 border border-white/10">
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-white font-outfit flex items-center gap-2">
-                    <span>{selectedPlaylistDetails.name}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => handleOpenEditPlaylistModal(selectedPlaylistDetails, e)}
-                      className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-accentCyan transition"
-                      title="Edit Name"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                  </h3>
-                  {selectedPlaylistDetails.description ? (
-                    <p className="text-xs text-gray-300 mt-1">{selectedPlaylistDetails.description}</p>
-                  ) : (
-                    <p className="text-xs text-gray-500 italic mt-0.5">No description added.</p>
-                  )}
-                </div>
-                <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-accentPurple/20 text-accentPurple border border-accentPurple/30 self-start sm:self-auto">
-                  {playlistSongs.length} Tracks
-                </span>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-white font-outfit">{selectedPlaylistDetails.name}</h3>
+                {selectedPlaylistDetails.description && (
+                  <p className="text-xs text-gray-400 mt-0.5">{selectedPlaylistDetails.description}</p>
+                )}
               </div>
 
               {playlistSongsLoading ? (
@@ -1194,11 +1104,14 @@ export default function Music() {
                             )}
                           </div>
 
-                          {/* Remove from playlist button with confirmation trigger */}
+                          {/* Remove from playlist button */}
                           <button
                             type="button"
-                            onClick={(e) => handleRequestRemoveSong(song, e)}
-                            className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/70 hover:bg-red-500 text-gray-300 hover:text-white transition active:scale-90 shadow-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveSongFromCurrentPlaylist(song.id);
+                            }}
+                            className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/60 hover:bg-red-500 text-gray-300 hover:text-white transition active:scale-90"
                             title="Remove from playlist"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1293,25 +1206,14 @@ export default function Music() {
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
 
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={(e) => handleOpenEditPlaylistModal(pl, e)}
-                            className="p-1.5 rounded-lg hover:bg-accentCyan/20 text-gray-400 hover:text-accentCyan transition"
-                            title="Edit Playlist Name"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => handleRequestDeletePlaylist(pl, e)}
-                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition"
-                            title="Delete Playlist"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeletePlaylist(pl.id, e)}
+                          className="p-1.5 rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition"
+                          title="Delete Playlist"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1319,14 +1221,6 @@ export default function Music() {
               )}
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── Toast Notifications ── */}
-      {playlistActionToast && (
-        <div className="fixed bottom-24 right-6 z-[130] bg-[#11162a] border border-accentCyan/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 animate-slide-up">
-          <CheckCircle2 className="w-4 h-4 text-accentCyan shrink-0" />
-          <span className="text-xs font-bold">{playlistActionToast}</span>
         </div>
       )}
 
@@ -1361,7 +1255,7 @@ export default function Music() {
                   value={newPlaylistName}
                   onChange={(e) => setNewPlaylistName(e.target.value)}
                   placeholder="e.g. Chill Beats, Gym Hype, Anime OSTs..."
-                  className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition font-medium"
+                  className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition"
                 />
               </div>
 
@@ -1374,7 +1268,7 @@ export default function Music() {
                   value={newPlaylistDesc}
                   onChange={(e) => setNewPlaylistDesc(e.target.value)}
                   placeholder="What's this playlist vibe about?"
-                  className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-2 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition resize-none font-medium"
+                  className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-2 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition resize-none"
                 />
               </div>
 
@@ -1391,152 +1285,7 @@ export default function Music() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          MODAL 2: EDIT PLAYLIST (Name & Description)
-         ══════════════════════════════════════════════════════════════════════ */}
-      {editingPlaylist && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md glass-panel border border-accentCyan/30 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#0f1428]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-accentCyan" />
-                <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">Edit Playlist Name</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditingPlaylist(null)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEditPlaylist} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                  Playlist Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editPlaylistName}
-                  onChange={(e) => setEditPlaylistName(e.target.value)}
-                  placeholder="Enter playlist name"
-                  className="w-full bg-darkBg border border-white/20 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition font-medium"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                  Description (Optional)
-                </label>
-                <textarea
-                  rows={2}
-                  value={editPlaylistDesc}
-                  onChange={(e) => setEditPlaylistDesc(e.target.value)}
-                  placeholder="Playlist description"
-                  className="w-full bg-darkBg border border-white/20 rounded-xl px-3.5 py-2 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition resize-none font-medium"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setEditingPlaylist(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 font-bold text-xs transition active:scale-95"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-lg active:scale-95 hover:opacity-90"
-                >
-                  <Check className="w-4 h-4 stroke-[3]" />
-                  <span>Save Changes</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          MODAL 3: DELETE PLAYLIST CONFIRMATION
-         ══════════════════════════════════════════════════════════════════════ */}
-      {deletePlaylistConfirm && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm glass-panel border border-red-500/40 rounded-3xl p-6 space-y-4 shadow-2xl bg-[#140b0e] text-center">
-            <div className="w-14 h-14 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
-              <AlertTriangle className="w-7 h-7" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h3 className="font-extrabold text-lg text-white font-outfit">Delete Playlist?</h3>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                Are you sure you want to delete <span className="font-bold text-red-400">"{deletePlaylistConfirm.name}"</span>? All tracks saved inside will be removed.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setDeletePlaylistConfirm(null)}
-                className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 font-bold text-xs transition active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleExecuteDeletePlaylist}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs transition shadow-lg shadow-red-600/30 active:scale-95 flex items-center justify-center gap-1.5"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Yes, Delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          MODAL 4: DELETE SONG FROM PLAYLIST CONFIRMATION
-         ══════════════════════════════════════════════════════════════════════ */}
-      {deleteSongConfirm && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm glass-panel border border-amber-500/40 rounded-3xl p-6 space-y-4 shadow-2xl bg-[#161208] text-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto text-amber-400">
-              <AlertTriangle className="w-7 h-7" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h3 className="font-extrabold text-lg text-white font-outfit">Remove Track from Playlist?</h3>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                Are you sure you want to remove <span className="font-bold text-amber-300">"{deleteSongConfirm.title}"</span> from <span className="font-bold text-white">"{deleteSongConfirm.playlistName}"</span>?
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setDeleteSongConfirm(null)}
-                className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 font-bold text-xs transition active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleExecuteRemoveSong}
-                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition shadow-lg shadow-amber-500/30 active:scale-95 flex items-center justify-center gap-1.5"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Yes, Remove</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          MODAL 5: ADD TO PLAYLIST
+          MODAL 2: ADD TO PLAYLIST
          ══════════════════════════════════════════════════════════════════════ */}
       {songToAddToPlaylist && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">

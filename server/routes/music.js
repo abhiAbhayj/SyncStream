@@ -7,7 +7,6 @@ import {
   getLyrics,
   getUserPlaylists,
   createPlaylist,
-  updatePlaylist,
   deletePlaylist,
   getPlaylistSongs,
   addSongToPlaylist,
@@ -38,7 +37,6 @@ router.get('/lyrics', getLyrics);
 // ── User Playlists Routes ──
 router.get('/playlists', authenticateToken, getUserPlaylists);
 router.post('/playlists', authenticateToken, createPlaylist);
-router.put('/playlists/:id', authenticateToken, updatePlaylist);
 router.delete('/playlists/:id', authenticateToken, deletePlaylist);
 router.get('/playlists/:id/songs', authenticateToken, getPlaylistSongs);
 router.post('/playlists/:id/songs', authenticateToken, addSongToPlaylist);
