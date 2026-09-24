@@ -528,6 +528,39 @@ export const MusicProvider = ({ children }) => {
     return localPl;
   }, []);
 
+  // Update / Edit Playlist Name & Description
+  const updatePlaylist = useCallback(async (playlistId, name, description = '') => {
+    if (!playlistId || !name || !name.trim()) return false;
+    const cleanName = name.trim();
+    const cleanDesc = description ? description.trim() : '';
+
+    setPlaylists(prev => {
+      const updated = prev.map(p => {
+        if (p.id === playlistId) {
+          return { ...p, name: cleanName, description: cleanDesc };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('syncstream_user_playlists', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    const token = localStorage.getItem('token');
+    if (token && typeof playlistId === 'number') {
+      try {
+        await axios.put(`/api/music/playlists/${playlistId}`, {
+          name: cleanName,
+          description: cleanDesc
+        });
+      } catch (err) {
+        console.warn('Failed to update playlist on server:', err.message);
+      }
+    }
+    return true;
+  }, []);
+
   // Delete Playlist
   const deletePlaylist = useCallback(async (playlistId) => {
     if (!playlistId) return;
@@ -620,6 +653,7 @@ export const MusicProvider = ({ children }) => {
     isFavorite,
     toggleFavorite,
     createPlaylist,
+    updatePlaylist,
     deletePlaylist,
     addSongToPlaylist,
     removeSongFromPlaylist,

@@ -91,25 +91,25 @@ export default function ThemeBackground() {
         // 🌌 1. Cosmic Stargate (Hyperspace Warp Streaks, Flowing Auroral Plasma Curtains & Diamond Constellations - 100% NON-CIRCULAR)
         // Multi-layered Diagonal Auroral Plasma Light Curtains
         waves = [
-          { yRatio: 0.30, amp: 55, freq: 0.0016, speed: 0.005, phase: 0, color: 'rgba(168, 85, 247, 0.08)' }, // Celestial Violet
-          { yRatio: 0.50, amp: 70, freq: 0.0012, speed: -0.004, phase: 1.5, color: 'rgba(0, 245, 212, 0.07)' }, // Hyper Turquoise
-          { yRatio: 0.70, amp: 60, freq: 0.0018, speed: 0.006, phase: 3.0, color: 'rgba(255, 89, 100, 0.06)' }, // Solar Coral
-          { yRatio: 0.85, amp: 45, freq: 0.0022, speed: -0.005, phase: 4.2, color: 'rgba(255, 209, 102, 0.05)' } // Supernova Gold
+          { yRatio: 0.30, amp: 55, freq: 0.0016, speed: 0.005, phase: 0, color: 'rgba(168, 85, 247, 0.045)' }, // Celestial Violet
+          { yRatio: 0.50, amp: 70, freq: 0.0012, speed: -0.004, phase: 1.5, color: 'rgba(0, 245, 212, 0.040)' }, // Hyper Turquoise
+          { yRatio: 0.70, amp: 60, freq: 0.0018, speed: 0.006, phase: 3.0, color: 'rgba(255, 89, 100, 0.035)' }, // Solar Coral
+          { yRatio: 0.85, amp: 45, freq: 0.0022, speed: -0.005, phase: 4.2, color: 'rgba(255, 209, 102, 0.030)' } // Supernova Gold
         ];
 
         // Linear Hyperspace Warp Streaks
-        const streakCount = isMobile ? 35 : 75;
+        const streakCount = isMobile ? 30 : 60;
         const colors = ['#00f5d4', '#a855f7', '#ff5964', '#ffd166', '#ffffff'];
         for (let i = 0; i < streakCount; i++) {
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            len: 30 + Math.random() * 80,
-            speed: 3 + Math.random() * 6,
+            len: 25 + Math.random() * 65,
+            speed: 2.5 + Math.random() * 5,
             angle: -Math.PI / 6 + (Math.random() - 0.5) * 0.15,
-            width: 1 + Math.random() * 1.8,
+            width: 1 + Math.random() * 1.5,
             color: colors[i % colors.length],
-            opacity: 0.25 + Math.random() * 0.65
+            opacity: 0.20 + Math.random() * 0.45
           });
         }
 
@@ -321,10 +321,10 @@ export default function ThemeBackground() {
         // 👑 7. Imperial Gold Luxe (Cascading 24K Gold Silk Streams, 3D Rotating Gold Ingots & Diamond Stars - 100% NON-CIRCULAR)
         // Multi-layered Fluid 24K Gold & Emerald Silk Ribbons
         waves = [
-          { yRatio: 0.25, amp: 40, freq: 0.0016, speed: 0.005, phase: 0, color: 'rgba(255, 199, 0, 0.08)' }, // 24K Liquid Gold
-          { yRatio: 0.48, amp: 55, freq: 0.0013, speed: -0.004, phase: 1.6, color: 'rgba(224, 122, 0, 0.07)' }, // Royal Amber
-          { yRatio: 0.72, amp: 45, freq: 0.0020, speed: 0.006, phase: 3.2, color: 'rgba(0, 212, 170, 0.05)' }, // Emerald Glow
-          { yRatio: 0.90, amp: 35, freq: 0.0024, speed: -0.005, phase: 4.5, color: 'rgba(255, 240, 170, 0.06)' } // Champagne Diamond
+          { yRatio: 0.25, amp: 40, freq: 0.0016, speed: 0.005, phase: 0, color: 'rgba(255, 199, 0, 0.045)' }, // 24K Liquid Gold
+          { yRatio: 0.48, amp: 55, freq: 0.0013, speed: -0.004, phase: 1.6, color: 'rgba(224, 122, 0, 0.038)' }, // Royal Amber
+          { yRatio: 0.72, amp: 45, freq: 0.0020, speed: 0.006, phase: 3.2, color: 'rgba(0, 212, 170, 0.028)' }, // Emerald Glow
+          { yRatio: 0.90, amp: 35, freq: 0.0024, speed: -0.005, phase: 4.5, color: 'rgba(255, 240, 170, 0.032)' } // Champagne Diamond
         ];
 
         // 3D Floating Rotating Gold Ingots / Rhomboid Diamond Gems
@@ -891,8 +891,8 @@ export default function ThemeBackground() {
 
         // 2. Diagonal Celestial God-Ray Sheens
         const rayGrad = ctx.createLinearGradient(0, 0, width * 0.8, height);
-        rayGrad.addColorStop(0, 'rgba(255, 199, 0, 0.06)');
-        rayGrad.addColorStop(0.5, 'rgba(0, 212, 170, 0.03)');
+        rayGrad.addColorStop(0, 'rgba(255, 199, 0, 0.035)');
+        rayGrad.addColorStop(0.5, 'rgba(0, 212, 170, 0.018)');
         rayGrad.addColorStop(1, 'transparent');
         ctx.fillStyle = rayGrad;
         ctx.beginPath();
@@ -1114,10 +1114,12 @@ export default function ThemeBackground() {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
-      style={{ opacity: 0.95 }}
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none bg-darkBg"
     >
-      <canvas ref={canvasRef} className="w-full h-full block" />
+      {/* Cinematic balanced canvas */}
+      <canvas ref={canvasRef} className="w-full h-full block" style={{ opacity: 0.75 }} />
+      {/* Subtle Ambient Vignette to guarantee high UI text contrast */}
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/25 to-black/60 pointer-events-none" />
     </div>
   );
 }
