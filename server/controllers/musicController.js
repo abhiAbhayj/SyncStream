@@ -951,6 +951,42 @@ export const deletePlaylist = async (req, res) => {
   }
 };
 
+// 3b. Update a playlist name & description
+export const updatePlaylist = async (req, res) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+  const { name, description } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to manage playlists.' });
+  }
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Playlist name is required.' });
+  }
+
+  try {
+    const [result] = await db.query(
+      'UPDATE user_playlists SET name = ?, description = ? WHERE id = ? AND user_id = ?',
+      [name.trim(), (description || '').trim(), id, userId]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Playlist not found or unauthorized.' });
+    }
+    res.json({
+      success: true,
+      message: 'Playlist updated successfully.',
+      playlist: {
+        id: isNaN(parseInt(id, 10)) ? id : parseInt(id, 10),
+        name: name.trim(),
+        description: (description || '').trim()
+      }
+    });
+  } catch (err) {
+    console.error('[Music Controller Update Playlist Error]:', err.message);
+    res.status(500).json({ error: 'Failed to update playlist.' });
+  }
+};
+
 // 4. Get songs inside a playlist
 export const getPlaylistSongs = async (req, res) => {
   const userId = getUserId(req);

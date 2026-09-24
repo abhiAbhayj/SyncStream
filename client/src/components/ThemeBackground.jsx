@@ -799,55 +799,55 @@ export default function ThemeBackground() {
           ctx.globalAlpha = 1;
         });
       } else if (activeTheme === 'tokyo') {
-        // 🪩 6. Retro Synthwave Highway (Balanced Dark Outrun Mode)
-        const horizonY = height * 0.54;
-        const sunRadius = Math.min(width, height) * 0.20;
+        // 🪩 6. Retro Synthwave Highway (Balanced Dark Outrun Mode - Soft Ambient Horizon)
+        const horizonY = height * 0.65;
+        const sunRadius = Math.min(width, height) * 0.16;
         const sunCenterX = width * 0.5;
 
-        // Moody Striped Neon Sun (Reduced harsh glare)
+        // Moody Striped Neon Sun (Subtle, non-distracting ambient glow)
         ctx.save();
         ctx.beginPath();
-        ctx.arc(sunCenterX, horizonY - 10, sunRadius, Math.PI, 0, false);
+        ctx.arc(sunCenterX, horizonY - 6, sunRadius, Math.PI, 0, false);
         ctx.closePath();
-        const sunGrad = ctx.createLinearGradient(0, horizonY - 10 - sunRadius, 0, horizonY - 10);
-        sunGrad.addColorStop(0, 'rgba(255, 230, 0, 0.85)');
-        sunGrad.addColorStop(0.5, 'rgba(255, 69, 91, 0.85)');
-        sunGrad.addColorStop(1, 'rgba(191, 0, 255, 0.85)');
+        const sunGrad = ctx.createLinearGradient(0, horizonY - 6 - sunRadius, 0, horizonY - 6);
+        sunGrad.addColorStop(0, 'rgba(255, 140, 0, 0.40)');
+        sunGrad.addColorStop(0.5, 'rgba(255, 45, 85, 0.40)');
+        sunGrad.addColorStop(1, 'rgba(140, 20, 180, 0.40)');
         ctx.fillStyle = sunGrad;
-        ctx.shadowColor = '#ff455b';
-        ctx.shadowBlur = 15; // Softened
+        ctx.shadowColor = '#ff2d55';
+        ctx.shadowBlur = 8;
         ctx.fill();
         ctx.restore();
 
         // Horizontal Stripes on Sun
-        for (let i = 1; i <= 6; i++) {
-          const stripeY = horizonY - 10 - (i / 7) * sunRadius;
+        for (let i = 1; i <= 5; i++) {
+          const stripeY = horizonY - 6 - (i / 6) * sunRadius;
           ctx.fillStyle = '#12041a';
-          ctx.fillRect(sunCenterX - sunRadius, stripeY, sunRadius * 2, 2.5 + i * 0.7);
+          ctx.fillRect(sunCenterX - sunRadius, stripeY, sunRadius * 2, 2.2 + i * 0.6);
         }
 
         // Megacity Skyline Silhouette
         customEntities.forEach((b) => {
           ctx.fillStyle = b.color;
-          ctx.fillRect(b.x, horizonY - b.h, b.w, b.h);
+          ctx.fillRect(b.x, horizonY - b.h * 0.7, b.w, b.h * 0.7);
         });
 
         // 3D Perspective Road (Balanced opacity)
-        const roadOffset = (frame * 1.4) % 40;
-        ctx.strokeStyle = 'rgba(0, 245, 255, 0.22)';
+        const roadOffset = (frame * 1.2) % 40;
+        ctx.strokeStyle = 'rgba(0, 245, 255, 0.16)';
         ctx.lineWidth = 1;
 
-        for (let x = -width * 0.5; x < width * 1.5; x += 60) {
+        for (let x = -width * 0.5; x < width * 1.5; x += 70) {
           ctx.beginPath();
           ctx.moveTo(sunCenterX + (x - sunCenterX) * 0.04, horizonY);
           ctx.lineTo(x, height);
           ctx.stroke();
         }
 
-        for (let y = 0; y < height - horizonY; y += 20) {
+        for (let y = 0; y < height - horizonY; y += 22) {
           const curY = horizonY + Math.pow((y + roadOffset) / (height - horizonY), 2) * (height - horizonY);
           if (curY <= height) {
-            const lineAlpha = Math.min(0.35, ((curY - horizonY) / (height - horizonY)) * 0.35);
+            const lineAlpha = Math.min(0.24, ((curY - horizonY) / (height - horizonY)) * 0.24);
             ctx.strokeStyle = `rgba(255, 69, 91, ${lineAlpha})`;
             ctx.beginPath();
             ctx.moveTo(0, curY);
@@ -1115,9 +1115,15 @@ export default function ThemeBackground() {
     <div
       aria-hidden="true"
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
-      style={{ opacity: 0.95 }}
+      style={{ opacity: 0.68 }}
     >
       <canvas ref={canvasRef} className="w-full h-full block" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 50% 40%, rgba(5, 7, 14, 0.3) 0%, rgba(5, 7, 14, 0.7) 100%)'
+        }}
+      />
     </div>
   );
 }
