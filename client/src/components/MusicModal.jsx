@@ -43,6 +43,30 @@ const cleanText = (str) => {
     .trim();
 };
 
+const cleanSongTitle = (str) => {
+  if (!str || typeof str !== 'string') return '';
+  let cleaned = cleanText(str);
+  // Remove common YouTube SEO / video clutter
+  cleaned = cleaned
+    .replace(/\s*(\(|\[)\s*(official\s*(music\s*)?video|video\s*song|lyric\s*video|audio|audio\s*song|4k|hd|full\s*song|visualizer|remastered)\s*(\)|\])/gi, '')
+    .replace(/\s*\|\s*(official\s*(music\s*)?video|video\s*song|lyric\s*video|audio|audio\s*song|4k|hd|full\s*song|visualizer).*/gi, '')
+    .replace(/\s*\|\s*.*$/gi, (match) => {
+      return match.includes('|') && cleaned.split('|')[0].trim().length > 3 ? '' : match;
+    })
+    .replace(/\s*-\s*official\s*video.*/gi, '')
+    .trim();
+  return cleaned || cleanText(str);
+};
+
+const cleanArtistName = (str) => {
+  if (!str || typeof str !== 'string') return 'Unknown Artist';
+  let cleaned = cleanText(str);
+  return cleaned
+    .replace(/\s*-\s*topic$/i, '')
+    .replace(/,\s*$/, '')
+    .trim() || 'Unknown Artist';
+};
+
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return '00:00';
   const mins = Math.floor(seconds / 60);
@@ -234,16 +258,16 @@ export default function MusicModal() {
       <div className="absolute bottom-1/4 right-1/4 w-80 sm:w-96 h-80 sm:h-96 rounded-full bg-accentCyan/15 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
 
       {/* ── TOP BAR: Navigation & Tabs ── */}
-      <header className="relative z-20 flex items-center justify-between max-w-3xl mx-auto w-full shrink-0 gap-2 pt-[env(safe-area-inset-top,0.25rem)] pb-2">
+      <header className="relative z-20 flex items-center justify-between max-w-2xl mx-auto w-full shrink-0 gap-2 pt-[env(safe-area-inset-top,0.25rem)] pb-1">
         
         {/* Minimize Button */}
         <button
           type="button"
           onClick={handleMinimizeModal}
-          className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/15 shadow-md"
+          className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/15 shadow-md"
           title="Minimize to Floating Bar"
         >
-          <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-accentCyan" />
+          <ChevronDown className="w-4 h-4 text-accentCyan" />
           <span className="hidden sm:inline">Minimize</span>
         </button>
 
@@ -258,7 +282,7 @@ export default function MusicModal() {
                 : 'text-gray-300 hover:text-white'
             }`}
           >
-            <Music2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Music2 className="w-3.5 h-3.5" />
             <span>Player</span>
           </button>
           
@@ -271,7 +295,7 @@ export default function MusicModal() {
                 : 'text-gray-300 hover:text-white'
             }`}
           >
-            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <FileText className="w-3.5 h-3.5" />
             <span>Lyrics</span>
           </button>
 
@@ -284,7 +308,7 @@ export default function MusicModal() {
                 : 'text-gray-300 hover:text-white'
             }`}
           >
-            <ListMusic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ListMusic className="w-3.5 h-3.5" />
             <span>Queue ({queue.length})</span>
           </button>
         </div>
@@ -293,26 +317,26 @@ export default function MusicModal() {
         <button
           type="button"
           onClick={handleCloseModal}
-          className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/15 shadow-md shrink-0"
+          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/15 shadow-md shrink-0"
           title="Stop & Close Music"
         >
-          <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+          <X className="w-4 h-4 stroke-[2.5]" />
         </button>
       </header>
 
       {/* ── MAIN STAGE AREA ── */}
-      <main className="relative z-10 max-w-3xl mx-auto w-full flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden py-1">
+      <main className="relative z-10 max-w-2xl mx-auto w-full flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden py-1">
         
         {/* 1. PLAYER VIEW */}
         {modalTab === 'player' && (
-          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 sm:gap-3 w-full animate-fade-in text-center px-2">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 w-full animate-fade-in text-center px-2 my-auto">
             
             {/* View Style Switcher */}
-            <div className="flex items-center gap-1 bg-white/10 border border-white/15 p-1 rounded-full text-[11px] font-bold text-gray-300 backdrop-blur-md shrink-0 mb-1">
+            <div className="flex items-center gap-1 bg-white/10 border border-white/15 p-0.5 rounded-full text-[11px] font-bold text-gray-300 backdrop-blur-md shrink-0 shadow-sm">
               <button
                 type="button"
                 onClick={() => setViewStyle('poster')}
-                className={`flex items-center gap-1 px-3 py-1 rounded-full transition ${viewStyle === 'poster' ? 'bg-accentCyan text-black font-extrabold shadow' : 'hover:text-white'}`}
+                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'poster' ? 'bg-accentCyan text-black font-extrabold shadow' : 'hover:text-white'}`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Poster Art</span>
@@ -320,7 +344,7 @@ export default function MusicModal() {
               <button
                 type="button"
                 onClick={() => setViewStyle('vinyl')}
-                className={`flex items-center gap-1 px-3 py-1 rounded-full transition ${viewStyle === 'vinyl' ? 'bg-accentCyan text-black font-extrabold shadow' : 'hover:text-white'}`}
+                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'vinyl' ? 'bg-accentCyan text-black font-extrabold shadow' : 'hover:text-white'}`}
               >
                 <Disc3 className="w-3.5 h-3.5" />
                 <span>Vinyl Disc</span>
@@ -332,35 +356,35 @@ export default function MusicModal() {
               <div className="relative group shrink-0 my-auto flex items-center justify-center">
                 {/* Ambient background glow matching album art */}
                 <div 
-                  className="absolute -inset-3 rounded-3xl blur-2xl opacity-40 scale-95 transition-opacity duration-700 pointer-events-none hidden sm:block"
+                  className="absolute -inset-4 rounded-3xl blur-2xl opacity-40 scale-95 transition-opacity duration-700 pointer-events-none hidden sm:block"
                   style={{
                     backgroundImage: `url(${trackImageUrl})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }}
                 />
-                <div className="w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[340px] lg:h-[340px] max-h-[36vh] sm:max-h-[42vh] md:max-h-[46vh] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative bg-black/40 z-10">
+                <div className="w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 max-h-[30vh] sm:max-h-[35vh] md:max-h-[40vh] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative bg-black/40 z-10">
                   <img
                     src={trackImageUrl}
-                    alt={cleanText(currentTrack.title)}
+                    alt={cleanSongTitle(currentTrack.title)}
                     className={`w-full h-full object-cover transition-transform duration-700 ${isPlaying ? 'scale-105' : 'scale-100'}`}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = FALLBACK_IMAGE;
                     }}
                   />
+                  {isPlaying && (
+                    <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
+                      <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
+                      <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
+                      <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
+                      <span className="w-1.5 rounded-full bg-gradient-to-t from-accentCyan via-accentPurple to-accentPink animate-eq-4" />
+                      <span className="w-1 rounded-full bg-gradient-to-t from-accentGold to-accentPink animate-eq-5" />
+                      <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentPurple animate-eq-6" />
+                      <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentCyan animate-eq-7" />
+                    </div>
+                  )}
                 </div>
-                {isPlaying && (
-                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 flex items-end gap-1.5 px-3.5 py-1.5 bg-black/90 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_20px_rgba(99,210,255,0.7)] z-20">
-                    <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
-                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
-                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
-                    <span className="w-1.5 rounded-full bg-gradient-to-t from-accentCyan via-accentPurple to-accentPink animate-eq-4" />
-                    <span className="w-1 rounded-full bg-gradient-to-t from-accentGold to-accentPink animate-eq-5" />
-                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentPurple animate-eq-6" />
-                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentCyan animate-eq-7" />
-                  </div>
-                )}
               </div>
             )}
 
@@ -377,15 +401,15 @@ export default function MusicModal() {
                   }}
                 />
                 <div
-                  className={`w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[340px] lg:h-[340px] max-h-[36vh] sm:max-h-[42vh] md:max-h-[46vh] aspect-square rounded-full p-2 sm:p-2.5 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_45px_rgba(99,210,255,0.4)] transition-all duration-700 relative z-10 ${
-                    isPlaying ? 'animate-spin-slow shadow-[0_0_60px_rgba(99,210,255,0.6)]' : ''
+                  className={`w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 max-h-[30vh] sm:max-h-[35vh] md:max-h-[40vh] aspect-square rounded-full p-2 sm:p-2.5 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_40px_rgba(99,210,255,0.35)] transition-all duration-700 relative z-10 ${
+                    isPlaying ? 'animate-spin-slow shadow-[0_0_55px_rgba(99,210,255,0.55)]' : ''
                   }`}
                 >
                   <div className="w-full h-full rounded-full vinyl-grooves border-2 border-white/20 relative flex items-center justify-center shadow-2xl overflow-hidden">
                     {/* Concentric Vinyl Grooves */}
-                    <div className="absolute inset-3 sm:inset-5 rounded-full border border-white/[0.08] pointer-events-none" />
-                    <div className="absolute inset-7 sm:inset-10 rounded-full border border-white/[0.06] pointer-events-none" />
-                    <div className="absolute inset-11 sm:inset-16 rounded-full border border-white/[0.05] pointer-events-none" />
+                    <div className="absolute inset-3 sm:inset-4 rounded-full border border-white/[0.08] pointer-events-none" />
+                    <div className="absolute inset-6 sm:inset-9 rounded-full border border-white/[0.06] pointer-events-none" />
+                    <div className="absolute inset-10 sm:inset-14 rounded-full border border-white/[0.05] pointer-events-none" />
                     
                     {/* Vinyl Light Sheen Overlay */}
                     <div
@@ -396,10 +420,10 @@ export default function MusicModal() {
                     />
 
                     {/* Centered Album Label */}
-                    <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
+                    <div className="w-20 h-20 sm:w-26 sm:h-26 md:w-30 md:h-30 rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
                       <img
                         src={trackImageUrl}
-                        alt={cleanText(currentTrack.title)}
+                        alt={cleanSongTitle(currentTrack.title)}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
@@ -415,7 +439,7 @@ export default function MusicModal() {
                 </div>
 
                 {isPlaying && (
-                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 flex items-end gap-1.5 px-3.5 py-1.5 bg-black/90 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_20px_rgba(99,210,255,0.7)] z-20">
+                  <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
@@ -429,7 +453,7 @@ export default function MusicModal() {
             )}
 
             {/* Track Info (Title, Singer, Badges) */}
-            <div className="space-y-1 max-w-sm sm:max-w-md md:max-w-lg px-3 shrink-0 mt-1">
+            <div className="space-y-1.5 max-w-sm sm:max-w-md md:max-w-lg px-4 shrink-0 mt-1">
               
               {/* Badges & Actions row */}
               <div className="flex items-center justify-center gap-1.5 flex-wrap">
@@ -473,13 +497,13 @@ export default function MusicModal() {
               </div>
 
               {/* Title */}
-              <h1 className="text-sm sm:text-base md:text-xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-2 drop-shadow-md">
-                {cleanText(currentTrack.title)}
+              <h1 className="text-base sm:text-lg md:text-xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-1 drop-shadow-md">
+                {cleanSongTitle(currentTrack.title)}
               </h1>
 
               {/* Singer / Artist */}
               <p className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-xs sm:max-w-sm md:max-w-md mx-auto block leading-tight">
-                {cleanText(currentTrack.artist)}
+                {cleanArtistName(currentTrack.artist)}
               </p>
             </div>
 
@@ -660,7 +684,7 @@ export default function MusicModal() {
       </main>
 
       {/* ── BOTTOM AUDIO CONTROLS & SCRUBBER ── */}
-      <footer className="relative z-20 max-w-xl mx-auto w-full shrink-0 space-y-2 pt-2 pb-[env(safe-area-inset-bottom,0.25rem)]">
+      <footer className="relative z-20 max-w-lg mx-auto w-full shrink-0 space-y-2 pt-1 pb-[env(safe-area-inset-bottom,0.25rem)] px-3">
         
         {/* Scrubber Bar */}
         <div className="space-y-1 px-1">
@@ -680,7 +704,7 @@ export default function MusicModal() {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[10.5px] font-mono font-bold text-gray-300 px-0.5">
+          <div className="flex items-center justify-between text-[11px] font-mono font-bold text-gray-300 px-0.5">
             <span>{formatTime(displayTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -766,7 +790,7 @@ export default function MusicModal() {
         </div>
 
         {/* Volume Slider */}
-        <div className="hidden sm:flex items-center justify-center gap-2.5 pt-1">
+        <div className="hidden sm:flex items-center justify-center gap-2.5 pt-0.5">
           <button type="button" onClick={toggleMute} className="text-gray-400 hover:text-white">
             {isMuted || volume === 0 ? (
               <VolumeX className="w-3.5 h-3.5 text-red-400" />
