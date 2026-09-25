@@ -277,142 +277,125 @@ export const fetchYouTubeTracks = async (query, limit = 12) => {
   }
 };
 
+// In-memory cache with 5-minute TTL for lightning-fast loads + regular background refreshes
+const trendingCache = new Map();
+let chartsCache = { data: null, timestamp: 0 };
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 // Multi-language & genre trending search queries continuously updated with latest 2026 hits
 const TRENDING_QUERIES = {
   all: [
+    'Trending Songs 2026 Top Hits',
+    'Latest Hit Songs 2026',
     'Alaakaa Loova OM Chapter 1',
     'The Wild Theme OM Chapter 1',
     'Siya Entry OM Chapter 1',
     'Sai Abhyankkar Hits',
+    'Big Dawgs Hanumankind',
+    'Hunt You Down Richardson',
     'Arijit Singh Hits',
     'Imagine Dragons',
-    'Lady Gaga',
-    'Big Dawgs Hanumankind',
-    'Alan Walker',
-    'DJ Snake',
-    'BLACKPINK',
-    'Harrdy Sandhu Hits',
-    'Guru Randhawa',
-    'Hunt You Down Richardson',
-    'Sia Hits',
-    'Ed Sheeran',
-    'Ellie Goulding',
-    'Ravi Basrur Hits',
-    'Aish Songs'
+    'Taylor Swift',
+    'BLACKPINK Hits'
   ],
   blues_rap: [
     'Hunt You Down Richardson',
     'Lee Richardson Blues Rap',
-    'Blues Rap Rock',
-    'Back Alley Blues Rap',
-    'Gravel Heart Gospel Blues Rap'
+    'Blues Rap Rock 2026',
+    'Back Alley Blues Rap'
   ],
   rap: [
+    'Trending Rap Songs 2026',
     'Big Dawgs Hanumankind',
     'Eminem Rap God',
     'Divine Hindi Rap',
     'Kendrick Lamar',
-    'Travis Scott',
-    'Drake Hits',
-    'Karan Aujla Rap'
+    'Travis Scott'
   ],
   rock: [
+    'Trending Rock Songs 2026',
     'The Wild Theme OM Chapter 1',
     'Imagine Dragons',
     'Linkin Park',
     'Queen Bohemian Rhapsody',
-    'Coldplay',
-    'Hunt You Down Richardson',
-    'Lee Richardson',
-    'Bon Jovi'
+    'Coldplay'
   ],
   kpop: [
+    'Trending K-Pop 2026',
     'BLACKPINK Hits',
     'BTS Dynamite',
     'Stray Kids',
-    'NewJeans Hype Boy',
-    'TWICE Feel Special'
+    'NewJeans',
+    'TWICE'
   ],
   korean: [
-    'Korean Drama OST 2026',
+    'Trending Korean Drama OST 2026',
     'IU Korean Hits',
-    'BLACKPINK',
-    'BTS',
-    'NewJeans',
-    'K-Drama Soundtracks'
+    'K-Drama Soundtracks 2026'
   ],
   hindi: [
     'Latest Bollywood 2026 Hits',
+    'Trending Hindi Songs 2026',
     'Arijit Singh Hits',
     'Harrdy Sandhu Hits',
-    'Guru Randhawa Hits',
     'Pritam Hits',
-    'Hanumankind',
-    'Aish Songs',
     'Shreya Ghoshal Hits'
   ],
   anime: [
-    'Anime Opening OST',
+    'Trending Anime Opening OST 2026',
     'LiSA Gurenge',
     'Kenshi Yonezu Peace Sign',
     'Naruto Blue Bird Opening',
     'Attack on Titan Opening'
   ],
   english: [
-    'Latest English Pop 2026',
+    'Latest English Pop 2026 Hits',
+    'Trending Global Pop 2026',
     'Lady Gaga',
     'Alan Walker',
     'DJ Snake',
     'Ed Sheeran',
-    'Imagine Dragons',
-    'Sia',
-    'Ellie Goulding',
     'Taylor Swift',
     'The Weeknd'
   ],
   kannada: [
+    'Trending Kannada Songs 2026',
     'Kannada Film Hits 2026',
     'Ravi Basrur KGF Salaar',
     'Kantara Songs',
-    'Sonu Nigam Kannada Hits',
-    'Vijay Prakash Kannada'
+    'Sonu Nigam Kannada Hits'
   ],
   malayalam: [
+    'Trending Malayalam Songs 2026',
     'Malayalam Film Hits 2026',
     'Sushin Shyam Hits',
     'Jassie Gift Malayalam',
-    'Vineeth Sreenivasan Hits',
-    'Hanumankind'
+    'Vineeth Sreenivasan Hits'
   ],
   telugu: [
+    'Trending Telugu Songs 2026',
+    'Telugu Film Hits 2026',
     'Alaakaa Loova OM Chapter 1 Telugu',
     'The Wild Theme OM Chapter 1 Telugu',
     'Siya Entry OM Chapter 1',
-    'Telugu Film Hits 2026',
-    'Ravi Basrur Telugu',
     'DSP Telugu Hits',
-    'Thaman S Telugu Hits',
-    'Anirudh Telugu Hits',
-    'Pushpa Telugu Songs'
+    'Anirudh Telugu Hits'
   ],
   tamil: [
+    'Trending Tamil Songs 2026',
+    'Tamil Film Hits 2026',
     'Alaakaa Loova OM Chapter 1',
     'The Wild Theme OM Chapter 1 Tamil',
     'Siya Entry OM Chapter 1',
-    'Sai Abhyankkar OM Chapter 1',
-    'Tamil Film Hits 2026',
+    'Sai Abhyankkar Hits',
     'Anirudh Tamil Hits',
-    'AR Rahman Tamil Hits',
-    'Harris Jayaraj Tamil',
-    'Ravi Basrur Tamil',
-    'Yuvan Shankar Raja Tamil'
+    'AR Rahman Tamil Hits'
   ],
   marathi: [
+    'Trending Marathi Songs 2026',
     'Marathi Film Hits 2026',
     'Ajay Atul Marathi Hits',
-    'Sairat Marathi Songs',
-    'Avadhoot Gupte Marathi',
-    'Swapnil Bandodkar Marathi'
+    'Sairat Marathi Songs'
   ]
 };
 
@@ -428,22 +411,32 @@ export const fetchSaavnSongs = async (query, n = 8) => {
     .filter(s => s && s.audio_url && !isSpamTrack(s));
 };
 
-// Direct helper for Home page live trending music feed
+// Direct helper for Home page live trending music feed (Dual-Engine)
 export const getTrendingMusicDirect = async (limit = 12) => {
+  const seen = new Set();
+  const songs = [];
+  try {
+    const ytSongs = await fetchYouTubeTracks('Trending Songs 2026 Top Hits OM Chapter 1', 6);
+    for (const s of ytSongs) {
+      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
+        seen.add(key);
+        seen.add(s.id);
+        songs.push({ ...s, poster_path: s.image, media_type: 'music' });
+      }
+    }
+  } catch (e) {}
+
   const queries = [
     'The Wild Theme OM Chapter 1',
     'Big Dawgs Hanumankind',
     'Hunt You Down Richardson',
     'Latest Bollywood 2026 Hits',
-    'Tamil Film Hits 2026',
-    'Telugu Film Hits 2026',
-    'Imagine Dragons'
+    'Tamil Film Hits 2026'
   ];
-  const seen = new Set();
-  const songs = [];
   for (const q of queries) {
     try {
-      const results = await fetchSaavnSongs(q, 4);
+      const results = await fetchSaavnSongs(q, 3);
       for (const s of results) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
@@ -465,26 +458,51 @@ export const getTrendingMusicDirect = async (limit = 12) => {
 // Delay helper to avoid JioSaavn rate limiting
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 1. Get Trending / Featured Songs by Language / Genre
+// 1. Get Trending / Featured Songs by Language / Genre (Dual-Engine + Live Refreshed)
 export const getTrendingMusic = async (req, res) => {
   const language = (req.query.language || 'all').toLowerCase();
   const page = parseInt(req.query.page || '1', 10);
   const limit = parseInt(req.query.limit || '24', 10);
+  const forceRefresh = req.query.refresh === 'true';
 
-  const queryList = TRENDING_QUERIES[language] || [`${language} Hits 2026`];
+  const cacheKey = `${language}_${page}_${limit}`;
+  const cached = trendingCache.get(cacheKey);
+  const now = Date.now();
+
+  if (!forceRefresh && cached && (now - cached.timestamp < CACHE_TTL_MS)) {
+    return res.json({
+      language,
+      page,
+      total: cached.data.length,
+      songs: cached.data,
+      cached: true
+    });
+  }
+
+  const queryList = TRENDING_QUERIES[language] || [`Trending ${language} Songs 2026`, `${language} Hits`];
 
   try {
-    const fetchPromises = queryList.map(async (q) => {
-      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=12&p=${page}&q=${encodeURIComponent(q)}`;
+    const seen = new Set();
+    const collected = [];
+
+    // Dual-Engine: 1. Fetch live YouTube trending tracks concurrently
+    const ytPrimaryQuery = queryList[0] || `Trending ${language} Songs 2026`;
+    const ytSecondaryQuery = queryList[1] || `${language} Top Hits 2026`;
+    
+    const ytPromise = Promise.all([
+      fetchYouTubeTracks(ytPrimaryQuery, 8),
+      fetchYouTubeTracks(ytSecondaryQuery, 6)
+    ]).then(arr => arr.flat()).catch(() => []);
+
+    // Dual-Engine: 2. Fetch JioSaavn tracks concurrently
+    const saavnPromises = queryList.slice(0, 3).map(async (q) => {
       try {
+        const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=8&p=${page}&q=${encodeURIComponent(q)}`;
         const response = await axios.get(url, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          },
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
           timeout: 8000
         });
-        const rawResults = response.data.results || [];
-        return rawResults
+        return (response.data.results || [])
           .map(formatSong)
           .filter(s => s && s.audio_url && s.duration > 20 && s.duration < 800 && !isSpamTrack(s));
       } catch (err) {
@@ -492,26 +510,41 @@ export const getTrendingMusic = async (req, res) => {
       }
     });
 
-    const resultsArray = await Promise.all(fetchPromises);
-    const combined = resultsArray.flat();
+    const [ytSongs, ...saavnResults] = await Promise.all([
+      ytPromise,
+      ...saavnPromises
+    ]);
 
-    // Deduplicate songs by title/id
-    const seen = new Set();
-    const uniqueSongs = [];
-    for (const song of combined) {
-      const key = `${(song.title || '').toLowerCase().trim()}_${(song.artist || '').toLowerCase().trim()}`;
-      if (!seen.has(key) && !seen.has(song.id)) {
+    // Primary: Add fresh live YouTube hits
+    for (const s of (ytSongs || [])) {
+      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
         seen.add(key);
-        seen.add(song.id);
-        uniqueSongs.push(song);
+        seen.add(s.id);
+        collected.push(s);
       }
     }
+
+    // Secondary: Add JioSaavn studio masters
+    for (const list of saavnResults) {
+      for (const s of (list || [])) {
+        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(s.id)) {
+          seen.add(key);
+          seen.add(s.id);
+          collected.push(s);
+        }
+      }
+    }
+
+    const finalSongs = collected.slice(0, limit);
+    trendingCache.set(cacheKey, { data: finalSongs, timestamp: now });
 
     res.json({
       language,
       page,
-      total: uniqueSongs.length,
-      songs: uniqueSongs.slice(0, limit)
+      total: collected.length,
+      songs: finalSongs
     });
   } catch (error) {
     console.error('[Music Controller Trending Error]:', error.message);
@@ -691,14 +724,21 @@ export const searchMusic = async (req, res) => {
   }
 };
 
-// 3. Get Curated Regional Playlists / Charts
+// 3. Get Curated Regional Playlists / Charts (Dual-Engine + Cached & Live Refreshed)
 export const getMusicCharts = async (req, res) => {
+  const forceRefresh = req.query.refresh === 'true';
+  const now = Date.now();
+
+  if (!forceRefresh && chartsCache.data && (now - chartsCache.timestamp < CACHE_TTL_MS)) {
+    return res.json(chartsCache.data);
+  }
+
   const CHART_CATEGORIES = [
     {
       id: 'trending_global',
       title: '🔥 Trending Globally 2026',
       subtitle: 'Top songs across all languages right now',
-      query: 'The Wild Theme OM Chapter 1 Top Trending 2026 Hits'
+      query: 'Trending Songs 2026 Top Hits OM Chapter 1'
     },
     {
       id: 'blues_rap',
@@ -710,73 +750,73 @@ export const getMusicCharts = async (req, res) => {
       id: 'rap',
       title: '🎤 Rap & Hip-Hop',
       subtitle: 'Heavy basslines, bars and global rap chart toppers',
-      query: 'Big Dawgs Hanumankind Eminem Rap God Kendrick Lamar'
+      query: 'Trending Rap Songs 2026 Big Dawgs Hanumankind Eminem'
     },
     {
       id: 'rock',
       title: '🎸 Rock & Themes',
       subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
-      query: 'The Wild Theme Imagine Dragons Linkin Park Queen Rock Hits'
+      query: 'Trending Rock Hits 2026 The Wild Theme Imagine Dragons Linkin Park'
     },
     {
       id: 'kpop',
       title: '🇰🇷 K-Pop Worldwide',
       subtitle: 'Global K-Pop chart toppers',
-      query: 'BLACKPINK BTS Stray Kids NewJeans TWICE'
+      query: 'Trending K-Pop 2026 BLACKPINK BTS Stray Kids NewJeans'
     },
     {
       id: 'korean',
       title: '🇰🇷 Korean Drama & OSTs',
       subtitle: 'Iconic Korean film & K-Drama soundtracks',
-      query: 'Korean Drama OST IU Hits K-Drama Soundtracks'
+      query: 'Trending Korean Drama OST 2026 IU Soundtracks'
     },
     {
       id: 'bollywood',
       title: '🇮🇳 Hindi Bollywood 2026',
       subtitle: "Hindi cinema's biggest fresh tracks & remixes",
-      query: 'Bollywood Hindi Film Songs 2026 Arijit Singh'
+      query: 'Trending Hindi Bollywood 2026 Arijit Singh Hits'
     },
     {
       id: 'anime',
       title: '🌸 Anime & J-Pop',
       subtitle: 'Japanese anime openings, remixes & OSTs',
-      query: 'Anime Opening Song Japanese OST Naruto LiSA Gurenge'
+      query: 'Trending Anime Opening Songs 2026 LiSA Gurenge Naruto'
     },
     {
       id: 'global_pop',
       title: '🌍 Global English Pop',
       subtitle: 'International English hits & club remixes',
-      query: 'English Pop Hits Olivia Rodrigo Sabrina Carpenter Taylor Swift 2026'
+      query: 'Trending English Pop 2026 Taylor Swift Sabrina Carpenter'
     },
     {
       id: 'kannada',
       title: '🦁 Kannada Sandalwood',
       subtitle: 'Hottest Kannada movie songs & BGM scores',
-      query: 'Kannada Film Songs 2026 Ravi Basrur'
+      query: 'Trending Kannada Songs 2026 Ravi Basrur'
     },
     {
       id: 'malayalam',
       title: '🌿 Malayalam Mollywood',
       subtitle: 'Soulful Malayalam tracks & indie hits',
-      query: 'Malayalam Film Songs 2026 Sushin Shyam'
+      query: 'Trending Malayalam Songs 2026 Sushin Shyam'
     },
     {
       id: 'telugu',
       title: '🎬 Telugu Tollywood',
       subtitle: 'Trending Telugu cinema songs & mass themes',
-      query: 'Telugu Film Songs 2026 DSP Devi Sri Prasad'
+      query: 'Trending Telugu Songs 2026 OM Chapter 1 DSP'
     },
     {
       id: 'tamil',
       title: '⚡ Tamil Kollywood',
       subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
-      query: 'Tamil Film Songs 2026 Sai Abhyankkar Anirudh'
+      query: 'Trending Tamil Songs 2026 Alaakaa Loova Sai Abhyankkar'
     },
     {
       id: 'marathi',
       title: '🚩 Marathi Cinema',
       subtitle: 'Energetic & soulful Marathi tracks',
-      query: 'Marathi Film Songs Ajay Atul Sairat 2026'
+      query: 'Trending Marathi Songs 2026 Ajay Atul'
     }
   ];
 
@@ -784,29 +824,47 @@ export const getMusicCharts = async (req, res) => {
 
   for (const cat of CHART_CATEGORIES) {
     try {
-      const songs = await fetchSaavnSongs(cat.query, 8);
-      // If Saavn has few results, enrich with YouTube
-      if (songs.length < 4) {
-        const ytSongs = await fetchYouTubeTracks(cat.query, 6);
-        for (const yt of ytSongs) {
-          if (!songs.some(s => s.id === yt.id)) {
-            songs.push(yt);
-          }
+      const seen = new Set();
+      const catSongs = [];
+
+      // Concurrently fetch YouTube and JioSaavn
+      const [ytSongs, saavnSongs] = await Promise.all([
+        fetchYouTubeTracks(cat.query, 4).catch(() => []),
+        fetchSaavnSongs(cat.query, 6).catch(() => [])
+      ]);
+
+      for (const yt of ytSongs) {
+        const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(yt.id)) {
+          seen.add(key);
+          seen.add(yt.id);
+          catSongs.push(yt);
         }
       }
+
+      for (const s of saavnSongs) {
+        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(s.id)) {
+          seen.add(key);
+          seen.add(s.id);
+          catSongs.push(s);
+        }
+      }
+
       charts.push({
         id: cat.id,
         title: cat.title,
         subtitle: cat.subtitle,
-        songs: songs.slice(0, 8)
+        songs: catSongs.slice(0, 8)
       });
     } catch (e) {
       console.warn(`[Charts] Failed to fetch ${cat.id}:`, e.message);
       charts.push({ id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [] });
     }
-    await delay(250);
+    await delay(100);
   }
 
+  chartsCache = { data: charts, timestamp: now };
   res.json(charts);
 };
 

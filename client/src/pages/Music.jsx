@@ -28,7 +28,8 @@ import {
   Film,
   Tv,
   User,
-  Check
+  Check,
+  RefreshCw
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -119,6 +120,7 @@ export default function Music() {
   const [page, setPage] = useState(1);
   const [featuredSong, setFeaturedSong] = useState(null);
   const [chartsLoading, setChartsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Playlists UI State
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
@@ -148,8 +150,8 @@ export default function Music() {
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState(null);
   const [playlistAddedSuccess, setPlaylistAddedSuccess] = useState(null);
 
-  // Fetch trending songs by language with pagination
-  const fetchTrending = async (lang = 'all', pageNum = 1) => {
+  // Fetch trending songs by language with pagination (Dual-Engine live updated)
+  const fetchTrending = async (lang = 'all', pageNum = 1, forceRefresh = false) => {
     if (pageNum === 1) {
       setLoading(true);
     } else {
@@ -157,7 +159,12 @@ export default function Music() {
     }
     try {
       const res = await axios.get('/api/music/trending', {
-        params: { language: lang, page: pageNum, limit: 24 }
+        params: {
+          language: lang,
+          page: pageNum,
+          limit: 24,
+          refresh: forceRefresh ? 'true' : undefined
+        }
       });
       const trackList = res.data.songs || [];
       if (pageNum === 1) {
@@ -181,16 +188,31 @@ export default function Music() {
     }
   };
 
-  // Fetch curated charts
-  const fetchCharts = async () => {
+  // Fetch curated charts (Dual-Engine live updated)
+  const fetchCharts = async (forceRefresh = false) => {
     setChartsLoading(true);
     try {
-      const res = await axios.get('/api/music/charts');
+      const res = await axios.get('/api/music/charts', {
+        params: { refresh: forceRefresh ? 'true' : undefined }
+      });
       setCharts(res.data || []);
     } catch (err) {
       console.error('Error fetching charts:', err);
     } finally {
       setChartsLoading(false);
+    }
+  };
+
+  // Full manual/auto refresh of all hits & trending charts
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([
+        fetchTrending(selectedLang, 1, true),
+        fetchCharts(true)
+      ]);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -422,6 +444,17 @@ export default function Music() {
     fetchCharts();
   }, []);
 
+  // Periodic automatic background refresh (every 4 minutes)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeTab === 'discover' && !searchQuery.trim()) {
+        fetchTrending(selectedLang, 1, true);
+        fetchCharts(true);
+      }
+    }, 4 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [activeTab, selectedLang, searchQuery]);
+
   return (
     <div className="max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-24">
       
@@ -430,13 +463,13 @@ export default function Music() {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accentCyan/10 border border-accentCyan/20 text-accentCyan text-[11px] font-bold uppercase tracking-wider font-mono">
             <Radio className="w-3 h-3 animate-pulse" />
-            <span>High-Fidelity 320kbps Audio</span>
+            <span>Dual-Engine: YouTube Music + Studio Masters 320kbps &bull; Live Updated</span>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white font-outfit tracking-tight">
             SyncStream Music &amp; Playlists
           </h1>
           <p className="text-xs sm:text-sm text-gray-400">
-            Search by Artist, Movie, TV Series, Anime or Song name &bull; Create your favorite library &amp; custom playlists.
+            Search by Artist, Movie, TV Series, Anime or Song name &bull; Universal Catalog auto-updated with latest hits.
           </p>
         </div>
 
@@ -558,6 +591,17 @@ export default function Music() {
           {/* Language Selector */}
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+              <button
+                type="button"
+                onClick={handleRefreshAll}
+                disabled={isRefreshing || loading}
+                className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-accentCyan/30 bg-accentCyan/10 hover:bg-accentCyan/20 text-accentCyan active:scale-95 shrink-0 shadow-sm"
+                title="Refresh live trending hits & charts"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>Live Refresh</span>
+              </button>
+
               {LANGUAGES.map((lang) => {
                 const isSelected = selectedLang === lang.id;
                 return (
@@ -853,12 +897,24 @@ export default function Music() {
           {/* Curated Regional Charts */}
           {!searchQuery && (
             <div className="space-y-8 pt-4 border-t border-darkBorder">
-              <div className="space-y-0.5">
-                <h3 className="text-lg sm:text-2xl font-extrabold text-white font-outfit flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-accentCyan" />
-                  <span>Curated Regional Charts &amp; Soundtracks</span>
-                </h3>
-                <p className="text-xs text-gray-400 font-medium">Hand-picked charts from Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime &amp; Global Hits.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <h3 className="text-lg sm:text-2xl font-extrabold text-white font-outfit flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-accentCyan" />
+                    <span>Curated Regional Charts &amp; Soundtracks</span>
+                  </h3>
+                  <p className="text-xs text-gray-400 font-medium">Hand-picked charts from Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime &amp; Global Hits &bull; Live Updated.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fetchCharts(true)}
+                  disabled={chartsLoading || isRefreshing}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-200 border border-white/15 text-xs font-bold transition active:scale-95 self-start sm:self-auto shrink-0 shadow-sm"
+                  title="Refresh charts with latest hits"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${chartsLoading || isRefreshing ? 'animate-spin' : ''}`} />
+                  <span>Refresh Charts</span>
+                </button>
               </div>
 
               {chartsLoading ? (
