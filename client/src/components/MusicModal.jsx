@@ -330,7 +330,16 @@ export default function MusicModal() {
             {/* Poster Art View */}
             {viewStyle === 'poster' && (
               <div className="relative group shrink-0 my-auto flex items-center justify-center">
-                <div className="w-44 h-44 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 max-h-[30vh] sm:max-h-[34vh] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_15px_40px_rgba(0,0,0,0.8)] relative bg-black/40">
+                {/* Ambient background glow matching album art */}
+                <div 
+                  className="absolute -inset-3 rounded-3xl blur-2xl opacity-40 scale-95 transition-opacity duration-700 pointer-events-none hidden sm:block"
+                  style={{
+                    backgroundImage: `url(${trackImageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+                <div className="w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[340px] lg:h-[340px] max-h-[36vh] sm:max-h-[42vh] md:max-h-[46vh] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative bg-black/40 z-10">
                   <img
                     src={trackImageUrl}
                     alt={cleanText(currentTrack.title)}
@@ -342,11 +351,14 @@ export default function MusicModal() {
                   />
                 </div>
                 {isPlaying && (
-                  <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 py-1 bg-black/90 backdrop-blur-md rounded-full border border-white/20 shadow-[0_0_15px_rgba(99,210,255,0.6)]">
-                    <span className="w-1 h-3 bg-accentCyan rounded-full animate-pulse" />
-                    <span className="w-1 h-5 bg-accentPurple rounded-full animate-pulse [animation-delay:0.2s]" />
-                    <span className="w-1 h-3.5 bg-accentPink rounded-full animate-pulse [animation-delay:0.4s]" />
-                    <span className="w-1 h-4 bg-accentCyan rounded-full animate-pulse [animation-delay:0.1s]" />
+                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 flex items-end gap-1.5 px-3.5 py-1.5 bg-black/90 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_20px_rgba(99,210,255,0.7)] z-20">
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
+                    <span className="w-1.5 rounded-full bg-gradient-to-t from-accentCyan via-accentPurple to-accentPink animate-eq-4" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentGold to-accentPink animate-eq-5" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentPurple animate-eq-6" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentCyan animate-eq-7" />
                   </div>
                 )}
               </div>
@@ -354,16 +366,37 @@ export default function MusicModal() {
 
             {/* Vinyl Disc View */}
             {viewStyle === 'vinyl' && (
-              <div className="relative flex items-center justify-center shrink-0 my-auto">
+              <div className="relative group shrink-0 my-auto flex items-center justify-center">
+                {/* Ambient background glow */}
+                <div 
+                  className="absolute -inset-4 rounded-full blur-2xl opacity-40 scale-95 transition-opacity duration-700 pointer-events-none hidden sm:block"
+                  style={{
+                    backgroundImage: `url(${trackImageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
                 <div
-                  className={`w-40 h-40 sm:w-52 sm:h-52 md:w-60 md:h-60 lg:w-68 lg:h-68 max-h-[28vh] sm:max-h-[32vh] aspect-square rounded-full p-2 bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink shadow-[0_0_40px_rgba(99,210,255,0.4)] transition-all duration-700 ${
+                  className={`w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[340px] lg:h-[340px] max-h-[36vh] sm:max-h-[42vh] md:max-h-[46vh] aspect-square rounded-full p-2 sm:p-2.5 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_45px_rgba(99,210,255,0.4)] transition-all duration-700 relative z-10 ${
                     isPlaying ? 'animate-spin-slow shadow-[0_0_60px_rgba(99,210,255,0.6)]' : ''
                   }`}
                 >
-                  <div className="w-full h-full rounded-full bg-black border-2 border-white/25 overflow-hidden relative flex items-center justify-center shadow-2xl">
-                    <div className="absolute inset-2 sm:inset-3 rounded-full border border-white/10 pointer-events-none" />
-                    <div className="absolute inset-4 sm:inset-6 rounded-full border border-white/10 pointer-events-none" />
-                    <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-30 md:h-30 rounded-full overflow-hidden border-2 border-black relative shadow-2xl">
+                  <div className="w-full h-full rounded-full vinyl-grooves border-2 border-white/20 relative flex items-center justify-center shadow-2xl overflow-hidden">
+                    {/* Concentric Vinyl Grooves */}
+                    <div className="absolute inset-3 sm:inset-5 rounded-full border border-white/[0.08] pointer-events-none" />
+                    <div className="absolute inset-7 sm:inset-10 rounded-full border border-white/[0.06] pointer-events-none" />
+                    <div className="absolute inset-11 sm:inset-16 rounded-full border border-white/[0.05] pointer-events-none" />
+                    
+                    {/* Vinyl Light Sheen Overlay */}
+                    <div
+                      className="absolute inset-0 rounded-full pointer-events-none opacity-30"
+                      style={{
+                        background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.18) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.18) 225deg, transparent 270deg)',
+                      }}
+                    />
+
+                    {/* Centered Album Label */}
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
                       <img
                         src={trackImageUrl}
                         alt={cleanText(currentTrack.title)}
@@ -373,10 +406,25 @@ export default function MusicModal() {
                           e.target.src = FALLBACK_IMAGE;
                         }}
                       />
-                      <div className="absolute inset-0 m-auto w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-darkBg border-2 border-white/60 shadow-inner" />
+                      {/* Spindle Hole */}
+                      <div className="absolute inset-0 m-auto w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#0d0d12] border-2 border-white/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.9)] z-10 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {isPlaying && (
+                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 flex items-end gap-1.5 px-3.5 py-1.5 bg-black/90 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_20px_rgba(99,210,255,0.7)] z-20">
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
+                    <span className="w-1.5 rounded-full bg-gradient-to-t from-accentCyan via-accentPurple to-accentPink animate-eq-4" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentGold to-accentPink animate-eq-5" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentPurple animate-eq-6" />
+                    <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentCyan animate-eq-7" />
+                  </div>
+                )}
               </div>
             )}
 
