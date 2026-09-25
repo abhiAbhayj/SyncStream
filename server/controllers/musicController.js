@@ -249,9 +249,15 @@ export const fetchYouTubeTracks = async (query, limit = 12) => {
       const channelName = v.ownerText?.runs?.map(r => r.text).join('') || 'YouTube Artist';
       const durationStr = v.lengthText?.simpleText || '0:00';
       const durationSec = parseDurationToSeconds(durationStr);
-      if (durationSec > 1200 && !query.toLowerCase().includes('jukebox') && !query.toLowerCase().includes('compilation')) {
-        continue;
+
+      // Filter out long compilation / playlist / jukebox videos that have unrelated thumbnails
+      const isMultiSongCompilation = /\b(playlist|jukebox|full album|top \d+|all songs|non stop|hour loop|\d+\s*hours?|compilation)\b/i.test(title);
+      if (isMultiSongCompilation || durationSec > 540 || durationSec < 20) {
+        if (!query.toLowerCase().includes('jukebox') && !query.toLowerCase().includes('compilation')) {
+          continue;
+        }
       }
+
       const thumbs = v.thumbnail?.thumbnails || [];
       const thumbnail = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
@@ -282,20 +288,27 @@ const trendingCache = new Map();
 let chartsCache = { data: null, timestamp: 0 };
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-// Multi-language & genre trending search queries continuously updated with latest 2026 hits
+// Detect generic compilation albums to avoid misleading posters on classic tracks
+export const isCompilationAlbum = (albumName) => {
+  if (!albumName) return false;
+  return /\b(hits|romantic|classics|best of|special|dance|hot|valentines?|trending|world music|compilation|jukebox|mix|vol\.?|volume|party|forever|heartbeats|soulful|vibes?|playlist|wedding|anniversary|mashup|through the years|next on repeat|road trip|love songs|top \d+|all time|collection|superhit|cafe)\b/i.test(albumName);
+};
+
+// Multi-language & genre trending search queries continuously updated with verified hit titles
 const TRENDING_QUERIES = {
   all: [
-    'Trending Songs 2026 Top Hits',
-    'Latest Hit Songs 2026',
     'Alaakaa Loova OM Chapter 1',
     'The Wild Theme OM Chapter 1',
     'Siya Entry OM Chapter 1',
-    'Sai Abhyankkar Hits',
+    'Apna Bana Le Bhediya',
     'Big Dawgs Hanumankind',
     'Hunt You Down Richardson',
-    'Arijit Singh Hits',
-    'Imagine Dragons',
-    'Taylor Swift',
+    'Kesariya Brahmastra',
+    'Chaleya Jawan',
+    'Naatu Naatu RRR',
+    'Badass Leo Anirudh',
+    'Imagine Dragons Believer',
+    'Taylor Swift Cruel Summer',
     'BLACKPINK Hits'
   ],
   blues_rap: [
@@ -305,110 +318,123 @@ const TRENDING_QUERIES = {
     'Back Alley Blues Rap'
   ],
   rap: [
-    'Trending Rap Songs 2026',
     'Big Dawgs Hanumankind',
     'Eminem Rap God',
-    'Divine Hindi Rap',
-    'Kendrick Lamar',
-    'Travis Scott'
+    'Eminem Houdini',
+    'Divine 359 AM',
+    'Kendrick Lamar Not Like Us',
+    'Travis Scott FE!N'
   ],
   rock: [
-    'Trending Rock Songs 2026',
     'The Wild Theme OM Chapter 1',
-    'Imagine Dragons',
-    'Linkin Park',
+    'Imagine Dragons Bones',
+    'Imagine Dragons Believer',
+    'Linkin Park In The End',
     'Queen Bohemian Rhapsody',
-    'Coldplay'
+    'Hunt You Down Richardson'
   ],
   kpop: [
-    'Trending K-Pop 2026',
-    'BLACKPINK Hits',
+    'BLACKPINK How You Like That',
     'BTS Dynamite',
-    'Stray Kids',
-    'NewJeans',
-    'TWICE'
+    'NewJeans Super Shy',
+    'Stray Kids God Menu',
+    'TWICE I Can\'t Stop Me'
   ],
   korean: [
-    'Trending Korean Drama OST 2026',
-    'IU Korean Hits',
-    'K-Drama Soundtracks 2026'
+    'Crash Landing on You OST Give You My Heart IU',
+    'Goblin OST Stay With Me Chanyeol',
+    'Descendants of the Sun Everytime Chen',
+    'Itaewon Class Start Over Gaho'
   ],
   hindi: [
-    'Latest Bollywood 2026 Hits',
-    'Trending Hindi Songs 2026',
-    'Arijit Singh Hits',
-    'Harrdy Sandhu Hits',
-    'Pritam Hits',
-    'Shreya Ghoshal Hits'
+    'Apna Bana Le Bhediya',
+    'Kesariya Brahmastra',
+    'Chaleya Jawan',
+    'Satranga Animal',
+    'O Maahi Dunki',
+    'Pehle Bhi Main Animal',
+    'Tum Hi Ho Aashiqui 2',
+    'Raataan Lambiyan Shershaah'
   ],
   anime: [
-    'Trending Anime Opening OST 2026',
-    'LiSA Gurenge',
+    'LiSA Gurenge Demon Slayer',
     'Kenshi Yonezu Peace Sign',
-    'Naruto Blue Bird Opening',
-    'Attack on Titan Opening'
+    'Naruto Blue Bird Ikimonogakari',
+    'Attack on Titan Shinzo wo Sasageyo',
+    'Tokyo Ghoul Unravel TK',
+    'Jujutsu Kaisen Kaikai Kitan Eve'
   ],
   english: [
-    'Latest English Pop 2026 Hits',
-    'Trending Global Pop 2026',
-    'Lady Gaga',
-    'Alan Walker',
-    'DJ Snake',
-    'Ed Sheeran',
-    'Taylor Swift',
-    'The Weeknd'
+    'Taylor Swift Cruel Summer',
+    'Sabrina Carpenter Espresso',
+    'Lady Gaga Bruno Mars Die With A Smile',
+    'The Weeknd Blinding Lights',
+    'Billie Eilish Birds of a Feather',
+    'Ed Sheeran Shape of You'
   ],
   kannada: [
-    'Trending Kannada Songs 2026',
-    'Kannada Film Hits 2026',
-    'Ravi Basrur KGF Salaar',
-    'Kantara Songs',
-    'Sonu Nigam Kannada Hits'
+    'KGF 2 Toofan Ravi Basrur',
+    'Salaar Theme Ravi Basrur',
+    'Kantara Singara Siriye',
+    'Tagaru Title Song',
+    'Pushpa 2 Kannada'
   ],
   malayalam: [
-    'Trending Malayalam Songs 2026',
-    'Malayalam Film Hits 2026',
-    'Sushin Shyam Hits',
-    'Jassie Gift Malayalam',
-    'Vineeth Sreenivasan Hits'
+    'Illuminati Aavesham Sushin Shyam',
+    'Jaada Aavesham',
+    'Manjummel Boys Kuthanthram',
+    'Premalu Welcome To Hyderabad',
+    'Hanumankind Big Dawgs'
   ],
   telugu: [
-    'Trending Telugu Songs 2026',
-    'Telugu Film Hits 2026',
     'Alaakaa Loova OM Chapter 1 Telugu',
     'The Wild Theme OM Chapter 1 Telugu',
     'Siya Entry OM Chapter 1',
-    'DSP Telugu Hits',
-    'Anirudh Telugu Hits'
+    'Naatu Naatu RRR',
+    'Devara Fear Song',
+    'Kurchi Madathapetti Guntur Kaaram',
+    'Pushpa 2 Songs'
   ],
   tamil: [
-    'Trending Tamil Songs 2026',
-    'Tamil Film Hits 2026',
     'Alaakaa Loova OM Chapter 1',
     'The Wild Theme OM Chapter 1 Tamil',
     'Siya Entry OM Chapter 1',
     'Sai Abhyankkar Hits',
-    'Anirudh Tamil Hits',
-    'AR Rahman Tamil Hits'
+    'Badass Leo Anirudh',
+    'Naa Ready Leo',
+    'Hukum Jailer',
+    'Kaavaalaa Jailer'
   ],
   marathi: [
-    'Trending Marathi Songs 2026',
-    'Marathi Film Hits 2026',
-    'Ajay Atul Marathi Hits',
-    'Sairat Marathi Songs'
+    'Zingaat Sairat Ajay Atul',
+    'Yad Lagla Sairat',
+    'Apsara Aali Natarang',
+    'Chandra Chandramukhi'
   ]
 };
 
-// Helper: fetch songs from JioSaavn by query
+// Helper: fetch songs from JioSaavn by query and prioritize original soundtrack albums
 export const fetchSaavnSongs = async (query, n = 8) => {
-  const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${n}&p=1&q=${encodeURIComponent(query)}`;
+  const fetchCount = Math.max(n * 2, 20);
+  const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${fetchCount}&p=1&q=${encodeURIComponent(query)}`;
   const response = await axios.get(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
     timeout: 10000
   });
-  return (response.data.results || [])
+  const rawResults = (response.data.results || [])
     .map(formatSong)
     .filter(s => s && s.audio_url && !isSpamTrack(s));
+
+  // Prioritize original movie / studio soundtrack albums ahead of generic compilation albums
+  rawResults.sort((a, b) => {
+    const aComp = isCompilationAlbum(a.album);
+    const bComp = isCompilationAlbum(b.album);
+    if (!aComp && bComp) return -1;
+    if (aComp && !bComp) return 1;
+    return 0;
+  });
+
+  return rawResults.slice(0, n);
 };
 
 // Direct helper for Home page live trending music feed (Dual-Engine)
@@ -416,7 +442,7 @@ export const getTrendingMusicDirect = async (limit = 12) => {
   const seen = new Set();
   const songs = [];
   try {
-    const ytSongs = await fetchYouTubeTracks('Trending Songs 2026 Top Hits OM Chapter 1', 6);
+    const ytSongs = await fetchYouTubeTracks('Alaakaa Loova OM Chapter 1', 4);
     for (const s of ytSongs) {
       const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
       if (!seen.has(key) && !seen.has(s.id)) {
@@ -428,15 +454,17 @@ export const getTrendingMusicDirect = async (limit = 12) => {
   } catch (e) {}
 
   const queries = [
-    'The Wild Theme OM Chapter 1',
+    'Apna Bana Le Bhediya',
+    'Kesariya Brahmastra',
+    'Chaleya Jawan',
     'Big Dawgs Hanumankind',
-    'Hunt You Down Richardson',
-    'Latest Bollywood 2026 Hits',
-    'Tamil Film Hits 2026'
+    'Badass Leo Anirudh',
+    'Naatu Naatu RRR',
+    'Hunt You Down Richardson'
   ];
   for (const q of queries) {
     try {
-      const results = await fetchSaavnSongs(q, 3);
+      const results = await fetchSaavnSongs(q, 2);
       for (const s of results) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
@@ -738,7 +766,7 @@ export const getMusicCharts = async (req, res) => {
       id: 'trending_global',
       title: '🔥 Trending Globally 2026',
       subtitle: 'Top songs across all languages right now',
-      query: 'Trending Songs 2026 Top Hits OM Chapter 1'
+      query: 'Alaakaa Loova OM Chapter 1 Big Dawgs Hanumankind Kesariya'
     },
     {
       id: 'blues_rap',
@@ -750,73 +778,73 @@ export const getMusicCharts = async (req, res) => {
       id: 'rap',
       title: '🎤 Rap & Hip-Hop',
       subtitle: 'Heavy basslines, bars and global rap chart toppers',
-      query: 'Trending Rap Songs 2026 Big Dawgs Hanumankind Eminem'
+      query: 'Big Dawgs Hanumankind Eminem Houdini Divine 359'
     },
     {
       id: 'rock',
       title: '🎸 Rock & Themes',
       subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
-      query: 'Trending Rock Hits 2026 The Wild Theme Imagine Dragons Linkin Park'
+      query: 'The Wild Theme OM Chapter 1 Imagine Dragons Believer Linkin Park'
     },
     {
       id: 'kpop',
       title: '🇰🇷 K-Pop Worldwide',
       subtitle: 'Global K-Pop chart toppers',
-      query: 'Trending K-Pop 2026 BLACKPINK BTS Stray Kids NewJeans'
+      query: 'BLACKPINK How You Like That BTS Dynamite NewJeans Super Shy'
     },
     {
       id: 'korean',
       title: '🇰🇷 Korean Drama & OSTs',
       subtitle: 'Iconic Korean film & K-Drama soundtracks',
-      query: 'Trending Korean Drama OST 2026 IU Soundtracks'
+      query: 'Crash Landing on You OST IU Goblin Stay With Me'
     },
     {
       id: 'bollywood',
       title: '🇮🇳 Hindi Bollywood 2026',
       subtitle: "Hindi cinema's biggest fresh tracks & remixes",
-      query: 'Trending Hindi Bollywood 2026 Arijit Singh Hits'
+      query: 'Apna Bana Le Bhediya Kesariya Brahmastra Chaleya Jawan'
     },
     {
       id: 'anime',
       title: '🌸 Anime & J-Pop',
       subtitle: 'Japanese anime openings, remixes & OSTs',
-      query: 'Trending Anime Opening Songs 2026 LiSA Gurenge Naruto'
+      query: 'LiSA Gurenge Demon Slayer Kenshi Yonezu Peace Sign Naruto Blue Bird'
     },
     {
       id: 'global_pop',
       title: '🌍 Global English Pop',
       subtitle: 'International English hits & club remixes',
-      query: 'Trending English Pop 2026 Taylor Swift Sabrina Carpenter'
+      query: 'Taylor Swift Cruel Summer Sabrina Carpenter Espresso Die With A Smile'
     },
     {
       id: 'kannada',
       title: '🦁 Kannada Sandalwood',
       subtitle: 'Hottest Kannada movie songs & BGM scores',
-      query: 'Trending Kannada Songs 2026 Ravi Basrur'
+      query: 'KGF 2 Toofan Salaar Theme Kantara Singara Siriye'
     },
     {
       id: 'malayalam',
       title: '🌿 Malayalam Mollywood',
       subtitle: 'Soulful Malayalam tracks & indie hits',
-      query: 'Trending Malayalam Songs 2026 Sushin Shyam'
+      query: 'Illuminati Aavesham Jaada Aavesham Manjummel Boys'
     },
     {
       id: 'telugu',
       title: '🎬 Telugu Tollywood',
       subtitle: 'Trending Telugu cinema songs & mass themes',
-      query: 'Trending Telugu Songs 2026 OM Chapter 1 DSP'
+      query: 'Alaakaa Loova OM Chapter 1 Naatu Naatu RRR Devara Fear Song'
     },
     {
       id: 'tamil',
       title: '⚡ Tamil Kollywood',
       subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
-      query: 'Trending Tamil Songs 2026 Alaakaa Loova Sai Abhyankkar'
+      query: 'Alaakaa Loova OM Chapter 1 Badass Leo Hukum Jailer'
     },
     {
       id: 'marathi',
       title: '🚩 Marathi Cinema',
       subtitle: 'Energetic & soulful Marathi tracks',
-      query: 'Trending Marathi Songs 2026 Ajay Atul'
+      query: 'Zingaat Sairat Yad Lagla Apsara Aali'
     }
   ];
 
