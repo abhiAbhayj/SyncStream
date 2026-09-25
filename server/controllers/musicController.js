@@ -209,8 +209,72 @@ const formatSong = (song) => {
     play_count: song.play_count || moreInfo.play_count || '0',
     has_lyrics: moreInfo.has_lyrics === 'true',
     copyright: decodeHtml(moreInfo.copyright_text || ''),
+    source: 'jiosaavn',
     media_type: 'music'
   };
+};
+
+// Parse duration "MM:SS" or "HH:MM:SS" to seconds
+export const parseDurationToSeconds = (durStr) => {
+  if (!durStr) return 0;
+  const parts = durStr.split(':').map(p => parseInt(p, 10));
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parseInt(durStr, 10) || 0;
+};
+
+// YouTube Music Scraper for Universal Music, OST, Character Themes, Unreleased & Indie tracks
+export const fetchYouTubeTracks = async (query, limit = 12) => {
+  if (!query || !query.trim()) return [];
+  try {
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      timeout: 8000
+    });
+    const html = response.data;
+    const match = html.match(/var ytInitialData = ({.*?});<\/script>/) || html.match(/ytInitialData\s*=\s*({.+?});/);
+    if (!match) return [];
+    const data = JSON.parse(match[1]);
+    const contents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+    const tracks = [];
+    for (const item of contents) {
+      const v = item.videoRenderer;
+      if (!v || !v.videoId) continue;
+      const videoId = v.videoId;
+      const title = v.title?.runs?.map(r => r.text).join('') || v.title?.simpleText || 'Unknown Title';
+      const channelName = v.ownerText?.runs?.map(r => r.text).join('') || 'YouTube Artist';
+      const durationStr = v.lengthText?.simpleText || '0:00';
+      const durationSec = parseDurationToSeconds(durationStr);
+      if (durationSec > 1200 && !query.toLowerCase().includes('jukebox') && !query.toLowerCase().includes('compilation')) {
+        continue;
+      }
+      const thumbs = v.thumbnail?.thumbnails || [];
+      const thumbnail = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+      tracks.push({
+        id: `yt_${videoId}`,
+        youtube_id: videoId,
+        title: decodeHtml(title),
+        artist: decodeHtml(channelName),
+        album: 'YouTube Music Track',
+        duration: durationSec,
+        image: thumbnail,
+        audio_url: `https://www.youtube.com/watch?v=${videoId}`,
+        source: 'youtube',
+        language: 'Global',
+        media_type: 'music'
+      });
+      if (tracks.length >= limit) break;
+    }
+    return tracks;
+  } catch (err) {
+    console.warn('[YouTube Scraper Warning]:', err.message);
+    return [];
+  }
 };
 
 // Multi-language & genre trending search queries continuously updated with latest 2026 hits
@@ -556,8 +620,11 @@ export const searchMusic = async (req, res) => {
     const collectedSongs = [];
     let totalCount = 0;
 
-    // Run searches with deduplication
-    const searchPromises = candidateQueries.slice(0, 5).map(async (q) => {
+    // Dual-Engine: 1. Fetch YouTube Tracks concurrently (Universal OST/Singles/BGM/Unreleased coverage)
+    const ytPromise = fetchYouTubeTracks(rawQuery, 15);
+
+    // Dual-Engine: 2. Fetch JioSaavn Tracks concurrently (320kbps Studio Masters)
+    const saavnPromises = candidateQueries.slice(0, 4).map(async (q) => {
       let searchQuery = q;
       if (language && language !== 'all' && !searchQuery.toLowerCase().includes(language)) {
         searchQuery += ` ${language}`;
@@ -581,11 +648,26 @@ export const searchMusic = async (req, res) => {
       }
     });
 
-    const searchResponses = await Promise.allSettled(searchPromises);
-    for (const resItem of searchResponses) {
-      if (resItem.status === 'fulfilled' && resItem.value) {
-        totalCount = Math.max(totalCount, resItem.value.total);
-        for (const s of resItem.value.songs) {
+    const [ytResults, ...saavnResults] = await Promise.all([
+      ytPromise,
+      ...saavnPromises
+    ]);
+
+    // Primary: Add YouTube Music tracks first so user gets 100% immediate hit for any query
+    for (const s of (ytResults || [])) {
+      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
+        seen.add(key);
+        seen.add(s.id);
+        collectedSongs.push(s);
+      }
+    }
+
+    // Secondary: Add JioSaavn studio album tracks
+    for (const resItem of saavnResults) {
+      if (resItem && resItem.songs) {
+        totalCount = Math.max(totalCount, resItem.total);
+        for (const s of resItem.songs) {
           const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
           if (!seen.has(key) && !seen.has(s.id)) {
             seen.add(key);
@@ -600,7 +682,7 @@ export const searchMusic = async (req, res) => {
       query: rawQuery,
       category: searchCat,
       page,
-      total: totalCount || collectedSongs.length,
+      total: Math.max(totalCount, collectedSongs.length),
       songs: collectedSongs.slice(0, limit)
     });
   } catch (error) {
@@ -703,6 +785,15 @@ export const getMusicCharts = async (req, res) => {
   for (const cat of CHART_CATEGORIES) {
     try {
       const songs = await fetchSaavnSongs(cat.query, 8);
+      // If Saavn has few results, enrich with YouTube
+      if (songs.length < 4) {
+        const ytSongs = await fetchYouTubeTracks(cat.query, 6);
+        for (const yt of ytSongs) {
+          if (!songs.some(s => s.id === yt.id)) {
+            songs.push(yt);
+          }
+        }
+      }
       charts.push({
         id: cat.id,
         title: cat.title,
@@ -723,6 +814,81 @@ export const getMusicCharts = async (req, res) => {
 export const getSongDetails = async (req, res) => {
   const { id } = req.params;
 
+  // Handle YouTube Track Details
+  if (id && (id.startsWith('yt_') || id.length === 11)) {
+    const videoId = id.startsWith('yt_') ? id.replace('yt_', '') : id;
+    try {
+      const url = `https://www.youtube.com/watch?v=${videoId}`;
+      const response = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9'
+        },
+        timeout: 8000
+      });
+      const html = response.data;
+      let title = 'YouTube Track';
+      let artist = 'YouTube Artist';
+      let duration = 0;
+      const image = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+      const titleMatch = html.match(/<title>(.*?)<\/title>/);
+      if (titleMatch) {
+        title = decodeHtml(titleMatch[1].replace(' - YouTube', '').trim());
+      }
+      const lenMatch = html.match(/"approxDurationMs":"(\d+)"/);
+      if (lenMatch) {
+        duration = Math.floor(parseInt(lenMatch[1], 10) / 1000);
+      }
+      const ownerMatch = html.match(/"ownerChannelName":"(.*?)"/);
+      if (ownerMatch) {
+        artist = decodeHtml(ownerMatch[1]);
+      }
+
+      const songData = {
+        id: `yt_${videoId}`,
+        youtube_id: videoId,
+        title,
+        artist,
+        album: 'YouTube Music Track',
+        duration,
+        image,
+        audio_url: `https://www.youtube.com/watch?v=${videoId}`,
+        source: 'youtube',
+        language: 'Global',
+        media_type: 'music'
+      };
+
+      let recommendations = [];
+      try {
+        const cleanRecQuery = artist ? `${artist} songs` : title;
+        recommendations = await fetchYouTubeTracks(cleanRecQuery, 6);
+        recommendations = recommendations.filter(r => r.id !== songData.id);
+      } catch (e) {}
+
+      return res.json({
+        ...songData,
+        recommendations
+      });
+    } catch (err) {
+      return res.json({
+        id: `yt_${videoId}`,
+        youtube_id: videoId,
+        title: 'YouTube Track',
+        artist: 'YouTube Artist',
+        album: 'YouTube Music Track',
+        duration: 0,
+        image: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        audio_url: `https://www.youtube.com/watch?v=${videoId}`,
+        source: 'youtube',
+        language: 'Global',
+        media_type: 'music',
+        recommendations: []
+      });
+    }
+  }
+
+  // JioSaavn Track Details
   try {
     const url = `${JIOSAAVN_BASE}?__call=song.getDetails&_format=json&_marker=0&api_version=4&ctx=web6dot0&pids=${id}`;
     const response = await axios.get(url, {
@@ -768,12 +934,14 @@ export const getLyrics = async (req, res) => {
     return res.status(400).json({ error: 'Title is required for lyrics lookup' });
   }
 
-  // Clean title (remove (From "Movie"), (Feat...), etc.)
+  // Clean title (remove (From "Movie"), (Feat...), | OM | Dhanush, etc.)
   const cleanTitle = title
-    .replace(/\s*\((?:from|feat|ft|with|official|video|audio|remix|version)[^\)]*\)/gi, '')
-    .replace(/\s*\[(?:from|feat|ft|with|official|video|audio|remix|version)[^\]]*\]/gi, '')
+    .replace(/\s*\|.*$/g, '')
+    .replace(/\s*\((?:from|feat|ft|with|official|video|audio|remix|version|lyrical|lyric)[^\)]*\)/gi, '')
+    .replace(/\s*\[(?:from|feat|ft|with|official|video|audio|remix|version|lyrical|lyric)[^\]]*\]/gi, '')
     .replace(/\s*-\s*(?:from|feat|ft|with|official|video|audio|remix|version|original).*$/gi, '')
     .replace(/\s*-\s*.*$/gi, '')
+    .replace(/\b(lyrical|official video|music video|full song|visualizer)\b/gi, '')
     .trim();
 
   const cleanArtist = (artist || '').split(',')[0].split('&')[0].trim();

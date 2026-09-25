@@ -385,6 +385,15 @@ export default function MusicModal() {
               
               {/* Badges & Actions row */}
               <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                <span className={`uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border tracking-wider font-mono shadow-sm ${
+                  (currentTrack.source === 'youtube' || (typeof currentTrack.id === 'string' && currentTrack.id.startsWith('yt_')))
+                    ? 'bg-red-500/20 text-red-400 border-red-500/40'
+                    : 'bg-accentCyan/20 text-accentCyan border-accentCyan/40'
+                }`}>
+                  {(currentTrack.source === 'youtube' || (typeof currentTrack.id === 'string' && currentTrack.id.startsWith('yt_')))
+                    ? 'YouTube Music'
+                    : 'JioSaavn HD'}
+                </span>
                 <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono shadow-sm">
                   {currentTrack.language || 'Global'}
                 </span>

@@ -9,6 +9,7 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -18,7 +19,8 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.10.1",
     "nodemailer": "^9.0.3",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "youtube-sr": "^4.3.12"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
