@@ -66,13 +66,13 @@ const LANGUAGES = [
 
 const SUGGESTIONS_BY_CATEGORY = {
   all: [
-    'The Wild Theme', 'Big Dawgs', 'Arijit Singh Hits', 'Leo Tamil', 'Stranger Things', 'Naruto Blue Bird', 'Imagine Dragons', 'KGF Theme', 'Pushpa 2', 'Taylor Swift', 'Demon Slayer Gurenge'
+    'Alaakaa Loova', 'The Wild Theme', 'Siya Entry', 'OM Chapter 1', 'Big Dawgs', 'Arijit Singh Hits', 'Leo Tamil', 'Stranger Things', 'Naruto Blue Bird', 'Imagine Dragons', 'KGF Theme', 'Pushpa 2', 'Taylor Swift'
   ],
   artist: [
-    'Arijit Singh', 'Taylor Swift', 'Anirudh Ravichander', 'Sonu Nigam', 'Sanjith Hegde', 'Hanumankind', 'Sid Sriram', 'Shreya Ghoshal', 'Eminem', 'The Weeknd', 'A.R. Rahman', 'Ravi Basrur'
+    'Sai Abhyankkar', 'Arijit Singh', 'Taylor Swift', 'Anirudh Ravichander', 'Sonu Nigam', 'Sanjith Hegde', 'Hanumankind', 'Sid Sriram', 'Shreya Ghoshal', 'Eminem', 'The Weeknd', 'A.R. Rahman', 'Ravi Basrur'
   ],
   movie: [
-    'Leo Tamil', 'KGF Ravi Basrur', 'Pushpa 2', 'Animal Movie', 'Interstellar Theme', 'RRR Naatu Naatu', 'Salaar Theme', 'Oppenheimer Soundtrack', 'Jawan Songs', 'Kabir Singh'
+    'OM Chapter 1', 'Alaakaa Loova', 'Leo Tamil', 'KGF Ravi Basrur', 'Pushpa 2', 'Animal Movie', 'Interstellar Theme', 'RRR Naatu Naatu', 'Salaar Theme', 'Oppenheimer Soundtrack', 'Jawan Songs'
   ],
   series: [
     'Stranger Things Soundtrack', 'Peaky Blinders Red Right Hand', 'Game of Thrones Theme', 'Money Heist Bella Ciao', 'Dark Soundtrack', 'Wednesday Paint It Black', 'The Witcher Toss A Coin'
@@ -81,7 +81,7 @@ const SUGGESTIONS_BY_CATEGORY = {
     'Naruto Blue Bird', 'Demon Slayer Gurenge', 'Jujutsu Kaisen Kaikai Kitan', 'Attack on Titan Shinzo wo Sasageyo', 'Tokyo Ghoul Unravel', 'One Piece We Are', 'Chainsaw Man Kick Back', 'Your Name Sparkle'
   ],
   song: [
-    'Big Dawgs Hanumankind', 'Hunt You Down Richardson', 'Starboy', 'Believer', 'Shape of You', 'Kesariya', 'Dandelions', 'Until I Found You'
+    'Alaakaa Loova', 'The Wild Theme', 'Siya Entry', 'Big Dawgs Hanumankind', 'Hunt You Down Richardson', 'Starboy', 'Believer', 'Shape of You', 'Kesariya', 'Dandelions'
   ]
 };
 
