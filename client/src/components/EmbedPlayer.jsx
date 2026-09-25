@@ -6,7 +6,6 @@ export default function EmbedPlayer({ embedUrl, title }) {
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [strictShield, setStrictShield] = useState(true);
 
   // Track Fullscreen state changes (ESC key, browser exit, etc.)
   useEffect(() => {
@@ -46,17 +45,23 @@ export default function EmbedPlayer({ embedUrl, title }) {
     }
   };
 
-  // ── Redirect Blocker ────────────────────────────────────────────────────
+  // ── Redirect & Popup Neutralizer ──────────────────────────────────────────
   useEffect(() => {
-    const handleBeforeUnload = () => {};
+    // 1. Intercept popup windows (window.open)
+    const originalOpen = window.open;
+    window.open = function (...args) {
+      console.warn('[SyncStream Shield] Blocked external popup redirect attempt:', args[0]);
+      return null;
+    };
 
+    // 2. Prevent top-level navigation / pushState hijacking
     const originalPushState = window.history.pushState.bind(window.history);
     const originalReplaceState = window.history.replaceState.bind(window.history);
 
     window.history.pushState = function (...args) {
       const url = args[2];
       if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
-        console.warn('[EmbedPlayer] Blocked external pushState redirect:', url);
+        console.warn('[SyncStream Shield] Blocked external pushState redirect:', url);
         return;
       }
       return originalPushState(...args);
@@ -65,18 +70,20 @@ export default function EmbedPlayer({ embedUrl, title }) {
     window.history.replaceState = function (...args) {
       const url = args[2];
       if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
-        console.warn('[EmbedPlayer] Blocked external replaceState redirect:', url);
+        console.warn('[SyncStream Shield] Blocked external replaceState redirect:', url);
         return;
       }
       return originalReplaceState(...args);
     };
 
+    const handleBeforeUnload = () => {};
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.open = originalOpen;
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
@@ -103,9 +110,8 @@ export default function EmbedPlayer({ embedUrl, title }) {
         </div>
       )}
 
-      {/* Embedded Player Iframe with Complete Fullscreen & Media Permissions */}
+      {/* Embedded Player Iframe with Complete Media Permissions and NO sandbox blocking */}
       <iframe
-        key={`${embedUrl}-${strictShield ? 'shielded' : 'open'}`}
         ref={iframeRef}
         src={embedUrl}
         title={title || 'Media Streaming Embed'}
@@ -116,28 +122,11 @@ export default function EmbedPlayer({ embedUrl, title }) {
         scrolling="no"
         allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
         referrerPolicy="origin-when-cross-origin"
-        {...(strictShield ? {
-          sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock"
-        } : {})}
         onLoad={() => setLoading(false)}
       />
 
       {/* Floating Controls Bar (Top Right) */}
       <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
-        {/* Anti-Redirect Shield Toggle */}
-        <button
-          onClick={() => setStrictShield(!strictShield)}
-          title={strictShield ? 'Anti-Redirect Shield ON (Tap to toggle)' : 'Anti-Redirect Shield OFF'}
-          className={`p-2 rounded-xl backdrop-blur-md border shadow-lg transition flex items-center gap-1.5 text-xs font-bold ${
-            strictShield
-              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-              : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4" />
-          <span className="hidden sm:inline">{strictShield ? 'Shield Active' : 'Shield Off'}</span>
-        </button>
-
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullscreen}
@@ -154,10 +143,10 @@ export default function EmbedPlayer({ embedUrl, title }) {
         {/* Info Popover */}
         <div className="group/info relative">
           <div className="bg-black/70 hover:bg-black/90 text-gray-400 hover:text-white p-2 rounded-xl cursor-help backdrop-blur-md border border-white/10 transition shadow-lg">
-            <HelpCircle className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="absolute right-0 mt-2 w-64 bg-darkCard border border-darkBorder rounded-xl p-3 text-xs text-gray-300 opacity-0 group-hover/info:opacity-100 transition-opacity pointer-events-none shadow-2xl z-40 font-medium">
-            Shield Active: Prevents mobile tabs and redirects. Use Server 1 (VidLink) for full multi-language subtitles.
+            Shield Active: Browser redirects and popups are neutralized. Use the fullscreen icon if native fullscreen is unresponsive.
           </div>
         </div>
       </div>
