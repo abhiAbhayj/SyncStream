@@ -216,7 +216,10 @@ const formatSong = (song) => {
 // Multi-language & genre trending search queries continuously updated with latest 2026 hits
 const TRENDING_QUERIES = {
   all: [
+    'Alaakaa Loova OM Chapter 1',
     'The Wild Theme OM Chapter 1',
+    'Siya Entry OM Chapter 1',
+    'Sai Abhyankkar Hits',
     'Arijit Singh Hits',
     'Imagine Dragons',
     'Lady Gaga',
@@ -318,8 +321,10 @@ const TRENDING_QUERIES = {
     'Hanumankind'
   ],
   telugu: [
-    'Telugu Film Hits 2026',
+    'Alaakaa Loova OM Chapter 1 Telugu',
     'The Wild Theme OM Chapter 1 Telugu',
+    'Siya Entry OM Chapter 1',
+    'Telugu Film Hits 2026',
     'Ravi Basrur Telugu',
     'DSP Telugu Hits',
     'Thaman S Telugu Hits',
@@ -327,7 +332,9 @@ const TRENDING_QUERIES = {
     'Pushpa Telugu Songs'
   ],
   tamil: [
+    'Alaakaa Loova OM Chapter 1',
     'The Wild Theme OM Chapter 1 Tamil',
+    'Siya Entry OM Chapter 1',
     'Sai Abhyankkar OM Chapter 1',
     'Tamil Film Hits 2026',
     'Anirudh Tamil Hits',
@@ -505,6 +512,15 @@ export const searchMusic = async (req, res) => {
       candidateQueries.push(`${rawQuery} Series OST`);
     }
 
+    // OM Chapter 1: Udhiram / The Blood Wood / Sai Abhyankkar smart detection
+    if (/om\s*chapter|udhiram|blood\s*wood|alaakaa|siya\s*entry|the\s*wild\s*theme/i.test(rawQuery)) {
+      candidateQueries.push('Alaakaa Loova');
+      candidateQueries.push('The Wild Theme OM Chapter 1');
+      candidateQueries.push('Siya Entry OM Chapter 1');
+      candidateQueries.push('OM Chapter 1');
+      candidateQueries.push('Sai Abhyankkar');
+    }
+
     // Movie / Soundtrack detection
     if (/leo|kgf|pushpa|animal|interstellar|oppenheimer|rrr|salaar|jawan|kabir\s*singh|titanic|avatar|spider\s*man|batman|avengers|fast\s*and\s*furious|dune|gladiator/i.test(rawQuery)) {
       candidateQueries.push(`${rawQuery} Soundtrack`);
@@ -515,6 +531,14 @@ export const searchMusic = async (req, res) => {
     // Famous Artist detection
     candidateQueries.push(`${rawQuery} Hits`);
     candidateQueries.push(`${rawQuery} Songs`);
+  }
+
+  // Split compound titles with colons, dashes, pipes, parentheses (e.g. "OM Chapter 1: Udhiram - The Blood Wood")
+  const subParts = rawQuery.split(/[:\-\–\|\(\)]+/).map(p => p.trim()).filter(p => p.length >= 3);
+  for (const part of subParts) {
+    if (!candidateQueries.includes(part)) {
+      candidateQueries.push(part);
+    }
   }
 
   // Clean candidate queries for natural language
