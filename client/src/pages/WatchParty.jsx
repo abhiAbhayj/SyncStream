@@ -7,7 +7,8 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio } from 'lucide-react';
+import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles } from 'lucide-react';
 
 export default function WatchParty() {
   const { code } = useParams();
@@ -231,33 +232,16 @@ export default function WatchParty() {
     const id = room.external_media_id;
     const tmdbId = mediaDetail.tmdb_id || id;
     const isTmdbMovie = mediaDetail.tmdb_type === 'movie' || type === 'movie';
+    const activeType = (type === 'anime' && isTmdbMovie) ? 'movie' : type;
 
-    if (type === 'movie' || (type === 'anime' && isTmdbMovie)) {
-      const activeId = type === 'anime' ? tmdbId : id;
-      if (embedServer === 'vidlink') return `https://vidlink.pro/movie/${activeId}`;
-      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/movie/${activeId}`;
-      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/movie/${activeId}`;
-      if (embedServer === 'twoembed') return `https://www.2embed.cc/embed/${activeId}`;
-      return null;
-    }
-    if (type === 'tv') {
-      const season = activeSeason || 1;
-      const episode = activeEpisode || 1;
-      if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
-      if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
-      return null;
-    }
-    if (type === 'anime') {
-      const episode = activeEpisode || 1;
-      if (embedServer === 'vidlink') return `https://vidlink.pro/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrcpm') return `https://vidsrc.pm/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'vidsrcme') return `https://vidsrc.me/embed/tv/${tmdbId}/1/${episode}`;
-      if (embedServer === 'twoembed') return `https://www.2embed.cc/embedtv/${tmdbId}&s=1&e=${episode}`;
-      return null;
-    }
-    return null;
+    return getEmbedStreamUrl({
+      serverKey: embedServer,
+      mediaType: activeType,
+      id,
+      tmdbId,
+      season: activeSeason || 1,
+      episode: activeEpisode || 1
+    });
   };
 
   if (loading) {
@@ -400,27 +384,44 @@ export default function WatchParty() {
 
           {/* Streaming Server Selector (only for Standard Embed) */}
           {playbackMode === 'solo-embed' && (
-            <div className="flex items-center gap-3 flex-wrap text-sm border border-darkBorder bg-black/20 p-3 rounded-2xl">
-              <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Streaming Server:</span>
-              {[
-                { key: 'vidlink', label: 'Server 1 (VidLink)' },
-                { key: 'vidsrcpm', label: 'Server 2 (VidSrc.pm)' },
-                { key: 'vidsrcme', label: 'Server 3 (VidSrc.me)' },
-                { key: 'twoembed', label: 'Server 4 (2Embed)' },
-              ].map((server) => (
-                <button
-                  key={server.key}
-                  disabled={!isHost}
-                  onClick={() => handleServerChange(server.key)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition border ${
-                    embedServer === server.key
-                      ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-md'
-                      : 'border-darkBorder bg-darkCard/50 text-gray-400 hover:text-white disabled:opacity-50'
-                  }`}
-                >
-                  {server.label}
-                </button>
-              ))}
+            <div className="space-y-2 border border-darkBorder bg-black/30 p-4 rounded-2xl">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accentCyan" />
+                  <span className="text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
+                </div>
+                {!isHost ? (
+                  <span className="text-[11px] text-gray-400">Host controls active streaming server</span>
+                ) : (
+                  <span className="text-[11px] text-gray-400">Switch server if stream buffers</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap pt-1">
+                {STREAMING_SERVERS.map((server) => (
+                  <button
+                    key={server.key}
+                    disabled={!isHost}
+                    onClick={() => handleServerChange(server.key)}
+                    className={`group relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 ${
+                      embedServer === server.key
+                        ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
+                        : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed'
+                    }`}
+                  >
+                    <span>{server.label}</span>
+                    {server.badge && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${
+                        embedServer === server.key
+                          ? 'border-accentCyan/30 bg-accentCyan/20 text-accentCyan'
+                          : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
+                      }`}>
+                        {server.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

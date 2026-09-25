@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, ShieldAlert, Loader2, Gauge } from 'lucide-react';
+import Hls from 'hls.js';
 
 export default function VideoPlayer({ 
   src, 
@@ -10,6 +11,7 @@ export default function VideoPlayer({
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const isSyncingRef = useRef(false); // Ref to break recursive sync loops
+  const hlsRef = useRef(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -20,6 +22,61 @@ export default function VideoPlayer({
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+
+  // 0. Attach HLS.js for .m3u8 streams or native video for MP4
+  useEffect(() => {
+    if (!src || !videoRef.current) return;
+
+    // Cleanup any existing Hls instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    const isHls = src.includes('.m3u8') || src.includes('application/x-mpegURL') || src.includes('m3u8');
+
+    if (isHls && Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 90
+      });
+      hlsRef.current = hls;
+      hls.loadSource(src);
+      hls.attachMedia(videoRef.current);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setIsLoading(false);
+      });
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.warn('[HLS] Network error encountered, attempting recovery...');
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.warn('[HLS] Media error encountered, recovering...');
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+              break;
+          }
+        }
+      });
+    } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+      videoRef.current.src = src;
+    } else {
+      videoRef.current.src = src;
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [src]);
 
   // 1. Sync playback speed
   useEffect(() => {
@@ -198,7 +255,6 @@ export default function VideoPlayer({
       {/* Video element */}
       <video
         ref={videoRef}
-        src={src}
         className="w-full h-full object-contain cursor-pointer"
         onPlay={onPlay}
         onPause={onPause}
