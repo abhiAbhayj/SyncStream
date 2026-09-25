@@ -26,8 +26,8 @@ export default function MediaDetail() {
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeEpisode, setActiveEpisode] = useState(1);
   
-  // Streaming server source tracking
-  const [embedServer, setEmbedServer] = useState('vidlink');
+  // Streaming server source tracking (Default: VidSrc PM - 100% Sandbox Protected)
+  const [embedServer, setEmbedServer] = useState('vidsrcpm');
   const [customUrl, setCustomUrl] = useState('');
   
   const [loading, setLoading] = useState(true);
