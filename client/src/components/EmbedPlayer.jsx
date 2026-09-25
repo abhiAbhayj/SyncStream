@@ -6,6 +6,7 @@ export default function EmbedPlayer({ embedUrl, title }) {
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [strictShield, setStrictShield] = useState(true);
 
   // Track Fullscreen state changes (ESC key, browser exit, etc.)
   useEffect(() => {
@@ -104,6 +105,7 @@ export default function EmbedPlayer({ embedUrl, title }) {
 
       {/* Embedded Player Iframe with Complete Fullscreen & Media Permissions */}
       <iframe
+        key={`${embedUrl}-${strictShield ? 'shielded' : 'open'}`}
         ref={iframeRef}
         src={embedUrl}
         title={title || 'Media Streaming Embed'}
@@ -113,12 +115,29 @@ export default function EmbedPlayer({ embedUrl, title }) {
         mozallowfullscreen="true"
         scrolling="no"
         allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
-        referrerPolicy="no-referrer"
+        referrerPolicy="origin-when-cross-origin"
+        {...(strictShield ? {
+          sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock"
+        } : {})}
         onLoad={() => setLoading(false)}
       />
 
       {/* Floating Controls Bar (Top Right) */}
       <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
+        {/* Anti-Redirect Shield Toggle */}
+        <button
+          onClick={() => setStrictShield(!strictShield)}
+          title={strictShield ? 'Anti-Redirect Shield ON (Tap to toggle)' : 'Anti-Redirect Shield OFF'}
+          className={`p-2 rounded-xl backdrop-blur-md border shadow-lg transition flex items-center gap-1.5 text-xs font-bold ${
+            strictShield
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span className="hidden sm:inline">{strictShield ? 'Shield Active' : 'Shield Off'}</span>
+        </button>
+
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullscreen}
@@ -138,7 +157,7 @@ export default function EmbedPlayer({ embedUrl, title }) {
             <HelpCircle className="w-4 h-4" />
           </div>
           <div className="absolute right-0 mt-2 w-64 bg-darkCard border border-darkBorder rounded-xl p-3 text-xs text-gray-300 opacity-0 group-hover/info:opacity-100 transition-opacity pointer-events-none shadow-2xl z-40 font-medium">
-            Shield Active: Use the top-right button if internal server fullscreen is unresponsive.
+            Shield Active: Prevents mobile tabs and redirects. Use Server 1 (VidLink) for full multi-language subtitles.
           </div>
         </div>
       </div>

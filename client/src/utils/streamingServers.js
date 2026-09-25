@@ -1,43 +1,43 @@
 /**
  * Verified Ultra-Fast Streaming Server Providers Configuration
- * All servers tested with sub-second response times and full video playback.
+ * With Mobile Compatibility and Subtitles Indicators
  */
 
 export const STREAMING_SERVERS = [
   { 
     key: 'vidlink', 
-    label: 'Server 1 (VidLink - HD)', 
-    badge: 'Recommended • Fast',
+    label: 'Server 1 (VidLink)', 
+    badge: 'CC Subtitles • Cleanest',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'Best experience: Ultra HD player, subtitles, and lowest ads'
+    description: 'Top Pick: Multi-language subtitles, HD stream, lowest ad frequency'
   },
   { 
     key: 'vidsrcto', 
     label: 'Server 2 (VidSrc TO)', 
-    badge: 'Ultra Fast',
+    badge: 'Ultra Fast • Multi-Audio',
     tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    description: 'High-speed VidSrc TO video engine with instant playback'
+    description: 'Instant playback VidSrc TO video engine'
   },
   { 
     key: 'vidsrcpm', 
     label: 'Server 3 (VidSrc PM)', 
-    badge: 'HD Mirror',
+    badge: 'HD Cloud Mirror',
     tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
     description: 'Fast VidSrc dedicated cloud mirror'
   },
   { 
     key: 'vidsrcme', 
     label: 'Server 4 (VidSrc ME)', 
-    badge: 'Global CDN',
+    badge: 'Global Gateway',
     tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
     description: 'Official global VidSrc endpoint'
   },
   { 
     key: 'autoembedco', 
     label: 'Server 5 (AutoEmbed)', 
-    badge: 'Cloud Player',
+    badge: 'CC Subtitles • Cloud',
     tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    description: 'AutoEmbed cloud streaming node'
+    description: 'AutoEmbed cloud node with soft subtitle tracks'
   },
   { 
     key: 'twoembedcc', 
@@ -49,7 +49,7 @@ export const STREAMING_SERVERS = [
   { 
     key: 'twoembedskin', 
     label: 'Server 7 (2Embed Skin)', 
-    badge: 'Mirror',
+    badge: 'Alternative Mirror',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
     description: 'Alternative 2Embed streaming mirror'
   }
