@@ -258,12 +258,32 @@ export default function Music() {
     }
   };
 
+  // Handle Search Input Change with instant auto-reset on backspace / erase
+  const handleSearchInputChange = (value) => {
+    setSearchQuery(value);
+    if (!value || !value.trim()) {
+      setPage(1);
+      fetchTrending(selectedLang, 1);
+    }
+  };
+
+  // Clear search bar and immediately restore all hits feed
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setPage(1);
+    fetchTrending(selectedLang, 1);
+  };
+
   // Handle Search submit
   const handleSearch = (e) => {
     e?.preventDefault?.();
     setActiveTab('discover');
     setPage(1);
-    handleSearchWithQuery(searchQuery, searchCategory, 1);
+    if (!searchQuery || !searchQuery.trim()) {
+      fetchTrending(selectedLang, 1);
+    } else {
+      handleSearchWithQuery(searchQuery, searchCategory, 1);
+    }
   };
 
   const handleSuggestionClick = (tag) => {
@@ -479,11 +499,23 @@ export default function Music() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchInputChange(e.target.value)}
               placeholder="Search by Artist, Movie, Anime, Series or Song..."
-              className="w-full bg-darkCard/80 border border-darkBorder rounded-2xl pl-10 pr-20 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-500 font-medium"
+              className="w-full bg-darkCard/80 border border-darkBorder rounded-2xl pl-10 pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-500 font-medium"
             />
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-20 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <button
               type="submit"
               className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-white text-xs font-bold hover:shadow-[0_0_15px_rgba(99,210,255,0.4)] transition active:scale-95"
