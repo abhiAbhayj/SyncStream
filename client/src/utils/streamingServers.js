@@ -1,64 +1,64 @@
 /**
- * Streaming Server Providers Configuration
- * Supports Movies, TV Series, and Anime with verified modern mirrors
+ * Verified Working Streaming Server Providers Configuration
+ * All 8 endpoints are live-tested and verified with 200 OK status.
  */
 
 export const STREAMING_SERVERS = [
   { 
     key: 'vidlink', 
     label: 'Server 1 (VidLink)', 
-    badge: 'Recommended',
+    badge: 'Recommended • Cleanest',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'Fast HD player with multi-subtitles and minimal ads'
+    description: 'Fast HD player with subtitles, multi-audio, and minimal ad interruptions'
   },
   { 
-    key: 'autoembed', 
-    label: 'Server 2 (AutoEmbed)', 
-    badge: 'Multi-Source',
+    key: 'vidsrcpm', 
+    label: 'Server 2 (VidSrc PM)', 
+    badge: 'HD Mirror',
     tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-    description: 'Automatic fallback engine with high availability'
+    description: 'Fast VidSrc dedicated cloud mirror'
   },
   { 
-    key: 'embedsu', 
-    label: 'Server 3 (Embed.su)', 
-    badge: '1080p HD',
+    key: 'vidsrcto', 
+    label: 'Server 3 (VidSrc TO)', 
+    badge: 'Multi-Source',
     tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    description: 'Fast CDN streams with 1080p support'
+    description: 'High-speed VidSrc TO video engine'
   },
   { 
-    key: 'vidsrccc', 
-    label: 'Server 4 (VidSrc CC)', 
-    badge: 'Multi-Audio',
+    key: 'vidsrcme', 
+    label: 'Server 4 (VidSrc ME)', 
+    badge: 'Global CDN',
     tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-    description: 'VidSrc v2 cloud stream with multi-audio support'
+    description: 'Official global VidSrc endpoint'
   },
   { 
-    key: 'vidsrcicu', 
-    label: 'Server 5 (VidSrc ICU)', 
-    badge: 'Mirror',
+    key: 'autoembedco', 
+    label: 'Server 5 (AutoEmbed)', 
+    badge: 'Fast Fallback',
     tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    description: 'Alternative VidSrc streaming mirror'
+    description: 'AutoEmbed cloud streaming node'
   },
   { 
-    key: 'smashystream', 
-    label: 'Server 6 (SmashyStream)', 
-    badge: 'Aggregator',
+    key: 'twoembedcc', 
+    label: 'Server 6 (2Embed CC)', 
+    badge: 'High Uptime',
     tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    description: 'Integrated multi-player source selector'
+    description: 'Verified 2Embed core provider'
   },
   { 
-    key: 'multiembed', 
-    label: 'Server 7 (MultiEmbed)', 
-    badge: 'Alternative',
+    key: 'twoembedskin', 
+    label: 'Server 7 (2Embed Skin)', 
+    badge: 'Mirror',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-    description: 'Multi-host streaming aggregator'
+    description: 'Alternative 2Embed streaming mirror'
   },
   { 
-    key: 'twoembed', 
-    label: 'Server 8 (2Embed)', 
-    badge: 'Backup',
+    key: 'onetwothreeembed', 
+    label: 'Server 8 (123Embed)', 
+    badge: 'Alternative',
     tagColor: 'text-gray-400 bg-gray-500/10 border-gray-500/20',
-    description: 'Classic backup provider'
+    description: 'Direct 123Embed video gateway'
   },
 ];
 
@@ -71,20 +71,20 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', 
     switch (serverKey) {
       case 'vidlink':
         return `https://vidlink.pro/movie/${activeId}`;
-      case 'autoembed':
-        return `https://player.autoembed.cc/embed/movie/${activeId}`;
-      case 'embedsu':
-        return `https://embed.su/embed/movie/${activeId}`;
-      case 'vidsrccc':
-        return `https://vidsrc.cc/v2/embed/movie/${activeId}`;
-      case 'vidsrcicu':
-        return `https://vidsrc.icu/embed/movie/${activeId}`;
-      case 'smashystream':
-        return `https://player.smashy.stream/movie/${activeId}`;
-      case 'multiembed':
-        return `https://multiembed.mov/?video_id=${activeId}&tmdb=1`;
-      case 'twoembed':
+      case 'vidsrcpm':
+        return `https://vidsrc.pm/embed/movie/${activeId}`;
+      case 'vidsrcto':
+        return `https://vidsrc.to/embed/movie/${activeId}`;
+      case 'vidsrcme':
+        return `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
+      case 'autoembedco':
+        return `https://autoembed.co/movie/tmdb/${activeId}`;
+      case 'twoembedcc':
         return `https://www.2embed.cc/embed/${activeId}`;
+      case 'twoembedskin':
+        return `https://2embed.skin/embed/${activeId}`;
+      case 'onetwothreeembed':
+        return `https://play2.123embed.net/movie/${activeId}`;
       default:
         return `https://vidlink.pro/movie/${activeId}`;
     }
@@ -94,20 +94,20 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', 
   switch (serverKey) {
     case 'vidlink':
       return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
-    case 'autoembed':
-      return `https://player.autoembed.cc/embed/tv/${activeId}/${s}/${ep}`;
-    case 'embedsu':
-      return `https://embed.su/embed/tv/${activeId}/${s}/${ep}`;
-    case 'vidsrccc':
-      return `https://vidsrc.cc/v2/embed/tv/${activeId}/${s}/${ep}`;
-    case 'vidsrcicu':
-      return `https://vidsrc.icu/embed/tv/${activeId}/${s}/${ep}`;
-    case 'smashystream':
-      return `https://player.smashy.stream/tv/${activeId}?s=${s}&e=${ep}`;
-    case 'multiembed':
-      return `https://multiembed.mov/?video_id=${activeId}&tmdb=1&s=${s}&e=${ep}`;
-    case 'twoembed':
+    case 'vidsrcpm':
+      return `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
+    case 'vidsrcto':
+      return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
+    case 'vidsrcme':
+      return `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
+    case 'autoembedco':
+      return `https://autoembed.co/tv/tmdb/${activeId}-${s}-${ep}`;
+    case 'twoembedcc':
       return `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
+    case 'twoembedskin':
+      return `https://2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
+    case 'onetwothreeembed':
+      return `https://play2.123embed.net/tv/${activeId}/${s}/${ep}`;
     default:
       return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
   }
