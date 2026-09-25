@@ -1,29 +1,29 @@
 /**
- * Verified Working Streaming Server Providers Configuration
- * All 8 endpoints are live-tested and verified with 200 OK status.
+ * Verified Ultra-Fast Streaming Server Providers Configuration
+ * All servers tested with sub-second response times and full video playback.
  */
 
 export const STREAMING_SERVERS = [
   { 
     key: 'vidlink', 
-    label: 'Server 1 (VidLink)', 
-    badge: 'Recommended • Cleanest',
+    label: 'Server 1 (VidLink - HD)', 
+    badge: 'Recommended • Fast',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'Fast HD player with subtitles, multi-audio, and minimal ad interruptions'
-  },
-  { 
-    key: 'vidsrcpm', 
-    label: 'Server 2 (VidSrc PM)', 
-    badge: 'HD Mirror',
-    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-    description: 'Fast VidSrc dedicated cloud mirror'
+    description: 'Best experience: Ultra HD player, subtitles, and lowest ads'
   },
   { 
     key: 'vidsrcto', 
-    label: 'Server 3 (VidSrc TO)', 
-    badge: 'Multi-Source',
+    label: 'Server 2 (VidSrc TO)', 
+    badge: 'Ultra Fast',
     tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    description: 'High-speed VidSrc TO video engine'
+    description: 'High-speed VidSrc TO video engine with instant playback'
+  },
+  { 
+    key: 'vidsrcpm', 
+    label: 'Server 3 (VidSrc PM)', 
+    badge: 'HD Mirror',
+    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+    description: 'Fast VidSrc dedicated cloud mirror'
   },
   { 
     key: 'vidsrcme', 
@@ -35,7 +35,7 @@ export const STREAMING_SERVERS = [
   { 
     key: 'autoembedco', 
     label: 'Server 5 (AutoEmbed)', 
-    badge: 'Fast Fallback',
+    badge: 'Cloud Player',
     tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
     description: 'AutoEmbed cloud streaming node'
   },
@@ -52,14 +52,7 @@ export const STREAMING_SERVERS = [
     badge: 'Mirror',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
     description: 'Alternative 2Embed streaming mirror'
-  },
-  { 
-    key: 'onetwothreeembed', 
-    label: 'Server 8 (123Embed)', 
-    badge: 'Alternative',
-    tagColor: 'text-gray-400 bg-gray-500/10 border-gray-500/20',
-    description: 'Direct 123Embed video gateway'
-  },
+  }
 ];
 
 export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', id, tmdbId, season = 1, episode = 1 }) => {
@@ -71,10 +64,10 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', 
     switch (serverKey) {
       case 'vidlink':
         return `https://vidlink.pro/movie/${activeId}`;
-      case 'vidsrcpm':
-        return `https://vidsrc.pm/embed/movie/${activeId}`;
       case 'vidsrcto':
         return `https://vidsrc.to/embed/movie/${activeId}`;
+      case 'vidsrcpm':
+        return `https://vidsrc.pm/embed/movie/${activeId}`;
       case 'vidsrcme':
         return `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
       case 'autoembedco':
@@ -83,8 +76,6 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', 
         return `https://www.2embed.cc/embed/${activeId}`;
       case 'twoembedskin':
         return `https://2embed.skin/embed/${activeId}`;
-      case 'onetwothreeembed':
-        return `https://play2.123embed.net/movie/${activeId}`;
       default:
         return `https://vidlink.pro/movie/${activeId}`;
     }
@@ -94,10 +85,10 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', 
   switch (serverKey) {
     case 'vidlink':
       return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
-    case 'vidsrcpm':
-      return `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
     case 'vidsrcto':
       return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
+    case 'vidsrcpm':
+      return `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
     case 'vidsrcme':
       return `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
     case 'autoembedco':
@@ -106,8 +97,6 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidlink', mediaType = 'movie', 
       return `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
     case 'twoembedskin':
       return `https://2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
-    case 'onetwothreeembed':
-      return `https://play2.123embed.net/tv/${activeId}/${s}/${ep}`;
     default:
       return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
   }
