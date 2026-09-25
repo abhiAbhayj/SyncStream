@@ -1,28 +1,58 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, MonitorOff, HelpCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, MonitorOff, HelpCircle, ShieldCheck, Maximize, Minimize } from 'lucide-react';
 
 export default function EmbedPlayer({ embedUrl, title }) {
   const [loading, setLoading] = useState(true);
   const iframeRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Track Fullscreen state changes (ESC key, browser exit, etc.)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(err => console.error(err));
+      } else if (containerRef.current.webkitRequestFullscreen) {
+        containerRef.current.webkitRequestFullscreen();
+      } else if (containerRef.current.msRequestFullscreen) {
+        containerRef.current.msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(err => console.error(err));
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  };
 
   // ── Redirect Blocker ────────────────────────────────────────────────────
-  // Prevent the iframe from navigating the parent page on both desktop & mobile.
-  // We intercept two vectors:
-  //   1. window.beforeunload — catches page-level navigation attempts
-  //   2. history.pushState / replaceState monkey-patch — catches SPA-style hijacks
   useEffect(() => {
-    // Block all beforeunload events triggered while we have an embed active.
-    // Only fire if the event is NOT triggered by user explicitly closing/navigating.
-    const handleBeforeUnload = (e) => {
-      // We do nothing here — just having the listener stops some aggressive redirects.
-    };
+    const handleBeforeUnload = () => {};
 
-    // Override history methods to detect iframe redirect attempts
     const originalPushState = window.history.pushState.bind(window.history);
     const originalReplaceState = window.history.replaceState.bind(window.history);
 
     window.history.pushState = function (...args) {
-      // Only allow navigation if it's to an internal route (starts with /)
       const url = args[2];
       if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
         console.warn('[EmbedPlayer] Blocked external pushState redirect:', url);
@@ -44,7 +74,6 @@ export default function EmbedPlayer({ embedUrl, title }) {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Restore original history methods
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
     };
@@ -61,8 +90,10 @@ export default function EmbedPlayer({ embedUrl, title }) {
   }
 
   return (
-    <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl">
-      
+    <div 
+      ref={containerRef}
+      className={`relative w-full ${isFullscreen ? 'h-screen' : 'aspect-video'} rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl transition-all duration-300 group`}
+    >
       {/* Loading Overlay */}
       {loading && (
         <div className="absolute inset-0 bg-darkBg flex flex-col items-center justify-center gap-3 z-10">
@@ -71,43 +102,47 @@ export default function EmbedPlayer({ embedUrl, title }) {
         </div>
       )}
 
-      {/*
-        ── Sandbox Rules ───────────────────────────────────────────────────
-        We grant every permission EXCEPT:
-          - allow-top-navigation           → blocks iframe redirecting parent
-          - allow-top-navigation-by-user-activation → blocks even click-triggered redirects
-        
-        Permissions we DO grant (needed for players to work):
-          allow-scripts                    → player JavaScript
-          allow-same-origin                → player cookies / localStorage / fonts
-          allow-forms                      → form-based players
-          allow-popups                     → quality selector, subtitle picker popups
-          allow-popups-to-escape-sandbox   → legitimate external links open normally
-          allow-presentation               → required for fullscreen API
-          allow-pointer-lock               → fullscreen cursor control
-          allow-downloads                  → some players need download permission
-      */}
+      {/* Embedded Player Iframe with Complete Fullscreen & Media Permissions */}
       <iframe
         ref={iframeRef}
         src={embedUrl}
         title={title || 'Media Streaming Embed'}
         className="w-full h-full border-0"
-        allowFullScreen
+        allowFullScreen={true}
+        webkitallowfullscreen="true"
+        mozallowfullscreen="true"
         scrolling="no"
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
+        allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
         referrerPolicy="no-referrer"
         onLoad={() => setLoading(false)}
       />
 
-      {/* Info popover */}
-      <div className="absolute top-3 right-3 z-20 group">
-        <div className="bg-black/60 hover:bg-black/80 text-gray-400 hover:text-white p-2 rounded-full cursor-help backdrop-blur-md border border-white/5 transition">
-          <HelpCircle className="w-4 h-4" />
-        </div>
-        <div className="absolute right-0 mt-2 w-64 bg-darkCard border border-darkBorder rounded-xl p-3 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-30 font-medium">
-          Redirect Shield is active — this player cannot navigate you away from SyncStream on any device.
+      {/* Floating Controls Bar (Top Right) */}
+      <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
+        {/* Fullscreen Button */}
+        <button
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Enter Fullscreen'}
+          className="bg-black/70 hover:bg-black/90 text-gray-300 hover:text-white p-2 rounded-xl backdrop-blur-md border border-white/10 shadow-lg transition hover:scale-105 active:scale-95"
+        >
+          {isFullscreen ? (
+            <Minimize className="w-4 h-4 text-accentCyan" />
+          ) : (
+            <Maximize className="w-4 h-4 text-accentCyan" />
+          )}
+        </button>
+
+        {/* Info Popover */}
+        <div className="group/info relative">
+          <div className="bg-black/70 hover:bg-black/90 text-gray-400 hover:text-white p-2 rounded-xl cursor-help backdrop-blur-md border border-white/10 transition shadow-lg">
+            <HelpCircle className="w-4 h-4" />
+          </div>
+          <div className="absolute right-0 mt-2 w-64 bg-darkCard border border-darkBorder rounded-xl p-3 text-xs text-gray-300 opacity-0 group-hover/info:opacity-100 transition-opacity pointer-events-none shadow-2xl z-40 font-medium">
+            Shield Active: Use the top-right button if internal server fullscreen is unresponsive.
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
