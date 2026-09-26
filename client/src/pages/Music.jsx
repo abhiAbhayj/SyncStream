@@ -39,6 +39,24 @@ const formatTime = (seconds) => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
+const cleanSongTitle = (title) => {
+  if (!title || typeof title !== 'string') return '';
+  let clean = title
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .trim();
+  if (clean.includes('|')) {
+    const parts = clean.split('|').map(p => p.trim());
+    const validPart = parts[1] && !parts[1].match(/^(dhanush|mammootty|sai pallavi|sreeleela|rajkumar|official|video|audio|lyrics|tna|t-series|sony)/i);
+    clean = parts[0] + (validPart ? ` • ${parts[1]}` : '');
+  }
+  clean = clean.replace(/\s*\|\s*.*$/i, '');
+  return clean.trim();
+};
+
 const SEARCH_CATEGORIES = [
   { id: 'all', label: 'All Music', icon: Music2 },
   { id: 'artist', label: 'Artists', icon: User },
@@ -476,7 +494,7 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-24">
+    <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-36 sm:pb-40">
       {/* Ambient background glow highlights for rich, bright page atmosphere */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-accentPurple/20 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse" />
       <div className="absolute top-1/3 right-10 w-96 h-96 bg-accentCyan/20 rounded-full blur-3xl pointer-events-none -z-10" />
@@ -664,14 +682,14 @@ export default function Music() {
 
           {/* Featured Spotlight (when no search query) */}
           {featuredSong && !searchQuery && (
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/25 p-4 sm:p-7 bg-gradient-to-r from-[#172047]/95 via-[#121838]/95 to-[#1c183d]/95 shadow-2xl flex flex-col sm:flex-row items-center gap-3.5 sm:gap-6 group">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/25 p-3.5 sm:p-6 bg-gradient-to-r from-[#172047]/95 via-[#121838]/95 to-[#1c183d]/95 shadow-2xl flex flex-row items-center gap-3.5 sm:gap-6 group">
               <div
-                className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 pointer-events-none group-hover:opacity-40 transition-opacity"
+                className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-25 pointer-events-none group-hover:opacity-40 transition-opacity"
                 style={{ backgroundImage: `url(${featuredSong.image})` }}
               />
 
               {/* Cover Art */}
-              <div className="relative w-24 h-24 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shrink-0 border border-white/30 shadow-2xl group-hover:scale-105 transition-transform duration-500 bg-black">
+              <div className="relative w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-xl sm:rounded-2xl overflow-hidden shrink-0 border border-white/30 shadow-2xl group-hover:scale-102 transition-transform duration-500 bg-black/50">
                 <img
                   src={featuredSong.image || 'https://placehold.co/200x200/1e1e24/fff?text=Music'}
                   alt={featuredSong.title}
@@ -680,21 +698,21 @@ export default function Music() {
               </div>
 
               {/* Meta Details */}
-              <div className="relative z-10 flex-1 text-center sm:text-left space-y-2 sm:space-y-3">
+              <div className="relative z-10 flex-1 min-w-0 text-left space-y-1.5 sm:space-y-3">
                 <div className="space-y-0.5 sm:space-y-1">
-                  <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono">
-                    Featured Spotlight &bull; {featuredSong.language}
+                  <span className="inline-block uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono">
+                    Spotlight &bull; {featuredSong.language}
                   </span>
-                  <h2 className="text-base sm:text-2xl font-extrabold text-white font-outfit tracking-tight leading-snug drop-shadow-md">
-                    {featuredSong.title}
+                  <h2 className="text-sm sm:text-xl md:text-2xl font-black text-white font-outfit tracking-tight leading-snug drop-shadow-md line-clamp-2">
+                    {cleanSongTitle(featuredSong.title)}
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-200 font-medium truncate">
+                  <p className="text-xs sm:text-sm text-gray-300 font-medium truncate">
                     {featuredSong.artist}
                   </p>
                 </div>
 
                 {/* Quick Play & Action Buttons */}
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-0.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-0.5">
                   <button
                     onClick={() => {
                       if (currentTrack?.id === featuredSong.id) {
@@ -703,7 +721,7 @@ export default function Music() {
                         playTrack(featuredSong, songs);
                       }
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.5)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.5)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95 shrink-0"
                   >
                     {currentTrack?.id === featuredSong.id && isPlaying ? (
                       <>
@@ -720,7 +738,7 @@ export default function Music() {
 
                   <button
                     onClick={() => playQueue(songs, 0)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs sm:text-sm font-bold border border-white/20 transition active:scale-95 shadow-md"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs sm:text-sm font-bold border border-white/20 transition active:scale-95 shadow-md shrink-0"
                   >
                     <Disc3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan" />
                     <span>Play All ({songs.length})</span>
@@ -728,22 +746,22 @@ export default function Music() {
 
                   <button
                     onClick={() => toggleFavorite(featuredSong)}
-                    className={`p-2.5 rounded-full border transition active:scale-95 ${
+                    className={`p-2 sm:p-2.5 rounded-full border transition active:scale-95 shrink-0 ${
                       isFavorite(featuredSong.id)
                         ? 'bg-red-500/30 border-red-500 text-red-400'
                         : 'bg-white/15 border-white/20 text-gray-200 hover:text-white'
                     }`}
                     title={isFavorite(featuredSong.id) ? 'Liked' : 'Add to Favorites'}
                   >
-                    <Heart className={`w-4 h-4 ${isFavorite(featuredSong.id) ? 'fill-current text-red-400' : ''}`} />
+                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isFavorite(featuredSong.id) ? 'fill-current text-red-400' : ''}`} />
                   </button>
 
                   <button
                     onClick={() => setSongToAddToPlaylist(featuredSong)}
-                    className="p-2.5 rounded-full bg-white/15 border border-white/20 text-gray-200 hover:text-white transition active:scale-95"
+                    className="p-2 sm:p-2.5 rounded-full bg-white/15 border border-white/20 text-gray-200 hover:text-white transition active:scale-95 shrink-0"
                     title="Add to Playlist"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>
@@ -780,7 +798,7 @@ export default function Music() {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
                   {songs.map((song, idx) => {
                     const isCurrent = currentTrack?.id === song.id;
                     const isCurrentPlaying = isCurrent && isPlaying;
@@ -789,7 +807,7 @@ export default function Music() {
                     return (
                       <div
                         key={`${song.id}-${idx}`}
-                        className={`group relative rounded-xl sm:rounded-2xl border p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden backdrop-blur-xl ${
+                        className={`group relative rounded-xl sm:rounded-2xl border p-2 sm:p-3 transition-all duration-300 flex flex-col gap-1.5 sm:gap-2 overflow-hidden backdrop-blur-xl ${
                           isCurrent
                             ? 'bg-[#1a234f] border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.35)] ring-1 ring-accentCyan/50'
                             : 'border-white/15 bg-[#131a38]/85 hover:border-accentCyan/60 hover:bg-[#1b2552] shadow-lg'
@@ -804,7 +822,7 @@ export default function Music() {
                               playTrack(song, songs);
                             }
                           }}
-                          className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
+                          className="relative w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                         >
                           <img
                             src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
@@ -856,7 +874,7 @@ export default function Music() {
                             }`}
                             title={song.title}
                           >
-                            {song.title}
+                            {cleanSongTitle(song.title)}
                           </h4>
                           <p className="text-[10px] sm:text-[11px] text-gray-300 truncate font-medium">
                             {song.artist}
@@ -1004,7 +1022,7 @@ export default function Music() {
                                   </div>
                                 </div>
                                 <div className="space-y-0.5 min-w-0">
-                                  <p className={`text-xs font-bold truncate font-outfit transition-colors ${isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'}`}>{s.title}</p>
+                                  <p className={`text-xs font-bold truncate font-outfit transition-colors ${isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'}`}>{cleanSongTitle(s.title)}</p>
                                   <p className="text-[10px] text-gray-300 truncate font-medium">{s.artist}</p>
                                 </div>
                               </div>

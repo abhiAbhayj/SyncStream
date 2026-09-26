@@ -147,9 +147,9 @@ export default function MusicPlayerBar() {
       {/* Floating Music Player Bar */}
       <aside
         aria-label="Floating Music Player"
-        className="fixed left-2 right-2 sm:left-4 sm:right-4 bottom-[58px] md:bottom-3 z-40 max-w-6xl mx-auto transition-all duration-300 pointer-events-auto select-none"
+        className="fixed left-2 right-2 sm:left-4 sm:right-4 bottom-[68px] sm:bottom-[72px] md:bottom-3 z-40 max-w-6xl mx-auto transition-all duration-300 pointer-events-auto select-none"
       >
-        <div className="relative rounded-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl bg-[#0d1124]/95 overflow-hidden">
+        <div className="relative rounded-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.95)] backdrop-blur-2xl bg-[#0e1329]/95 overflow-hidden ring-1 ring-white/10">
           
           {/* Top Edge Neon Progress Bar */}
           <div

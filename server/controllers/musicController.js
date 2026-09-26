@@ -513,19 +513,10 @@ export const getTrendingMusic = async (req, res) => {
     const seen = new Set();
     const collected = [];
 
-    // Dual-Engine: 1. Fetch live YouTube trending tracks concurrently
-    const ytPrimaryQuery = queryList[0] || `Trending ${language} Songs 2026`;
-    const ytSecondaryQuery = queryList[1] || `${language} Top Hits 2026`;
-    
-    const ytPromise = Promise.all([
-      fetchYouTubeTracks(ytPrimaryQuery, 8),
-      fetchYouTubeTracks(ytSecondaryQuery, 6)
-    ]).then(arr => arr.flat()).catch(() => []);
-
-    // Dual-Engine: 2. Fetch JioSaavn tracks concurrently
+    // Dual-Engine: 1. Fetch JioSaavn studio masters concurrently (320kbps + direct audio_url)
     const saavnPromises = queryList.slice(0, 3).map(async (q) => {
       try {
-        const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=8&p=${page}&q=${encodeURIComponent(q)}`;
+        const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=10&p=${page}&q=${encodeURIComponent(q)}`;
         const response = await axios.get(url, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
           timeout: 8000
@@ -538,23 +529,22 @@ export const getTrendingMusic = async (req, res) => {
       }
     });
 
-    const [ytSongs, ...saavnResults] = await Promise.all([
-      ytPromise,
-      ...saavnPromises
+    // Dual-Engine: 2. Fetch live YouTube trending tracks concurrently
+    const ytPrimaryQuery = queryList[0] || `Trending ${language} Songs 2026`;
+    const ytSecondaryQuery = queryList[1] || `${language} Top Hits 2026`;
+    
+    const ytPromise = Promise.all([
+      fetchYouTubeTracks(ytPrimaryQuery, 6),
+      fetchYouTubeTracks(ytSecondaryQuery, 4)
+    ]).then(arr => arr.flat()).catch(() => []);
+
+    const [saavnGroup, ytSongs] = await Promise.all([
+      Promise.all(saavnPromises),
+      ytPromise
     ]);
 
-    // Primary: Add fresh live YouTube hits
-    for (const s of (ytSongs || [])) {
-      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-      if (!seen.has(key) && !seen.has(s.id)) {
-        seen.add(key);
-        seen.add(s.id);
-        collected.push(s);
-      }
-    }
-
-    // Secondary: Add JioSaavn studio masters
-    for (const list of saavnResults) {
+    // Primary: Add JioSaavn studio masters (pristine 320kbps native audio + mobile background playback)
+    for (const list of saavnGroup) {
       for (const s of (list || [])) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
@@ -562,6 +552,16 @@ export const getTrendingMusic = async (req, res) => {
           seen.add(s.id);
           collected.push(s);
         }
+      }
+    }
+
+    // Secondary: Add fresh YouTube tracks for any unreleased / indie gems
+    for (const s of (ytSongs || [])) {
+      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
+        seen.add(key);
+        seen.add(s.id);
+        collected.push(s);
       }
     }
 
@@ -709,22 +709,12 @@ export const searchMusic = async (req, res) => {
       }
     });
 
-    const [ytResults, ...saavnResults] = await Promise.all([
-      ytPromise,
-      ...saavnPromises
+    const [saavnResults, ytResults] = await Promise.all([
+      Promise.all(saavnPromises),
+      ytPromise
     ]);
 
-    // Primary: Add YouTube Music tracks first so user gets 100% immediate hit for any query
-    for (const s of (ytResults || [])) {
-      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-      if (!seen.has(key) && !seen.has(s.id)) {
-        seen.add(key);
-        seen.add(s.id);
-        collectedSongs.push(s);
-      }
-    }
-
-    // Secondary: Add JioSaavn studio album tracks
+    // Primary: Add JioSaavn studio master tracks (official album artwork, 320kbps direct stream, background playback)
     for (const resItem of saavnResults) {
       if (resItem && resItem.songs) {
         totalCount = Math.max(totalCount, resItem.total);
@@ -736,6 +726,16 @@ export const searchMusic = async (req, res) => {
             collectedSongs.push(s);
           }
         }
+      }
+    }
+
+    // Secondary: Add YouTube Music tracks for OSTs, BGM, and tracks not on JioSaavn
+    for (const s of (ytResults || [])) {
+      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
+        seen.add(key);
+        seen.add(s.id);
+        collectedSongs.push(s);
       }
     }
 
@@ -861,21 +861,21 @@ export const getMusicCharts = async (req, res) => {
         fetchSaavnSongs(cat.query, 6).catch(() => [])
       ]);
 
-      for (const yt of ytSongs) {
-        const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
-        if (!seen.has(key) && !seen.has(yt.id)) {
-          seen.add(key);
-          seen.add(yt.id);
-          catSongs.push(yt);
-        }
-      }
-
       for (const s of saavnSongs) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
           catSongs.push(s);
+        }
+      }
+
+      for (const yt of ytSongs) {
+        const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(yt.id)) {
+          seen.add(key);
+          seen.add(yt.id);
+          catSongs.push(yt);
         }
       }
 
