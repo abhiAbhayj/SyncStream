@@ -618,7 +618,7 @@ export default function Music() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-6">
               {SEARCH_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = searchCategory === cat.id;
@@ -627,7 +627,7 @@ export default function Music() {
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 border active:scale-95 shadow-sm ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-3 sm:px-2.5 rounded-xl text-xs font-bold transition-all duration-200 border active:scale-95 shadow-sm whitespace-nowrap shrink-0 sm:shrink ${
                       isSelected
                         ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.5)] font-extrabold'
                         : 'bg-[#141c3d]/85 border-white/20 text-gray-200 hover:text-white hover:border-accentCyan/40 hover:bg-[#1b2550]'
