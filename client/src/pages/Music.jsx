@@ -476,7 +476,7 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-52 sm:pb-44 md:pb-32">
+    <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-36 sm:pb-40">
       {/* Radiant Background Ambient Aurora Glows */}
       <div className="absolute top-10 left-10 w-96 h-96 rounded-full bg-cyan-500/15 blur-[120px] pointer-events-none -z-10" />
       <div className="absolute top-1/3 right-10 w-[450px] h-[450px] rounded-full bg-purple-600/20 blur-[140px] pointer-events-none -z-10" />

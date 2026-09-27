@@ -147,9 +147,9 @@ export default function MusicPlayerBar() {
       {/* Floating Music Player Bar */}
       <aside
         aria-label="Floating Music Player"
-        className="fixed left-2 right-2 sm:left-4 sm:right-4 bottom-[62px] md:bottom-3 z-40 max-w-6xl mx-auto transition-all duration-300 pointer-events-auto select-none"
+        className="fixed left-2 right-2 sm:left-3 sm:right-3 md:left-4 md:right-4 bottom-[64px] sm:bottom-[68px] md:bottom-3 z-40 max-w-6xl mx-auto transition-all duration-300 pointer-events-auto select-none"
       >
-        <div className="relative rounded-2xl border-2 border-white/25 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl bg-[#141a33]/95 overflow-hidden">
+        <div className="relative rounded-2xl sm:rounded-3xl border-2 border-white/25 shadow-[0_10px_35px_rgba(0,0,0,0.95)] backdrop-blur-2xl bg-[#141a33]/98 overflow-hidden">
           
           {/* Top Edge Neon Progress Bar */}
           <div
@@ -161,7 +161,7 @@ export default function MusicPlayerBar() {
             className="relative w-full h-1.5 md:h-2 bg-white/15 cursor-pointer overflow-visible group/bar transition-all"
           >
             <div
-              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink shadow-[0_0_10px_rgba(99,210,255,0.9)]"
+              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple shadow-[0_0_10px_rgba(99,210,255,0.9)]"
               style={{ width: `${progressPercent}%` }}
             />
             <div
@@ -170,7 +170,7 @@ export default function MusicPlayerBar() {
             />
             {hoverPosition && (
               <div
-                className="hidden md:block absolute -top-7 -translate-x-1/2 bg-black/95 border border-white/25 text-[10px] font-mono font-bold text-accentCyan px-1.5 py-0.5 rounded shadow-xl pointer-events-none"
+                className="hidden md:block absolute -top-7 -translate-x-1/2 bg-black/95 border border-white/20 text-[10px] font-mono font-bold text-accentCyan px-1.5 py-0.5 rounded shadow-xl pointer-events-none"
                 style={{ left: `${hoverPosition.percent}%` }}
               >
                 {hoverPosition.time}
@@ -179,16 +179,16 @@ export default function MusicPlayerBar() {
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════════
-              MOBILE MINI-PLAYER (< 768px)
+              MOBILE MINI-PLAYER (< 768px) - Clean, Neat & Compact
              ══════════════════════════════════════════════════════════════════════ */}
-          <div className="flex md:hidden items-center justify-between gap-2 px-2.5 py-2 h-14">
+          <div className="flex md:hidden items-center justify-between gap-2 px-3 py-1.5 h-14">
             
-            {/* Left: Artwork + Title & Artist */}
+            {/* Left: Artwork + Title & Artist (Tap to open full player modal) */}
             <div
               onClick={openPlayerModal}
-              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer active:opacity-75 transition-opacity"
+              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer active:opacity-75 transition-opacity"
             >
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-white/25 bg-black/40 shadow-sm">
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border-2 border-white/20 bg-black/40 shadow-md">
                 <img
                   src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
                   alt={currentTrack.title}
@@ -199,18 +199,18 @@ export default function MusicPlayerBar() {
                 )}
               </div>
 
-              <div className="min-w-0 flex-1 pr-1">
+              <div className="min-w-0 flex-1 pr-1 space-y-0.5">
                 <p className="text-xs font-black text-white truncate font-outfit leading-tight">
                   {cleanText(currentTrack.title)}
                 </p>
-                <p className="text-[10px] text-slate-300 truncate leading-tight font-semibold mt-0.5">
+                <p className="text-[10.5px] text-slate-200 truncate leading-tight font-semibold">
                   {cleanText(currentTrack.artist)}
                 </p>
               </div>
             </div>
 
-            {/* Right: Clean, Un-cluttered Action Controls */}
-            <div className="flex items-center gap-1 shrink-0">
+            {/* Right: Clean, Un-cluttered Action Controls (Heart, Play/Pause, Close) */}
+            <div className="flex items-center gap-1.5 shrink-0">
               
               {/* Favorite Button */}
               <button
@@ -219,9 +219,9 @@ export default function MusicPlayerBar() {
                   e.stopPropagation();
                   toggleFavorite(currentTrack);
                 }}
-                className={`p-1.5 rounded-lg transition active:scale-90 ${
+                className={`p-1.5 rounded-xl transition active:scale-90 ${
                   isFavorite(currentTrack.id)
-                    ? 'text-red-400 bg-red-500/20'
+                    ? 'text-red-400 bg-red-500/20 shadow-sm border border-red-500/30'
                     : 'text-slate-200 hover:text-white hover:bg-white/10'
                 }`}
                 title={isFavorite(currentTrack.id) ? 'Liked' : 'Like Track'}
@@ -237,29 +237,16 @@ export default function MusicPlayerBar() {
                   togglePlay();
                 }}
                 disabled={isLoading}
-                className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_12px_rgba(99,210,255,0.6)] active:scale-90 transition shrink-0 border border-white/30"
+                className="w-9 h-9 rounded-full bg-gradient-to-tr from-accentCyan to-accentPurple text-black flex items-center justify-center font-black shadow-[0_0_12px_rgba(99,210,255,0.6)] active:scale-90 transition border border-white shrink-0 mx-0.5"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 {isLoading ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                 ) : isPlaying ? (
-                  <Pause className="w-3.5 h-3.5 fill-current" />
+                  <Pause className="w-4 h-4 fill-current text-black stroke-[2.5]" />
                 ) : (
-                  <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                  <Play className="w-4 h-4 fill-current text-black ml-0.5 stroke-[2.5]" />
                 )}
-              </button>
-
-              {/* Expand to Full Player Modal */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openPlayerModal();
-                }}
-                className="p-1.5 text-slate-200 hover:text-accentCyan active:scale-90 rounded-lg transition hover:bg-white/10"
-                title="Open Full Player"
-              >
-                <Maximize2 className="w-4 h-4" />
               </button>
 
               {/* Dismiss / Close Bar */}
@@ -269,10 +256,10 @@ export default function MusicPlayerBar() {
                   e.stopPropagation();
                   closePlayer();
                 }}
-                className="p-1.5 text-slate-300 hover:text-red-400 active:scale-90 rounded-lg transition hover:bg-white/10"
+                className="p-1.5 text-slate-300 hover:text-red-400 active:scale-90 rounded-xl transition hover:bg-white/10"
                 title="Close"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 stroke-[2]" />
               </button>
 
             </div>
