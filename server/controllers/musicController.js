@@ -185,12 +185,26 @@ const formatSong = (song) => {
   const encryptedUrl = moreInfo.encrypted_media_url || song.encrypted_media_url;
   const audioUrl = decryptMediaUrl(encryptedUrl);
 
-  // Extract artist string
-  let artistName = moreInfo.music || song.music || '';
-  if (!artistName && moreInfo.artistMap?.primary_artists?.length) {
-    artistName = moreInfo.artistMap.primary_artists.map(a => a.name).join(', ');
-  } else if (!artistName && moreInfo.singers) {
+  // Extract artist string with comprehensive fallbacks across all JioSaavn fields
+  let artistName = '';
+  if (moreInfo.primary_artists && typeof moreInfo.primary_artists === 'string') {
+    artistName = moreInfo.primary_artists;
+  } else if (song.primary_artists && typeof song.primary_artists === 'string') {
+    artistName = song.primary_artists;
+  } else if (moreInfo.artistMap?.primary_artists?.length) {
+    artistName = moreInfo.artistMap.primary_artists.map(a => a.name || a).join(', ');
+  } else if (moreInfo.singers && typeof moreInfo.singers === 'string') {
     artistName = moreInfo.singers;
+  } else if (song.singers && typeof song.singers === 'string') {
+    artistName = song.singers;
+  } else if (moreInfo.artistMap?.singers?.length) {
+    artistName = moreInfo.artistMap.singers.map(a => a.name || a).join(', ');
+  } else if (moreInfo.artistMap?.artists?.length) {
+    artistName = moreInfo.artistMap.artists.map(a => a.name || a).join(', ');
+  } else if (moreInfo.music || song.music) {
+    artistName = moreInfo.music || song.music;
+  } else if (song.subtitle || moreInfo.subtitle) {
+    artistName = song.subtitle || moreInfo.subtitle;
   }
 
   const durationSec = parseInt(moreInfo.duration || song.duration || '0', 10);

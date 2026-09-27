@@ -58,13 +58,19 @@ const cleanSongTitle = (str) => {
   return cleaned || cleanText(str);
 };
 
-const cleanArtistName = (str) => {
-  if (!str || typeof str !== 'string') return 'Unknown Artist';
-  let cleaned = cleanText(str);
+const cleanArtistName = (str, track) => {
+  let val = str;
+  if (!val || typeof val !== 'string' || val.trim() === '' || val.toLowerCase() === 'unknown artist') {
+    if (track) {
+      val = track.subtitle || track.singers || track.primary_artists || track.music || '';
+    }
+  }
+  if (!val || typeof val !== 'string' || val.trim() === '') return 'Various Artists';
+  let cleaned = cleanText(val);
   return cleaned
     .replace(/\s*-\s*topic$/i, '')
     .replace(/,\s*$/, '')
-    .trim() || 'Unknown Artist';
+    .trim() || 'Various Artists';
 };
 
 const formatTime = (seconds) => {
@@ -509,7 +515,7 @@ export default function MusicModal() {
 
               {/* Singer / Artist Subtitle */}
               <p className="text-[11px] xs:text-xs sm:text-sm text-slate-200 font-semibold truncate max-w-xs sm:max-w-sm md:max-w-md mx-auto block leading-tight">
-                {cleanArtistName(currentTrack.artist)}
+                {cleanArtistName(currentTrack.artist, currentTrack)}
               </p>
             </div>
 
@@ -537,7 +543,7 @@ export default function MusicModal() {
                     <FileText className="w-3.5 h-3.5 text-accentCyan shrink-0" />
                     <span className="truncate">{cleanText(currentTrack.title)}</span>
                   </h2>
-                  <p className="text-[11px] sm:text-xs text-gray-400 truncate">{cleanText(currentTrack.artist)}</p>
+                  <p className="text-[11px] sm:text-xs text-gray-400 truncate">{cleanArtistName(currentTrack.artist, currentTrack)}</p>
                 </div>
               </div>
 
