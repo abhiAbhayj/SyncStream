@@ -284,7 +284,7 @@ export default function VoiceAssistant() {
   }
 
   return (
-    <div className="fixed bottom-[118px] xs:bottom-[122px] sm:bottom-20 md:bottom-20 right-2.5 sm:right-4 z-40 flex flex-col items-end gap-1.5 pointer-events-none select-none">
+    <div className="fixed bottom-[145px] xs:bottom-[150px] sm:bottom-[84px] md:bottom-20 right-3 sm:right-5 z-40 flex flex-col items-end gap-1.5 pointer-events-none select-none">
       
       {/* Status bubbles */}
       {(transcript || statusText || errorMsg) && (
