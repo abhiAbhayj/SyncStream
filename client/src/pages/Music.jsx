@@ -476,19 +476,23 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-24">
+    <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-24">
+      {/* Radiant Background Ambient Aurora Glows */}
+      <div className="absolute top-10 left-10 w-96 h-96 rounded-full bg-cyan-500/15 blur-[120px] pointer-events-none -z-10" />
+      <div className="absolute top-1/3 right-10 w-[450px] h-[450px] rounded-full bg-purple-600/20 blur-[140px] pointer-events-none -z-10" />
+      <div className="absolute bottom-20 left-1/3 w-96 h-96 rounded-full bg-pink-500/15 blur-[130px] pointer-events-none -z-10" />
       
       {/* ── Top Header Banner & Navigation Tabs ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-2 border-b border-white/15">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accentCyan/20 border border-accentCyan/40 text-accentCyan text-[11px] font-extrabold uppercase tracking-wider font-mono shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-3 border-b border-white/20">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
             <Radio className="w-3.5 h-3.5 animate-pulse text-accentCyan" />
             <span>Dual-Engine: YouTube Music + Studio Masters 320kbps &bull; Live Updated</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white font-outfit tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white font-outfit tracking-tight drop-shadow-md">
             SyncStream Music &amp; Playlists
           </h1>
-          <p className="text-xs sm:text-sm text-gray-300 font-medium">
+          <p className="text-xs sm:text-sm text-slate-200 font-medium">
             Search by Artist, Movie, TV Series, Anime or Song name &bull; Universal Catalog auto-updated with latest hits.
           </p>
         </div>
@@ -501,7 +505,7 @@ export default function Music() {
               value={searchQuery}
               onChange={(e) => handleSearchInputChange(e.target.value)}
               placeholder="Search by Artist, Movie, Anime, Series or Song..."
-              className="w-full bg-[#13182e] border border-white/20 rounded-2xl pl-10 pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-md placeholder:text-gray-400 font-medium"
+              className="w-full bg-[#1a2242] border-2 border-white/25 rounded-2xl pl-10 pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-accentCyan focus:ring-2 focus:ring-accentCyan/30 transition shadow-lg placeholder:text-slate-300 font-semibold"
             />
             <Search className="w-4 h-4 text-accentCyan absolute left-3.5 top-1/2 -translate-y-1/2" />
             
@@ -509,30 +513,30 @@ export default function Music() {
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="absolute right-20 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition"
+                className="absolute right-20 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition"
                 title="Clear search"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
             )}
 
             <button
               type="submit"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs font-black hover:shadow-[0_0_15px_rgba(99,210,255,0.6)] transition active:scale-95"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-xs font-black hover:shadow-[0_0_18px_rgba(99,210,255,0.7)] transition active:scale-95"
             >
               Search
             </button>
           </form>
 
           {/* Quick Search Suggestions */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-gray-300 py-0.5">
-            <span className="font-bold text-gray-400 shrink-0">Popular:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-slate-200 py-0.5">
+            <span className="font-extrabold text-slate-300 shrink-0">Popular:</span>
             {(SUGGESTIONS_BY_CATEGORY[searchCategory] || SUGGESTIONS_BY_CATEGORY.all).map((tag) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => handleSuggestionClick(tag)}
-                className="px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-accentCyan/25 hover:text-white hover:border-accentCyan/50 border border-white/20 whitespace-nowrap transition active:scale-95 text-[10px] font-bold text-gray-200 shadow-sm"
+                className="px-2.5 py-0.5 rounded-full bg-[#20294d] hover:bg-accentCyan hover:text-black border border-white/25 hover:border-accentCyan whitespace-nowrap transition active:scale-95 text-[10.5px] font-bold text-slate-100 shadow-sm"
               >
                 {tag}
               </button>
@@ -542,14 +546,14 @@ export default function Music() {
       </div>
 
       {/* ── Main Navigation Switcher (Discover, Liked Songs, My Playlists) ── */}
-      <div className="flex items-center gap-2 border-b border-white/15 pb-3 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-2 border-b border-white/20 pb-3 overflow-x-auto scrollbar-none">
         <button
           type="button"
           onClick={() => { setActiveTab('discover'); setSelectedPlaylistDetails(null); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition active:scale-95 border shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
             activeTab === 'discover'
-              ? 'bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border-accentCyan text-white shadow-[0_0_16px_rgba(99,210,255,0.35)]'
-              : 'bg-[#13182e] border-white/20 text-gray-200 hover:text-white hover:bg-[#1c2444] hover:border-white/30 shadow-sm'
+              ? 'bg-gradient-to-r from-accentCyan/40 via-[#38bdf8]/30 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_20px_rgba(99,210,255,0.45)]'
+              : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
           }`}
         >
           <Flame className="w-4 h-4 text-accentCyan" />
@@ -559,10 +563,10 @@ export default function Music() {
         <button
           type="button"
           onClick={() => { setActiveTab('favorites'); setSelectedPlaylistDetails(null); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition active:scale-95 border shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
             activeTab === 'favorites'
-              ? 'bg-gradient-to-r from-red-500/30 to-pink-500/30 border-red-400 text-white shadow-[0_0_16px_rgba(239,68,68,0.35)]'
-              : 'bg-[#13182e] border-white/20 text-gray-200 hover:text-white hover:bg-[#1c2444] hover:border-white/30 shadow-sm'
+              ? 'bg-gradient-to-r from-red-500/40 via-pink-500/30 to-purple-500/40 border-2 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.45)]'
+              : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
           }`}
         >
           <Heart className="w-4 h-4 text-red-400 fill-current" />
@@ -572,10 +576,10 @@ export default function Music() {
         <button
           type="button"
           onClick={() => { setActiveTab('playlists'); setSelectedPlaylistDetails(null); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition active:scale-95 border shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
             activeTab === 'playlists'
-              ? 'bg-gradient-to-r from-purple-500/30 to-indigo-500/30 border-accentPurple text-white shadow-[0_0_16px_rgba(168,85,247,0.35)]'
-              : 'bg-[#13182e] border-white/20 text-gray-200 hover:text-white hover:bg-[#1c2444] hover:border-white/30 shadow-sm'
+              ? 'bg-gradient-to-r from-purple-500/40 via-indigo-500/30 to-accentCyan/30 border-2 border-accentPurple text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'
+              : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
           }`}
         >
           <ListMusic className="w-4 h-4 text-accentPurple" />
@@ -591,7 +595,7 @@ export default function Music() {
           {/* Multi-Faceted Category Filter Pills */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+              <div className="flex items-center gap-1.5 text-xs font-black text-slate-200 uppercase tracking-wider font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
                 <span>Search by Category</span>
               </div>
@@ -606,10 +610,10 @@ export default function Music() {
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 border active:scale-95 ${
+                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-200 border active:scale-95 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-accentCyan to-[#38bdf8] text-black border-accentCyan shadow-[0_0_16px_rgba(99,210,255,0.5)]'
-                        : 'bg-[#151b33] border-white/20 text-gray-100 hover:text-white hover:border-accentCyan/60 hover:bg-[#1e2648] shadow-md'
+                        ? 'bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black border-2 border-white shadow-[0_0_20px_rgba(99,210,255,0.7)]'
+                        : 'bg-[#1c2548] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/70 hover:bg-[#283564] shadow-md'
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -627,7 +631,7 @@ export default function Music() {
                 type="button"
                 onClick={handleRefreshAll}
                 disabled={isRefreshing || loading}
-                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all border border-accentCyan/50 bg-accentCyan/20 hover:bg-accentCyan/30 text-white active:scale-95 shrink-0 shadow-md"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all border-2 border-accentCyan/70 bg-accentCyan/30 hover:bg-accentCyan/45 text-white active:scale-95 shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.4)]"
                 title="Refresh live trending hits & charts"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -645,10 +649,10 @@ export default function Music() {
                       setPage(1);
                       setHasMore(true);
                     }}
-                    className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border active:scale-95 shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 border active:scale-95 shrink-0 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border-accentCyan text-white shadow-[0_0_15px_rgba(99,210,255,0.35)]'
-                        : 'bg-[#141a30] border-white/20 text-gray-200 hover:text-white hover:border-accentCyan/40 hover:bg-[#1c2444] shadow-sm'
+                        ? 'bg-gradient-to-r from-accentCyan/40 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_18px_rgba(99,210,255,0.45)]'
+                        : 'bg-[#1a2244] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/60 hover:bg-[#26325e] shadow-sm'
                     }`}
                   >
                     <span>{lang.flag}</span>
@@ -661,14 +665,14 @@ export default function Music() {
 
           {/* Featured Spotlight (when no search query) */}
           {featuredSong && !searchQuery && (
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/20 p-3.5 sm:p-7 bg-gradient-to-r from-[#141930] via-[#0e1224] to-[#141930] shadow-2xl flex flex-col sm:flex-row items-center gap-3 sm:gap-6 group">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 p-4 sm:p-7 bg-gradient-to-r from-[#1c2548] via-[#141b36] to-[#1c2548] shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col sm:flex-row items-center gap-4 sm:gap-6 group">
               <div
-                className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-20 pointer-events-none group-hover:opacity-30 transition-opacity"
+                className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 pointer-events-none group-hover:opacity-40 transition-opacity"
                 style={{ backgroundImage: `url(${featuredSong.image})` }}
               />
 
               {/* Cover Art */}
-              <div className="relative w-24 h-24 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shrink-0 border border-white/20 shadow-2xl group-hover:scale-105 transition-transform duration-500 bg-black">
+              <div className="relative w-28 h-28 sm:w-44 sm:h-44 rounded-2xl overflow-hidden shrink-0 border-2 border-white/30 shadow-2xl group-hover:scale-105 transition-transform duration-500 bg-black">
                 <img
                   src={featuredSong.image || 'https://placehold.co/200x200/1e1e24/fff?text=Music'}
                   alt={featuredSong.title}
@@ -677,21 +681,21 @@ export default function Music() {
               </div>
 
               {/* Meta Details */}
-              <div className="relative z-10 flex-1 text-center sm:text-left space-y-2 sm:space-y-3">
-                <div className="space-y-0.5 sm:space-y-1">
-                  <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono">
+              <div className="relative z-10 flex-1 text-center sm:text-left space-y-2.5 sm:space-y-3.5">
+                <div className="space-y-1 sm:space-y-1.5">
+                  <span className="uppercase text-[9px] sm:text-[10px] font-black px-3 py-1 rounded-full bg-accentCyan/30 text-white border border-accentCyan/60 tracking-wider font-mono shadow-sm">
                     Featured Spotlight &bull; {featuredSong.language}
                   </span>
-                  <h2 className="text-base sm:text-2xl font-extrabold text-white font-outfit tracking-tight leading-snug">
+                  <h2 className="text-base sm:text-2xl font-black text-white font-outfit tracking-tight leading-snug drop-shadow-md">
                     {featuredSong.title}
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-300 font-medium truncate">
+                  <p className="text-xs sm:text-sm text-slate-200 font-semibold truncate">
                     {featuredSong.artist}
                   </p>
                 </div>
 
                 {/* Quick Play & Action Buttons */}
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-0.5">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-0.5">
                   <button
                     onClick={() => {
                       if (currentTrack?.id === featuredSong.id) {
@@ -700,7 +704,7 @@ export default function Music() {
                         playTrack(featuredSong, songs);
                       }
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white text-xs sm:text-sm font-bold shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95"
+                    className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.6)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
                   >
                     {currentTrack?.id === featuredSong.id && isPlaying ? (
                       <>
@@ -717,7 +721,7 @@ export default function Music() {
 
                   <button
                     onClick={() => playQueue(songs, 0)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-bold border border-white/10 transition active:scale-95"
+                    className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black border border-white/25 transition active:scale-95 shadow-sm"
                   >
                     <Disc3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan" />
                     <span>Play All ({songs.length})</span>
@@ -725,10 +729,10 @@ export default function Music() {
 
                   <button
                     onClick={() => toggleFavorite(featuredSong)}
-                    className={`p-2.5 rounded-full border transition active:scale-95 ${
+                    className={`p-2.5 rounded-full border-2 transition active:scale-95 shadow-sm ${
                       isFavorite(featuredSong.id)
-                        ? 'bg-red-500/20 border-red-500/50 text-red-400'
-                        : 'bg-white/10 border-white/15 text-gray-300 hover:text-white'
+                        ? 'bg-red-500/30 border-red-500/70 text-red-300'
+                        : 'bg-white/15 border-white/25 text-slate-100 hover:text-white hover:bg-white/25'
                     }`}
                     title={isFavorite(featuredSong.id) ? 'Liked' : 'Add to Favorites'}
                   >
@@ -737,10 +741,10 @@ export default function Music() {
 
                   <button
                     onClick={() => setSongToAddToPlaylist(featuredSong)}
-                    className="p-2.5 rounded-full bg-white/10 border border-white/15 text-gray-300 hover:text-white transition active:scale-95"
+                    className="p-2.5 rounded-full bg-white/15 border-2 border-white/25 text-slate-100 hover:text-white hover:bg-white/25 transition active:scale-95 shadow-sm"
                     title="Add to Playlist"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </div>
               </div>
@@ -750,7 +754,7 @@ export default function Music() {
           {/* Songs Grid */}
           <div id="music-songs-section" className="space-y-3 sm:space-y-4 pt-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-base sm:text-xl font-extrabold text-white font-outfit flex items-center gap-2">
+              <h3 className="text-base sm:text-xl font-black text-white font-outfit flex items-center gap-2">
                 <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-accentPink" />
                 <span>
                   {searchQuery
@@ -759,7 +763,7 @@ export default function Music() {
                 </span>
               </h3>
 
-              <span className="text-xs font-mono font-bold text-gray-200 px-3 py-1 rounded-full bg-white/10 border border-white/20 shadow-sm">
+              <span className="text-xs font-mono font-black text-white px-3.5 py-1 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
                 {songs.length} Tracks
               </span>
             </div>
@@ -767,13 +771,13 @@ export default function Music() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Loader2 className="w-8 h-8 text-accentCyan animate-spin" />
-                <p className="text-xs font-bold text-gray-300 font-mono">Loading pristine audio streams...</p>
+                <p className="text-xs font-bold text-slate-200 font-mono">Loading pristine audio streams...</p>
               </div>
             ) : songs.length === 0 ? (
-              <div className="text-center py-16 glass-panel rounded-2xl border border-white/20 p-6 space-y-2 bg-[#13182e]/95">
-                <Music2 className="w-10 h-10 text-gray-500 mx-auto" />
-                <h4 className="text-base font-bold text-gray-200">No tracks found</h4>
-                <p className="text-xs text-gray-400">Try searching with a broader name, artist, or movie title.</p>
+              <div className="text-center py-16 glass-panel rounded-3xl border-2 border-white/25 p-6 space-y-2 bg-[#18203c]/95 shadow-xl">
+                <Music2 className="w-10 h-10 text-slate-400 mx-auto" />
+                <h4 className="text-base font-black text-white">No tracks found</h4>
+                <p className="text-xs text-slate-300 font-medium">Try searching with a broader name, artist, or movie title.</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -786,10 +790,10 @@ export default function Music() {
                     return (
                       <div
                         key={`${song.id}-${idx}`}
-                        className={`group relative rounded-xl sm:rounded-2xl border p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden shadow-lg backdrop-blur-md ${
+                        className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden shadow-xl backdrop-blur-md ${
                           isCurrent
-                            ? 'bg-accentCyan/20 border-accentCyan/60 shadow-[0_0_20px_rgba(99,210,255,0.35)] ring-1 ring-accentCyan/50'
-                            : 'border-white/15 bg-[#12172b]/95 hover:border-accentCyan/50 hover:bg-[#19213d] hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]'
+                            ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_25px_rgba(99,210,255,0.45)] ring-2 ring-accentCyan/60'
+                            : 'border-white/20 bg-[#18203c]/95 hover:border-accentCyan/70 hover:bg-[#202b52] hover:shadow-[0_10px_30px_rgba(0,245,255,0.25)]'
                         }`}
                       >
                         {/* Square Album Cover */}
@@ -801,7 +805,7 @@ export default function Music() {
                               playTrack(song, songs);
                             }
                           }}
-                          className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
+                          className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                         >
                           <img
                             src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
@@ -830,7 +834,7 @@ export default function Music() {
                             className={`absolute top-1.5 right-1.5 p-1.5 rounded-full backdrop-blur-md transition active:scale-90 ${
                               isFav
                                 ? 'bg-red-500 text-white shadow-md'
-                                : 'bg-black/60 text-gray-200 hover:text-white opacity-90 sm:opacity-0 sm:group-hover:opacity-100'
+                                : 'bg-black/70 text-slate-100 hover:text-white opacity-90 sm:opacity-0 sm:group-hover:opacity-100 border border-white/20'
                             }`}
                             title={isFav ? 'Liked' : 'Like'}
                           >
@@ -848,19 +852,19 @@ export default function Music() {
                                 playTrack(song, songs);
                               }
                             }}
-                            className={`text-xs sm:text-sm font-bold truncate font-outfit cursor-pointer transition-colors ${
+                            className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer transition-colors ${
                               isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
                             }`}
                             title={song.title}
                           >
                             {song.title}
                           </h4>
-                          <p className="text-[10px] sm:text-[11px] text-gray-300 truncate font-medium">
+                          <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
                             {song.artist}
                           </p>
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[9px] sm:text-[10px] font-mono font-bold text-gray-300 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-gray-400" />
+                            <span className="text-[9px] sm:text-[10px] font-mono font-black text-slate-300 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-slate-400" />
                               {formatTime(song.duration)}
                             </span>
                             
@@ -868,10 +872,10 @@ export default function Music() {
                               <button
                                 type="button"
                                 onClick={() => setSongToAddToPlaylist(song)}
-                                className="p-1 text-gray-300 hover:text-accentPurple hover:bg-white/15 rounded-md transition active:scale-90"
+                                className="p-1 text-slate-200 hover:text-accentPurple hover:bg-white/20 rounded-md transition active:scale-90"
                                 title="Add to Playlist"
                               >
-                                <Plus className="w-3.5 h-3.5" />
+                                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                               </button>
                               <button
                                 type="button"
@@ -882,10 +886,10 @@ export default function Music() {
                                     playTrack(song, songs);
                                   }
                                 }}
-                                className={`p-1.5 rounded-full transition active:scale-90 ${
+                                className={`p-1.5 rounded-full transition active:scale-90 border ${
                                   isCurrentPlaying
-                                    ? 'bg-accentCyan text-black shadow-[0_0_10px_rgba(99,210,255,0.6)] font-bold'
-                                    : 'bg-white/15 text-white hover:bg-accentCyan hover:text-black'
+                                    ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
+                                    : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
                                 }`}
                                 title={isCurrentPlaying ? 'Pause' : 'Play'}
                               >
@@ -905,7 +909,7 @@ export default function Music() {
                     <button
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan/25 to-accentPurple/25 hover:from-accentCyan/35 hover:to-accentPurple/35 border border-accentCyan/50 text-white font-extrabold text-xs sm:text-sm shadow-[0_0_20px_rgba(99,210,255,0.25)] hover:shadow-[0_0_25px_rgba(99,210,255,0.5)] transition active:scale-95 disabled:opacity-50"
+                      className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 border-2 border-accentCyan text-white font-black text-xs sm:text-sm shadow-[0_0_25px_rgba(99,210,255,0.35)] hover:shadow-[0_0_30px_rgba(99,210,255,0.6)] transition active:scale-95 disabled:opacity-50"
                     >
                       {loadingMore ? (
                         <>
@@ -928,20 +932,20 @@ export default function Music() {
 
           {/* Curated Regional Charts */}
           {!searchQuery && (
-            <div className="space-y-8 pt-4 border-t border-white/15">
+            <div className="space-y-8 pt-6 border-t-2 border-white/20">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="space-y-0.5">
-                  <h3 className="text-lg sm:text-2xl font-extrabold text-white font-outfit flex items-center gap-2">
+                  <h3 className="text-lg sm:text-2xl font-black text-white font-outfit flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-accentCyan" />
                     <span>Curated Regional Charts &amp; Soundtracks</span>
                   </h3>
-                  <p className="text-xs text-gray-300 font-medium">Hand-picked charts from Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime &amp; Global Hits &bull; Live Updated.</p>
+                  <p className="text-xs text-slate-200 font-semibold">Hand-picked charts from Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime &amp; Global Hits &bull; Live Updated.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => fetchCharts(true)}
                   disabled={chartsLoading || isRefreshing}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs font-bold transition active:scale-95 self-start sm:self-auto shrink-0 shadow-sm"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white border-2 border-white/30 text-xs font-black transition active:scale-95 self-start sm:self-auto shrink-0 shadow-md"
                   title="Refresh charts with latest hits"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${chartsLoading || isRefreshing ? 'animate-spin' : ''}`} />
@@ -952,7 +956,7 @@ export default function Music() {
               {chartsLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                   <Loader2 className="w-7 h-7 text-accentCyan animate-spin" />
-                  <p className="text-xs font-bold text-gray-300 font-mono">Loading charts...</p>
+                  <p className="text-xs font-bold text-slate-200 font-mono">Loading charts...</p>
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -962,13 +966,13 @@ export default function Music() {
                       <div key={chart.id} className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="text-sm sm:text-base font-extrabold text-white font-outfit">{chart.title}</h4>
-                            {chart.subtitle && <p className="text-[11px] text-gray-400">{chart.subtitle}</p>}
+                            <h4 className="text-sm sm:text-base font-black text-white font-outfit">{chart.title}</h4>
+                            {chart.subtitle && <p className="text-[11px] text-slate-300 font-semibold">{chart.subtitle}</p>}
                           </div>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => { if (chart.songs.length > 0) playQueue(chart.songs, 0); }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accentCyan/20 hover:bg-accentCyan/30 text-accentCyan border border-accentCyan/40 text-xs font-bold transition active:scale-95 shadow-sm"
+                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-accentCyan/25 hover:bg-accentCyan/40 text-accentCyan border-2 border-accentCyan/60 text-xs font-black transition active:scale-95 shadow-md"
                             >
                               <Play className="w-3 h-3 fill-current" />
                               <span>Play All</span>
@@ -988,11 +992,11 @@ export default function Music() {
                                     playTrack(s, chart.songs);
                                   }
                                 }}
-                                className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-40 cursor-pointer p-2 rounded-xl border transition-all duration-300 shadow-md ${
-                                  isCur ? 'bg-accentCyan/20 border-accentCyan/50 shadow-[0_0_15px_rgba(99,210,255,0.3)]' : 'border-white/15 bg-[#141930]/95 hover:bg-[#1c2344] hover:border-accentCyan/50'
+                                className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-40 cursor-pointer p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-lg ${
+                                  isCur ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.4)]' : 'border-white/20 bg-[#18203c]/95 hover:bg-[#202b52] hover:border-accentCyan/60'
                                 }`}
                               >
-                                <div className="relative aspect-square rounded-lg overflow-hidden border border-white/20 shadow-md bg-black">
+                                <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-md bg-black">
                                   <img src={s.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <div className="w-9 h-9 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-lg font-bold">
@@ -1001,8 +1005,8 @@ export default function Music() {
                                   </div>
                                 </div>
                                 <div className="space-y-0.5 min-w-0">
-                                  <p className={`text-xs font-bold truncate font-outfit transition-colors ${isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'}`}>{s.title}</p>
-                                  <p className="text-[10px] text-gray-300 truncate">{s.artist}</p>
+                                  <p className={`text-xs font-black truncate font-outfit transition-colors ${isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'}`}>{s.title}</p>
+                                  <p className="text-[10px] text-slate-200 truncate font-semibold">{s.artist}</p>
                                 </div>
                               </div>
                             );
@@ -1023,14 +1027,14 @@ export default function Music() {
          ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'favorites' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-950/40 via-[#181124] to-[#131830] shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl border-2 border-red-500/50 bg-gradient-to-r from-red-950/60 via-[#261633] to-[#18203c] shadow-[0_10px_35px_rgba(239,68,68,0.25)]">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-500 to-pink-500 flex items-center justify-center shadow-lg shadow-red-500/40 text-white shrink-0">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-500 to-pink-500 flex items-center justify-center shadow-lg shadow-red-500/40 text-white shrink-0 border-2 border-white/30">
                 <Heart className="w-8 h-8 fill-current" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white font-outfit">Liked Songs</h2>
-                <p className="text-xs sm:text-sm text-gray-200 font-medium">{favorites.length} favorite songs in your library</p>
+                <h2 className="text-xl sm:text-2xl font-black text-white font-outfit">Liked Songs</h2>
+                <p className="text-xs sm:text-sm text-slate-200 font-semibold">{favorites.length} favorite songs in your library</p>
               </div>
             </div>
 
@@ -1039,7 +1043,7 @@ export default function Music() {
                 <button
                   type="button"
                   onClick={() => playQueue(favorites, 0)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-red-500/40 hover:opacity-95 transition active:scale-95"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs sm:text-sm font-black shadow-lg shadow-red-500/50 hover:opacity-95 transition active:scale-95 border border-white/25"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>Play All</span>
@@ -1050,7 +1054,7 @@ export default function Music() {
                     const shuffled = [...favorites].sort(() => Math.random() - 0.5);
                     playQueue(shuffled, 0);
                   }}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs sm:text-sm font-bold border border-white/20 transition active:scale-95 shadow-sm"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black border-2 border-white/25 transition active:scale-95 shadow-md"
                 >
                   <Shuffle className="w-4 h-4 text-red-400" />
                   <span>Shuffle</span>
@@ -1060,16 +1064,16 @@ export default function Music() {
           </div>
 
           {favorites.length === 0 ? (
-            <div className="text-center py-20 rounded-2xl border border-white/20 p-8 space-y-3 bg-[#131830]/95 shadow-xl">
-              <Heart className="w-12 h-12 text-gray-500 mx-auto stroke-1" />
-              <h3 className="text-lg font-bold text-gray-100">No liked songs yet</h3>
-              <p className="text-xs text-gray-300 max-w-sm mx-auto font-medium">
+            <div className="text-center py-20 rounded-3xl border-2 border-white/25 p-8 space-y-3 bg-[#18203c]/95 shadow-2xl">
+              <Heart className="w-12 h-12 text-slate-400 mx-auto stroke-1" />
+              <h3 className="text-lg font-black text-white">No liked songs yet</h3>
+              <p className="text-xs text-slate-300 max-w-sm mx-auto font-medium">
                 Tap the heart icon ❤️ on any song card while exploring to add it to your permanent Favorite Library.
               </p>
               <button
                 type="button"
                 onClick={() => setActiveTab('discover')}
-                className="mt-2 px-5 py-2.5 rounded-xl bg-accentCyan text-black font-extrabold text-xs transition active:scale-95 shadow-md"
+                className="mt-2 px-6 py-2.5 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg"
               >
                 Explore Songs
               </button>
@@ -1083,10 +1087,10 @@ export default function Music() {
                 return (
                   <div
                     key={`${song.id}-${idx}`}
-                    className={`group relative rounded-xl sm:rounded-2xl border p-2.5 transition-all duration-300 flex flex-col gap-2 shadow-lg backdrop-blur-md ${
+                    className={`group relative rounded-xl sm:rounded-2xl border-2 p-2.5 transition-all duration-300 flex flex-col gap-2 shadow-xl backdrop-blur-md ${
                       isCurrent
-                        ? 'bg-red-500/20 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.35)] ring-1 ring-red-500/50'
-                        : 'border-white/15 bg-[#12172b]/95 hover:border-red-500/50 hover:bg-[#1a1f38] hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]'
+                        ? 'bg-red-500/25 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.45)] ring-2 ring-red-500/60'
+                        : 'border-white/20 bg-[#18203c]/95 hover:border-red-500/60 hover:bg-[#221c38] hover:shadow-[0_10px_30px_rgba(239,68,68,0.25)]'
                     }`}
                   >
                     <div
@@ -1097,7 +1101,7 @@ export default function Music() {
                           playTrack(song, favorites);
                         }
                       }}
-                      className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
+                      className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
                     >
                       <img
                         src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
@@ -1117,7 +1121,7 @@ export default function Music() {
                           e.stopPropagation();
                           toggleFavorite(song);
                         }}
-                        className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-red-500 text-white shadow-md transition active:scale-90"
+                        className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-red-500 text-white shadow-md transition active:scale-90 border border-white/25"
                         title="Remove from favorites"
                       >
                         <Heart className="w-3.5 h-3.5 fill-current" />
@@ -1133,25 +1137,25 @@ export default function Music() {
                             playTrack(song, favorites);
                           }
                         }}
-                        className={`text-xs sm:text-sm font-bold truncate font-outfit cursor-pointer ${
+                        className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
                           isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
                         }`}
                         title={song.title}
                       >
                         {song.title}
                       </h4>
-                      <p className="text-[10px] sm:text-[11px] text-gray-300 truncate font-medium">
+                      <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
                         {song.artist}
                       </p>
                       <div className="flex items-center justify-between pt-1">
-                        <span className="text-[9px] font-mono font-bold text-gray-300">{formatTime(song.duration)}</span>
+                        <span className="text-[9px] font-mono font-black text-slate-300">{formatTime(song.duration)}</span>
                         <button
                           type="button"
                           onClick={() => setSongToAddToPlaylist(song)}
-                          className="p-1 text-gray-300 hover:text-accentPurple hover:bg-white/15 rounded-md transition"
+                          className="p-1 text-slate-200 hover:text-accentPurple hover:bg-white/20 rounded-md transition"
                           title="Add to Playlist"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       </div>
                     </div>
@@ -1169,21 +1173,21 @@ export default function Music() {
       {activeTab === 'playlists' && (
         <div className="space-y-6">
           {/* Header & Create Playlist Button (Solid high-contrast card) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border border-white/20 bg-[#131832]/95 backdrop-blur-2xl shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl border-2 border-purple-500/40 bg-gradient-to-r from-purple-950/60 via-[#22193d] to-[#18203c] backdrop-blur-2xl shadow-[0_10px_35px_rgba(168,85,247,0.25)]">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/40 text-white shrink-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/50 text-white shrink-0 border-2 border-white/30">
                 <ListMusic className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white font-outfit">My Custom Playlists</h2>
-                <p className="text-xs sm:text-sm text-gray-200 font-medium">Create, rename, organize, and stream your personalized music collections.</p>
+                <h2 className="text-xl sm:text-2xl font-black text-white font-outfit">My Custom Playlists</h2>
+                <p className="text-xs sm:text-sm text-slate-200 font-semibold">Create, rename, organize, and stream your personalized music collections.</p>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setShowCreatePlaylistModal(true)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-lg shadow-accentPurple/30 hover:opacity-95 transition active:scale-95 shrink-0"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-lg shadow-accentPurple/40 hover:opacity-95 transition active:scale-95 shrink-0 border-2 border-white"
             >
               <FolderPlus className="w-4 h-4 text-black stroke-[2.5]" />
               <span>Create New Playlist</span>
@@ -1193,11 +1197,11 @@ export default function Music() {
           {/* If Playlist is Selected, show Playlist Details View */}
           {selectedPlaylistDetails ? (
             <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/15">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b-2 border-white/20">
                 <button
                   type="button"
                   onClick={() => setSelectedPlaylistDetails(null)}
-                  className="flex items-center gap-1.5 text-xs text-accentCyan hover:text-white font-extrabold transition active:scale-95"
+                  className="flex items-center gap-1.5 text-xs text-accentCyan hover:text-white font-black transition active:scale-95"
                 >
                   &larr; Back to all playlists
                 </button>
@@ -1207,7 +1211,7 @@ export default function Music() {
                     <button
                       type="button"
                       onClick={() => playQueue(playlistSongs, 0)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-md"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                       <span>Play All ({playlistSongs.length})</span>
@@ -1217,7 +1221,7 @@ export default function Music() {
                   <button
                     type="button"
                     onClick={(e) => handleOpenEditPlaylist(selectedPlaylistDetails, e)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs font-bold transition active:scale-95 shadow-sm"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border-2 border-white/25 text-xs font-black transition active:scale-95 shadow-md"
                     title="Edit Playlist Name & Details"
                   >
                     <Edit3 className="w-3.5 h-3.5 text-accentCyan" />
@@ -1227,7 +1231,7 @@ export default function Music() {
                   <button
                     type="button"
                     onClick={(e) => handleDeletePlaylist(selectedPlaylistDetails, e)}
-                    className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-white border border-red-500/40 transition active:scale-95 shadow-sm"
+                    className="p-2 rounded-xl bg-red-500/25 hover:bg-red-500/40 text-red-300 hover:text-white border-2 border-red-500/50 transition active:scale-95 shadow-md"
                     title="Delete Playlist"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1236,26 +1240,26 @@ export default function Music() {
               </div>
 
               {/* Playlist Details Banner */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-[#131832]/95 border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xl">
+              <div className="p-4 sm:p-5 rounded-3xl bg-[#18203c]/95 border-2 border-white/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl">
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-white font-outfit flex items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-black text-white font-outfit flex items-center gap-2">
                     <span>{selectedPlaylistDetails.name}</span>
                     <button
                       type="button"
                       onClick={(e) => handleOpenEditPlaylist(selectedPlaylistDetails, e)}
-                      className="p-1 rounded-lg hover:bg-white/15 text-gray-300 hover:text-accentCyan transition"
+                      className="p-1.5 rounded-lg hover:bg-white/20 text-slate-200 hover:text-accentCyan transition"
                       title="Edit Name"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                   </h3>
                   {selectedPlaylistDetails.description ? (
-                    <p className="text-xs text-gray-300 mt-1 font-medium">{selectedPlaylistDetails.description}</p>
+                    <p className="text-xs text-slate-200 mt-1 font-semibold">{selectedPlaylistDetails.description}</p>
                   ) : (
-                    <p className="text-xs text-gray-400 italic mt-0.5">No description added.</p>
+                    <p className="text-xs text-slate-400 italic mt-0.5">No description added.</p>
                   )}
                 </div>
-                <span className="text-xs font-mono font-bold text-accentCyan self-start sm:self-auto px-3 py-1 rounded-full bg-accentCyan/20 border border-accentCyan/40 shadow-sm">
+                <span className="text-xs font-mono font-black text-accentCyan self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-accentCyan/25 border-2 border-accentCyan/50 shadow-md">
                   {playlistSongs.length} Tracks
                 </span>
               </div>
@@ -1265,10 +1269,10 @@ export default function Music() {
                   <Loader2 className="w-8 h-8 text-accentCyan animate-spin" />
                 </div>
               ) : playlistSongs.length === 0 ? (
-                <div className="text-center py-16 rounded-2xl border border-white/20 bg-[#131832]/95 p-6 space-y-2 shadow-xl">
-                  <Music2 className="w-10 h-10 text-gray-500 mx-auto" />
-                  <h4 className="text-base font-bold text-gray-200">Playlist is empty</h4>
-                  <p className="text-xs text-gray-400">Add songs to this playlist by clicking the "+" button on any track!</p>
+                <div className="text-center py-16 rounded-3xl border-2 border-white/25 bg-[#18203c]/95 p-6 space-y-2 shadow-2xl">
+                  <Music2 className="w-10 h-10 text-slate-400 mx-auto" />
+                  <h4 className="text-base font-black text-white">Playlist is empty</h4>
+                  <p className="text-xs text-slate-300 font-medium">Add songs to this playlist by clicking the "+" button on any track!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -1279,10 +1283,10 @@ export default function Music() {
                     return (
                       <div
                         key={`${song.id}-${idx}`}
-                        className={`group relative rounded-xl sm:rounded-2xl border p-2.5 transition-all duration-300 flex flex-col gap-2 bg-[#131832]/95 shadow-md ${
+                        className={`group relative rounded-xl sm:rounded-2xl border-2 p-2.5 transition-all duration-300 flex flex-col gap-2 bg-[#18203c]/95 shadow-xl ${
                           isCurrent
-                            ? 'border-accentPurple/70 shadow-lg shadow-accentPurple/25 ring-1 ring-accentPurple/50'
-                            : 'border-white/15 hover:border-accentPurple/50 hover:bg-[#1a2142]'
+                            ? 'border-accentPurple shadow-lg shadow-accentPurple/35 ring-2 ring-accentPurple/60'
+                            : 'border-white/20 hover:border-accentPurple/70 hover:bg-[#202b52]'
                         }`}
                       >
                         <div
@@ -1293,7 +1297,7 @@ export default function Music() {
                               playTrack(song, playlistSongs);
                             }
                           }}
-                          className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
+                          className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
                         >
                           <img
                             src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
@@ -1312,7 +1316,7 @@ export default function Music() {
                           <button
                             type="button"
                             onClick={(e) => handleRemoveSongFromCurrentPlaylist(song, e)}
-                            className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/80 hover:bg-red-500 text-gray-200 hover:text-white transition active:scale-90 shadow"
+                            className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/80 hover:bg-red-500 text-slate-100 hover:text-white transition active:scale-90 shadow border border-white/20"
                             title="Remove from playlist"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1328,18 +1332,18 @@ export default function Music() {
                                 playTrack(song, playlistSongs);
                               }
                             }}
-                            className={`text-xs sm:text-sm font-bold truncate font-outfit cursor-pointer ${
+                            className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
                               isCurrent ? 'text-accentCyan' : 'text-white'
                             }`}
                             title={song.title}
                           >
                             {song.title}
                           </h4>
-                          <p className="text-[10px] sm:text-[11px] text-gray-300 truncate font-medium">
+                          <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
                             {song.artist}
                           </p>
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[9px] font-mono font-bold text-gray-300">{formatTime(song.duration)}</span>
+                            <span className="text-[9px] font-mono font-black text-slate-300">{formatTime(song.duration)}</span>
                           </div>
                         </div>
                       </div>
@@ -1352,16 +1356,16 @@ export default function Music() {
             /* Playlist Cards Grid */
             <div>
               {playlists.length === 0 ? (
-                <div className="text-center py-20 rounded-2xl border border-white/20 bg-[#131832]/95 p-8 space-y-3 shadow-xl">
-                  <ListMusic className="w-12 h-12 text-gray-500 mx-auto stroke-1" />
-                  <h3 className="text-lg font-bold text-gray-100">No playlists yet</h3>
-                  <p className="text-xs text-gray-300 max-w-sm mx-auto font-medium">
+                <div className="text-center py-20 rounded-3xl border-2 border-white/25 bg-[#18203c]/95 p-8 space-y-3 shadow-2xl">
+                  <ListMusic className="w-12 h-12 text-slate-400 mx-auto stroke-1" />
+                  <h3 className="text-lg font-black text-white">No playlists yet</h3>
+                  <p className="text-xs text-slate-300 max-w-sm mx-auto font-medium">
                     Create your first playlist and start gathering your favorite tracks for parties, gym, chill, and study.
                   </p>
                   <button
                     type="button"
                     onClick={() => setShowCreatePlaylistModal(true)}
-                    className="mt-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-black text-xs transition active:scale-95 shadow-md"
+                    className="mt-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
                   >
                     Create Playlist
                   </button>
@@ -1372,10 +1376,10 @@ export default function Music() {
                     <div
                       key={pl.id}
                       onClick={() => handleOpenPlaylistDetails(pl)}
-                      className="group rounded-2xl border border-white/20 bg-[#131832]/95 p-4 transition-all duration-300 hover:border-accentPurple/60 hover:bg-[#1a2142] shadow-xl hover:shadow-[0_10px_30px_rgba(168,85,247,0.3)] cursor-pointer space-y-3 flex flex-col justify-between"
+                      className="group rounded-3xl border-2 border-white/25 bg-[#18203c]/95 p-4 transition-all duration-300 hover:border-accentPurple/80 hover:bg-[#202b52] shadow-xl hover:shadow-[0_10px_30px_rgba(168,85,247,0.35)] cursor-pointer space-y-3 flex flex-col justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-tr from-purple-600/50 to-cyan-500/50 flex items-center justify-center shrink-0 border border-white/20 shadow-md">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-tr from-purple-600/60 to-cyan-500/60 flex items-center justify-center shrink-0 border-2 border-white/25 shadow-md">
                           {pl.cover_image ? (
                             <img src={pl.cover_image} alt={pl.name} className="w-full h-full object-cover" />
                           ) : (
@@ -1383,28 +1387,28 @@ export default function Music() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-extrabold text-sm sm:text-base text-white truncate group-hover:text-accentCyan transition-colors">
+                          <h4 className="font-black text-sm sm:text-base text-white truncate group-hover:text-accentCyan transition-colors">
                             {pl.name}
                           </h4>
-                          <p className="text-xs text-gray-300 font-medium">{pl.track_count || 0} Tracks</p>
+                          <p className="text-xs text-slate-200 font-bold">{pl.track_count || 0} Tracks</p>
                         </div>
                       </div>
 
                       {pl.description && (
-                        <p className="text-[11px] text-gray-300 truncate font-medium">{pl.description}</p>
+                        <p className="text-[11px] text-slate-300 truncate font-semibold">{pl.description}</p>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t border-white/15">
+                      <div className="flex items-center justify-between pt-2 border-t-2 border-white/20">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOpenPlaylistDetails(pl);
                           }}
-                          className="text-xs font-bold text-accentCyan hover:text-white flex items-center gap-1 transition"
+                          className="text-xs font-black text-accentCyan hover:text-white flex items-center gap-1 transition"
                         >
                           <span>Open Playlist</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
 
                         <div className="flex items-center gap-1">
@@ -1412,7 +1416,7 @@ export default function Music() {
                           <button
                             type="button"
                             onClick={(e) => handleOpenEditPlaylist(pl, e)}
-                            className="p-1.5 rounded-lg hover:bg-white/15 text-gray-300 hover:text-accentCyan transition active:scale-95"
+                            className="p-1.5 rounded-lg hover:bg-white/20 text-slate-200 hover:text-accentCyan transition active:scale-95"
                             title="Edit Playlist Name"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -1422,7 +1426,7 @@ export default function Music() {
                           <button
                             type="button"
                             onClick={(e) => handleDeletePlaylist(pl, e)}
-                            className="p-1.5 rounded-lg hover:bg-red-500/30 text-gray-300 hover:text-red-400 transition active:scale-95"
+                            className="p-1.5 rounded-lg hover:bg-red-500/40 text-slate-200 hover:text-red-400 transition active:scale-95"
                             title="Delete Playlist"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1442,17 +1446,17 @@ export default function Music() {
           MODAL 1: CREATE PLAYLIST
          ══════════════════════════════════════════════════════════════════════ */}
       {showCreatePlaylistModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md border border-white/20 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#12172b]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/15">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#141a33]">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-white/20">
               <div className="flex items-center gap-2">
-                <FolderPlus className="w-5 h-5 text-accentCyan" />
-                <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">Create New Playlist</h3>
+                <FolderPlus className="w-5 h-5 text-accentCyan stroke-[2.5]" />
+                <h3 className="font-black text-base sm:text-lg text-white font-outfit">Create New Playlist</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCreatePlaylistModal(false)}
-                className="p-1.5 rounded-xl hover:bg-white/15 text-gray-300 hover:text-white transition"
+                className="p-1.5 rounded-xl hover:bg-white/20 text-slate-200 hover:text-white transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1460,7 +1464,7 @@ export default function Music() {
 
             <form onSubmit={handleCreatePlaylistSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">
+                <label className="text-xs font-black text-slate-100 uppercase tracking-wider font-mono">
                   Playlist Name *
                 </label>
                 <input
@@ -1469,12 +1473,12 @@ export default function Music() {
                   value={newPlaylistName}
                   onChange={(e) => setNewPlaylistName(e.target.value)}
                   placeholder="e.g. Chill Beats, Gym Hype, Anime OSTs..."
-                  className="w-full bg-[#182038] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder:text-gray-400 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner"
+                  className="w-full bg-[#1c2445] border-2 border-white/25 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-300 focus:outline-none focus:border-accentCyan focus:ring-2 focus:ring-accentCyan/50 font-semibold transition shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">
+                <label className="text-xs font-black text-slate-100 uppercase tracking-wider font-mono">
                   Description (Optional)
                 </label>
                 <textarea
@@ -1482,13 +1486,13 @@ export default function Music() {
                   value={newPlaylistDesc}
                   onChange={(e) => setNewPlaylistDesc(e.target.value)}
                   placeholder="What's this playlist vibe about?"
-                  className="w-full bg-[#182038] border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-gray-400 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition resize-none shadow-inner"
+                  className="w-full bg-[#1c2445] border-2 border-white/25 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-300 focus:outline-none focus:border-accentCyan focus:ring-2 focus:ring-accentCyan/50 font-semibold transition resize-none shadow-inner"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-lg active:scale-95 cursor-pointer hover:opacity-90"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-lg active:scale-95 cursor-pointer hover:opacity-95 border border-white"
               >
                 <Check className="w-4 h-4 stroke-[3]" />
                 <span>Create Playlist</span>
@@ -1502,17 +1506,17 @@ export default function Music() {
           MODAL 2: EDIT PLAYLIST (NAME & DESCRIPTION)
          ══════════════════════════════════════════════════════════════════════ */}
       {editingPlaylist && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md border border-white/20 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#12172b]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/15">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#141a33]">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-white/20">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-accentCyan" />
-                <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">Edit Playlist</h3>
+                <h3 className="font-black text-base sm:text-lg text-white font-outfit">Edit Playlist</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingPlaylist(null)}
-                className="p-1.5 rounded-xl hover:bg-white/15 text-gray-300 hover:text-white transition"
+                className="p-1.5 rounded-xl hover:bg-white/20 text-slate-200 hover:text-white transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1520,7 +1524,7 @@ export default function Music() {
 
             <form onSubmit={handleSaveEditPlaylist} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">
+                <label className="text-xs font-black text-slate-100 uppercase tracking-wider font-mono">
                   Playlist Name *
                 </label>
                 <input
@@ -1529,12 +1533,12 @@ export default function Music() {
                   value={editPlaylistName}
                   onChange={(e) => setEditPlaylistName(e.target.value)}
                   placeholder="Enter new playlist name..."
-                  className="w-full bg-[#182038] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder:text-gray-400 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner"
+                  className="w-full bg-[#1c2445] border-2 border-white/25 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-300 focus:outline-none focus:border-accentCyan focus:ring-2 focus:ring-accentCyan/50 font-semibold transition shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">
+                <label className="text-xs font-black text-slate-100 uppercase tracking-wider font-mono">
                   Description (Optional)
                 </label>
                 <textarea
@@ -1542,7 +1546,7 @@ export default function Music() {
                   value={editPlaylistDesc}
                   onChange={(e) => setEditPlaylistDesc(e.target.value)}
                   placeholder="Update playlist description..."
-                  className="w-full bg-[#182038] border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-gray-400 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition resize-none shadow-inner"
+                  className="w-full bg-[#1c2445] border-2 border-white/25 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-300 focus:outline-none focus:border-accentCyan focus:ring-2 focus:ring-accentCyan/50 font-semibold transition resize-none shadow-inner"
                 />
               </div>
 
@@ -1550,14 +1554,14 @@ export default function Music() {
                 <button
                   type="button"
                   onClick={() => setEditingPlaylist(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-gray-200 text-xs font-bold transition active:scale-95"
+                  className="flex-1 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border-2 border-white/25 text-white text-xs font-black transition active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={editPlaylistSaving || !editPlaylistName.trim()}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-black text-xs transition flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-black text-xs transition flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 border border-white"
                 >
                   {editPlaylistSaving ? (
                     <>
@@ -1581,17 +1585,17 @@ export default function Music() {
           MODAL 3: IN-APP CONFIRMATION MODAL ("ARE YOU SURE?")
          ══════════════════════════════════════════════════════════════════════ */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm border border-white/20 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#12172b] text-center">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 text-red-400 flex items-center justify-center mx-auto shadow-lg shadow-red-500/25">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-sm border-2 border-white/25 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33] text-center">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/25 border-2 border-red-500/50 text-red-400 flex items-center justify-center mx-auto shadow-lg shadow-red-500/35">
               <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">
+              <h3 className="font-black text-base sm:text-lg text-white font-outfit">
                 {confirmModal.title || 'Are you sure?'}
               </h3>
-              <p className="text-xs text-gray-200 leading-relaxed font-medium">
+              <p className="text-xs text-slate-200 leading-relaxed font-semibold">
                 {confirmModal.message || 'Are you sure you want to proceed with this action?'}
               </p>
             </div>
@@ -1600,7 +1604,7 @@ export default function Music() {
               <button
                 type="button"
                 onClick={closeConfirmation}
-                className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-gray-200 text-xs font-bold transition active:scale-95"
+                className="flex-1 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border-2 border-white/25 text-white text-xs font-black transition active:scale-95"
               >
                 Cancel
               </button>
@@ -1611,7 +1615,7 @@ export default function Music() {
                     confirmModal.onConfirm();
                   }
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-extrabold text-xs transition shadow-lg shadow-red-500/40 active:scale-95"
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs transition shadow-lg shadow-red-500/50 active:scale-95 border border-white/30"
               >
                 {confirmModal.confirmText || 'Confirm'}
               </button>
@@ -1624,12 +1628,12 @@ export default function Music() {
           MODAL 4: ADD TO PLAYLIST
          ══════════════════════════════════════════════════════════════════════ */}
       {songToAddToPlaylist && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md border border-white/20 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#12172b]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/15">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33]">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-white/20">
               <div className="flex items-center gap-2">
-                <Plus className="w-5 h-5 text-accentCyan" />
-                <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">Add Track to Playlist</h3>
+                <Plus className="w-5 h-5 text-accentCyan stroke-[2.5]" />
+                <h3 className="font-black text-base sm:text-lg text-white font-outfit">Add Track to Playlist</h3>
               </div>
               <button
                 type="button"
@@ -1637,46 +1641,46 @@ export default function Music() {
                   setSongToAddToPlaylist(null);
                   setPlaylistAddedSuccess(null);
                 }}
-                className="p-1.5 rounded-xl hover:bg-white/15 text-gray-300 hover:text-white transition"
+                className="p-1.5 rounded-xl hover:bg-white/20 text-slate-200 hover:text-white transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Song Preview Banner */}
-            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/50 border border-white/15">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-black/60 border-2 border-white/20">
               <img
                 src={songToAddToPlaylist.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
                 alt={songToAddToPlaylist.title}
-                className="w-12 h-12 rounded-lg object-cover"
+                className="w-12 h-12 rounded-xl object-cover border border-white/20"
               />
               <div className="min-w-0 flex-1">
-                <h4 className="text-xs sm:text-sm font-bold text-white truncate">{songToAddToPlaylist.title}</h4>
-                <p className="text-[10px] text-gray-300 truncate font-medium">{songToAddToPlaylist.artist}</p>
+                <h4 className="text-xs sm:text-sm font-black text-white truncate">{songToAddToPlaylist.title}</h4>
+                <p className="text-[10px] text-slate-200 truncate font-semibold">{songToAddToPlaylist.artist}</p>
               </div>
             </div>
 
             {playlistAddedSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/25 border border-emerald-500/50 text-emerald-200 text-xs font-extrabold text-center animate-scale-in shadow-sm">
+              <div className="p-3 rounded-xl bg-emerald-500/30 border-2 border-emerald-500/60 text-emerald-200 text-xs font-black text-center animate-scale-in shadow-md">
                 ✨ {playlistAddedSuccess}
               </div>
             )}
 
             {/* Existing Playlists List */}
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono">
+              <label className="text-[11px] font-black text-slate-100 uppercase tracking-wider font-mono">
                 Select Destination Playlist
               </label>
 
               {playlists.length === 0 ? (
-                <div className="text-center py-6 border border-dashed border-white/20 rounded-2xl p-4 space-y-2">
-                  <p className="text-xs text-gray-300 font-medium">You don't have any playlists yet.</p>
+                <div className="text-center py-6 border-2 border-dashed border-white/25 rounded-2xl p-4 space-y-2">
+                  <p className="text-xs text-slate-200 font-semibold">You don't have any playlists yet.</p>
                   <button
                     type="button"
                     onClick={() => {
                       setShowCreatePlaylistModal(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-accentCyan text-black font-extrabold text-xs transition active:scale-95 shadow-md"
+                    className="px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-md"
                   >
                     + Create First Playlist
                   </button>
@@ -1688,13 +1692,13 @@ export default function Music() {
                       key={pl.id}
                       type="button"
                       onClick={() => handleAddSongToTargetPlaylist(pl.id, pl.name)}
-                      className="w-full flex items-center justify-between p-2.5 rounded-xl bg-white/10 hover:bg-accentCyan/20 border border-white/15 hover:border-accentCyan/50 text-left transition group active:scale-98 shadow-sm"
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl bg-white/15 hover:bg-accentCyan/25 border-2 border-white/20 hover:border-accentCyan/60 text-left transition group active:scale-98 shadow-md"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <ListMusic className="w-4 h-4 text-accentCyan" />
-                        <span className="text-xs font-bold text-white group-hover:text-accentCyan truncate">{pl.name}</span>
+                        <ListMusic className="w-4 h-4 text-accentCyan stroke-[2.5]" />
+                        <span className="text-xs font-black text-white group-hover:text-accentCyan truncate">{pl.name}</span>
                       </div>
-                      <span className="text-[10px] font-mono text-gray-300 font-medium">{pl.track_count || 0} songs</span>
+                      <span className="text-[10px] font-mono text-slate-200 font-bold">{pl.track_count || 0} songs</span>
                     </button>
                   ))}
                 </div>
@@ -1706,9 +1710,9 @@ export default function Music() {
               <button
                 type="button"
                 onClick={() => setShowCreatePlaylistModal(true)}
-                className="w-full py-2.5 rounded-xl border border-dashed border-white/25 hover:border-accentCyan/60 text-gray-200 hover:text-accentCyan font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
+                className="w-full py-2.5 rounded-xl border-2 border-dashed border-white/30 hover:border-accentCyan/70 text-slate-100 hover:text-accentCyan font-black text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Create New Playlist for this Song</span>
               </button>
             )}
