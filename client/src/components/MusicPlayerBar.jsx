@@ -179,254 +179,16 @@ export default function MusicPlayerBar() {
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════════
-              MOBILE VIEW (< 768px) — All Exact Menu Buttons & Controls (2 Balanced Compact Rows)
+              UNIFIED STREAMLINED MUSIC PLAYER BAR (Mobile, Tablet & Desktop)
              ══════════════════════════════════════════════════════════════════════ */}
-          <div className="flex md:hidden flex-col gap-1.5 p-2 w-full">
-            {/* Row 1: Track Info + Extra Tools (Time, Queue, Lyrics, Fullscreen, Close) */}
-            <div className="flex items-center justify-between gap-1.5 w-full">
-              {/* Left: Artwork + Title + Quick Actions + Artist */}
-              <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-                <div
-                  onClick={openPlayerModal}
-                  className="relative w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-white/20 bg-black/40 shadow-sm cursor-pointer"
-                >
-                  <img
-                    src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
-                    alt={cleanText(currentTrack.title)}
-                    className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`}
-                  />
-                  {isPlaying && (
-                    <div className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1 overflow-hidden">
-                  <div className="flex items-center gap-1">
-                    <h4
-                      onClick={openPlayerModal}
-                      className="text-xs font-black text-white truncate font-outfit leading-tight cursor-pointer hover:text-accentCyan"
-                    >
-                      {cleanText(currentTrack.title)}
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openAddToPlaylist(currentTrack);
-                      }}
-                      className="p-0.5 text-slate-300 hover:text-accentCyan shrink-0"
-                      title="Add to Playlist"
-                    >
-                      <FolderPlus className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(currentTrack);
-                      }}
-                      className={`p-0.5 transition shrink-0 ${
-                        isFavorite(currentTrack.id) ? 'text-red-400' : 'text-slate-300 hover:text-white'
-                      }`}
-                      title={isFavorite(currentTrack.id) ? 'Liked' : 'Like Track'}
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
-                    </button>
-                    {currentTrack.language && (
-                      <span className="uppercase text-[8px] font-black px-1 py-0.2 rounded bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
-                        {currentTrack.language}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-300 truncate font-semibold leading-tight">
-                    {cleanText(currentTrack.artist)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Right: Time, Queue, Lyrics, Fullscreen, Close */}
-              <div className="flex items-center gap-1 shrink-0">
-                <div className="text-[9.5px] font-mono font-bold text-slate-300 px-1.5 py-0.5 rounded bg-white/10 shrink-0">
-                  <span className="text-white">{formatTime(displayTime)}</span>
-                  <span className="text-slate-500 mx-0.5">/</span>
-                  <span className="text-slate-400">{formatTime(duration)}</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowQueueDrawer(!showQueueDrawer)}
-                  className={`relative p-1 rounded-lg transition ${
-                    showQueueDrawer ? 'text-accentCyan bg-accentCyan/20' : 'text-slate-300 hover:text-white'
-                  }`}
-                  title="Queue"
-                >
-                  <ListMusic className="w-3.5 h-3.5" />
-                  {queue.length > 0 && (
-                    <span className="absolute -top-1 -right-1 px-1 text-[7.5px] font-black bg-accentCyan text-black rounded-full shadow">
-                      {queue.length}
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={openLyricsModal}
-                  className="p-1 text-slate-300 hover:text-accentCyan rounded-lg transition"
-                  title="Lyrics"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={openPlayerModal}
-                  className="p-1 text-slate-300 hover:text-white rounded-lg transition"
-                  title="Fullscreen Player"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={closePlayer}
-                  className="p-1 text-slate-400 hover:text-red-400 rounded-lg transition"
-                  title="Close"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Row 2: Playback Controls (Shuffle, Prev, Rewind 10s, Hero Play/Pause, Forward 10s, Next, Loop) + Volume */}
-            <div className="flex items-center justify-between gap-1 pt-1 border-t border-white/10 w-full">
-              <div className="flex items-center justify-center gap-1.5 xs:gap-2 flex-1">
-                {/* Shuffle */}
-                <button
-                  type="button"
-                  onClick={toggleShuffle}
-                  className={`p-1 rounded-lg text-xs transition ${
-                    isShuffling ? 'text-accentCyan bg-accentCyan/20' : 'text-slate-300 hover:text-white'
-                  }`}
-                  title={isShuffling ? 'Shuffle On' : 'Shuffle Off'}
-                >
-                  <Shuffle className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Prev */}
-                <button
-                  type="button"
-                  onClick={prevTrack}
-                  className="p-1 text-slate-200 hover:text-white active:scale-90 transition"
-                  title="Previous Track"
-                >
-                  <SkipBack className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Rewind 10s */}
-                <button
-                  type="button"
-                  onClick={() => skipBackward(10)}
-                  className="group relative p-1 text-slate-200 hover:text-accentCyan active:scale-90 transition flex items-center justify-center"
-                  title="Rewind 10 seconds"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span className="absolute text-[6.5px] font-black text-accentCyan font-mono pointer-events-none">
-                    10
-                  </span>
-                </button>
-
-                {/* Hero Play/Pause */}
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  disabled={isLoading}
-                  className="w-8 h-8 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_12px_rgba(99,210,255,0.5)] active:scale-90 transition border border-white/30 shrink-0 mx-0.5"
-                  title={isPlaying ? 'Pause' : 'Play'}
-                >
-                  {isLoading ? (
-                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : isPlaying ? (
-                    <Pause className="w-3.5 h-3.5 fill-current" />
-                  ) : (
-                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                  )}
-                </button>
-
-                {/* Forward 10s */}
-                <button
-                  type="button"
-                  onClick={() => skipForward(10)}
-                  className="group relative p-1 text-slate-200 hover:text-accentCyan active:scale-90 transition flex items-center justify-center"
-                  title="Forward 10 seconds"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                  <span className="absolute text-[6.5px] font-black text-accentCyan font-mono pointer-events-none">
-                    10
-                  </span>
-                </button>
-
-                {/* Next */}
-                <button
-                  type="button"
-                  onClick={nextTrack}
-                  className="p-1 text-slate-200 hover:text-white active:scale-90 transition"
-                  title="Next Track"
-                >
-                  <SkipForward className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Loop */}
-                <button
-                  type="button"
-                  onClick={toggleLoop}
-                  className={`p-1 rounded-lg text-xs transition ${
-                    isLooping !== 'none' ? 'text-accentCyan bg-accentCyan/20' : 'text-slate-300 hover:text-white'
-                  }`}
-                  title={`Loop: ${isLooping}`}
-                >
-                  {isLooping === 'track' ? <Repeat1 className="w-3.5 h-3.5" /> : <Repeat className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-
-              {/* Volume Slider on Mobile */}
-              <div className="flex items-center gap-1 shrink-0 pl-1.5 border-l border-white/10">
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  className="text-slate-300 hover:text-white transition p-0.5"
-                  title={isMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="w-3.5 h-3.5 text-red-400" />
-                  ) : volume < 0.5 ? (
-                    <Volume1 className="w-3.5 h-3.5" />
-                  ) : (
-                    <Volume2 className="w-3.5 h-3.5 text-accentCyan" />
-                  )}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-10 xs:w-14 h-1 bg-white/15 rounded-lg appearance-none cursor-pointer accent-accentCyan"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ══════════════════════════════════════════════════════════════════════
-              DESKTOP / TABLET BAR (>= 768px)
-             ══════════════════════════════════════════════════════════════════════ */}
-          <div className="hidden md:flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4 px-2.5 sm:px-4 py-2 sm:py-2.5 w-full">
             
             {/* 1. Track Info (Left) */}
-            <div className="flex items-center gap-2.5 w-[28%] min-w-[160px] max-w-[260px] shrink-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1 max-w-[34%] xs:max-w-[38%] sm:max-w-[30%] md:max-w-[28%] shrink-0">
               <div
-                onClick={() => setIsExpanded(true)}
-                className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-xl cursor-pointer group bg-black/40"
+                onClick={openPlayerModal}
+                className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-xl cursor-pointer group bg-black/40"
+                title="Tap to open full player"
               >
                 <img
                   src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
@@ -438,234 +200,131 @@ export default function MusicPlayerBar() {
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Maximize2 className="w-4 h-4 text-white" />
                 </div>
+                {isPlaying && (
+                  <div className="md:hidden absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
+                )}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1 sm:gap-1.5">
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap xs:flex-nowrap">
                   <h4
-                    onClick={() => setIsExpanded(true)}
-                    className="text-xs sm:text-sm font-black text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors"
+                    onClick={openPlayerModal}
+                    className="text-xs sm:text-sm font-black text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors leading-tight"
+                    title={cleanText(currentTrack.title)}
                   >
                     {cleanText(currentTrack.title)}
                   </h4>
 
-                  {/* Add to Playlist button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openAddToPlaylist(currentTrack);
-                    }}
-                    className="p-1 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition shrink-0"
-                    title="Add to Playlist"
-                  >
-                    <FolderPlus className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Favorite button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(currentTrack);
-                    }}
-                    className="p-1 text-slate-300 hover:text-red-400 hover:bg-red-500/15 rounded-lg transition shrink-0"
-                    title={isFavorite(currentTrack.id) ? 'Liked' : 'Like Track'}
-                  >
-                    <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
-                  </button>
-
-                  {currentTrack.language && (
-                    <span className="hidden lg:inline-block uppercase text-[9px] font-black px-1.5 py-0.2 rounded bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
-                      {currentTrack.language}
+                  {/* Language / Regional Badge */}
+                  {(currentTrack.language || currentTrack.category) && (
+                    <span className="uppercase text-[8px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-md bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0 shadow-sm">
+                      {currentTrack.language || currentTrack.category || 'GLOBAL'}
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] sm:text-xs text-slate-300 truncate hover:text-white font-semibold">
+
+                {/* Artist subtitle */}
+                <p className="text-[10px] sm:text-[11px] md:text-xs text-slate-300 truncate font-semibold leading-tight hover:text-white transition-colors">
                   {cleanText(currentTrack.artist)}
                 </p>
               </div>
             </div>
 
-            {/* 2. Center Audio Controls */}
-            <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 md:gap-3 flex-1">
+            {/* 2. Center Playback Controls (Prev, Rewind 10, Hero Play/Pause, Forward 10, Next) */}
+            <div className="flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2.5 shrink-0">
               
-              {/* Shuffle */}
-              <button
-                type="button"
-                onClick={toggleShuffle}
-                className={`p-2 rounded-xl text-xs transition-all ${
-                  isShuffling
-                    ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_10px_rgba(99,210,255,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-                title={isShuffling ? 'Shuffle On' : 'Shuffle Off'}
-              >
-                <Shuffle className="w-4 h-4" />
-              </button>
-
-              {/* Prev Track */}
+              {/* Previous Track (⏮) */}
               <button
                 type="button"
                 onClick={prevTrack}
-                className="p-2 text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition active:scale-90"
-                title="Previous Track"
+                className="p-1.5 sm:p-2 text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition active:scale-90"
+                title="Previous Track (⏮)"
               >
-                <SkipBack className="w-4.5 h-4.5" />
+                <SkipBack className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
 
-              {/* Rewind 10s */}
+              {/* Rewind 10 Seconds (↺10) */}
               <button
                 type="button"
                 onClick={() => skipBackward(10)}
-                className="group relative p-2 text-slate-200 hover:text-accentCyan hover:bg-accentCyan/15 rounded-xl transition active:scale-90 flex items-center justify-center"
-                title="Rewind 10 seconds"
+                className="group relative p-1.5 sm:p-2 text-slate-200 hover:text-accentCyan hover:bg-accentCyan/15 rounded-xl transition active:scale-90 flex items-center justify-center"
+                title="Rewind 10 Seconds (↺10)"
               >
-                <RotateCcw className="w-4.5 h-4.5 transition-transform group-hover:-rotate-45" />
-                <span className="absolute text-[7.5px] font-black text-accentCyan font-mono pointer-events-none">
+                <RotateCcw className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:-rotate-45" />
+                <span className="absolute text-[6.5px] sm:text-[7.5px] font-black text-accentCyan font-mono pointer-events-none">
                   10
                 </span>
               </button>
 
-              {/* Play / Pause Hero Button */}
+              {/* Hero Play / Pause Button (glowing cyan-purple-pink radiant circle) */}
               <button
                 type="button"
                 onClick={togglePlay}
                 disabled={isLoading}
-                className="relative w-11 h-11 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_20px_rgba(99,210,255,0.5)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-1 border border-white/30"
+                className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_18px_rgba(99,210,255,0.55)] hover:shadow-[0_0_28px_rgba(99,210,255,0.85)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 sm:mx-1 border border-white/30 shrink-0"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : isPlaying ? (
-                  <Pause className="w-4.5 h-4.5 fill-current" />
+                  <Pause className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current" />
                 ) : (
-                  <Play className="w-4.5 h-4.5 fill-current ml-0.5" />
+                  <Play className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current ml-0.5" />
                 )}
               </button>
 
-              {/* Forward 10s */}
+              {/* Forward 10 Seconds (↻10) */}
               <button
                 type="button"
                 onClick={() => skipForward(10)}
-                className="group relative p-2 text-slate-200 hover:text-accentCyan hover:bg-accentCyan/15 rounded-xl transition active:scale-90 flex items-center justify-center"
-                title="Forward 10 seconds"
+                className="group relative p-1.5 sm:p-2 text-slate-200 hover:text-accentCyan hover:bg-accentCyan/15 rounded-xl transition active:scale-90 flex items-center justify-center"
+                title="Forward 10 Seconds (↻10)"
               >
-                <RotateCw className="w-4.5 h-4.5 transition-transform group-hover:rotate-45" />
-                <span className="absolute text-[7.5px] font-black text-accentCyan font-mono pointer-events-none">
+                <RotateCw className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:rotate-45" />
+                <span className="absolute text-[6.5px] sm:text-[7.5px] font-black text-accentCyan font-mono pointer-events-none">
                   10
                 </span>
               </button>
 
-              {/* Next Track */}
+              {/* Next Track (⏭) */}
               <button
                 type="button"
                 onClick={nextTrack}
-                className="p-2 text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition active:scale-90"
-                title="Next Track"
+                className="p-1.5 sm:p-2 text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition active:scale-90"
+                title="Next Track (⏭)"
               >
-                <SkipForward className="w-4.5 h-4.5" />
-              </button>
-
-              {/* Loop */}
-              <button
-                type="button"
-                onClick={toggleLoop}
-                className={`p-2 rounded-xl text-xs transition-all ${
-                  isLooping !== 'none'
-                    ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_10px_rgba(99,210,255,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-                title={`Loop Mode: ${isLooping}`}
-              >
-                {isLooping === 'track' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
+                <SkipForward className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
             </div>
 
-            {/* 3. Right Extra Controls */}
-            <div className="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-2.5 w-[28%] min-w-[160px] max-w-[260px] shrink-0">
+            {/* 3. Right Extra Controls (Live Timestamps, Lyrics, Close) */}
+            <div className="flex items-center justify-end gap-1 sm:gap-2 shrink-0">
               
-              {/* Time Indicators */}
-              <div className="hidden lg:block text-[11px] font-mono text-slate-300 font-bold shrink-0">
+              {/* Live Timestamps (01:32 / 03:30) */}
+              <div className="text-[9.5px] xs:text-[10px] sm:text-[11px] font-mono font-black text-slate-300 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg bg-white/10 border border-white/15 shrink-0 shadow-sm">
                 <span className="text-white">{formatTime(displayTime)}</span>
-                <span className="text-slate-500 mx-1">/</span>
+                <span className="text-slate-500 mx-0.5 sm:mx-1">/</span>
                 <span className="text-slate-400">{formatTime(duration)}</span>
               </div>
 
-              {/* Volume Slider */}
-              <div className="flex items-center gap-1.5 group/vol">
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  className="text-slate-300 hover:text-white transition"
-                  title={isMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="w-4 h-4 text-red-400" />
-                  ) : volume < 0.5 ? (
-                    <Volume1 className="w-4 h-4" />
-                  ) : (
-                    <Volume2 className="w-4 h-4 text-accentCyan" />
-                  )}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-12 sm:w-16 md:w-20 h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-accentCyan hover:bg-white/25 transition-all"
-                />
-              </div>
-
-              {/* Queue Toggle */}
+              {/* Lyrics Modal button (📄) */}
               <button
                 type="button"
-                onClick={() => setShowQueueDrawer(!showQueueDrawer)}
-                className={`relative p-2 rounded-xl transition ${
-                  showQueueDrawer
-                    ? 'text-accentCyan bg-accentCyan/20 border border-accentCyan/40 shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-                title="Playlist Queue"
+                onClick={openLyricsModal}
+                className="p-1.5 sm:p-2 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-xl transition active:scale-90"
+                title="Lyrics (📄)"
               >
-                <ListMusic className="w-4 h-4" />
-                {queue.length > 0 && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-accentCyan text-black font-black text-[9px] rounded-full shadow">
-                    {queue.length}
-                  </span>
-                )}
+                <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
 
-              {/* Lyrics Modal */}
-              <button
-                type="button"
-                onClick={() => openLyricsModal()}
-                className="p-2 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-xl transition"
-                title="Lyrics View"
-              >
-                <FileText className="w-4 h-4" />
-              </button>
-
-              {/* Fullscreen Expand */}
-              <button
-                type="button"
-                onClick={() => openPlayerModal()}
-                className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition"
-                title="Fullscreen Player"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-
-              {/* Close Button */}
+              {/* Close / Dismiss button (✕) */}
               <button
                 type="button"
                 onClick={closePlayer}
-                className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/15 rounded-xl transition ml-0.5"
-                title="Close / Stop Music"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/15 rounded-xl transition active:scale-90"
+                title="Close / Dismiss (✕)"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
             </div>
 
