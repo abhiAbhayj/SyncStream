@@ -50,7 +50,7 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative overflow-x-hidden w-full max-w-full">
       <ThemeBackground />
       <ScrollRestoration />
       <Navbar />

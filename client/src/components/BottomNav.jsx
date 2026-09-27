@@ -18,8 +18,8 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] px-1 py-1 bg-darkBg/90 backdrop-blur-2xl supports-[backdrop-filter]:bg-darkBg/80 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.6)]">
-      <div className="flex items-center justify-around">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 border-t border-white/[0.12] px-1 py-1 bg-[#090d1e]/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-[#090d1e]/90 pb-[max(0.35rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.7)] select-none">
+      <div className="flex items-center justify-between w-full max-w-md mx-auto">
         {navLinks.map((link) => {
           const Icon = link.icon;
           const active = isActive(link.path);
@@ -27,20 +27,20 @@ export default function BottomNav() {
             <Link
               key={link.path}
               to={link.path}
-              className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl transition-all duration-300 active:scale-95 ${
-                active ? 'text-accentCyan' : 'text-gray-400 hover:text-gray-200'
+              className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1 px-0.5 rounded-xl transition-all duration-300 active:scale-95 ${
+                active ? 'text-accentCyan' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <div className={`p-1 rounded-lg transition-colors ${active ? 'bg-accentCyan/15 shadow-[0_0_10px_rgba(99,210,255,0.3)]' : ''}`}>
-                <Icon className={`w-4.5 h-4.5 ${active ? 'fill-current opacity-30 stroke-2 text-accentCyan' : 'stroke-2'}`} />
+              <div className={`p-1 rounded-lg transition-colors ${active ? 'bg-accentCyan/20 shadow-[0_0_10px_rgba(99,210,255,0.4)]' : ''}`}>
+                <Icon className={`w-4 h-4 xs:w-4.5 xs:h-4.5 ${active ? 'fill-current opacity-40 stroke-[2.5] text-accentCyan' : 'stroke-2'}`} />
               </div>
-              <span className={`text-[9.5px] font-semibold tracking-tight ${active ? 'font-black text-accentCyan' : ''}`}>
+              <span className={`text-[9px] xs:text-[10px] font-semibold tracking-tight truncate max-w-full text-center ${active ? 'font-black text-accentCyan' : ''}`}>
                 {link.label}
               </span>
             </Link>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }
