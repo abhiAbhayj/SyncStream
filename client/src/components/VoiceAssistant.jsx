@@ -284,16 +284,16 @@ export default function VoiceAssistant() {
   }
 
   return (
-    <div className="fixed bottom-24 right-6 z-40 flex flex-col items-end gap-2 pointer-events-none">
+    <div className="fixed bottom-[115px] sm:bottom-[100px] md:bottom-20 right-3 sm:right-5 z-40 flex flex-col items-end gap-1.5 pointer-events-none select-none">
       
       {/* Status bubbles */}
       {(transcript || statusText || errorMsg) && (
-        <div className="bg-darkCard/90 border border-darkBorder backdrop-blur-md p-3 rounded-2xl shadow-2xl max-w-xs animate-fade-in pointer-events-auto flex flex-col gap-1">
+        <div className="bg-[#12172f]/95 border-2 border-white/20 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl shadow-2xl max-w-xs animate-fade-in pointer-events-auto flex flex-col gap-1">
           {errorMsg ? (
             <span className="text-xs text-red-400 font-bold">{errorMsg}</span>
           ) : (
             <>
-              {transcript && <span className="text-sm text-white italic">"{transcript}"</span>}
+              {transcript && <span className="text-xs sm:text-sm text-white italic">"{transcript}"</span>}
               {statusText && (
                 <span className="text-xs text-accentCyan font-bold flex items-center gap-1.5">
                   {statusText === 'Listening...' && <Loader2 className="w-3 h-3 animate-spin" />}
@@ -308,14 +308,14 @@ export default function VoiceAssistant() {
       {/* FAB Button */}
       <button
         onClick={toggleListening}
-        className={`pointer-events-auto p-4 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-all duration-300 flex items-center justify-center ${
+        className={`pointer-events-auto p-2.5 sm:p-3 md:p-3.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.6)] transition-all duration-300 flex items-center justify-center border border-white/20 active:scale-90 ${
           isListening 
-            ? 'bg-gradient-to-r from-red-500 to-red-600 scale-110 animate-pulse text-white shadow-red-500/50' 
-            : 'bg-gradient-to-r from-accentCyan to-accentPurple hover:scale-105 text-black btn-glow-purple'
+            ? 'bg-gradient-to-r from-red-500 to-red-600 scale-105 animate-pulse text-white shadow-red-500/50' 
+            : 'bg-gradient-to-r from-accentCyan to-accentPurple hover:scale-105 text-black shadow-accentPurple/30'
         }`}
         title="Voice Assistant"
       >
-        {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+        {isListening ? <Mic className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" /> : <MicOff className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />}
       </button>
     </div>
   );

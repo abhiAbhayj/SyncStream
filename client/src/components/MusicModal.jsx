@@ -329,14 +329,14 @@ export default function MusicModal() {
         
         {/* 1. PLAYER VIEW */}
         {modalTab === 'player' && (
-          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 w-full animate-fade-in text-center px-2 my-auto">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-between gap-1.5 xs:gap-2 sm:gap-3 w-full animate-fade-in text-center px-2 py-1 my-auto overflow-y-auto scrollbar-none">
             
             {/* View Style Switcher */}
-            <div className="flex items-center gap-1 bg-white/10 border border-white/15 p-0.5 rounded-full text-[11px] font-bold text-gray-300 backdrop-blur-md shrink-0 shadow-sm">
+            <div className="flex items-center gap-1 bg-white/15 border-2 border-white/20 p-0.5 rounded-full text-[10.5px] xs:text-[11px] font-bold text-slate-200 backdrop-blur-md shrink-0 shadow-md">
               <button
                 type="button"
                 onClick={() => setViewStyle('poster')}
-                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'poster' ? 'bg-accentCyan text-black font-extrabold shadow' : 'hover:text-white'}`}
+                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'poster' ? 'bg-accentCyan text-black font-black shadow-[0_0_10px_rgba(99,210,255,0.5)]' : 'hover:text-white'}`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Poster Art</span>
@@ -344,7 +344,7 @@ export default function MusicModal() {
               <button
                 type="button"
                 onClick={() => setViewStyle('vinyl')}
-                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'vinyl' ? 'bg-accentCyan text-black font-extrabold shadow' : 'hover:text-white'}`}
+                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'vinyl' ? 'bg-accentCyan text-black font-black shadow-[0_0_10px_rgba(99,210,255,0.5)]' : 'hover:text-white'}`}
               >
                 <Disc3 className="w-3.5 h-3.5" />
                 <span>Vinyl Disc</span>
@@ -363,7 +363,7 @@ export default function MusicModal() {
                     backgroundPosition: 'center',
                   }}
                 />
-                <div className="w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 max-h-[30vh] sm:max-h-[35vh] md:max-h-[40vh] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative bg-black/40 z-10">
+                <div className="w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-68 md:h-68 lg:w-76 lg:h-76 max-h-[25vh] sm:max-h-[32vh] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 shadow-[0_15px_40px_rgba(0,0,0,0.85)] relative bg-black/40 z-10">
                   <img
                     src={trackImageUrl}
                     alt={cleanSongTitle(currentTrack.title)}
@@ -374,7 +374,7 @@ export default function MusicModal() {
                     }}
                   />
                   {isPlaying && (
-                    <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-2.5 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
                       <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
                       <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
                       <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
@@ -401,15 +401,15 @@ export default function MusicModal() {
                   }}
                 />
                 <div
-                  className={`w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 max-h-[30vh] sm:max-h-[35vh] md:max-h-[40vh] aspect-square rounded-full p-2 sm:p-2.5 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_40px_rgba(99,210,255,0.35)] transition-all duration-700 relative z-10 ${
-                    isPlaying ? 'animate-spin-slow shadow-[0_0_55px_rgba(99,210,255,0.55)]' : ''
+                  className={`w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-68 md:h-68 lg:w-76 lg:h-76 max-h-[25vh] sm:max-h-[32vh] aspect-square rounded-full p-2 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_35px_rgba(99,210,255,0.35)] transition-all duration-700 relative z-10 ${
+                    isPlaying ? 'animate-spin-slow shadow-[0_0_50px_rgba(99,210,255,0.55)]' : ''
                   }`}
                 >
                   <div className="w-full h-full rounded-full vinyl-grooves border-2 border-white/20 relative flex items-center justify-center shadow-2xl overflow-hidden">
                     {/* Concentric Vinyl Grooves */}
-                    <div className="absolute inset-3 sm:inset-4 rounded-full border border-white/[0.08] pointer-events-none" />
-                    <div className="absolute inset-6 sm:inset-9 rounded-full border border-white/[0.06] pointer-events-none" />
-                    <div className="absolute inset-10 sm:inset-14 rounded-full border border-white/[0.05] pointer-events-none" />
+                    <div className="absolute inset-2.5 sm:inset-4 rounded-full border border-white/[0.08] pointer-events-none" />
+                    <div className="absolute inset-5 sm:inset-8 rounded-full border border-white/[0.06] pointer-events-none" />
+                    <div className="absolute inset-8 sm:inset-12 rounded-full border border-white/[0.05] pointer-events-none" />
                     
                     {/* Vinyl Light Sheen Overlay */}
                     <div
@@ -420,7 +420,7 @@ export default function MusicModal() {
                     />
 
                     {/* Centered Album Label */}
-                    <div className="w-20 h-20 sm:w-26 sm:h-26 md:w-30 md:h-30 rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
+                    <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
                       <img
                         src={trackImageUrl}
                         alt={cleanSongTitle(currentTrack.title)}
@@ -431,15 +431,15 @@ export default function MusicModal() {
                         }}
                       />
                       {/* Spindle Hole */}
-                      <div className="absolute inset-0 m-auto w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#0d0d12] border-2 border-white/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.9)] z-10 flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                      <div className="absolute inset-0 m-auto w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#0d0d12] border-2 border-white/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.9)] z-10 flex items-center justify-center">
+                        <div className="w-1 h-1 rounded-full bg-white/40" />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {isPlaying && (
-                  <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-2.5 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
@@ -452,57 +452,63 @@ export default function MusicModal() {
               </div>
             )}
 
-            {/* Track Info (Title, Singer, Badges) */}
-            <div className="space-y-1.5 max-w-sm sm:max-w-md md:max-w-lg px-4 shrink-0 mt-1">
+            {/* Prominent Track Info (Song Title, Artist, Language, Source & Actions) */}
+            <div className="space-y-1 xs:space-y-1.5 max-w-sm sm:max-w-md md:max-w-lg px-2 sm:px-4 shrink-0 w-full">
               
               {/* Badges & Actions row */}
               <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                <span className={`uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border tracking-wider font-mono shadow-sm ${
+                {/* Audio Engine Badge */}
+                <span className={`uppercase text-[8.5px] xs:text-[9.5px] sm:text-[10px] font-black px-2 py-0.5 rounded-full border-2 tracking-wider font-mono shadow-sm ${
                   (currentTrack.source === 'youtube' || (typeof currentTrack.id === 'string' && currentTrack.id.startsWith('yt_')))
-                    ? 'bg-red-500/20 text-red-400 border-red-500/40'
-                    : 'bg-accentCyan/20 text-accentCyan border-accentCyan/40'
+                    ? 'bg-red-500/25 text-red-300 border-red-500/50'
+                    : 'bg-accentCyan/25 text-accentCyan border-accentCyan/50'
                 }`}>
                   {(currentTrack.source === 'youtube' || (typeof currentTrack.id === 'string' && currentTrack.id.startsWith('yt_')))
                     ? 'YouTube Music'
-                    : 'JioSaavn HD'}
+                    : 'JioSaavn Studio HD'}
                 </span>
-                <span className="uppercase text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-accentCyan/20 text-accentCyan border border-accentCyan/40 tracking-wider font-mono shadow-sm">
-                  {currentTrack.language || 'Global'}
+
+                {/* Language / Regional Badge */}
+                <span className="uppercase text-[8.5px] xs:text-[9.5px] sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-accentCyan/25 text-accentCyan border-2 border-accentCyan/50 tracking-wider font-mono shadow-sm">
+                  {currentTrack.language || currentTrack.category || 'GLOBAL'}
                 </span>
+
                 {currentTrack.year && (
-                  <span className="text-[10px] sm:text-xs text-gray-400 font-mono">&bull; {currentTrack.year}</span>
+                  <span className="text-[10px] sm:text-xs text-slate-300 font-mono font-bold">&bull; {currentTrack.year}</span>
                 )}
                 
+                {/* Add to Playlist button */}
                 <button
                   type="button"
                   onClick={() => openAddToPlaylist(currentTrack)}
-                  className="p-1.5 rounded-full transition active:scale-90 bg-white/10 text-gray-300 hover:text-accentCyan hover:bg-accentCyan/20"
+                  className="p-1.5 rounded-full transition active:scale-90 bg-white/15 border border-white/20 text-slate-200 hover:text-accentCyan hover:bg-accentCyan/25 shadow-sm"
                   title="Add to Playlist"
                 >
-                  <FolderPlus className="w-3.5 h-3.5" />
+                  <FolderPlus className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
 
+                {/* Favorite Heart button */}
                 <button
                   type="button"
                   onClick={() => toggleFavorite(currentTrack)}
-                  className={`p-1.5 rounded-full transition active:scale-90 ${
+                  className={`p-1.5 rounded-full transition active:scale-90 border border-white/20 shadow-sm ${
                     isFavorite(currentTrack.id)
-                      ? 'bg-red-500/20 text-red-400'
-                      : 'bg-white/10 text-gray-300 hover:text-white'
+                      ? 'bg-red-500 text-white border-red-400'
+                      : 'bg-white/15 text-slate-200 hover:text-white hover:bg-white/25'
                   }`}
                   title={isFavorite(currentTrack.id) ? 'Liked' : 'Add to Favorites'}
                 >
-                  <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-red-400' : ''}`} />
+                  <Heart className={`w-3.5 h-3.5 ${isFavorite(currentTrack.id) ? 'fill-current text-white' : ''}`} />
                 </button>
               </div>
 
-              {/* Title */}
-              <h1 className="text-base sm:text-lg md:text-xl font-extrabold font-outfit text-white tracking-tight leading-snug line-clamp-1 drop-shadow-md">
+              {/* Song Title */}
+              <h1 className="text-sm xs:text-base sm:text-xl md:text-2xl font-black font-outfit text-white tracking-tight leading-tight line-clamp-1 drop-shadow-md">
                 {cleanSongTitle(currentTrack.title)}
               </h1>
 
-              {/* Singer / Artist */}
-              <p className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-xs sm:max-w-sm md:max-w-md mx-auto block leading-tight">
+              {/* Singer / Artist Subtitle */}
+              <p className="text-[11px] xs:text-xs sm:text-sm text-slate-200 font-semibold truncate max-w-xs sm:max-w-sm md:max-w-md mx-auto block leading-tight">
                 {cleanArtistName(currentTrack.artist)}
               </p>
             </div>
