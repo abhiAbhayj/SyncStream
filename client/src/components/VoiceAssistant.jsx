@@ -113,18 +113,41 @@ export default function VoiceAssistant() {
   const timeoutRef = useRef(null);
   const countdownIntervalRef = useRef(null);
   const maxTimerRef = useRef(null);
+  const speechSilenceTimerRef = useRef(null);
+  const restartTimerRef = useRef(null);
   const isListeningRef = useRef(false);
   const hasProcessedRef = useRef(false);
+  const latestTranscriptRef = useRef('');
+  const processCommandRef = useRef(null);
 
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
     setIsListening(false);
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
+    if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
     try {
       recognitionRef.current?.stop();
     } catch (e) {}
   }, []);
+
+  const handleCommandExecution = useCallback((rawText) => {
+    const text = (rawText || '').trim();
+    if (!text || hasProcessedRef.current) return;
+    hasProcessedRef.current = true;
+    if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
+
+    if (processCommandRef.current) {
+      processCommandRef.current(text.toLowerCase());
+    }
+    setTimeout(() => {
+      stopListening();
+    }, 1200);
+  }, [stopListening]);
 
   useEffect(() => {
     // Check if browser supports speech recognition
@@ -135,7 +158,7 @@ export default function VoiceAssistant() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true; // Continuous listening for 30 seconds
+    recognition.continuous = true; // Continuous listening
     recognition.interimResults = true; // Show words in real-time as they are spoken
     recognition.lang = 'en-US';
 
@@ -157,44 +180,64 @@ export default function VoiceAssistant() {
       }
 
       const trimmed = fullTranscript.trim();
-      setTranscript(trimmed);
+      if (trimmed) {
+        latestTranscriptRef.current = trimmed;
+        setTranscript(trimmed);
 
-      // If user provided an actionable complete command, process it
-      if (isFinal && trimmed && !hasProcessedRef.current) {
-        hasProcessedRef.current = true;
-        processCommand(trimmed.toLowerCase().trim());
-        setTimeout(() => {
-          stopListening();
-        }, 1200);
+        // Reset silence timer on every spoken phrase
+        if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
+
+        // If marked final or after natural 1.3s pause, auto-execute command
+        if (isFinal) {
+          speechSilenceTimerRef.current = setTimeout(() => {
+            handleCommandExecution(latestTranscriptRef.current);
+          }, 600);
+        } else {
+          speechSilenceTimerRef.current = setTimeout(() => {
+            handleCommandExecution(latestTranscriptRef.current);
+          }, 1400);
+        }
       }
     };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error", event.error);
+      // 'aborted' and 'no-speech' are natural browser events during continuous listening
+      if (event.error === 'aborted' || event.error === 'no-speech') {
+        return;
+      }
+
+      console.warn("Speech recognition notice:", event.error);
       if (event.error === 'not-allowed') {
         setErrorMsg('Microphone access denied.');
         stopListening();
-      } else if (event.error === 'no-speech') {
-        // Ignore silence error during the 30s listening window
-      } else {
-        setErrorMsg(`Error: ${event.error}`);
+      } else if (event.error === 'network') {
+        setErrorMsg('Network error.');
+      } else if (event.error === 'audio-capture') {
+        setErrorMsg('No mic detected.');
       }
       
-      // Auto clear error after 3 seconds
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setErrorMsg(''), 3000);
     };
 
     recognition.onend = () => {
-      // If still within the 30-second listening window, auto-resume recognition
+      // If still within the 30-second window and command hasn't been executed yet, auto-restart cleanly
       if (isListeningRef.current && !hasProcessedRef.current) {
-        try {
-          recognition.start();
-        } catch (e) {}
+        if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = setTimeout(() => {
+          if (isListeningRef.current && !hasProcessedRef.current) {
+            try {
+              recognition.start();
+            } catch (e) {
+              console.warn("Recognition restart notice:", e);
+            }
+          }
+        }, 150);
       } else {
         setIsListening(false);
         if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
         if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+        if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
           setTranscript('');
@@ -214,21 +257,30 @@ export default function VoiceAssistant() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
       if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+      if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
+      if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
     };
-  }, [navigate, stopListening]);
+  }, [handleCommandExecution, stopListening]);
 
   const toggleListening = () => {
     if (isListening) {
-      stopListening();
+      if (latestTranscriptRef.current && !hasProcessedRef.current) {
+        handleCommandExecution(latestTranscriptRef.current);
+      } else {
+        stopListening();
+      }
     } else {
       setTranscript('');
       setErrorMsg('');
+      latestTranscriptRef.current = '';
       hasProcessedRef.current = false;
       setSecondsRemaining(30);
       setStatusText('Listening (30s)...');
 
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
       if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+      if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
+      if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
 
       try {
         recognitionRef.current?.start();
@@ -249,8 +301,12 @@ export default function VoiceAssistant() {
 
         // 30-second max duration watchdog
         maxTimerRef.current = setTimeout(() => {
-          stopListening();
-          setStatusText('Listening timed out (30s).');
+          if (latestTranscriptRef.current && !hasProcessedRef.current) {
+            handleCommandExecution(latestTranscriptRef.current);
+          } else {
+            stopListening();
+            setStatusText('Listening timed out (30s).');
+          }
         }, 30000);
       } catch (e) {
         console.error("Failed to start speech recognition:", e);
@@ -649,6 +705,8 @@ export default function VoiceAssistant() {
     // Unknown command fallback
     setStatusText("Didn't catch that.");
   };
+
+  processCommandRef.current = processCommand;
 
   // If API not supported in browser, render nothing
   if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
