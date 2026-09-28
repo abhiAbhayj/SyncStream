@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
 import {
@@ -452,11 +453,27 @@ export default function Music() {
     setEditingPlaylist(null);
   };
 
+  const [searchParams] = useSearchParams();
+
+  // Listen to incoming URL search params (?q=... or ?search=...)
+  useEffect(() => {
+    const q = searchParams.get('q') || searchParams.get('search');
+    if (q && q.trim()) {
+      setSearchQuery(q.trim());
+      setActiveTab('discover');
+      setPage(1);
+      handleSearchWithQuery(q.trim(), 'all', 1);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (activeTab === 'discover') {
-      setSearchQuery('');
-      setPage(1);
-      fetchTrending(selectedLang, 1);
+      const q = searchParams.get('q') || searchParams.get('search');
+      if (!q || !q.trim()) {
+        setSearchQuery('');
+        setPage(1);
+        fetchTrending(selectedLang, 1);
+      }
     }
   }, [selectedLang]);
 

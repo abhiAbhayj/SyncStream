@@ -223,6 +223,7 @@ export default function Profile() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiStyle, setAiStyle] = useState('bots');
   const [aiTargetCategory, setAiTargetCategory] = useState('bots');
+  const [aiEngineMode, setAiEngineMode] = useState('turbo'); // 'turbo' (2s) | 'instant' (0.1s)
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiPreviewUrl, setAiPreviewUrl] = useState(null);
   const [editingAvatarTarget, setEditingAvatarTarget] = useState(null); // { category, id, name }
@@ -358,7 +359,7 @@ export default function Profile() {
     setShowAiModal(true);
   };
 
-  // Generate avatar through AI Prompt
+  // Generate avatar through AI Prompt (Turbo Speed with Fast Watchdog)
   const handleGenerateAiAvatar = async (e) => {
     e?.preventDefault?.();
     if (!aiPrompt.trim()) {
@@ -369,33 +370,56 @@ export default function Profile() {
     setAiGenerating(true);
     setError(null);
 
+    const fallbackSeed = encodeURIComponent(aiPrompt.trim());
+    const dicebearFallback = aiStyle === 'anime'
+      ? `https://api.dicebear.com/7.x/adventurer/svg?seed=${fallbackSeed}`
+      : aiStyle === 'pixel'
+      ? `https://api.dicebear.com/7.x/pixel-art/svg?seed=${fallbackSeed}`
+      : aiStyle === 'emojis'
+      ? `https://api.dicebear.com/7.x/thumbs/svg?seed=${fallbackSeed}`
+      : `https://api.dicebear.com/7.x/bottts/svg?seed=${fallbackSeed}`;
+
+    // Instant Vector Mode
+    if (aiEngineMode === 'instant') {
+      setAiPreviewUrl(dicebearFallback);
+      setAiGenerating(false);
+      return;
+    }
+
+    // Fast Turbo Diffusion Mode with Strict Watchdog
     try {
       const styleConfig = AI_STYLE_PRESETS.find((s) => s.id === aiStyle) || AI_STYLE_PRESETS[0];
       const fullPrompt = `${aiPrompt.trim()}, ${styleConfig.suffix}`;
       const seed = Math.floor(Math.random() * 1000000);
-      const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=300&height=300&nologo=true&seed=${seed}`;
+      const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=256&height=256&nologo=true&seed=${seed}&model=turbo`;
+
+      let hasFinished = false;
+
+      const finishWith = (url) => {
+        if (hasFinished) return;
+        hasFinished = true;
+        setAiPreviewUrl(url);
+        setAiGenerating(false);
+      };
+
+      // 4.5-second watchdog so user never hangs waiting for remote queues
+      const timeoutId = setTimeout(() => {
+        finishWith(dicebearFallback);
+      }, 4500);
 
       const testImg = new Image();
       testImg.crossOrigin = 'anonymous';
       testImg.onload = () => {
-        setAiPreviewUrl(generatedUrl);
-        setAiGenerating(false);
+        clearTimeout(timeoutId);
+        finishWith(generatedUrl);
       };
       testImg.onerror = () => {
-        const fallbackSeed = encodeURIComponent(aiPrompt.trim());
-        const dicebearFallback = aiStyle === 'anime'
-          ? `https://api.dicebear.com/7.x/adventurer/svg?seed=${fallbackSeed}`
-          : aiStyle === 'pixel'
-          ? `https://api.dicebear.com/7.x/pixel-art/svg?seed=${fallbackSeed}`
-          : aiStyle === 'emojis'
-          ? `https://api.dicebear.com/7.x/thumbs/svg?seed=${fallbackSeed}`
-          : `https://api.dicebear.com/7.x/bottts/svg?seed=${fallbackSeed}`;
-        setAiPreviewUrl(dicebearFallback);
-        setAiGenerating(false);
+        clearTimeout(timeoutId);
+        finishWith(dicebearFallback);
       };
       testImg.src = generatedUrl;
     } catch (err) {
-      setError('AI generation encountered an issue. Please try again.');
+      setAiPreviewUrl(dicebearFallback);
       setAiGenerating(false);
     }
   };
@@ -889,6 +913,41 @@ export default function Profile() {
                       {col.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* AI Engine Mode Selector */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono flex items-center justify-between">
+                  <span>AI Synthesis Engine</span>
+                  <span className="text-[10px] text-accentCyan font-normal">
+                    {aiEngineMode === 'instant' ? '⚡ Ultra Fast (0.1s)' : '🎨 Turbo Diffusion (2s)'}
+                  </span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAiEngineMode('instant')}
+                    className={`p-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 active:scale-95 ${
+                      aiEngineMode === 'instant'
+                        ? 'bg-accentCyan/20 border-accentCyan text-white shadow-md'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span>⚡ Instant AI (0.1s)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAiEngineMode('turbo')}
+                    className={`p-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 active:scale-95 ${
+                      aiEngineMode === 'turbo'
+                        ? 'bg-accentPurple/25 border-accentPurple text-white shadow-md'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span>🎨 Turbo Diffusion (2s)</span>
+                  </button>
                 </div>
               </div>
 

@@ -3,9 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useMusic } from '../context/MusicContext';
 
 export default function VoiceAssistant() {
   const { logout } = useAuth();
+  const {
+    playTrack,
+    togglePlay,
+    isPlaying,
+    nextTrack,
+    prevTrack,
+    openLyricsModal,
+    openPlayerModal
+  } = useMusic();
+
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [statusText, setStatusText] = useState('');
@@ -97,6 +108,120 @@ export default function VoiceAssistant() {
   const processCommand = async (command) => {
     setStatusText('Processing...');
     
+    // ════════════════════════════════════════════════════════════════════════
+    // 0. MUSIC & SONG VOICE COMMANDS (High-Priority Voice Integration)
+    // ════════════════════════════════════════════════════════════════════════
+
+    // 0A. Direct Music Search (e.g. "search music monica", "search song monica", "find music ...", "find song ...")
+    if (
+      command.startsWith('search music ') ||
+      command.startsWith('search song ') ||
+      command.startsWith('search songs ') ||
+      command.startsWith('search for music ') ||
+      command.startsWith('search for song ') ||
+      command.startsWith('find music ') ||
+      command.startsWith('find song ') ||
+      (command.startsWith('search ') && (command.includes('music') || command.includes('song') || window.location.pathname === '/music'))
+    ) {
+      let musicQuery = command
+        .replace(/^(search for|search|find|lookup)\s+(music|song|songs|track|audio)?\s*/i, '')
+        .replace(/\s+(song|music|audio|track)$/i, '')
+        .trim();
+
+      if (musicQuery) {
+        setStatusText(`Searching Music: "${musicQuery}"`);
+        const targetUrl = `/music?q=${encodeURIComponent(musicQuery)}`;
+        if (window.location.pathname === '/music') {
+          navigate(targetUrl, { replace: true });
+        } else {
+          navigate(targetUrl);
+        }
+        return;
+      }
+    }
+
+    // 0B. Music Play Intent (e.g. "play music monica", "play song monica", "play monica song", "play track ...")
+    if (
+      command.startsWith('play music ') ||
+      command.startsWith('play song ') ||
+      command.startsWith('play track ') ||
+      command.startsWith('play audio ') ||
+      ((command.startsWith('play ') || command.startsWith('play the song ')) && (command.includes('song') || command.includes('music') || window.location.pathname === '/music'))
+    ) {
+      let musicQuery = command
+        .replace(/^(play the song|play music|play song|play track|play audio|play)\s*/i, '')
+        .replace(/\s+(song|music|audio|track)$/i, '')
+        .trim();
+
+      if (musicQuery) {
+        setStatusText(`Finding song: "${musicQuery}"...`);
+        try {
+          const res = await axios.get('/api/music/search', {
+            params: { query: musicQuery, category: 'all', page: 1, limit: 10 }
+          });
+          const trackList = res.data.songs || [];
+          if (trackList.length > 0) {
+            const first = trackList[0];
+            playTrack(first, trackList);
+            setStatusText(`Playing "${first.title}"!`);
+            return;
+          } else {
+            setStatusText(`Searching Music for "${musicQuery}"...`);
+            navigate(`/music?q=${encodeURIComponent(musicQuery)}`);
+            return;
+          }
+        } catch (e) {
+          navigate(`/music?q=${encodeURIComponent(musicQuery)}`);
+          return;
+        }
+      }
+    }
+
+    // 0C. Music Controls (Pause / Resume / Next / Prev / Lyrics / Open Music)
+    if (command === 'pause music' || command === 'pause song' || command === 'stop music' || (command === 'pause' && isPlaying)) {
+      if (isPlaying) {
+        togglePlay();
+        setStatusText('Music Paused.');
+      } else {
+        setStatusText('No active music track.');
+      }
+      return;
+    }
+
+    if (command === 'resume music' || command === 'play music' || command === 'resume song' || command === 'unpause') {
+      if (!isPlaying) {
+        togglePlay();
+        setStatusText('Music Resumed.');
+      } else {
+        setStatusText('Music is already playing.');
+      }
+      return;
+    }
+
+    if (command === 'next song' || command === 'next track' || command === 'skip song' || command === 'skip track') {
+      nextTrack();
+      setStatusText('Skipping to next track...');
+      return;
+    }
+
+    if (command === 'previous song' || command === 'prev song' || command === 'previous track' || command === 'prev track') {
+      prevTrack();
+      setStatusText('Playing previous track...');
+      return;
+    }
+
+    if (command.includes('show lyrics') || command.includes('open lyrics') || command.includes('synced lyrics')) {
+      openLyricsModal();
+      setStatusText('Opening Synced Lyrics...');
+      return;
+    }
+
+    if (command === 'open music' || command === 'go to music' || command === 'music' || command === 'music player') {
+      navigate('/music');
+      setStatusText('Opening Music Studio...');
+      return;
+    }
+
     // 1. CATALOG / DISCOVERY INTENTS
     if (command.includes('trending') || command.includes('popular') || command.includes('top rated')) {
       let type = 'movie';
@@ -166,7 +291,7 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // 5. SEARCH INTENTS
+    // 5. SEARCH INTENTS (General Movies / Series / Anime / Manga)
     if (command.startsWith('search for ') || command.startsWith('search ')) {
       let query = command.replace('search for ', '').replace('search ', '').trim();
       let searchType = 'movie';
@@ -190,7 +315,7 @@ export default function VoiceAssistant() {
       }
     }
 
-    // 6. PLAY / PAUSE INTENTS
+    // 6. PLAY INTENTS (Movies / Series)
     if (command.startsWith('play ')) {
       const query = command.replace('play ', '').trim();
       
@@ -200,7 +325,7 @@ export default function VoiceAssistant() {
         return;
       }
 
-      // Treat as a search-and-play command
+      // Treat as a search-and-play command for movies
       setStatusText(`Finding: ${query}...`);
       try {
         const res = await axios.get('/api/media/search', {
