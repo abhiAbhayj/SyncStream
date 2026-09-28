@@ -5,6 +5,91 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMusic } from '../context/MusicContext';
 
+const WORD_TO_NUM = {
+  first: 1, '1st': 1, one: 1,
+  second: 2, '2nd': 2, two: 2,
+  third: 3, '3rd': 3, three: 3,
+  fourth: 4, '4th': 4, four: 4,
+  fifth: 5, '5th': 5, five: 5,
+  sixth: 6, '6th': 6, six: 6,
+  seventh: 7, '7th': 7, seven: 7,
+  eighth: 8, '8th': 8, eight: 8,
+  ninth: 9, '9th': 9, nine: 9,
+  tenth: 10, '10th': 10, ten: 10,
+  eleventh: 11, '11th': 11, eleven: 11,
+  twelfth: 12, '12th': 12, twelve: 12,
+  thirteenth: 13, '13th': 13, thirteen: 13,
+  fourteenth: 14, '14th': 14, fourteen: 14,
+  fifteenth: 15, '15th': 15, fifteen: 15,
+  sixteenth: 16, '16th': 16, sixteen: 16,
+  seventeenth: 17, '17th': 17, seventeen: 17,
+  eighteenth: 18, '18th': 18, eighteen: 18,
+  nineteenth: 19, '19th': 19, nineteen: 19,
+  twentieth: 20, '20th': 20, twenty: 20
+};
+
+function parseEpisodeQuery(rawCommand) {
+  let text = (rawCommand || '').toLowerCase().trim();
+
+  // Check if command is episode related or relative hop
+  const hasEpWord = /\b(episode|episodes|ep|eps|season|seasons|anime)\b/i.test(text);
+  const isNext = /\b(next\s+episode|skip\s+episode|forward\s+episode)\b/i.test(text) || (text === 'next' && window.location.pathname.startsWith('/media/'));
+  const isPrev = /\b(prev(ious)?\s+episode|last\s+episode|back\s+episode)\b/i.test(text) || (text === 'previous' && window.location.pathname.startsWith('/media/'));
+
+  if (!hasEpWord && !isNext && !isPrev) {
+    return null;
+  }
+
+  // Season number extraction
+  let season = 1;
+  const seasonMatch = text.match(/\bseason\s+(\d+|first|second|third|fourth|fifth|sixth|one|two|three|four|five|six|\d+(st|nd|rd|th)?)\b/i);
+  if (seasonMatch) {
+    const sVal = seasonMatch[1].toLowerCase();
+    season = WORD_TO_NUM[sVal] || parseInt(sVal, 10) || 1;
+  }
+
+  // Episode number extraction
+  let episode = null;
+  const epMatch1 = text.match(/\bepisode\s+(\d+|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|one|two|three|four|five|six|seven|eight|nine|ten|\d+(st|nd|rd|th)?)\b/i);
+  const epMatch2 = text.match(/\b(\d+|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|one|two|three|four|five|six|seven|eight|nine|ten|\d+(st|nd|rd|th))\s+episode\b/i);
+  
+  if (epMatch1) {
+    const epVal = epMatch1[1].toLowerCase();
+    episode = WORD_TO_NUM[epVal] || parseInt(epVal, 10) || 1;
+  } else if (epMatch2) {
+    const epVal = epMatch2[1].toLowerCase();
+    episode = WORD_TO_NUM[epVal] || parseInt(epVal, 10) || 1;
+  }
+
+  if (!episode) {
+    if (isNext) episode = 'next';
+    else if (isPrev) episode = 'prev';
+    else if (text.includes('first')) episode = 1;
+    else episode = 1;
+  }
+
+  // Media type hint
+  let mediaType = 'anime';
+  if (text.includes('anime')) {
+    mediaType = 'anime';
+  } else if (text.includes('tv') || text.includes('series') || text.includes('show') || text.includes('drama')) {
+    mediaType = 'tv';
+  }
+
+  // Clean title extraction
+  let cleanTitle = text
+    .replace(/^(play|watch|stream|open|start|find|go\s+to)\s+/i, '')
+    .replace(/\b(the\s+)?(first|1st|second|2nd|third|3rd|fourth|4th|fifth|5th|next|previous|prev|last)?\s*episode\s*(of)?\b/gi, '')
+    .replace(/\bepisode\s*(\d+|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|one|two|three|four|five|six|seven|eight|nine|ten|\d+(st|nd|rd|th)?)\s*(of)?\b/gi, '')
+    .replace(/\bseason\s*(\d+|first|second|third|fourth|fifth|one|two|three|four|five|\d+(st|nd|rd|th)?)\s*(of)?\b/gi, '')
+    .replace(/\b(anime|tv series|tv show|tv|series|show|drama|movie)\b/gi, '')
+    .replace(/\b(of|in|for|on|the)\b/gi, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  return { isNext, isPrev, season, episode, mediaType, cleanTitle };
+}
+
 export default function VoiceAssistant() {
   const { logout } = useAuth();
   const {
@@ -383,9 +468,79 @@ export default function VoiceAssistant() {
       }
     }
 
-    // 6. PLAY INTENTS (Movies / Series)
-    if (command.startsWith('play ')) {
-      const query = command.replace('play ', '').trim();
+    // 5.5. EPISODE & ANIME / TV PLAY INTENTS (e.g. "play the first episode of anime solo leveling", "next episode")
+    const epQuery = parseEpisodeQuery(command);
+    if (epQuery) {
+      const { isNext, isPrev, season, episode, mediaType, cleanTitle } = epQuery;
+
+      // Case A: User is on a Media Detail page and requested relative or numeric episode jump
+      if (window.location.pathname.startsWith('/media/')) {
+        if (isNext || episode === 'next') {
+          window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { delta: 1 } }));
+          setStatusText('Playing Next Episode...');
+          return;
+        }
+        if (isPrev || episode === 'prev') {
+          window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { delta: -1 } }));
+          setStatusText('Playing Previous Episode...');
+          return;
+        }
+        if (!cleanTitle && typeof episode === 'number') {
+          window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { episode, season } }));
+          setStatusText(`Playing Episode ${episode}...`);
+          return;
+        }
+      }
+
+      // Case B: Cross-Catalog Search & Direct Play for Episode (e.g. "play the first episode of anime solo leveling")
+      if (cleanTitle) {
+        const epNum = typeof episode === 'number' ? episode : 1;
+        setStatusText(`Finding "${cleanTitle}"...`);
+        try {
+          // 1. Search anime / TV
+          let res = await axios.get('/api/media/search', {
+            params: { query: cleanTitle, type: mediaType, page: 1 }
+          });
+          let results = res.data || [];
+
+          // 2. Fallback to TV if anime gave 0 results
+          if (results.length === 0 && mediaType === 'anime') {
+            res = await axios.get('/api/media/search', {
+              params: { query: cleanTitle, type: 'tv', page: 1 }
+            });
+            results = res.data || [];
+          }
+
+          // 3. Fallback to Movie if still 0 results
+          if (results.length === 0) {
+            res = await axios.get('/api/media/search', {
+              params: { query: cleanTitle, type: 'movie', page: 1 }
+            });
+            results = res.data || [];
+          }
+
+          if (results.length > 0) {
+            const firstResult = results[0];
+            const targetType = firstResult.media_type || mediaType || 'anime';
+            setStatusText(`Playing ${firstResult.title} S${season} Ep ${epNum}!`);
+            const targetUrl = `/media/${targetType}/${firstResult.id}?season=${season}&episode=${epNum}&play=true`;
+            navigate(targetUrl);
+            return;
+          } else {
+            setStatusText(`Couldn't find show "${cleanTitle}".`);
+            return;
+          }
+        } catch (err) {
+          console.error("Episode voice search error:", err);
+          setStatusText(`Error searching for "${cleanTitle}".`);
+          return;
+        }
+      }
+    }
+
+    // 6. PLAY INTENTS (Movies / TV / Anime)
+    if (command.startsWith('play ') || command.startsWith('watch ')) {
+      let query = command.replace(/^(play|watch)\s+/i, '').trim();
       
       // General play/resume command (if in watch room)
       if (query === '' || query === 'movie' || query === 'video' || query === 'it') {
@@ -393,19 +548,43 @@ export default function VoiceAssistant() {
         return;
       }
 
-      // Treat as a search-and-play command for movies
+      let detectedType = 'movie';
+      if (query.includes('anime')) {
+        detectedType = 'anime';
+        query = query.replace('anime', '').trim();
+      } else if (query.includes('series') || query.includes('show') || query.includes('tv')) {
+        detectedType = 'tv';
+        query = query.replace(/(series|show|tv)/i, '').trim();
+      }
+
       setStatusText(`Finding: ${query}...`);
       try {
-        const res = await axios.get('/api/media/search', {
-          params: { query: query, type: 'movie', page: 1 }
+        let res = await axios.get('/api/media/search', {
+          params: { query: query, type: detectedType, page: 1 }
         });
+        let results = res.data || [];
         
-        if (res.data && res.data.length > 0) {
-          const firstResult = res.data[0];
+        // Fallback across types if 0 results
+        if (results.length === 0 && detectedType !== 'anime') {
+          res = await axios.get('/api/media/search', { params: { query: query, type: 'anime', page: 1 } });
+          results = res.data || [];
+        }
+        if (results.length === 0 && detectedType !== 'tv') {
+          res = await axios.get('/api/media/search', { params: { query: query, type: 'tv', page: 1 } });
+          results = res.data || [];
+        }
+        if (results.length === 0 && detectedType !== 'movie') {
+          res = await axios.get('/api/media/search', { params: { query: query, type: 'movie', page: 1 } });
+          results = res.data || [];
+        }
+
+        if (results.length > 0) {
+          const firstResult = results[0];
+          const finalType = firstResult.media_type || detectedType || 'movie';
           setStatusText(`Found ${firstResult.title}!`);
           setTimeout(() => {
-            navigate(`/media/movie/${firstResult.id}`);
-          }, 1000);
+            navigate(`/media/${finalType}/${firstResult.id}?play=true`);
+          }, 800);
         } else {
           setStatusText(`Couldn't find ${query}.`);
         }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMusic } from '../context/MusicContext';
@@ -12,9 +12,14 @@ import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, A
 
 export default function MediaDetail() {
   const { type, id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { playTrack } = useMusic();
+
+  const urlSeason = searchParams.get('season');
+  const urlEpisode = searchParams.get('episode');
+  const urlPlay = searchParams.get('play');
 
   const [detail, setDetail] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -23,8 +28,8 @@ export default function MediaDetail() {
   
   // Anime episodes tracking
   const [episodes, setEpisodes] = useState([]);
-  const [activeSeason, setActiveSeason] = useState(1);
-  const [activeEpisode, setActiveEpisode] = useState(1);
+  const [activeSeason, setActiveSeason] = useState(urlSeason ? parseInt(urlSeason, 10) : 1);
+  const [activeEpisode, setActiveEpisode] = useState(urlEpisode ? parseInt(urlEpisode, 10) : 1);
   
   // Streaming server source tracking (Default: VidSrc PM - 100% Sandbox Protected)
   const [embedServer, setEmbedServer] = useState('vidsrcpm');
@@ -41,7 +46,45 @@ export default function MediaDetail() {
 
   // Playback modes for Video Content
   // 'trailer' | 'solo-html5' | 'solo-embed'
-  const [playbackMode, setPlaybackMode] = useState('trailer');
+  const [playbackMode, setPlaybackMode] = useState(
+    urlPlay === 'true' || urlEpisode ? 'solo-embed' : 'trailer'
+  );
+
+  // Dynamic voice event listener for next/previous episode commands
+  useEffect(() => {
+    const handleEpisodeChange = (e) => {
+      const { delta, episode, season } = e.detail || {};
+      if (season && typeof season === 'number') {
+        setActiveSeason(season);
+      }
+      if (typeof episode === 'number') {
+        setActiveEpisode(episode);
+        setPlaybackMode('solo-embed');
+      } else if (typeof delta === 'number') {
+        setActiveEpisode((prev) => {
+          const next = Math.max(1, prev + delta);
+          return next;
+        });
+        setPlaybackMode('solo-embed');
+      }
+    };
+    window.addEventListener('syncstream:change-episode', handleEpisodeChange);
+    return () => window.removeEventListener('syncstream:change-episode', handleEpisodeChange);
+  }, []);
+
+  // Update state when URL query params change
+  useEffect(() => {
+    if (urlSeason) {
+      setActiveSeason(parseInt(urlSeason, 10));
+    }
+    if (urlEpisode) {
+      setActiveEpisode(parseInt(urlEpisode, 10));
+      setPlaybackMode('solo-embed');
+    }
+    if (urlPlay === 'true') {
+      setPlaybackMode('solo-embed');
+    }
+  }, [urlSeason, urlEpisode, urlPlay]);
 
   // Fetch all details
   useEffect(() => {
@@ -66,13 +109,17 @@ export default function MediaDetail() {
         setDetail(detailData);
         
         if ((type === 'tv' || type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
-          const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
-          setActiveSeason(firstSeason.season_number);
+          if (!urlSeason) {
+            const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
+            setActiveSeason(firstSeason.season_number);
+          }
         }
 
-        // If movie/tv we default to trailer, but if no trailer is present, fallback to Embed player
+        // If movie/tv/anime we default to trailer, but if play=true or episode param is present, or if no trailer is present, fallback to Embed player
         if (type !== 'manga') {
-          if (detailData.youtube_trailer) {
+          if (urlPlay === 'true' || urlEpisode) {
+            setPlaybackMode('solo-embed');
+          } else if (detailData.youtube_trailer) {
             setPlaybackMode('trailer');
           } else {
             setPlaybackMode('solo-embed');
@@ -84,8 +131,6 @@ export default function MediaDetail() {
           const chaptersRes = await axios.get(`/api/media/manga/chapters/${id}`);
           setChapters(chaptersRes.data || []);
         }
-
-        // Episodes for Anime and TV are now natively provided within the TMDB detailData.seasons!
 
         // If logged in, check watchlist
         if (user) {
