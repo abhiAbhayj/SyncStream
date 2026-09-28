@@ -27,6 +27,8 @@ import Register from './pages/Register';
 import Catalog from './pages/Catalog';
 import ForgotPassword from './pages/ForgotPassword';
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -114,14 +116,16 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <SocketProvider>
-          <MusicProvider>
-            <AppContent />
-          </MusicProvider>
-        </SocketProvider>
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <SocketProvider>
+            <MusicProvider>
+              <AppContent />
+            </MusicProvider>
+          </SocketProvider>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
