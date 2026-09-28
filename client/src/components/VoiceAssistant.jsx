@@ -18,6 +18,7 @@ export default function VoiceAssistant() {
   } = useMusic();
 
   const [isListening, setIsListening] = useState(false);
+  const [secondsRemaining, setSecondsRemaining] = useState(30);
   const [transcript, setTranscript] = useState('');
   const [statusText, setStatusText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -25,6 +26,20 @@ export default function VoiceAssistant() {
 
   const recognitionRef = useRef(null);
   const timeoutRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
+  const maxTimerRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const hasProcessedRef = useRef(false);
+
+  const stopListening = useCallback(() => {
+    isListeningRef.current = false;
+    setIsListening(false);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    try {
+      recognitionRef.current?.stop();
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     // Check if browser supports speech recognition
@@ -35,33 +50,47 @@ export default function VoiceAssistant() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false; // Stop after a single command
-    recognition.interimResults = true; // Show words as they are spoken
+    recognition.continuous = true; // Continuous listening for 30 seconds
+    recognition.interimResults = true; // Show words in real-time as they are spoken
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
       setIsListening(true);
-      setStatusText('Listening...');
+      isListeningRef.current = true;
       setErrorMsg('');
     };
 
     recognition.onresult = (event) => {
-      const current = event.resultIndex;
-      const resultText = event.results[current][0].transcript;
-      setTranscript(resultText);
+      let fullTranscript = '';
+      let isFinal = false;
 
-      // If the result is final, process the command
-      if (event.results[current].isFinal) {
-        processCommand(resultText.toLowerCase().trim());
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript + ' ';
+        if (event.results[i].isFinal) {
+          isFinal = true;
+        }
+      }
+
+      const trimmed = fullTranscript.trim();
+      setTranscript(trimmed);
+
+      // If user provided an actionable complete command, process it
+      if (isFinal && trimmed && !hasProcessedRef.current) {
+        hasProcessedRef.current = true;
+        processCommand(trimmed.toLowerCase().trim());
+        setTimeout(() => {
+          stopListening();
+        }, 1200);
       }
     };
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error", event.error);
-      setIsListening(false);
-      setStatusText('');
       if (event.error === 'not-allowed') {
         setErrorMsg('Microphone access denied.');
+        stopListening();
+      } else if (event.error === 'no-speech') {
+        // Ignore silence error during the 30s listening window
       } else {
         setErrorMsg(`Error: ${event.error}`);
       }
@@ -72,33 +101,72 @@ export default function VoiceAssistant() {
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      // Auto clear transcript after processing
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        setTranscript('');
-        setStatusText('');
-      }, 2000);
+      // If still within the 30-second listening window, auto-resume recognition
+      if (isListeningRef.current && !hasProcessedRef.current) {
+        try {
+          recognition.start();
+        } catch (e) {}
+      } else {
+        setIsListening(false);
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setTranscript('');
+          setStatusText('');
+        }, 3000);
+      }
     };
 
     recognitionRef.current = recognition;
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {}
       }
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
     };
-  }, [navigate]);
+  }, [navigate, stopListening]);
 
   const toggleListening = () => {
     if (isListening) {
-      recognitionRef.current?.stop();
+      stopListening();
     } else {
       setTranscript('');
       setErrorMsg('');
+      hasProcessedRef.current = false;
+      setSecondsRemaining(30);
+      setStatusText('Listening (30s)...');
+
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+
       try {
         recognitionRef.current?.start();
+        isListeningRef.current = true;
+        setIsListening(true);
+
+        // Live 30s countdown timer
+        countdownIntervalRef.current = setInterval(() => {
+          setSecondsRemaining((prev) => {
+            const next = Math.max(0, prev - 1);
+            setStatusText(`Listening (${next}s)...`);
+            if (next <= 0) {
+              clearInterval(countdownIntervalRef.current);
+            }
+            return next;
+          });
+        }, 1000);
+
+        // 30-second max duration watchdog
+        maxTimerRef.current = setTimeout(() => {
+          stopListening();
+          setStatusText('Listening timed out (30s).');
+        }, 30000);
       } catch (e) {
         console.error("Failed to start speech recognition:", e);
       }
