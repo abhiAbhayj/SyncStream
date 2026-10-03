@@ -302,7 +302,15 @@ export default function Search() {
   const handleSortChange = (newSort) => {
     setSort(newSort);
     setPage(1);
-    executeSearch(query, type, genre, language, country, 1, newSort, musicCategory, year);
+    // If user clicks a feed clip (e.g. Ongoing Anime, Trending) while a text query is present,
+    // clear the text query so the full category feed is loaded cleanly
+    if (query && query.trim()) {
+      setQuery('');
+      setSearchParams({ type, genre, lang: language, country, year });
+      executeSearch('', type, genre, language, country, 1, newSort, musicCategory, year);
+    } else {
+      executeSearch(query, type, genre, language, country, 1, newSort, musicCategory, year);
+    }
   };
 
   const filterTabs = [
@@ -430,15 +438,13 @@ export default function Search() {
           </div>
         )}
 
-        {/* Filter controls row */}
-        <div className="flex flex-wrap gap-4 items-center justify-start text-xs pt-2">
-          
-          {/* Sort selector clips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none max-w-full">
-            <span className="text-gray-400 font-bold uppercase tracking-wider shrink-0">Feed:</span>
+        {/* Feed Selector Clips (Trending, Ongoing Anime, Latest, Upcoming, Top Rated) */}
+        {type !== 'music' && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
+            <span className="text-gray-400 font-bold uppercase tracking-wider shrink-0 mr-1 text-[11px]">Feed:</span>
             {[
               { key: 'trending', label: '🔥 Trending Hits' },
-              { key: 'ongoing', label: type === 'anime' ? '⚡ Currently Airing' : type === 'tv' ? '⚡ Ongoing Series' : type === 'manga' ? '⚡ Ongoing Manga' : '⚡ Now In Theaters' },
+              { key: 'ongoing', label: type === 'anime' ? '⚡ Ongoing Anime' : type === 'tv' ? '⚡ Ongoing TV Shows' : type === 'manga' ? '⚡ Ongoing Manga' : '⚡ Now In Theaters' },
               { key: 'latest', label: type === 'anime' ? '📅 Latest Episode' : type === 'manga' ? '📅 Latest Chapter' : type === 'tv' ? '📅 Latest Aired' : '📅 Latest Release' },
               { key: 'upcoming', label: '🚀 Upcoming Releases' },
               { key: 'top_rated', label: '⭐ Top Rated' },
@@ -447,16 +453,20 @@ export default function Search() {
                 key={s.key}
                 type="button"
                 onClick={() => handleSortChange(s.key)}
-                className={`px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap shrink-0 active:scale-95 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 border ${
                   sort === s.key
-                    ? 'bg-accentPurple text-white shadow-md shadow-accentPurple/25 border border-accentPurple/60'
-                    : 'bg-darkCard border border-darkBorder text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-black border-transparent shadow-[0_0_14px_rgba(99,210,255,0.45)] font-extrabold'
+                    : 'bg-darkCard/60 border-darkBorder text-gray-300 hover:text-white hover:border-white/25'
                 }`}
               >
                 {s.label}
               </button>
             ))}
           </div>
+        )}
+
+        {/* Filter controls row */}
+        <div className="flex flex-wrap gap-4 items-center justify-start text-xs pt-1">
 
           {/* 1. MUSIC: Show Languages Dropdown */}
           {type === 'music' ? (

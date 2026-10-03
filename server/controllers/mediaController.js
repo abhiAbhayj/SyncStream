@@ -85,6 +85,14 @@ const isTmdbConfigured = () => {
   return TMDB_API_KEY && TMDB_API_KEY !== '' && TMDB_API_KEY !== 'your_tmdb_api_key_here';
 };
 
+// Strict classifier for Japanese Animation to prevent TV/Anime leakage
+export const isAnimeItem = (item) => {
+  if (!item) return false;
+  const isJapanese = item.original_language === 'ja' || item.origin_country?.includes('JP');
+  const isAnimation = item.genre_ids?.includes(16) || item.genres?.some(g => g.id === 16 || g.id === '16' || g.name === 'Animation');
+  return Boolean(isJapanese && isAnimation);
+};
+
 // Helper to search and map Anime titles to TMDB IDs
 const getTmdbIdForAnime = async (title, titleEnglish, releaseDate) => {
   if (!isTmdbConfigured()) return null;
@@ -237,32 +245,37 @@ export const getTrending = async (req, res) => {
         ]);
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
-        tmdbTv = trendingTvRes.data.results.slice(0, 20).map(mapTv);
+        // Exclude Japanese animation from TV shows so they don't get mixed up!
+        tmdbTv = trendingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTv);
         ongoingMovies = nowPlayingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
-        upcomingTv = upcomingTvRes.data.results.slice(0, 20).map(mapTv);
+        upcomingTv = upcomingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTv);
         
         trendingAnime = trendingAnimeRes.data.results
-          .filter(a => a.original_language === 'ja' || a.genre_ids?.includes(16))
+          .filter(isAnimeItem)
           .slice(0, 20)
           .map(a => ({...mapTv(a), media_type: 'anime'}));
-        upcomingAnime = upcomingAnimeRes.data.results.slice(0, 20).map(a => ({...mapTv(a), media_type: 'anime'}));
+        upcomingAnime = upcomingAnimeRes.data.results
+          .filter(isAnimeItem)
+          .slice(0, 20)
+          .map(a => ({...mapTv(a), media_type: 'anime'}));
 
-        // Combine Page 1 and Page 2 for TV and Anime schedules
+        // Combine Page 1 and Page 2 for TV and Anime schedules, strictly separating them
         const allAiringTv = [
           ...(airingTodayTvRes.data.results || []),
           ...(airingTodayTvPage2.data?.results || [])
-        ];
+        ].filter(item => !isAnimeItem(item));
+
         const allAiringAnime = [
           ...(airingTodayAnimeRes.data.results || []),
           ...(airingTodayAnimePage2.data?.results || [])
-        ];
+        ].filter(isAnimeItem);
 
         // Enhance ongoing and scheduled TV/Anime shows with EXACT broadcast days from TMDB details
         const tvListToEnrich = [
-          ...ongoingTvRes.data.results.slice(0, 15), 
+          ...ongoingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 15), 
           ...allAiringTv.slice(0, 25),
-          ...ongoingAnimeRes.data.results.slice(0, 15),
+          ...ongoingAnimeRes.data.results.filter(isAnimeItem).slice(0, 15),
           ...allAiringAnime.slice(0, 25)
         ];
         const uniqueTvIds = [...new Set(tvListToEnrich.map(t => t.id))];
@@ -304,9 +317,9 @@ export const getTrending = async (req, res) => {
           return mapped;
         };
 
-        ongoingTv = ongoingTvRes.data.results.slice(0, 20).map(mapTvWithDay);
+        ongoingTv = ongoingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTvWithDay);
         airingTodayTv = allAiringTv.slice(0, 35).map(mapTvWithDay);
-        ongoingAnime = ongoingAnimeRes.data.results.slice(0, 20).map(mapAnimeWithDay);
+        ongoingAnime = ongoingAnimeRes.data.results.filter(isAnimeItem).slice(0, 20).map(mapAnimeWithDay);
         scheduleAnime = allAiringAnime.slice(0, 35).map(mapAnimeWithDay);
       } catch (err) {
         console.warn('TMDB dashboard fetch failed:', err.message);
@@ -560,7 +573,14 @@ export const searchMedia = async (req, res) => {
             }
             
             const searchRes = await axios.get(url);
-            const discoverResults = searchRes.data.results || [];
+            let discoverResults = searchRes.data.results || [];
+            
+            // Strictly enforce separation: TV never contains anime, anime only contains anime
+            if (type === 'anime') {
+              discoverResults = discoverResults.filter(isAnimeItem);
+            } else if (type === 'tv') {
+              discoverResults = discoverResults.filter(r => !isAnimeItem(r));
+            }
             
             results = discoverResults.map(r => ({
               id: r.id.toString(),
@@ -593,9 +613,8 @@ export const searchMedia = async (req, res) => {
             }
 
             if (type === 'anime') {
-              combinedResults = combinedResults.filter(r => 
-                (r.genre_ids?.includes(16) || r.original_language === 'ja')
-              );
+              // Anime MUST be Japanese Animation — NEVER western TV shows
+              combinedResults = combinedResults.filter(isAnimeItem);
               if (genre) {
                 const cleanGenreId = genre.startsWith('g_') 
                   ? parseInt(genre.replace('g_', ''), 10) 
@@ -604,7 +623,33 @@ export const searchMedia = async (req, res) => {
                   combinedResults = combinedResults.filter(r => r.genre_ids?.includes(cleanGenreId));
                 }
               }
+            } else if (type === 'tv') {
+              // TV Shows MUST NEVER contain Japanese Anime!
+              combinedResults = combinedResults.filter(r => !isAnimeItem(r));
+              if (genre) {
+                const gId = parseInt(genre.replace('k_', '').replace('g_', ''), 10);
+                if (!isNaN(gId)) {
+                  combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
+                }
+              }
+              if (country) {
+                if (country === 'IN') {
+                  const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi', 'mr'];
+                  combinedResults = combinedResults.filter(r => 
+                    r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language)
+                  );
+                } else {
+                  const countryToLang = {
+                    'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de'
+                  };
+                  const expectedLang = countryToLang[country];
+                  combinedResults = combinedResults.filter(r => 
+                    r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang)
+                  );
+                }
+              }
             } else {
+              // Movies
               if (genre) {
                 const gId = parseInt(genre.replace('k_', '').replace('g_', ''), 10);
                 if (!isNaN(gId)) {
@@ -1113,6 +1158,7 @@ export const getCatalog = async (req, res) => {
         
         const tmdbRes = await axios.get(endpoint);
         results = tmdbRes.data.results
+          .filter(isAnimeItem)
           .filter(item => !year || (item.first_air_date && item.first_air_date.startsWith(String(year))))
           .map(item => {
             const mapped = mapTv(item);
@@ -1154,6 +1200,11 @@ export const getCatalog = async (req, res) => {
             const d = item.release_date || item.first_air_date || '';
             return d.startsWith(String(year));
           });
+        }
+
+        // Strictly exclude Japanese animation from TV catalog so they never get mixed up!
+        if (type === 'tv') {
+          rawResults = rawResults.filter(item => !isAnimeItem(item));
         }
 
         results = type === 'movie' ? rawResults.map(mapMovie) : rawResults.map(mapTv);
