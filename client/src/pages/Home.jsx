@@ -197,6 +197,74 @@ export default function Home() {
     { id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400' }
   ];
 
+  const getSectionTitle = (category, fallback) => {
+    const currentYear = new Date().getFullYear();
+    if (category === 'trending-movie') {
+      if (timePeriod === 'day') return '🔴 Today’s Live Trending Movies';
+      if (timePeriod === 'week') return '⚡ This Week’s Trending Movies';
+      if (timePeriod === 'month') return '📅 This Month’s Blockbuster Movies';
+      if (timePeriod === 'year') return `🌟 ${currentYear} Yearly Blockbuster Movies`;
+      if (timePeriod === 'all') return '👑 All-Time Legendary Movies';
+    }
+    if (category === 'trending-tv') {
+      if (timePeriod === 'day') return '🔴 Today’s Live TV Hits';
+      if (timePeriod === 'week') return '⚡ This Week’s Top TV Shows';
+      if (timePeriod === 'month') return '📅 This Month’s Popular Series';
+      if (timePeriod === 'year') return `🌟 ${currentYear} Top TV Releases`;
+      if (timePeriod === 'all') return '👑 All-Time Top Rated TV Series';
+    }
+    if (category === 'trending-anime') {
+      if (timePeriod === 'day') return '🔴 Today’s Live Anime Releases';
+      if (timePeriod === 'week') return '⚡ This Week’s Top Anime Releases';
+      if (timePeriod === 'month') return '📅 This Month’s Top Anime Hits';
+      if (timePeriod === 'year') return `🌟 ${currentYear} Seasonal Anime Hits`;
+      if (timePeriod === 'all') return '👑 All-Time Highest Rated Anime (MAL/TMDB)';
+    }
+    if (category === 'ongoing-movie') {
+      if (timePeriod === 'day') return '🔴 Now Playing in Theaters Today';
+      if (timePeriod === 'week') return '⚡ In Theaters This Week';
+      if (timePeriod === 'month') return '📅 Running In Theaters This Month';
+      if (timePeriod === 'year') return `🌟 Top Theatrical Releases of ${currentYear}`;
+      if (timePeriod === 'all') return '👑 All-Time Greatest Franchises';
+    }
+    if (category === 'ongoing-tv') {
+      if (timePeriod === 'day') return '🔴 Airing Today on TV';
+      if (timePeriod === 'week') return '⚡ On The Air This Week';
+      if (timePeriod === 'month') return '📅 TV Broadcasts This Month';
+      if (timePeriod === 'year') return `🌟 TV Broadcasts of ${currentYear}`;
+      if (timePeriod === 'all') return '👑 All-Time Top Broadcast Hits';
+    }
+    if (category === 'ongoing-anime') {
+      if (timePeriod === 'day') return '🔴 Currently Airing Anime (Today)';
+      if (timePeriod === 'week') return '⚡ Airing Anime This Week';
+      if (timePeriod === 'month') return '📅 Seasonal Anime This Month';
+      if (timePeriod === 'year') return `🌟 Anime of the Year (${currentYear})`;
+      if (timePeriod === 'all') return '👑 All-Time Masterpiece Anime';
+    }
+    if (category === 'upcoming-movie') {
+      if (timePeriod === 'day') return '🔴 Next Premieres in Theaters';
+      if (timePeriod === 'week') return '⚡ Premiering This Week';
+      if (timePeriod === 'month') return '📅 Upcoming Premieres This Month';
+      if (timePeriod === 'year') return `🌟 Major Movies Coming in ${currentYear}`;
+      if (timePeriod === 'all') return '👑 Most Anticipated Upcoming Movies';
+    }
+    if (category === 'upcoming-tv') {
+      if (timePeriod === 'day') return '🔴 Next TV Episodes Airing';
+      if (timePeriod === 'week') return '⚡ TV Premieres This Week';
+      if (timePeriod === 'month') return '📅 TV Shows Premiering This Month';
+      if (timePeriod === 'year') return `🌟 Major TV Series Coming in ${currentYear}`;
+      if (timePeriod === 'all') return '👑 Anticipated Series Continuations';
+    }
+    if (category === 'upcoming-anime') {
+      if (timePeriod === 'day') return '🔴 Next Anime Episodes Airing';
+      if (timePeriod === 'week') return '⚡ Anime Premieres This Week';
+      if (timePeriod === 'month') return '📅 Anime Premiering This Month';
+      if (timePeriod === 'year') return `🌟 Upcoming Anime Seasons (${currentYear})`;
+      if (timePeriod === 'all') return '👑 Most Anticipated Anime Sequels';
+    }
+    return fallback;
+  };
+
   return (
     <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto">
 
@@ -281,6 +349,7 @@ export default function Home() {
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
           {TIME_PERIODS.map((tp) => {
             const isSelected = timePeriod === tp.id;
+            const Icon = tp.icon;
             return (
               <button
                 key={tp.id}
@@ -291,6 +360,7 @@ export default function Home() {
                     : 'text-gray-400 hover:text-white bg-black/30 border border-white/5 hover:bg-white/5'
                 }`}
               >
+                <Icon className="w-3.5 h-3.5" />
                 <span>{tp.label}</span>
               </button>
             );
@@ -343,7 +413,7 @@ export default function Home() {
         <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl text-center space-y-4 max-w-md mx-auto">
           <p className="text-red-400 font-semibold">{error}</p>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => fetchCatalog(true)} 
             className="px-4 py-2 bg-darkCard border border-darkBorder hover:border-red-500/30 rounded-xl text-xs font-semibold text-gray-200 transition"
           >
             Retry Connection
@@ -353,8 +423,8 @@ export default function Home() {
         <div className="space-y-12 transition-opacity duration-300">
           {activeTab === 'trending' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink={`/catalog/trending/movie?period=${timePeriod}`} />
-              <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink={`/catalog/trending/tv?period=${timePeriod}`} />
+              <MediaGrid items={media.trending?.movies?.slice(0, 10)} title={getSectionTitle('trending-movie', 'Trending Blockbuster Movies')} seeMoreLink={`/catalog/trending/movie?period=${timePeriod}`} />
+              <MediaGrid items={media.trending?.tv?.slice(0, 10)} title={getSectionTitle('trending-tv', 'Trending TV Shows')} seeMoreLink={`/catalog/trending/tv?period=${timePeriod}`} />
 
               {/* ── Music Streaming Showcase Card ── */}
               <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-6 group">
@@ -384,16 +454,16 @@ export default function Home() {
                 <MediaGrid items={media.trending.music} title="🎵 Trending Music Hits" seeMoreLink="/music" />
               )}
 
-              <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Anime Releases" seeMoreLink={`/catalog/trending/anime?period=${timePeriod}`} />
+              <MediaGrid items={media.trending?.anime?.slice(0, 10)} title={getSectionTitle('trending-anime', 'Top Trending Anime Releases')} seeMoreLink={`/catalog/trending/anime?period=${timePeriod}`} />
               <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink={`/catalog/trending/manga?period=${timePeriod}`} />
             </div>
           )}
 
           {activeTab === 'ongoing' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink={`/catalog/ongoing/movie?period=${timePeriod}`} />
-              <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink={`/catalog/ongoing/tv?period=${timePeriod}`} showTimings={true} />
-              <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Currently Airing Anime (MAL)" seeMoreLink={`/catalog/ongoing/anime?period=${timePeriod}`} showTimings={true} />
+              <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title={getSectionTitle('ongoing-movie', 'Now Playing in Theaters')} seeMoreLink={`/catalog/ongoing/movie?period=${timePeriod}`} />
+              <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title={getSectionTitle('ongoing-tv', 'Ongoing TV Broadcasts')} seeMoreLink={`/catalog/ongoing/tv?period=${timePeriod}`} showTimings={true} />
+              <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title={getSectionTitle('ongoing-anime', 'Currently Airing Anime (MAL)')} seeMoreLink={`/catalog/ongoing/anime?period=${timePeriod}`} showTimings={true} />
               <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Ongoing Manga Publications" seeMoreLink={`/catalog/ongoing/manga?period=${timePeriod}`} />
             </div>
           )}
@@ -569,9 +639,9 @@ export default function Home() {
 
           {activeTab === 'upcoming' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink={`/catalog/upcoming/movie?period=${timePeriod}`} />
-              <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink={`/catalog/upcoming/tv?period=${timePeriod}`} />
-              <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink={`/catalog/upcoming/anime?period=${timePeriod}`} />
+              <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title={getSectionTitle('upcoming-movie', 'Upcoming Cinematic Movies')} seeMoreLink={`/catalog/upcoming/movie?period=${timePeriod}`} />
+              <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title={getSectionTitle('upcoming-tv', 'Upcoming TV Series')} seeMoreLink={`/catalog/upcoming/tv?period=${timePeriod}`} />
+              <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title={getSectionTitle('upcoming-anime', 'Upcoming Anime Seasons')} seeMoreLink={`/catalog/upcoming/anime?period=${timePeriod}`} />
               <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest Chapter Uploads" seeMoreLink={`/catalog/latest/manga?period=${timePeriod}`} />
             </div>
           )}

@@ -200,24 +200,55 @@ export const getTrending = async (req, res) => {
         // Construct dynamic endpoints according to the selected live time period
         let movieTrendingUrl = `${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`;
         let tvTrendingUrl = `${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`;
-        let animeTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`;
+        let animeTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`;
+        let ongoingTvUrl = `${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`;
+        let ongoingMovieUrl = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`;
+        let upcomingMovieUrl = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`;
+        let upcomingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`;
+        let ongoingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`;
+        let upcomingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`;
+        let scheduleAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`;
 
         if (period === 'week') {
           movieTrendingUrl = `${TMDB_BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}`;
           tvTrendingUrl = `${TMDB_BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}`;
           animeTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`;
+          ongoingTvUrl = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`;
+          ongoingMovieUrl = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`;
+          upcomingMovieUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_date.gte=${today}&primary_release_date.lte=${nextWeek}&sort_by=popularity.desc`;
+          upcomingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&first_air_date.lte=${nextWeek}&sort_by=popularity.desc`;
+          ongoingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`;
+          upcomingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&first_air_date.lte=${nextWeek}&sort_by=popularity.desc`;
         } else if (period === 'month') {
           movieTrendingUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_date.gte=${lastMonth}&primary_release_date.lte=${today}&sort_by=popularity.desc`;
           tvTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${lastMonth}&first_air_date.lte=${today}&sort_by=popularity.desc`;
           animeTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${lastMonth}&first_air_date.lte=${today}&sort_by=popularity.desc`;
+          ongoingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${lastMonth}&first_air_date.lte=${today}&sort_by=popularity.desc`;
+          ongoingMovieUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_date.gte=${lastMonth}&primary_release_date.lte=${today}&sort_by=popularity.desc`;
+          upcomingMovieUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_date.gte=${today}&primary_release_date.lte=${nextMonth}&sort_by=popularity.desc`;
+          upcomingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&first_air_date.lte=${nextMonth}&sort_by=popularity.desc`;
+          ongoingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${lastMonth}&first_air_date.lte=${today}&sort_by=popularity.desc`;
+          upcomingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&first_air_date.lte=${nextMonth}&sort_by=popularity.desc`;
         } else if (period === 'year') {
           movieTrendingUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_year=${currentYear}&sort_by=popularity.desc`;
           tvTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date_year=${currentYear}&sort_by=popularity.desc`;
           animeTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date_year=${currentYear}&sort_by=popularity.desc`;
+          ongoingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date_year=${currentYear}&sort_by=popularity.desc`;
+          ongoingMovieUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_year=${currentYear}&sort_by=popularity.desc`;
+          upcomingMovieUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&primary_release_date.gte=${today}&primary_release_year=${currentYear}&sort_by=popularity.desc`;
+          upcomingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&first_air_date_year=${currentYear}&sort_by=popularity.desc`;
+          ongoingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date_year=${currentYear}&sort_by=popularity.desc`;
+          upcomingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&first_air_date_year=${currentYear}&sort_by=popularity.desc`;
         } else if (period === 'all') {
           movieTrendingUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&vote_count.gte=1000`;
           tvTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&vote_count.gte=500`;
           animeTrendingUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=vote_average.desc&vote_count.gte=200`;
+          ongoingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&vote_count.gte=500`;
+          ongoingMovieUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&vote_count.gte=1000`;
+          upcomingMovieUrl = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`;
+          upcomingTvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`;
+          ongoingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=vote_average.desc&vote_count.gte=200`;
+          upcomingAnimeUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`;
         }
 
         const [
@@ -226,16 +257,16 @@ export const getTrending = async (req, res) => {
         ] = await Promise.all([
           axios.get(movieTrendingUrl),
           axios.get(tvTrendingUrl),
-          axios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`),
+          axios.get(ongoingTvUrl),
           axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`),
+          axios.get(upcomingMovieUrl),
+          axios.get(upcomingTvUrl),
           // Anime Queries via TMDB
           axios.get(animeTrendingUrl),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastWeek}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextWeek}&sort_by=popularity.desc`),
-          axios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`)
+          axios.get(ongoingAnimeUrl),
+          axios.get(upcomingAnimeUrl),
+          axios.get(scheduleAnimeUrl),
+          axios.get(ongoingMovieUrl)
         ]);
 
         tmdbMovies = (trendingMoviesRes.data.results || []).slice(0, 20).map(mapMovie);
