@@ -679,6 +679,7 @@ export default function Music() {
                       setSearchQuery('');
                       setPage(1);
                       setHasMore(true);
+                      fetchTrending(lang.id, 1, true);
                     }}
                     className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 border active:scale-95 shrink-0 ${
                       isSelected
@@ -688,9 +689,7 @@ export default function Music() {
                   >
                     <span>{lang.flag}</span>
                     <span>{lang.label}</span>
-                    {lang.id === 'all' && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" title="Live Updated Chart" />
-                    )}
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5 shrink-0" title="Live Regularly Updated" />
                   </button>
                 );
               })}
@@ -787,15 +786,23 @@ export default function Music() {
 
           {/* Songs Grid */}
           <div id="music-songs-section" className="space-y-3 sm:space-y-4 pt-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base sm:text-xl font-black text-white font-outfit flex items-center gap-2">
-                <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-accentPink" />
-                <span>
-                  {searchQuery
-                    ? `Results for "${searchQuery}" (${SEARCH_CATEGORIES.find(c => c.id === searchCategory)?.label || 'All'})`
-                    : `${LANGUAGES.find(l => l.id === selectedLang)?.label || 'Trending'} Tracks`}
-                </span>
-              </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3 className="text-base sm:text-xl font-black text-white font-outfit flex items-center gap-2">
+                  <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-accentPink" />
+                  <span>
+                    {searchQuery
+                      ? `Results for "${searchQuery}" (${SEARCH_CATEGORIES.find(c => c.id === searchCategory)?.label || 'All'})`
+                      : `${LANGUAGES.find(l => l.id === selectedLang)?.label || 'Trending'} Hits`}
+                  </span>
+                </h3>
+                {!searchQuery && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono shadow-[0_0_12px_rgba(16,185,129,0.35)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Live &bull; Regularly Updated
+                  </span>
+                )}
+              </div>
 
               <span className="text-xs font-mono font-black text-white px-3.5 py-1 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
                 {songs.length} Tracks

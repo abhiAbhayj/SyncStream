@@ -311,119 +311,117 @@ export const isCompilationAlbum = (albumName) => {
 // Multi-language & genre trending search queries continuously updated with verified hit titles
 const TRENDING_QUERIES = {
   all: [
-    'Alaakaa Loova OM Chapter 1',
-    'The Wild Theme OM Chapter 1',
-    'Siya Entry OM Chapter 1',
-    'Apna Bana Le Bhediya',
-    'Big Dawgs Hanumankind',
-    'Hunt You Down Richardson',
-    'Kesariya Brahmastra',
-    'Chaleya Jawan',
-    'Naatu Naatu RRR',
-    'Badass Leo Anirudh',
-    'Imagine Dragons Believer',
-    'Taylor Swift Cruel Summer',
-    'BLACKPINK Hits'
+    'Trending Songs 2026',
+    'Billboard Hot 100 2026',
+    'Top Hits 2026',
+    'Viral Songs 2026'
   ],
   blues_rap: [
-    'Hunt You Down Richardson',
+    'Blues Rap Songs',
     'Lee Richardson Blues Rap',
-    'Blues Rap Rock 2026',
-    'Back Alley Blues Rap'
+    'Back Alley Blues Rap',
+    'Hunt You Down Richardson',
+    'Blues Rock Rap Hits'
   ],
   rap: [
-    'Big Dawgs Hanumankind',
-    'Eminem Rap God',
+    'Trending Hip Hop Songs 2026',
+    'Rap Hip Hop Hits 2026',
+    'Hanumankind Big Dawgs',
     'Eminem Houdini',
-    'Divine 359 AM',
     'Kendrick Lamar Not Like Us',
     'Travis Scott FE!N'
   ],
   rock: [
-    'The Wild Theme OM Chapter 1',
+    'Rock Music Video 2026',
+    'Trending Rock Songs 2026',
     'Imagine Dragons Bones',
-    'Imagine Dragons Believer',
-    'Linkin Park In The End',
-    'Queen Bohemian Rhapsody',
-    'Hunt You Down Richardson'
+    'Linkin Park The Emptiness Machine',
+    'Coldplay We Pray',
+    'Queen Bohemian Rhapsody'
   ],
   kpop: [
+    'Trending K-Pop Songs 2026',
+    'Kpop Top Hits 2026',
+    'NewJeans Official MV',
+    'j-hope Killin It Girl',
+    'JENNIE Mantra',
     'BLACKPINK How You Like That',
-    'BTS Dynamite',
-    'NewJeans Super Shy',
-    'Stray Kids God Menu',
-    'TWICE I Can\'t Stop Me'
+    'BTS Dynamite'
   ],
   korean: [
-    'Crash Landing on You OST Give You My Heart IU',
-    'Goblin OST Stay With Me Chanyeol',
-    'Descendants of the Sun Everytime Chen',
-    'Itaewon Class Start Over Gaho'
+    'Korean OST Drama Hits 2026',
+    'Korean Drama OST 2026',
+    'IU Official MV',
+    'Crash Landing on You OST',
+    'Goblin OST Stay With Me',
+    'Queen of Tears OST'
   ],
   hindi: [
-    'Apna Bana Le Bhediya',
-    'Kesariya Brahmastra',
+    'Trending Hindi Songs 2026',
+    'Latest Bollywood Songs 2026',
+    'Arijit Singh Hits 2026',
+    'Kalyani Shreya Ghoshal',
+    'Apna Bana Le',
     'Chaleya Jawan',
-    'Satranga Animal',
-    'O Maahi Dunki',
-    'Pehle Bhi Main Animal',
-    'Tum Hi Ho Aashiqui 2',
-    'Raataan Lambiyan Shershaah'
+    'Animal Songs'
   ],
   anime: [
-    'LiSA Gurenge Demon Slayer',
-    'Kenshi Yonezu Peace Sign',
-    'Naruto Blue Bird Ikimonogakari',
-    'Attack on Titan Shinzo wo Sasageyo',
-    'Tokyo Ghoul Unravel TK',
-    'Jujutsu Kaisen Kaikai Kitan Eve'
+    'YOASOBI Idol Official Music Video',
+    'Creepy Nuts Bling Bang Bang Born',
+    'Kenshi Yonezu Karasu',
+    'Anime Opening Theme Song 2026',
+    'LiSA Gurenge',
+    'Chainsaw Man Kick Back'
   ],
   english: [
-    'Taylor Swift Cruel Summer',
+    'Top Hits 2026 Global',
+    'Billboard Hot 100 2026',
+    'Taylor Swift Patient Zero',
     'Sabrina Carpenter Espresso',
     'Lady Gaga Bruno Mars Die With A Smile',
-    'The Weeknd Blinding Lights',
-    'Billie Eilish Birds of a Feather',
-    'Ed Sheeran Shape of You'
+    'Billie Eilish Birds of a Feather'
   ],
   kannada: [
-    'KGF 2 Toofan Ravi Basrur',
-    'Salaar Theme Ravi Basrur',
-    'Kantara Singara Siriye',
-    'Tagaru Title Song',
-    'Pushpa 2 Kannada'
+    'Trending Kannada Songs 2026',
+    'Latest Kannada Movie Songs 2026',
+    'Puttamalli Anna from Mexico',
+    'Sanjith Hegde Kannada Hits',
+    'KGF 2 Toofan',
+    'Kantara Singara Siriye'
   ],
   malayalam: [
-    'Illuminati Aavesham Sushin Shyam',
-    'Jaada Aavesham',
-    'Manjummel Boys Kuthanthram',
-    'Premalu Welcome To Hyderabad',
-    'Hanumankind Big Dawgs'
+    'Trending Malayalam Songs 2026',
+    'Latest Malayalam Movie Songs 2026',
+    'Khalifa Prithviraj Asalayavale',
+    'Illuminati Aavesham',
+    'Premalu Songs',
+    'Manjummel Boys'
   ],
   telugu: [
-    'Alaakaa Loova OM Chapter 1 Telugu',
-    'The Wild Theme OM Chapter 1 Telugu',
-    'Siya Entry OM Chapter 1',
-    'Naatu Naatu RRR',
+    'Trending Telugu Songs 2026',
+    'Latest Telugu Movie Songs 2026',
+    'Yeshanagula The Paradise Nani',
+    'Neno Butterfly Suriya',
     'Devara Fear Song',
-    'Kurchi Madathapetti Guntur Kaaram',
-    'Pushpa 2 Songs'
+    'Naatu Naatu RRR',
+    'Pushpa 2 Telugu'
   ],
   tamil: [
-    'Alaakaa Loova OM Chapter 1',
-    'The Wild Theme OM Chapter 1 Tamil',
-    'Siya Entry OM Chapter 1',
-    'Sai Abhyankkar Hits',
+    'Trending Tamil Songs 2026',
+    'Latest Tamil Movie Songs 2026',
+    'Pavazha Malli Sai Abhyankkar',
+    'Radhimaa Sai Abhyankkar',
     'Badass Leo Anirudh',
-    'Naa Ready Leo',
     'Hukum Jailer',
-    'Kaavaalaa Jailer'
+    'The Wild Theme'
   ],
   marathi: [
-    'Zingaat Sairat Ajay Atul',
-    'Yad Lagla Sairat',
-    'Apsara Aali Natarang',
-    'Chandra Chandramukhi'
+    'Trending Marathi Songs 2026',
+    'Latest Marathi Movie Songs 2026',
+    'Chal Turu Turu Abhijeet Sawant',
+    'Chakri Adarsh Shinde',
+    'Zingaat Sairat',
+    'Apsara Aali'
   ]
 };
 
