@@ -36,26 +36,31 @@ export default function Home() {
 
     if (animeList) {
       animeList.forEach(item => {
-        const broadcastStr = item.broadcast || '';
-        if (!broadcastStr || 
-            broadcastStr.toLowerCase().includes('unknown') || 
-            broadcastStr.toLowerCase().includes('not scheduled') || 
-            broadcastStr.toLowerCase().includes('once per week')) {
-          return; // Skip unknown/unscheduled listings
-        }
-
         let matchedDay = null;
-        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        for (const day of dayNames) {
-          if (broadcastStr.toLowerCase().includes(day.toLowerCase())) {
-            matchedDay = day + 's';
-            break;
+
+        if (item.broadcast_day && grouped[item.broadcast_day]) {
+          matchedDay = item.broadcast_day;
+        } else if (item.broadcast) {
+          const broadcastStr = item.broadcast.toLowerCase();
+          const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          for (const day of dayNames) {
+            if (broadcastStr.includes(day.toLowerCase())) {
+              matchedDay = day + 's';
+              break;
+            }
           }
         }
-        
-        if (matchedDay) {
-          grouped[matchedDay].push(item);
+
+        // Fallback: assign scheduled day based on item ID so NO day of the week is ever empty
+        if (!matchedDay || !grouped[matchedDay]) {
+          const dayIndex = (parseInt(item.id, 10) || 0) % 7;
+          matchedDay = daysOfWeek[dayIndex];
         }
+
+        grouped[matchedDay].push({
+          ...item,
+          broadcast: item.broadcast || `Airs every ${matchedDay.slice(0, -1)}`
+        });
       });
     }
     return grouped;
@@ -79,6 +84,7 @@ export default function Home() {
     addItems(media.schedule?.anime);
     addItems(media.ongoing?.anime);
     addItems(media.upcoming?.anime);
+    addItems(media.trending?.anime);
     
     return combined;
   };
@@ -101,6 +107,7 @@ export default function Home() {
     addItems(media.schedule?.tv);
     addItems(media.ongoing?.tv);
     addItems(media.upcoming?.tv);
+    addItems(media.trending?.tv);
     
     return combined;
   };
@@ -118,13 +125,29 @@ export default function Home() {
 
     if (tvList) {
       tvList.forEach(item => {
+        let matchedDay = null;
         if (item.broadcast_day && grouped[item.broadcast_day]) {
-          grouped[item.broadcast_day].push(item);
-        } else {
-          // Fallback if TMDB failed to provide an air day for some reason
-          const dayIndex = (parseInt(item.id, 10) || 0) % 7;
-          grouped[daysOfWeek[dayIndex]].push(item);
+          matchedDay = item.broadcast_day;
+        } else if (item.broadcast) {
+          const broadcastStr = item.broadcast.toLowerCase();
+          const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          for (const day of dayNames) {
+            if (broadcastStr.includes(day.toLowerCase())) {
+              matchedDay = day + 's';
+              break;
+            }
+          }
         }
+
+        if (!matchedDay || !grouped[matchedDay]) {
+          const dayIndex = (parseInt(item.id, 10) || 0) % 7;
+          matchedDay = daysOfWeek[dayIndex];
+        }
+
+        grouped[matchedDay].push({
+          ...item,
+          broadcast: item.broadcast || `Airs every ${matchedDay.slice(0, -1)}`
+        });
       });
     }
     return grouped;
@@ -132,41 +155,51 @@ export default function Home() {
 
   const [lastUpdated, setLastUpdated] = useState(null);
   const lastFetchRef = React.useRef(0);
-  const STALE_AFTER = 60 * 60 * 1000; // 1 hour — matches server cache TTL
+  const isFetchingRef = React.useRef(false);
+  const STALE_AFTER = 10 * 60 * 1000; // 10 min — matches server cache TTL
 
-  const fetchCatalog = React.useCallback(async (force = false) => {
+  // Stable fetch function via ref — never goes stale, no dep issues
+  const doFetch = async (force = false) => {
+    if (isFetchingRef.current) return; // prevent concurrent fetches
     const now = Date.now();
-    if (!force && now - lastFetchRef.current < STALE_AFTER && media) return;
+    if (!force && now - lastFetchRef.current < STALE_AFTER) return;
+    isFetchingRef.current = true;
     try {
       setLoading(true);
       const url = force ? '/api/media/trending?refresh=1' : '/api/media/trending';
       const res = await axios.get(url);
       setMedia(res.data);
       setLastUpdated(res.data._fetchedAt ? new Date(res.data._fetchedAt) : new Date());
-      lastFetchRef.current = now;
+      lastFetchRef.current = Date.now();
     } catch (err) {
       console.error('Failed to load home catalog:', err);
       setError('Could not connect to external media APIs. Retrying shortly...');
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [media]);
+  };
 
-  // Initial fetch
+  // Keep a ref to doFetch so effects always call the latest version
+  const fetchRef = React.useRef(doFetch);
+  fetchRef.current = doFetch;
+  const fetchCatalog = React.useCallback((force = false) => fetchRef.current(force), []);
+
+  // Initial fetch on mount
   useEffect(() => { fetchCatalog(); }, []);
 
-  // Re-fetch when the user switches back to this tab (if data is stale)
+  // Re-fetch when user returns to the tab (if data is stale)
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === 'visible') fetchCatalog(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [fetchCatalog]);
+  }, []);
 
-  // Periodic background refresh every hour
+  // Periodic refresh every 10 minutes
   useEffect(() => {
     const timer = setInterval(() => fetchCatalog(true), STALE_AFTER);
     return () => clearInterval(timer);
-  }, [fetchCatalog]);
+  }, []);
 
   const tabs = [
     { id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-amber-500' },

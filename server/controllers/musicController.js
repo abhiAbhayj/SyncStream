@@ -451,49 +451,51 @@ export const fetchSaavnSongs = async (query, n = 8) => {
   return rawResults.slice(0, n);
 };
 
-// Direct helper for Home page live trending music feed (Dual-Engine)
+// Direct helper for Home page live trending music feed (Dual-Engine + Live Charts)
 export const getTrendingMusicDirect = async (limit = 12) => {
   const seen = new Set();
   const songs = [];
-  try {
-    const ytSongs = await fetchYouTubeTracks('Alaakaa Loova OM Chapter 1', 4);
-    for (const s of ytSongs) {
-      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-      if (!seen.has(key) && !seen.has(s.id)) {
-        seen.add(key);
-        seen.add(s.id);
-        songs.push({ ...s, poster_path: s.image, media_type: 'music' });
-      }
-    }
-  } catch (e) {}
 
-  const queries = [
-    'Apna Bana Le Bhediya',
-    'Kesariya Brahmastra',
-    'Chaleya Jawan',
-    'Big Dawgs Hanumankind',
-    'Badass Leo Anirudh',
-    'Naatu Naatu RRR',
-    'Hunt You Down Richardson'
-  ];
-  for (const q of queries) {
+  // 1. Fetch live JioSaavn 'Trending Today' chart (listid 110858205)
+  try {
+    const chartUrl = `${JIOSAAVN_BASE}?__call=playlist.getDetails&listid=110858205&api_version=4&_format=json`;
+    const chartRes = await axios.get(chartUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      timeout: 8000
+    });
+    const chartList = chartRes.data?.list || [];
+    for (const item of chartList) {
+      const formatted = formatSong(item);
+      if (formatted && formatted.audio_url && !isSpamTrack(formatted)) {
+        const key = `${(formatted.title || '').toLowerCase().trim()}_${(formatted.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(formatted.id)) {
+          seen.add(key);
+          seen.add(formatted.id);
+          songs.push({ ...formatted, poster_path: formatted.image, media_type: 'music' });
+        }
+      }
+      if (songs.length >= limit) break;
+    }
+  } catch (err) {
+    console.warn('[Trending Music Direct JioSaavn Chart Warning]:', err.message);
+  }
+
+  // 2. Fetch fresh live YouTube trending tracks if more are needed
+  if (songs.length < limit) {
     try {
-      const results = await fetchSaavnSongs(q, 2);
-      for (const s of results) {
+      const ytSongs = await fetchYouTubeTracks('Trending Songs 2026 Top Hits', 6);
+      for (const s of ytSongs) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
-          songs.push({
-            ...s,
-            poster_path: s.image,
-            media_type: 'music'
-          });
+          songs.push({ ...s, poster_path: s.image, media_type: 'music' });
         }
+        if (songs.length >= limit) break;
       }
-      if (songs.length >= limit) break;
     } catch (e) {}
   }
+
   return songs.slice(0, limit);
 };
 
@@ -521,60 +523,107 @@ export const getTrendingMusic = async (req, res) => {
     });
   }
 
-  const queryList = TRENDING_QUERIES[language] || [`Trending ${language} Songs 2026`, `${language} Hits`];
-
   try {
     const seen = new Set();
     const collected = [];
 
-    // Dual-Engine: 1. Fetch live YouTube trending tracks concurrently
-    const ytPrimaryQuery = queryList[0] || `Trending ${language} Songs 2026`;
-    const ytSecondaryQuery = queryList[1] || `${language} Top Hits 2026`;
-    
-    const ytPromise = Promise.all([
-      fetchYouTubeTracks(ytPrimaryQuery, 8),
-      fetchYouTubeTracks(ytSecondaryQuery, 6)
-    ]).then(arr => arr.flat()).catch(() => []);
-
-    // Dual-Engine: 2. Fetch JioSaavn tracks concurrently
-    const saavnPromises = queryList.slice(0, 3).map(async (q) => {
+    // ── CASE A: 'ALL HITS' — Powered by Live Official Trending Charts ──
+    if (language === 'all') {
+      // 1. Fetch live JioSaavn 'Trending Today' chart (contains 600 live songs)
       try {
-        const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=8&p=${page}&q=${encodeURIComponent(q)}`;
-        const response = await axios.get(url, {
+        const chartUrl = `${JIOSAAVN_BASE}?__call=playlist.getDetails&listid=110858205&api_version=4&_format=json`;
+        const chartRes = await axios.get(chartUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
           timeout: 8000
         });
-        return (response.data.results || [])
-          .map(formatSong)
-          .filter(s => s && s.audio_url && s.duration > 20 && s.duration < 800 && !isSpamTrack(s));
+        const chartList = chartRes.data?.list || [];
+        
+        // Paginate directly through the 600-song live chart
+        const offset = (page - 1) * limit;
+        const pageItems = chartList.slice(offset, offset + limit + 10);
+
+        for (const item of pageItems) {
+          const formatted = formatSong(item);
+          if (formatted && formatted.audio_url && !isSpamTrack(formatted)) {
+            const key = `${(formatted.title || '').toLowerCase().trim()}_${(formatted.artist || '').toLowerCase().trim()}`;
+            if (!seen.has(key) && !seen.has(formatted.id)) {
+              seen.add(key);
+              seen.add(formatted.id);
+              collected.push(formatted);
+            }
+          }
+        }
       } catch (err) {
-        return [];
+        console.warn('[JioSaavn Live Trending Chart Error]:', err.message);
       }
-    });
 
-    const [ytSongs, ...saavnResults] = await Promise.all([
-      ytPromise,
-      ...saavnPromises
-    ]);
-
-    // Primary: Add fresh live YouTube hits
-    for (const s of (ytSongs || [])) {
-      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-      if (!seen.has(key) && !seen.has(s.id)) {
-        seen.add(key);
-        seen.add(s.id);
-        collected.push(s);
+      // 2. Fetch fresh live YouTube trending tracks to augment
+      if (collected.length < limit) {
+        try {
+          const ytSongs = await fetchYouTubeTracks(`Top Hits 2026 Viral Songs page ${page}`, 8);
+          for (const s of (ytSongs || [])) {
+            const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+            if (!seen.has(key) && !seen.has(s.id)) {
+              seen.add(key);
+              seen.add(s.id);
+              collected.push(s);
+            }
+          }
+        } catch (e) {}
       }
-    }
+    } else {
+      // ── CASE B: Specific Language/Genre Filter ──
+      const queryList = TRENDING_QUERIES[language] || [`Trending ${language} Songs 2026`, `${language} Top Hits 2026`];
 
-    // Secondary: Add JioSaavn studio masters
-    for (const list of saavnResults) {
-      for (const s of (list || [])) {
+      // Dual-Engine: 1. Fetch live YouTube trending tracks concurrently
+      const ytPrimaryQuery = queryList[0] || `Trending ${language} Songs 2026`;
+      const ytSecondaryQuery = queryList[1] || `${language} Top Hits 2026`;
+      
+      const ytPromise = Promise.all([
+        fetchYouTubeTracks(ytPrimaryQuery, 8),
+        fetchYouTubeTracks(ytSecondaryQuery, 6)
+      ]).then(arr => arr.flat()).catch(() => []);
+
+      // Dual-Engine: 2. Fetch JioSaavn tracks concurrently
+      const saavnPromises = queryList.slice(0, 3).map(async (q) => {
+        try {
+          const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=8&p=${page}&q=${encodeURIComponent(q)}`;
+          const response = await axios.get(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+            timeout: 8000
+          });
+          return (response.data.results || [])
+            .map(formatSong)
+            .filter(s => s && s.audio_url && s.duration > 20 && s.duration < 800 && !isSpamTrack(s));
+        } catch (err) {
+          return [];
+        }
+      });
+
+      const [ytSongs, ...saavnResults] = await Promise.all([
+        ytPromise,
+        ...saavnPromises
+      ]);
+
+      // Primary: Add fresh live YouTube hits
+      for (const s of (ytSongs || [])) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
           collected.push(s);
+        }
+      }
+
+      // Secondary: Add JioSaavn studio masters
+      for (const list of saavnResults) {
+        for (const s of (list || [])) {
+          const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+          if (!seen.has(key) && !seen.has(s.id)) {
+            seen.add(key);
+            seen.add(s.id);
+            collected.push(s);
+          }
         }
       }
     }

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Music, Loader2, Globe, Filter } from 'lucide-react';
+import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Music, Loader2, Globe, Filter, RefreshCw } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
 
@@ -324,14 +324,36 @@ export default function Search() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
       
-      {/* Title */}
-      <div className="space-y-2 text-center md:text-left">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit">
-          Federated Discovery Engine
-        </h1>
-        <p className="text-sm text-gray-400">
-          Query multiple global and regional catalogs simultaneously to stream movies, series, anime, manga, and music.
-        </p>
+      {/* Title with Live Indicator and Refresh Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit">
+              Federated Discovery Engine
+            </h1>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live
+            </span>
+          </div>
+          <p className="text-sm text-gray-400">
+            Query multiple global and regional catalogs simultaneously to stream movies, series, anime, manga, and music.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setPage(1);
+            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year);
+          }}
+          disabled={loading}
+          className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition active:scale-95 shrink-0 self-center sm:self-auto"
+          title="Refresh current live feed"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${loading ? 'animate-spin' : ''}`} />
+          <span>Live Refresh</span>
+        </button>
       </div>
 
       {/* Category Toggle Tabs */}
@@ -411,21 +433,23 @@ export default function Search() {
         {/* Filter controls row */}
         <div className="flex flex-wrap gap-4 items-center justify-start text-xs pt-2">
           
-          {/* Sort selector */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-gray-400 font-bold uppercase tracking-wider">Sort:</span>
+          {/* Sort selector clips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none max-w-full">
+            <span className="text-gray-400 font-bold uppercase tracking-wider shrink-0">Feed:</span>
             {[
+              { key: 'trending', label: '🔥 Trending Hits' },
+              { key: 'ongoing', label: type === 'anime' ? '⚡ Currently Airing' : type === 'tv' ? '⚡ Ongoing Series' : type === 'manga' ? '⚡ Ongoing Manga' : '⚡ Now In Theaters' },
               { key: 'latest', label: type === 'anime' ? '📅 Latest Episode' : type === 'manga' ? '📅 Latest Chapter' : type === 'tv' ? '📅 Latest Aired' : '📅 Latest Release' },
-              { key: 'trending', label: '🔥 Trending' },
+              { key: 'upcoming', label: '🚀 Upcoming Releases' },
               { key: 'top_rated', label: '⭐ Top Rated' },
             ].map(s => (
               <button
                 key={s.key}
                 type="button"
                 onClick={() => handleSortChange(s.key)}
-                className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                className={`px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap shrink-0 active:scale-95 ${
                   sort === s.key
-                    ? 'bg-accentPurple text-white'
+                    ? 'bg-accentPurple text-white shadow-md shadow-accentPurple/25 border border-accentPurple/60'
                     : 'bg-darkCard border border-darkBorder text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >

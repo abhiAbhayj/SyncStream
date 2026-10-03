@@ -492,6 +492,18 @@ export default function Music() {
     return () => clearInterval(interval);
   }, [activeTab, selectedLang, searchQuery]);
 
+  // Auto-refresh when tab becomes visible again
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && activeTab === 'discover' && !searchQuery.trim()) {
+        fetchTrending(selectedLang, 1, true);
+        fetchCharts(true);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [activeTab, selectedLang, searchQuery]);
+
   return (
     <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-24 overflow-x-hidden">
       {/* Radiant Background Ambient Aurora Glows (Contained to prevent horizontal scrolling) */}
@@ -676,6 +688,9 @@ export default function Music() {
                   >
                     <span>{lang.flag}</span>
                     <span>{lang.label}</span>
+                    {lang.id === 'all' && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" title="Live Updated Chart" />
+                    )}
                   </button>
                 );
               })}

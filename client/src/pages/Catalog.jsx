@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate, useNavigationType } from 'react-router-dom';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { ArrowLeft, Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
+
+const CACHE_TTL = 10 * 60 * 1000; // 10 min — discard stale session cache
 
 export default function Catalog() {
   const { category, type } = useParams();
@@ -12,6 +14,8 @@ export default function Catalog() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const isFetchingRef = useRef(false);
   const MAX_PAGES = 30;
 
   const getCategoryLabel = (cat) => {
@@ -48,54 +52,94 @@ export default function Catalog() {
 
   const navType = useNavigationType();
 
-  useEffect(() => {
+  const fetchCatalogData = useCallback(async (pageNum, force = false) => {
+    if (isFetchingRef.current && pageNum === 1) return;
     const cacheKey = `catalog-${category}-${type}`;
-    
-    // If user clicked 'Back' and we have cached data, restore it instantly
-    if (navType === 'POP') {
+
+    // On back-navigation, restore from cache only if it's still fresh
+    if (!force && pageNum === 1 && navType === 'POP') {
       const cachedData = sessionStorage.getItem(cacheKey);
       if (cachedData) {
         try {
           const parsed = JSON.parse(cachedData);
-          setItems(parsed.items);
-          setPage(parsed.page);
-          setLoading(false);
-          return;
+          const age = Date.now() - (parsed.fetchedAt || 0);
+          if (age < CACHE_TTL) {
+            setItems(parsed.items);
+            setPage(parsed.page);
+            setLastUpdated(new Date(parsed.fetchedAt));
+            setLoading(false);
+            return;
+          }
         } catch (e) {
           console.warn('Cache parse failed');
         }
       }
     }
-    
-    // Otherwise fetch fresh data
-    sessionStorage.removeItem(cacheKey);
-    setItems([]);
-    setPage(1);
-    fetchCatalogData(1);
-  }, [category, type, navType]);
 
-  const fetchCatalogData = async (pageNum) => {
+    if (pageNum === 1) isFetchingRef.current = true;
     try {
       if (pageNum === 1) setLoading(true);
       else setLoadingMore(true);
 
       const res = await axios.get(`/api/media/catalog/${category}/${type}?page=${pageNum}`);
-      
+      const now = Date.now();
+
       setItems(prev => {
-        const newItems = pageNum === 1 ? (res.data.results || []) : [...prev, ...(res.data.results || [])];
-        // Cache the newly loaded items
-        const cacheKey = `catalog-${category}-${type}`;
-        sessionStorage.setItem(cacheKey, JSON.stringify({ items: newItems, page: pageNum }));
+        const newItems = pageNum === 1
+          ? (res.data.results || [])
+          : [...prev, ...(res.data.results || [])];
+
+        // Cache with timestamp for TTL check
+        sessionStorage.setItem(cacheKey, JSON.stringify({ items: newItems, page: pageNum, fetchedAt: now }));
         return newItems;
       });
+      setLastUpdated(new Date(now));
+      setError(null);
     } catch (err) {
       console.error('Failed to load catalog:', err);
       setError('Failed to retrieve catalog details. Please check your network connection.');
     } finally {
       setLoading(false);
       setLoadingMore(false);
+      if (pageNum === 1) isFetchingRef.current = false;
     }
-  };
+  }, [category, type, navType]);
+
+  // Initial load / category change
+  useEffect(() => {
+    setItems([]);
+    setPage(1);
+    setError(null);
+    fetchCatalogData(1);
+  }, [category, type]);
+
+  // Auto-refresh on tab visibility (if data is stale)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        const cacheKey = `catalog-${category}-${type}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Date.now() - (parsed.fetchedAt || 0) > CACHE_TTL) {
+              fetchCatalogData(1, true);
+            }
+          } catch {
+            fetchCatalogData(1, true);
+          }
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [category, type, fetchCatalogData]);
+
+  // Periodic auto-refresh every 10 minutes while page is open
+  useEffect(() => {
+    const timer = setInterval(() => fetchCatalogData(1, true), CACHE_TTL);
+    return () => clearInterval(timer);
+  }, [fetchCatalogData]);
 
   const loadMore = () => {
     if (page < MAX_PAGES) {
@@ -123,6 +167,11 @@ export default function Catalog() {
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
               <IconComponent className="w-3.5 h-3.5 text-accentCyan" />
               <span>{getCategoryLabel(category)}</span>
+              {/* Live indicator */}
+              <span className="flex items-center gap-1 text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                Live
+              </span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit">
               All {getTypeLabel(type)}
@@ -130,8 +179,21 @@ export default function Catalog() {
           </div>
         </div>
         
-        <div className="text-xs text-gray-400 font-medium">
-          Showing {items.length} entries matching this category
+        <div className="flex items-center gap-3 text-xs text-gray-400 font-medium">
+          {lastUpdated && (
+            <span className="hidden sm:block text-[10px] text-gray-600">
+              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          <button
+            onClick={() => fetchCatalogData(1, true)}
+            disabled={loading}
+            title="Refresh now"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-500 hover:text-accentCyan border border-white/[0.06] transition active:scale-90 disabled:opacity-40"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <span>Showing {items.length} entries</span>
         </div>
       </div>
 
@@ -139,7 +201,7 @@ export default function Catalog() {
       {loading && items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-accentCyan" />
-          <p className="text-gray-400 font-medium">Loading catalog content...</p>
+          <p className="text-gray-400 font-medium">Loading live catalog...</p>
         </div>
       ) : (
         <div className="animate-fade-in space-y-8">
