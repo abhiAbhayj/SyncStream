@@ -1,28 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw, Zap } from 'lucide-react';
+import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const TIME_PERIODS = [
-  { id: 'day', label: 'Today (Live)', badge: 'Live', icon: Zap },
-  { id: 'week', label: 'This Week', badge: 'Weekly', icon: Flame },
-  { id: 'month', label: 'This Month', badge: 'Monthly', icon: Calendar },
-  { id: 'year', label: 'This Year', badge: 'Annual', icon: Sparkles },
-  { id: 'all', label: 'All-Time Top', badge: 'Legends', icon: Activity }
-];
 
 export default function Home() {
   const [media, setMedia] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
-  
-  const [timePeriod, setTimePeriod] = useState(() => {
-    return sessionStorage.getItem('homeTimePeriod') || 'day';
-  });
-
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('homeActiveTab') || 'trending';
   });
@@ -32,57 +17,11 @@ export default function Home() {
     sessionStorage.setItem('homeActiveTab', tabId);
   };
 
-  const handlePeriodChange = (periodId) => {
-    setTimePeriod(periodId);
-    sessionStorage.setItem('homeTimePeriod', periodId);
-  };
-
   const daysOfWeek = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
   const [selectedDay, setSelectedDay] = useState(() => {
     const currentDayIndex = new Date().getDay();
     return daysOfWeek[currentDayIndex];
   });
-
-  const fetchCatalog = useCallback(async (isManualRefresh = false) => {
-    try {
-      if (isManualRefresh) {
-        setIsRefreshing(true);
-      } else if (!media) {
-        setLoading(true);
-      }
-
-      const res = await axios.get('/api/media/trending', {
-        params: {
-          period: timePeriod,
-          fresh: isManualRefresh ? 'true' : undefined
-        }
-      });
-      setMedia(res.data);
-      setLastUpdated(res.data.lastUpdated ? new Date(res.data.lastUpdated) : new Date());
-      setError(null);
-    } catch (err) {
-      console.error('Failed to load home catalog:', err);
-      if (!media) {
-        setError('Could not connect to external media APIs. Retrying shortly...');
-      }
-    } finally {
-      setLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [timePeriod, media]);
-
-  // Initial fetch and on period change
-  useEffect(() => {
-    fetchCatalog(false);
-  }, [timePeriod]);
-
-  // Real-time live auto-refresh polling every 90 seconds
-  useEffect(() => {
-    const timer = setInterval(() => {
-      fetchCatalog(false);
-    }, 90000);
-    return () => clearInterval(timer);
-  }, [fetchCatalog]);
 
   const getSchedulesByDay = (animeList) => {
     const grouped = {
@@ -182,6 +121,7 @@ export default function Home() {
         if (item.broadcast_day && grouped[item.broadcast_day]) {
           grouped[item.broadcast_day].push(item);
         } else {
+          // Fallback if TMDB failed to provide an air day for some reason
           const dayIndex = (parseInt(item.id, 10) || 0) % 7;
           grouped[daysOfWeek[dayIndex]].push(item);
         }
@@ -190,6 +130,23 @@ export default function Home() {
     return grouped;
   };
 
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get('/api/media/trending');
+        setMedia(res.data);
+      } catch (err) {
+        console.error('Failed to load home catalog:', err);
+        setError('Could not connect to external media APIs. Retrying shortly...');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCatalog();
+  }, []);
+
   const tabs = [
     { id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-amber-500' },
     { id: 'ongoing', label: 'Ongoing & Airing', icon: Activity, color: 'text-emerald-400' },
@@ -197,76 +154,8 @@ export default function Home() {
     { id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400' }
   ];
 
-  const getSectionTitle = (category, fallback) => {
-    const currentYear = new Date().getFullYear();
-    if (category === 'trending-movie') {
-      if (timePeriod === 'day') return '🔴 Today’s Live Trending Movies';
-      if (timePeriod === 'week') return '⚡ This Week’s Trending Movies';
-      if (timePeriod === 'month') return '📅 This Month’s Blockbuster Movies';
-      if (timePeriod === 'year') return `🌟 ${currentYear} Yearly Blockbuster Movies`;
-      if (timePeriod === 'all') return '👑 All-Time Legendary Movies';
-    }
-    if (category === 'trending-tv') {
-      if (timePeriod === 'day') return '🔴 Today’s Live TV Hits';
-      if (timePeriod === 'week') return '⚡ This Week’s Top TV Shows';
-      if (timePeriod === 'month') return '📅 This Month’s Popular Series';
-      if (timePeriod === 'year') return `🌟 ${currentYear} Top TV Releases`;
-      if (timePeriod === 'all') return '👑 All-Time Top Rated TV Series';
-    }
-    if (category === 'trending-anime') {
-      if (timePeriod === 'day') return '🔴 Today’s Live Anime Releases';
-      if (timePeriod === 'week') return '⚡ This Week’s Top Anime Releases';
-      if (timePeriod === 'month') return '📅 This Month’s Top Anime Hits';
-      if (timePeriod === 'year') return `🌟 ${currentYear} Seasonal Anime Hits`;
-      if (timePeriod === 'all') return '👑 All-Time Highest Rated Anime (MAL/TMDB)';
-    }
-    if (category === 'ongoing-movie') {
-      if (timePeriod === 'day') return '🔴 Now Playing in Theaters Today';
-      if (timePeriod === 'week') return '⚡ In Theaters This Week';
-      if (timePeriod === 'month') return '📅 Running In Theaters This Month';
-      if (timePeriod === 'year') return `🌟 Top Theatrical Releases of ${currentYear}`;
-      if (timePeriod === 'all') return '👑 All-Time Greatest Franchises';
-    }
-    if (category === 'ongoing-tv') {
-      if (timePeriod === 'day') return '🔴 Airing Today on TV';
-      if (timePeriod === 'week') return '⚡ On The Air This Week';
-      if (timePeriod === 'month') return '📅 TV Broadcasts This Month';
-      if (timePeriod === 'year') return `🌟 TV Broadcasts of ${currentYear}`;
-      if (timePeriod === 'all') return '👑 All-Time Top Broadcast Hits';
-    }
-    if (category === 'ongoing-anime') {
-      if (timePeriod === 'day') return '🔴 Currently Airing Anime (Today)';
-      if (timePeriod === 'week') return '⚡ Airing Anime This Week';
-      if (timePeriod === 'month') return '📅 Seasonal Anime This Month';
-      if (timePeriod === 'year') return `🌟 Anime of the Year (${currentYear})`;
-      if (timePeriod === 'all') return '👑 All-Time Masterpiece Anime';
-    }
-    if (category === 'upcoming-movie') {
-      if (timePeriod === 'day') return '🔴 Next Premieres in Theaters';
-      if (timePeriod === 'week') return '⚡ Premiering This Week';
-      if (timePeriod === 'month') return '📅 Upcoming Premieres This Month';
-      if (timePeriod === 'year') return `🌟 Major Movies Coming in ${currentYear}`;
-      if (timePeriod === 'all') return '👑 Most Anticipated Upcoming Movies';
-    }
-    if (category === 'upcoming-tv') {
-      if (timePeriod === 'day') return '🔴 Next TV Episodes Airing';
-      if (timePeriod === 'week') return '⚡ TV Premieres This Week';
-      if (timePeriod === 'month') return '📅 TV Shows Premiering This Month';
-      if (timePeriod === 'year') return `🌟 Major TV Series Coming in ${currentYear}`;
-      if (timePeriod === 'all') return '👑 Anticipated Series Continuations';
-    }
-    if (category === 'upcoming-anime') {
-      if (timePeriod === 'day') return '🔴 Next Anime Episodes Airing';
-      if (timePeriod === 'week') return '⚡ Anime Premieres This Week';
-      if (timePeriod === 'month') return '📅 Anime Premiering This Month';
-      if (timePeriod === 'year') return `🌟 Upcoming Anime Seasons (${currentYear})`;
-      if (timePeriod === 'all') return '👑 Most Anticipated Anime Sequels';
-    }
-    return fallback;
-  };
-
   return (
-    <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto">
+    <div className="space-y-8 sm:space-y-14 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto">
 
       {/* ── Hero Banner ── */}
       <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.06] text-center bg-aurora">
@@ -313,58 +202,23 @@ export default function Home() {
               <span>Join a Party</span>
             </button>
           </div>
-        </div>
-      </section>
 
-      {/* ── Real-Time Live Control & Period Switcher Bar ── */}
-      <section className="bg-darkCard/50 border border-white/10 backdrop-blur-xl rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xl">
-        
-        {/* Live Status Tag */}
-        <div className="flex items-center gap-2.5 text-xs text-gray-300 w-full md:w-auto justify-between md:justify-start">
-          <div className="flex items-center gap-2 bg-black/40 border border-white/10 px-3 py-1.5 rounded-xl font-mono text-[11px]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-bold text-white tracking-wider">LIVE FEED</span>
-            <span className="text-gray-500">•</span>
-            <span className="text-accentCyan font-medium">
-              {isRefreshing ? 'Syncing...' : (lastUpdated ? `Live (${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : 'Live')}
-            </span>
+          {/* Feature highlights */}
+          <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 max-w-3xl mx-auto border-t border-white/[0.06] mt-2 animate-fade-up stagger-5">
+            {[
+              { icon: Tv, color: 'text-accentCyan', bg: 'bg-accentCyan/10 border-accentCyan/20', title: 'Aggregated Catalog', desc: 'TMDB, Anime, MangaDex feeds in one dashboard.' },
+              { icon: Sparkles, color: 'text-accentPurple', bg: 'bg-accentPurple/10 border-accentPurple/20', title: 'Host Sync Players', desc: 'Control playback across all participants live.' },
+              { icon: MessageSquareCode, color: 'text-accentPink', bg: 'bg-accentPink/10 border-accentPink/20', title: 'Lobby Chat', desc: 'Chat alongside streams with persistent history.' },
+            ].map(({ icon: Icon, color, bg, title, desc }) => (
+              <div key={title} className="flex flex-col items-center p-3 text-center space-y-1 hover-lift">
+                <div className={`p-2.5 rounded-xl border ${bg}`}>
+                  <Icon className={`w-4 h-4 ${color}`} />
+                </div>
+                <h3 className="font-semibold text-xs text-white">{title}</h3>
+                <p className="text-[11px] text-gray-500 max-w-[180px]">{desc}</p>
+              </div>
+            ))}
           </div>
-
-          <button
-            type="button"
-            onClick={() => fetchCatalog(true)}
-            disabled={isRefreshing}
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/10 transition active:scale-95 disabled:opacity-50"
-            title="Force refresh live feed"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-        </div>
-
-        {/* Live Time Period Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
-          {TIME_PERIODS.map((tp) => {
-            const isSelected = timePeriod === tp.id;
-            const Icon = tp.icon;
-            return (
-              <button
-                key={tp.id}
-                onClick={() => handlePeriodChange(tp.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
-                  isSelected
-                    ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shadow-sm shadow-accentCyan/20'
-                    : 'text-gray-400 hover:text-white bg-black/30 border border-white/5 hover:bg-white/5'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tp.label}</span>
-              </button>
-            );
-          })}
         </div>
       </section>
 
@@ -413,7 +267,7 @@ export default function Home() {
         <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl text-center space-y-4 max-w-md mx-auto">
           <p className="text-red-400 font-semibold">{error}</p>
           <button 
-            onClick={() => fetchCatalog(true)} 
+            onClick={() => window.location.reload()} 
             className="px-4 py-2 bg-darkCard border border-darkBorder hover:border-red-500/30 rounded-xl text-xs font-semibold text-gray-200 transition"
           >
             Retry Connection
@@ -423,8 +277,8 @@ export default function Home() {
         <div className="space-y-12 transition-opacity duration-300">
           {activeTab === 'trending' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.trending?.movies?.slice(0, 10)} title={getSectionTitle('trending-movie', 'Trending Blockbuster Movies')} seeMoreLink={`/catalog/trending/movie?period=${timePeriod}`} />
-              <MediaGrid items={media.trending?.tv?.slice(0, 10)} title={getSectionTitle('trending-tv', 'Trending TV Shows')} seeMoreLink={`/catalog/trending/tv?period=${timePeriod}`} />
+              <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink="/catalog/trending/movie" />
+              <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink="/catalog/trending/tv" />
 
               {/* ── Music Streaming Showcase Card ── */}
               <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-6 group">
@@ -454,17 +308,17 @@ export default function Home() {
                 <MediaGrid items={media.trending.music} title="🎵 Trending Music Hits" seeMoreLink="/music" />
               )}
 
-              <MediaGrid items={media.trending?.anime?.slice(0, 10)} title={getSectionTitle('trending-anime', 'Top Trending Anime Releases')} seeMoreLink={`/catalog/trending/anime?period=${timePeriod}`} />
-              <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink={`/catalog/trending/manga?period=${timePeriod}`} />
+              <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Anime Releases" seeMoreLink="/catalog/trending/anime" />
+              <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink="/catalog/trending/manga" />
             </div>
           )}
 
           {activeTab === 'ongoing' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title={getSectionTitle('ongoing-movie', 'Now Playing in Theaters')} seeMoreLink={`/catalog/ongoing/movie?period=${timePeriod}`} />
-              <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title={getSectionTitle('ongoing-tv', 'Ongoing TV Broadcasts')} seeMoreLink={`/catalog/ongoing/tv?period=${timePeriod}`} showTimings={true} />
-              <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title={getSectionTitle('ongoing-anime', 'Currently Airing Anime (MAL)')} seeMoreLink={`/catalog/ongoing/anime?period=${timePeriod}`} showTimings={true} />
-              <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Ongoing Manga Publications" seeMoreLink={`/catalog/ongoing/manga?period=${timePeriod}`} />
+              <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink="/catalog/ongoing/movie" />
+              <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink="/catalog/ongoing/tv" showTimings={true} />
+              <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Currently Airing Anime (MAL)" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
+              <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Ongoing Manga Publications" seeMoreLink="/catalog/ongoing/manga" />
             </div>
           )}
 
@@ -539,15 +393,9 @@ export default function Home() {
                           <div className="space-y-1">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{show.title}</h4>
                             <p className="text-xs text-gray-500 line-clamp-1">{show.overview}</p>
-                            {show.latest_episode ? (
-                              <span className="inline-block text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                                {show.latest_episode.is_next ? 'NEXT EP' : 'LATEST'} {show.latest_episode.episode_number} • {selectedDay}
-                              </span>
-                            ) : (
-                              <span className="inline-block text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                                Weekly Releases
-                              </span>
-                            )}
+                            <span className="inline-block text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                              Weekly Releases
+                            </span>
                           </div>
                         </Link>
                       ))}
@@ -583,14 +431,9 @@ export default function Home() {
                           <div className="space-y-1 flex-grow">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{anime.title}</h4>
                             <p className="text-xs text-gray-500 line-clamp-1">{anime.overview || 'No synopsis available.'}</p>
-                            <div className="flex items-center gap-2 text-xs text-accentCyan font-semibold">
+                            <div className="flex items-center gap-1 text-xs text-accentCyan font-semibold">
                               <Clock className="w-3.5 h-3.5 text-accentCyan" />
-                              <span>{anime.broadcast || selectedDay}</span>
-                              {anime.latest_episode && (
-                                <span className="text-[10px] bg-accentPurple/20 text-accentPurple px-1.5 py-0.5 rounded font-bold">
-                                  EP {anime.latest_episode.episode_number}
-                                </span>
-                              )}
+                              <span>{anime.broadcast}</span>
                             </div>
                           </div>
                         </Link>
@@ -639,10 +482,10 @@ export default function Home() {
 
           {activeTab === 'upcoming' && (
             <div className="space-y-16 animate-fade-in">
-              <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title={getSectionTitle('upcoming-movie', 'Upcoming Cinematic Movies')} seeMoreLink={`/catalog/upcoming/movie?period=${timePeriod}`} />
-              <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title={getSectionTitle('upcoming-tv', 'Upcoming TV Series')} seeMoreLink={`/catalog/upcoming/tv?period=${timePeriod}`} />
-              <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title={getSectionTitle('upcoming-anime', 'Upcoming Anime Seasons')} seeMoreLink={`/catalog/upcoming/anime?period=${timePeriod}`} />
-              <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest Chapter Uploads" seeMoreLink={`/catalog/latest/manga?period=${timePeriod}`} />
+              <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink="/catalog/upcoming/movie" />
+              <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink="/catalog/upcoming/tv" />
+              <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink="/catalog/upcoming/anime" />
+              <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest Chapter Uploads" seeMoreLink="/catalog/latest/manga" />
             </div>
           )}
         </div>

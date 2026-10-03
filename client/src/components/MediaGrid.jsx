@@ -235,16 +235,11 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
 
                 <div className="flex items-center gap-2 mt-0.5">
                   {(item.release_date || item.first_air_date) && (
-                    <span className="text-[11px] text-gray-500 font-medium">
+                    <span className="text-[11px] text-gray-600 font-medium">
                       {(item.release_date || item.first_air_date).substring(0, 4)}
                     </span>
                   )}
-                  {item.latest_episode && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-1.5 py-0.5 rounded-md">
-                      {item.latest_episode.is_next ? 'NEXT' : 'LATEST'} EP {item.latest_episode.episode_number}
-                    </span>
-                  )}
-                  {showTimings && (item.broadcast || item.broadcast_day) && !item.latest_episode && (
+                  {showTimings && (item.broadcast || item.broadcast_day) && (
                     <div className="flex items-center gap-1 text-[11px] text-accentCyan font-semibold">
                       <Clock className="w-3 h-3" />
                       <span className="line-clamp-1">{item.broadcast || item.broadcast_day}</span>
