@@ -87,6 +87,8 @@ const SUGGESTIONS_BY_CATEGORY = {
   ]
 };
 
+const FALLBACK_COVER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
+
 export default function Music() {
   const {
     currentTrack,
@@ -172,6 +174,8 @@ export default function Music() {
         setSongs(trackList);
         if (trackList.length > 0) {
           setFeaturedSong(trackList[0]);
+        } else {
+          setFeaturedSong(null);
         }
       } else {
         setSongs(prev => {
@@ -676,6 +680,7 @@ export default function Music() {
                     key={lang.id}
                     onClick={() => {
                       setSelectedLang(lang.id);
+                      setFeaturedSong(null);
                       setSearchQuery('');
                       setPage(1);
                       setHasMore(true);
@@ -701,15 +706,16 @@ export default function Music() {
             <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 p-4 sm:p-7 bg-gradient-to-r from-[#1c2548] via-[#141b36] to-[#1c2548] shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col sm:flex-row items-center gap-4 sm:gap-6 group">
               <div
                 className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 pointer-events-none group-hover:opacity-40 transition-opacity"
-                style={{ backgroundImage: `url(${featuredSong.image})` }}
+                style={{ backgroundImage: `url(${featuredSong.image || FALLBACK_COVER})` }}
               />
 
               {/* Cover Art */}
               <div className="relative w-28 h-28 sm:w-44 sm:h-44 rounded-2xl overflow-hidden shrink-0 border-2 border-white/30 shadow-2xl group-hover:scale-105 transition-transform duration-500 bg-black">
                 <img
-                  src={featuredSong.image || 'https://placehold.co/200x200/1e1e24/fff?text=Music'}
+                  src={featuredSong.image || FALLBACK_COVER}
                   alt={featuredSong.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                 />
               </div>
 
@@ -849,10 +855,11 @@ export default function Music() {
                           className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                         >
                           <img
-                            src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
+                            src={song.image || FALLBACK_COVER}
                             alt={song.title}
                             className="w-full h-full object-cover"
                             loading="lazy"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                           />
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             {isCurrentPlaying ? (
@@ -1050,7 +1057,7 @@ export default function Music() {
                                 }`}
                               >
                                 <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-md bg-black">
-                                  <img src={s.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                  <img src={s.image || FALLBACK_COVER} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }} />
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <div className="w-9 h-9 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-lg font-bold">
                                       {isCur && isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
@@ -1157,9 +1164,10 @@ export default function Music() {
                       className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
                     >
                       <img
-                        src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
+                        src={song.image || FALLBACK_COVER}
                         alt={song.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                       />
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         {isCurrentPlaying ? (
@@ -1353,9 +1361,10 @@ export default function Music() {
                           className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
                         >
                           <img
-                            src={song.image || 'https://placehold.co/150x150/1e1e24/fff?text=Music'}
+                            src={song.image || FALLBACK_COVER}
                             alt={song.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                           />
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             {isCurrentPlaying ? (
@@ -1703,9 +1712,10 @@ export default function Music() {
             {/* Song Preview Banner */}
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-black/60 border-2 border-white/20">
               <img
-                src={songToAddToPlaylist.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                src={songToAddToPlaylist.image || FALLBACK_COVER}
                 alt={songToAddToPlaylist.title}
                 className="w-12 h-12 rounded-xl object-cover border border-white/20"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
               />
               <div className="min-w-0 flex-1">
                 <h4 className="text-xs sm:text-sm font-black text-white truncate">{songToAddToPlaylist.title}</h4>

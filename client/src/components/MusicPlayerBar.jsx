@@ -21,6 +21,8 @@ import {
   X
 } from 'lucide-react';
 
+const FALLBACK_COVER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
+
 const cleanText = (str) => {
   if (!str || typeof str !== 'string') return '';
   return str
@@ -206,11 +208,12 @@ export default function MusicPlayerBar() {
                   title="Tap to open full player"
                 >
                   <img
-                    src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                    src={currentTrack.image || FALLBACK_COVER}
                     alt={cleanText(currentTrack.title)}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
                       isPlaying ? 'animate-spin-slow' : ''
                     }`}
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                   />
                   {isPlaying && (
                     <div className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_4px_#fff]" />
@@ -399,11 +402,12 @@ export default function MusicPlayerBar() {
                 title="Tap to open full player"
               >
                 <img
-                  src={currentTrack.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                  src={currentTrack.image || FALLBACK_COVER}
                   alt={cleanText(currentTrack.title)}
                   className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
                     isPlaying ? 'animate-spin-slow' : ''
                   }`}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
@@ -609,9 +613,10 @@ export default function MusicPlayerBar() {
                     className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
                   >
                     <img
-                      src={track.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
+                      src={track.image || FALLBACK_COVER}
                       alt={track.title}
                       className="w-9 h-9 rounded-lg object-cover border border-white/10 shrink-0"
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                     />
                     <div className="min-w-0 flex-1">
                       <p className={`text-xs font-bold truncate ${isCurrent ? 'text-accentCyan' : 'text-white'}`}>

@@ -134,11 +134,105 @@ export const toEnglishText = (text) => {
   return out;
 };
 
-// Filter ONLY spam karaoke/tribute practice tracks. Remixes, BGM, Soundtracks, and Album versions ARE ALLOWED!
-const isSpamTrack = (song) => {
-  if (!song) return false;
-  const text = `${song.title || ''} ${song.album || ''} ${song.artist || ''} ${song.subtitle || ''}`.toLowerCase();
-  return /\b(zzang karaoke|melody karaoke version|piano tutorial practice|ringtone download)\b/i.test(text);
+// Filter spam karaoke/tribute practice tracks, AI generated music, and commentary/reaction videos
+export const isSpamTrack = (song) => {
+  if (!song) return true;
+  const text = `${song.title || ''} ${song.album || ''} ${song.artist || ''} ${song.subtitle || ''} ${song.copyright || ''}`.toLowerCase();
+
+  // 1. Filter out AI generated music / spam bots / meme soundboard tracks
+  if (/\b(minns|ai cover|ai music|suno|udio|song generator|ai generated|bot music|bongo cat|meme version)\b/i.test(text)) {
+    return true;
+  }
+  if (/©\s*(202\d\s*)?minns/i.test(text)) {
+    return true;
+  }
+  if (/\b(k-pop 2026|2026 hit new kpop|k-pop hits 2026|summer holiday vibes 2026|frühlings hits 2026|arbeitsmusik 2026)\b/i.test(song.album || '')) {
+    return true;
+  }
+
+  // 2. Filter out Karaoke, backing track, amateur covers, lofi, practice, ringtone spam
+  if (/\b(zzang karaoke|melody karaoke version|piano tutorial practice|ringtone download|karaoke version|party tyme karaoke|made popular by|in the style of|tribute band|tribute version|backing tracks?|\(cover\)|\[cover\]|lofi remix|slowed down)\b/i.test(text)) {
+    return true;
+  }
+
+  // 3. Filter out non-music / commentary / trailer / reaction tracks
+  if (/\b(reaction|reacting|tier list|behind the scenes|making of|slowed\s*\+\s*reverb|speed\s*up|nightcore|bass\s*boosted|parody|gameplay|walkthrough)\b/i.test(song.title || '')) {
+    return true;
+  }
+
+  // 4. Must have a valid duration (reject 5-second spam snippets or >15-minute compilations)
+  if (song.duration && (song.duration < 25 || song.duration > 900)) {
+    return true;
+  }
+
+  return false;
+};
+
+// Strict language isolation helper to prevent cross-language contamination
+export const isLanguageMatch = (song, targetLanguage) => {
+  if (!targetLanguage || targetLanguage === 'all') return true;
+  const target = targetLanguage.toLowerCase().trim();
+  const songLang = (song.language || '').toLowerCase().trim();
+  const text = `${song.title || ''} ${song.artist || ''} ${song.album || ''}`.toLowerCase();
+
+  if (target === 'kpop') {
+    // If song is marked as an Indian regional language, STRICTLY reject
+    if (['kannada', 'hindi', 'telugu', 'tamil', 'malayalam', 'marathi', 'bhojpuri', 'punjabi', 'bengali', 'gujarati', 'urdu'].includes(songLang)) {
+      return false;
+    }
+    // Reject if title/artist explicitly contains Kannada or Indian regional keywords
+    if (/\b(kannada|sandalwood|rajkumar|sanjith hegde|ravi basrur|hamsalekha|gurukiran|kantara|tollywood|kollywood|mollywood|bollywood)\b/i.test(text)) {
+      return false;
+    }
+    return true;
+  }
+
+  if (target === 'korean') {
+    if (['kannada', 'hindi', 'telugu', 'tamil', 'malayalam', 'marathi', 'bhojpuri', 'punjabi', 'bengali', 'gujarati'].includes(songLang)) {
+      return false;
+    }
+    if (/\b(kannada|telugu|tamil|malayalam|hindi|marathi|sandalwood|kollywood|tollywood)\b/i.test(text)) {
+      return false;
+    }
+    return true;
+  }
+
+  if (target === 'kannada') {
+    if (['korean', 'japanese', 'chinese', 'hindi', 'tamil', 'telugu', 'malayalam'].includes(songLang)) return false;
+    return songLang === 'kannada' || /\b(kannada|kantara|sandalwood|sanjith hegde|hamsalekha)\b/i.test(text);
+  }
+
+  if (target === 'tamil') {
+    if (['korean', 'japanese', 'chinese', 'hindi', 'kannada', 'telugu', 'malayalam'].includes(songLang)) return false;
+    return songLang === 'tamil' || /\b(tamil|kollywood|anirudh|ar rahman|ilayaraja|yuvan|sai abhyankkar|jailer|leo)\b/i.test(text);
+  }
+
+  if (target === 'telugu') {
+    if (['korean', 'japanese', 'chinese', 'hindi', 'tamil', 'kannada', 'malayalam'].includes(songLang)) return false;
+    return songLang === 'telugu' || /\b(telugu|tollywood|thaman|devi sri prasad|rrr|devara|pushpa)\b/i.test(text);
+  }
+
+  if (target === 'malayalam') {
+    if (['korean', 'japanese', 'chinese', 'hindi', 'tamil', 'telugu', 'kannada'].includes(songLang)) return false;
+    return songLang === 'malayalam' || /\b(malayalam|mollywood|sushin shyam|aavesham|manjummel)\b/i.test(text);
+  }
+
+  if (target === 'hindi' || target === 'bollywood') {
+    if (['korean', 'japanese', 'chinese', 'kannada', 'tamil', 'telugu', 'malayalam'].includes(songLang)) return false;
+    return songLang === 'hindi' || /\b(hindi|bollywood|arijit|pritam|shreya ghoshal|badshah)\b/i.test(text);
+  }
+
+  if (target === 'marathi') {
+    if (['korean', 'japanese', 'chinese', 'hindi', 'tamil', 'telugu', 'kannada'].includes(songLang)) return false;
+    return songLang === 'marathi' || /\b(marathi|ajay atul|sairat)\b/i.test(text);
+  }
+
+  if (target === 'anime') {
+    if (['kannada', 'telugu', 'tamil', 'malayalam', 'marathi', 'hindi'].includes(songLang)) return false;
+    return true;
+  }
+
+  return true;
 };
 
 // Decrypt DES-ECB encrypted media URL to direct 320kbps stream
@@ -171,7 +265,10 @@ const decryptMediaUrl = (encryptedMediaUrl) => {
 
 // High-res album image helper (500x500)
 const formatImage = (imgUrl) => {
-  if (!imgUrl) return null;
+  if (!imgUrl || typeof imgUrl !== 'string') return null;
+  if (imgUrl.includes('default-album') || imgUrl.includes('saavn_default') || imgUrl.includes('default_album') || imgUrl.includes('album-art/default')) {
+    return null;
+  }
   return imgUrl
     .replace('150x150', '500x500')
     .replace('50x50', '500x500')
@@ -264,16 +361,17 @@ export const fetchYouTubeTracks = async (query, limit = 12) => {
       const durationStr = v.lengthText?.simpleText || '0:00';
       const durationSec = parseDurationToSeconds(durationStr);
 
-      // Filter out long compilation / playlist / jukebox videos that have unrelated thumbnails
-      const isMultiSongCompilation = /\b(playlist|jukebox|full album|top \d+|all songs|non stop|hour loop|\d+\s*hours?|compilation)\b/i.test(title);
-      if (isMultiSongCompilation || durationSec > 540 || durationSec < 20) {
+      // Filter out long compilation / playlist / jukebox / reaction / meme videos that have unrelated thumbnails
+      const isMultiSongCompilation = /\b(playlist|jukebox|full album|top \d+|all songs|non stop|hour loop|\d+\s*hours?|compilation|reaction|reacting|reacts|tier list|interview|behind the scenes|making of|whatsapp status|status video|reel|slowed\s*\+\s*reverb|speed\s*up|nightcore|bass\s*boosted|parody|meme|gameplay|walkthrough|tutorial|how to)\b/i.test(title);
+      if (isMultiSongCompilation || durationSec > 540 || durationSec < 25) {
         if (!query.toLowerCase().includes('jukebox') && !query.toLowerCase().includes('compilation')) {
           continue;
         }
       }
 
       const thumbs = v.thumbnail?.thumbnails || [];
-      const thumbnail = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+      let thumbnail = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+      if (thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
 
       tracks.push({
         id: `yt_${videoId}`,
@@ -305,123 +403,138 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 // Detect generic compilation albums to avoid misleading posters on classic tracks
 export const isCompilationAlbum = (albumName) => {
   if (!albumName) return false;
-  return /\b(hits|romantic|classics|best of|special|dance|hot|valentines?|trending|world music|compilation|jukebox|mix|vol\.?|volume|party|forever|heartbeats|soulful|vibes?|playlist|wedding|anniversary|mashup|through the years|next on repeat|road trip|love songs|top \d+|all time|collection|superhit|cafe)\b/i.test(albumName);
+  return /\b(hits|romantic|classics|best of|special|dance|hot|valentines?|trending|world music|compilation|jukebox|mix|vol\.?|volume|party|forever|heartbeats|soulful|vibes?|playlist|wedding|anniversary|mashup|through the years|next on repeat|road trip|love songs|top \d+|all time|collection|superhit|cafe|workout|gym|party tyme|karaoke|practice|tribute|greatest hits|popular hit songs)\b/i.test(albumName);
 };
 
-// Multi-language & genre trending search queries continuously updated with verified hit titles
+// Sort original movie / single studio releases ahead of generic third-party compilation albums
+export const sortOriginalAlbumsFirst = (songs) => {
+  if (!songs || !Array.isArray(songs)) return [];
+  return [...songs].sort((a, b) => {
+    const aComp = isCompilationAlbum(a.album);
+    const bComp = isCompilationAlbum(b.album);
+    if (!aComp && bComp) return -1;
+    if (aComp && !bComp) return 1;
+    return 0;
+  });
+};
+
+// Multi-language & genre trending search queries continuously updated with verified authentic hit titles
 const TRENDING_QUERIES = {
   all: [
     'Trending Songs 2026',
-    'Billboard Hot 100 2026',
-    'Top Hits 2026',
-    'Viral Songs 2026'
+    'Billboard Hot 100',
+    'Top Hits Global',
+    'Viral Hits'
   ],
   blues_rap: [
-    'Blues Rap Songs',
-    'Lee Richardson Blues Rap',
+    'Lee Richardson Hunt You Down',
+    'Lee Richardson Wild Wild West',
+    'Lee Richardson The Devil Inside',
     'Back Alley Blues Rap',
-    'Hunt You Down Richardson',
-    'Blues Rock Rap Hits'
+    'Blues Saraceno The Evil You Know',
+    'Barns Courtney Fire'
   ],
   rap: [
-    'Trending Hip Hop Songs 2026',
-    'Rap Hip Hop Hits 2026',
     'Hanumankind Big Dawgs',
-    'Eminem Houdini',
     'Kendrick Lamar Not Like Us',
-    'Travis Scott FE!N'
+    'Eminem Houdini',
+    'Travis Scott FE!N',
+    'Divine 359 AM',
+    'Post Malone Rockstar'
   ],
   rock: [
-    'Rock Music Video 2026',
-    'Trending Rock Songs 2026',
-    'Imagine Dragons Bones',
     'Linkin Park The Emptiness Machine',
+    'Imagine Dragons Believer',
+    'Imagine Dragons Bones',
     'Coldplay We Pray',
-    'Queen Bohemian Rhapsody'
+    'Queen Bohemian Rhapsody',
+    'Linkin Park In The End'
   ],
   kpop: [
-    'Trending K-Pop Songs 2026',
-    'Kpop Top Hits 2026',
-    'NewJeans Official MV',
-    'j-hope Killin It Girl',
+    'ROSÉ Bruno Mars APT',
     'JENNIE Mantra',
+    'aespa Supernova',
+    'LE SSERAFIM CRAZY',
+    'ILLIT Magnetic',
+    'Jung Kook Seven',
+    'NewJeans Super Shy',
+    'Stray Kids Chk Chk Boom',
     'BLACKPINK How You Like That',
-    'BTS Dynamite'
+    'BTS Dynamite',
+    'TWICE Strategy',
+    'SEVENTEEN MAESTRO'
   ],
   korean: [
-    'Korean OST Drama Hits 2026',
-    'Korean Drama OST 2026',
-    'IU Official MV',
-    'Crash Landing on You OST',
-    'Goblin OST Stay With Me',
-    'Queen of Tears OST'
+    'Crash Landing on You OST Give You My Heart IU',
+    'Goblin OST Stay With Me Chanyeol',
+    'Queen of Tears OST Kim Soo Hyun',
+    'Descendants of the Sun OST Everytime',
+    'IU Love Wins All',
+    'Itaewon Class Start Over Gaho',
+    'Hotel Del Luna OST Taeyeon'
   ],
   hindi: [
-    'Trending Hindi Songs 2026',
-    'Latest Bollywood Songs 2026',
-    'Arijit Singh Hits 2026',
-    'Kalyani Shreya Ghoshal',
-    'Apna Bana Le',
+    'Apna Bana Le Bhediya',
     'Chaleya Jawan',
-    'Animal Songs'
+    'Kesariya Brahmastra',
+    'Satranga Animal',
+    'Tum Hi Ho Aashiqui 2',
+    'Raataan Lambiyan Shershaah',
+    'Kalyani Shreya Ghoshal'
   ],
   anime: [
     'YOASOBI Idol Official Music Video',
     'Creepy Nuts Bling Bang Bang Born',
-    'Kenshi Yonezu Karasu',
-    'Anime Opening Theme Song 2026',
-    'LiSA Gurenge',
-    'Chainsaw Man Kick Back'
+    'LiSA Gurenge Demon Slayer',
+    'Chainsaw Man Kick Back Kenshi Yonezu',
+    'Naruto Blue Bird Ikimonogakari',
+    'Attack on Titan Shinzo wo Sasageyo',
+    'Tokyo Ghoul Unravel TK'
   ],
   english: [
-    'Top Hits 2026 Global',
-    'Billboard Hot 100 2026',
-    'Taylor Swift Patient Zero',
-    'Sabrina Carpenter Espresso',
     'Lady Gaga Bruno Mars Die With A Smile',
-    'Billie Eilish Birds of a Feather'
+    'Sabrina Carpenter Espresso',
+    'Billie Eilish Birds of a Feather',
+    'Taylor Swift Cruel Summer',
+    'The Weeknd Blinding Lights',
+    'Ed Sheeran Shape of You'
   ],
   kannada: [
-    'Trending Kannada Songs 2026',
-    'Latest Kannada Movie Songs 2026',
-    'Puttamalli Anna from Mexico',
+    'KGF 2 Toofan Ravi Basrur',
+    'Kantara Singara Siriye',
+    'Salaar Theme Ravi Basrur',
     'Sanjith Hegde Kannada Hits',
-    'KGF 2 Toofan',
-    'Kantara Singara Siriye'
+    'Puttamalli Anna from Mexico',
+    'Tagaru Title Song'
   ],
   malayalam: [
-    'Trending Malayalam Songs 2026',
-    'Latest Malayalam Movie Songs 2026',
-    'Khalifa Prithviraj Asalayavale',
-    'Illuminati Aavesham',
-    'Premalu Songs',
-    'Manjummel Boys'
+    'Illuminati Aavesham Sushin Shyam',
+    'Jaada Aavesham Sushin Shyam',
+    'Manjummel Boys Kuthanthram',
+    'Premalu Welcome To Hyderabad',
+    'Premalu Mini Maharani'
   ],
   telugu: [
-    'Trending Telugu Songs 2026',
-    'Latest Telugu Movie Songs 2026',
-    'Yeshanagula The Paradise Nani',
-    'Neno Butterfly Suriya',
-    'Devara Fear Song',
+    'Devara Fear Song Anirudh',
     'Naatu Naatu RRR',
-    'Pushpa 2 Telugu'
+    'Pushpa 2 The Rule Songs',
+    'Kurchi Madathapetti Guntur Kaaram',
+    'Alaakaa Loova OM Chapter 1 Telugu'
   ],
   tamil: [
-    'Trending Tamil Songs 2026',
-    'Latest Tamil Movie Songs 2026',
-    'Pavazha Malli Sai Abhyankkar',
-    'Radhimaa Sai Abhyankkar',
+    'Alaakaa Loova OM Chapter 1',
+    'The Wild Theme OM Chapter 1',
     'Badass Leo Anirudh',
-    'Hukum Jailer',
-    'The Wild Theme'
+    'Hukum Jailer Anirudh',
+    'Pavazha Malli Sai Abhyankkar',
+    'Radhimaa Sai Abhyankkar'
   ],
   marathi: [
-    'Trending Marathi Songs 2026',
-    'Latest Marathi Movie Songs 2026',
-    'Chal Turu Turu Abhijeet Sawant',
-    'Chakri Adarsh Shinde',
-    'Zingaat Sairat',
-    'Apsara Aali'
+    'Zingaat Sairat Ajay Atul',
+    'Yad Lagla Sairat',
+    'Apsara Aali Natarang',
+    'Chandra Chandramukhi',
+    'Chal Turu Turu Abhijeet Sawant'
   ]
 };
 
@@ -573,47 +686,37 @@ export const getTrendingMusic = async (req, res) => {
       // ── CASE B: Specific Language/Genre Filter ──
       const queryList = TRENDING_QUERIES[language] || [`Trending ${language} Songs 2026`, `${language} Top Hits 2026`];
 
-      // Dual-Engine: 1. Fetch live YouTube trending tracks concurrently
-      const ytPrimaryQuery = queryList[0] || `Trending ${language} Songs 2026`;
-      const ytSecondaryQuery = queryList[1] || `${language} Top Hits 2026`;
-      
-      const ytPromise = Promise.all([
-        fetchYouTubeTracks(ytPrimaryQuery, 8),
-        fetchYouTubeTracks(ytSecondaryQuery, 6)
-      ]).then(arr => arr.flat()).catch(() => []);
-
-      // Dual-Engine: 2. Fetch JioSaavn tracks concurrently
-      const saavnPromises = queryList.slice(0, 3).map(async (q) => {
+      // Dual-Engine: 1. Concurrently fetch JioSaavn tracks (Studio lossless masters with official album covers)
+      const saavnPromises = queryList.slice(0, 8).map(async (q) => {
         try {
-          const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=8&p=${page}&q=${encodeURIComponent(q)}`;
+          const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=3&p=${page}&q=${encodeURIComponent(q)}`;
           const response = await axios.get(url, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
             timeout: 8000
           });
-          return (response.data.results || [])
+          const rawResults = (response.data.results || [])
             .map(formatSong)
-            .filter(s => s && s.audio_url && s.duration > 20 && s.duration < 800 && !isSpamTrack(s));
+            .filter(s => s && s.audio_url && !isSpamTrack(s) && isLanguageMatch(s, language));
+          return sortOriginalAlbumsFirst(rawResults);
         } catch (err) {
           return [];
         }
       });
 
-      const [ytSongs, ...saavnResults] = await Promise.all([
-        ytPromise,
-        ...saavnPromises
+      // Dual-Engine: 2. Concurrently fetch official YouTube tracks
+      const ytPrimaryQuery = queryList[0] || `${language} Top Hits`;
+      const ytSecondaryQuery = queryList[1] || `${language} Songs`;
+      const ytPromise = Promise.all([
+        fetchYouTubeTracks(ytPrimaryQuery, 8),
+        fetchYouTubeTracks(ytSecondaryQuery, 6)
+      ]).then(arr => arr.flat().filter(s => !isSpamTrack(s) && isLanguageMatch(s, language))).catch(() => []);
+
+      const [saavnResults, ytSongs] = await Promise.all([
+        Promise.all(saavnPromises),
+        ytPromise
       ]);
 
-      // Primary: Add fresh live YouTube hits
-      for (const s of (ytSongs || [])) {
-        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-        if (!seen.has(key) && !seen.has(s.id)) {
-          seen.add(key);
-          seen.add(s.id);
-          collected.push(s);
-        }
-      }
-
-      // Secondary: Add JioSaavn studio masters
+      // Primary: Add JioSaavn studio masters first so user gets authentic 500x500 official album covers
       for (const list of saavnResults) {
         for (const s of (list || [])) {
           const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
@@ -622,6 +725,16 @@ export const getTrendingMusic = async (req, res) => {
             seen.add(s.id);
             collected.push(s);
           }
+        }
+      }
+
+      // Secondary: Supplement with official YouTube tracks for tracks not in JioSaavn
+      for (const s of (ytSongs || [])) {
+        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(s.id)) {
+          seen.add(key);
+          seen.add(s.id);
+          collected.push(s);
         }
       }
     }
@@ -743,7 +856,7 @@ export const searchMusic = async (req, res) => {
     let totalCount = 0;
 
     // Dual-Engine: 1. Fetch YouTube Tracks concurrently (Universal OST/Singles/BGM/Unreleased coverage)
-    const ytPromise = fetchYouTubeTracks(rawQuery, 15);
+    const ytPromise = fetchYouTubeTracks(rawQuery, 15).then(list => (list || []).filter(s => !isSpamTrack(s) && isLanguageMatch(s, language)));
 
     // Dual-Engine: 2. Fetch JioSaavn Tracks concurrently (320kbps Studio Masters)
     const saavnPromises = candidateQueries.slice(0, 4).map(async (q) => {
@@ -761,9 +874,12 @@ export const searchMusic = async (req, res) => {
           timeout: 8000
         });
         const rawResults = response.data.results || [];
+        const cleanSongs = rawResults
+          .map(formatSong)
+          .filter(s => s && s.audio_url && !isSpamTrack(s) && isLanguageMatch(s, language));
         return {
           total: response.data.total || 0,
-          songs: rawResults.map(formatSong).filter(s => s && s.audio_url && !isSpamTrack(s))
+          songs: sortOriginalAlbumsFirst(cleanSongs)
         };
       } catch (err) {
         return { total: 0, songs: [] };
@@ -775,17 +891,7 @@ export const searchMusic = async (req, res) => {
       ...saavnPromises
     ]);
 
-    // Primary: Add YouTube Music tracks first so user gets 100% immediate hit for any query
-    for (const s of (ytResults || [])) {
-      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
-      if (!seen.has(key) && !seen.has(s.id)) {
-        seen.add(key);
-        seen.add(s.id);
-        collectedSongs.push(s);
-      }
-    }
-
-    // Secondary: Add JioSaavn studio album tracks
+    // Primary: Add JioSaavn studio album tracks first (authentic 500x500 album covers & 320kbps masters)
     for (const resItem of saavnResults) {
       if (resItem && resItem.songs) {
         totalCount = Math.max(totalCount, resItem.total);
@@ -797,6 +903,16 @@ export const searchMusic = async (req, res) => {
             collectedSongs.push(s);
           }
         }
+      }
+    }
+
+    // Secondary: Add YouTube Music tracks for any additional unique tracks
+    for (const s of (ytResults || [])) {
+      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      if (!seen.has(key) && !seen.has(s.id)) {
+        seen.add(key);
+        seen.add(s.id);
+        collectedSongs.push(s);
       }
     }
 
@@ -827,99 +943,99 @@ export const getMusicCharts = async (req, res) => {
       id: 'trending_global',
       title: '🔥 Trending Globally 2026',
       subtitle: 'Top viral songs across all languages & platforms',
-      ytQuery: 'Top Hits 2026 Viral Songs',
+      ytQuery: 'Top Hits Global Official MV',
       saavnQuery: 'Trending Songs 2026'
     },
     {
       id: 'blues_rap',
       title: '🎷 Blues Rap Anthems',
       subtitle: 'Lee Richardson, blues riffs & heavy swagger beats',
-      ytQuery: 'Blues Rap Songs',
-      saavnQuery: 'Lee Richardson Blues Rap'
+      ytQuery: 'Lee Richardson Hunt You Down Official',
+      saavnQuery: 'Lee Richardson Hunt You Down'
     },
     {
       id: 'rap',
       title: '🎤 Rap & Hip-Hop',
       subtitle: 'Heavy basslines, bars and global rap chart toppers',
-      ytQuery: 'Trending Hip Hop Songs 2026',
-      saavnQuery: 'Rap Hip Hop Hits 2026'
+      ytQuery: 'Hanumankind Big Dawgs Official Music Video',
+      saavnQuery: 'Hanumankind Big Dawgs Eminem Houdini'
     },
     {
       id: 'rock',
       title: '🎸 Rock & Themes',
       subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
-      ytQuery: 'Rock Music Video 2026',
-      saavnQuery: 'Trending Rock Songs 2026'
+      ytQuery: 'Linkin Park The Emptiness Machine Official MV',
+      saavnQuery: 'Imagine Dragons Believer Linkin Park'
     },
     {
       id: 'kpop',
       title: '🇰🇷 K-Pop Worldwide',
       subtitle: 'Global K-Pop chart toppers & viral choreography',
-      ytQuery: 'Trending K-Pop Songs 2026',
-      saavnQuery: 'Kpop Top Hits 2026'
+      ytQuery: 'ROSÉ Bruno Mars APT Official MV',
+      saavnQuery: 'JENNIE Mantra NewJeans Super Shy aespa'
     },
     {
       id: 'korean',
       title: '🇰🇷 Korean Drama & OSTs',
       subtitle: 'Iconic Korean film & K-Drama soundtracks',
-      ytQuery: 'Korean OST Drama Hits 2026',
-      saavnQuery: 'Korean Drama OST 2026'
+      ytQuery: 'Crash Landing on You OST IU Official MV',
+      saavnQuery: 'Goblin OST Stay With Me Crash Landing'
     },
     {
       id: 'bollywood',
       title: '🇮🇳 Hindi Bollywood 2026',
       subtitle: "Hindi cinema's biggest fresh tracks & mass anthems",
-      ytQuery: 'Trending Hindi Songs 2026',
-      saavnQuery: 'Latest Bollywood Songs 2026'
+      ytQuery: 'Apna Bana Le Bhediya Official Video',
+      saavnQuery: 'Apna Bana Le Chaleya Kesariya'
     },
     {
       id: 'anime',
       title: '🌸 Anime & J-Pop',
       subtitle: 'Viral anime openings, battle themes & J-Rock',
       ytQuery: 'YOASOBI Idol Official Music Video',
-      saavnQuery: 'Anime Opening Theme Song 2026'
+      saavnQuery: 'LiSA Gurenge Creepy Nuts Bling Bang Bang Born'
     },
     {
       id: 'global_pop',
       title: '🌍 Global English Pop',
       subtitle: 'International English hits & Billboard toppers',
-      ytQuery: 'Top Hits 2026 Global',
-      saavnQuery: 'Billboard Hot 100 2026'
+      ytQuery: 'Lady Gaga Bruno Mars Die With A Smile Official Video',
+      saavnQuery: 'Sabrina Carpenter Espresso Taylor Swift Cruel Summer'
     },
     {
       id: 'kannada',
       title: '🦁 Kannada Sandalwood',
       subtitle: 'Hottest Kannada movie songs & BGM scores',
-      ytQuery: 'Trending Kannada Songs 2026',
-      saavnQuery: 'Latest Kannada Movie Songs 2026'
+      ytQuery: 'Kantara Singara Siriye Official Video',
+      saavnQuery: 'KGF 2 Toofan Kantara Singara Siriye'
     },
     {
       id: 'malayalam',
       title: '🌿 Malayalam Mollywood',
       subtitle: 'Soulful Malayalam tracks & viral Mollywood hits',
-      ytQuery: 'Trending Malayalam Songs 2026',
-      saavnQuery: 'Latest Malayalam Movie Songs 2026'
+      ytQuery: 'Illuminati Aavesham Sushin Shyam Official',
+      saavnQuery: 'Illuminati Aavesham Manjummel Boys'
     },
     {
       id: 'telugu',
       title: '🎬 Telugu Tollywood',
       subtitle: 'Trending Telugu cinema songs & mass themes',
-      ytQuery: 'Trending Telugu Songs 2026',
-      saavnQuery: 'Latest Telugu Movie Songs 2026'
+      ytQuery: 'Devara Fear Song Anirudh Official Video',
+      saavnQuery: 'Devara Fear Song Naatu Naatu RRR Pushpa 2'
     },
     {
       id: 'tamil',
       title: '⚡ Tamil Kollywood',
       subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
-      ytQuery: 'Trending Tamil Songs 2026',
-      saavnQuery: 'Latest Tamil Movie Songs 2026'
+      ytQuery: 'Alaakaa Loova OM Chapter 1 Official',
+      saavnQuery: 'Badass Leo Hukum Jailer Alaakaa Loova'
     },
     {
       id: 'marathi',
       title: '🚩 Marathi Cinema',
       subtitle: 'Energetic & soulful Marathi theatrical tracks',
-      ytQuery: 'Trending Marathi Songs 2026',
-      saavnQuery: 'Latest Marathi Movie Songs 2026'
+      ytQuery: 'Zingaat Sairat Official Video',
+      saavnQuery: 'Zingaat Sairat Yad Lagla Apsara Aali'
     }
   ];
 
@@ -929,27 +1045,30 @@ export const getMusicCharts = async (req, res) => {
       const seen = new Set();
       const catSongs = [];
 
-      // Concurrently fetch fresh live YouTube tracks and JioSaavn lossless masters
-      const [ytSongs, saavnSongs] = await Promise.all([
-        fetchYouTubeTracks(cat.ytQuery, 6).catch(() => []),
-        fetchSaavnSongs(cat.saavnQuery, 6).catch(() => [])
+      // Concurrently fetch JioSaavn lossless masters and fresh live YouTube tracks
+      const [saavnSongs, ytSongs] = await Promise.all([
+        fetchSaavnSongs(cat.saavnQuery, 8).catch(() => []),
+        fetchYouTubeTracks(cat.ytQuery, 6).catch(() => [])
       ]);
 
-      for (const yt of (ytSongs || [])) {
-        const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
-        if (!seen.has(key) && !seen.has(yt.id)) {
-          seen.add(key);
-          seen.add(yt.id);
-          catSongs.push(yt);
-        }
-      }
-
+      // Prioritize studio masters with official album artwork
       for (const s of (saavnSongs || [])) {
+        if (!isLanguageMatch(s, cat.id) || isSpamTrack(s)) continue;
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
           catSongs.push(s);
+        }
+      }
+
+      for (const yt of (ytSongs || [])) {
+        if (!isLanguageMatch(yt, cat.id) || isSpamTrack(yt)) continue;
+        const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
+        if (!seen.has(key) && !seen.has(yt.id)) {
+          seen.add(key);
+          seen.add(yt.id);
+          catSongs.push(yt);
         }
       }
 
