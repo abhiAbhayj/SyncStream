@@ -974,30 +974,36 @@ export default function Music() {
           {/* Curated Regional Charts */}
           {!searchQuery && (
             <div className="space-y-8 pt-6 border-t-2 border-white/20">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="space-y-0.5">
-                  <h3 className="text-lg sm:text-2xl font-black text-white font-outfit flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-accentCyan" />
-                    <span>Curated Regional Charts &amp; Soundtracks</span>
-                  </h3>
-                  <p className="text-xs text-slate-200 font-semibold">Hand-picked charts from Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime &amp; Global Hits &bull; Live Updated.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg sm:text-2xl font-black text-white font-outfit flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-accentCyan" />
+                      <span>Curated Regional Charts &amp; Soundtracks</span>
+                    </h3>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono shadow-[0_0_12px_rgba(16,185,129,0.35)]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live &bull; Regularly Updating
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-200 font-semibold">Real-time regional soundscapes: Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime, Mollywood, Marathi &amp; Global Hits &bull; Live Updated.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => fetchCharts(true)}
                   disabled={chartsLoading || isRefreshing}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white border-2 border-white/30 text-xs font-black transition active:scale-95 self-start sm:self-auto shrink-0 shadow-md"
-                  title="Refresh charts with latest hits"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 text-white border-2 border-accentCyan/70 text-xs font-black transition active:scale-95 self-start sm:self-auto shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.3)]"
+                  title="Force refresh live charts"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${chartsLoading || isRefreshing ? 'animate-spin' : ''}`} />
-                  <span>Refresh Charts</span>
+                  <span>Live Refresh Charts</span>
                 </button>
               </div>
 
               {chartsLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                   <Loader2 className="w-7 h-7 text-accentCyan animate-spin" />
-                  <p className="text-xs font-bold text-slate-200 font-mono">Loading charts...</p>
+                  <p className="text-xs font-bold text-slate-200 font-mono">Loading live regional charts...</p>
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -1007,7 +1013,13 @@ export default function Music() {
                       <div key={chart.id} className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="text-sm sm:text-base font-black text-white font-outfit">{chart.title}</h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm sm:text-base font-black text-white font-outfit">{chart.title}</h4>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
+                                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                                Live Chart
+                              </span>
+                            </div>
                             {chart.subtitle && <p className="text-[11px] text-slate-300 font-semibold">{chart.subtitle}</p>}
                           </div>
                           <div className="flex items-center gap-2">

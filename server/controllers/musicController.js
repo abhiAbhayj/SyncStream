@@ -826,103 +826,116 @@ export const getMusicCharts = async (req, res) => {
     {
       id: 'trending_global',
       title: '🔥 Trending Globally 2026',
-      subtitle: 'Top songs across all languages right now',
-      query: 'Alaakaa Loova OM Chapter 1 Big Dawgs Hanumankind Kesariya'
+      subtitle: 'Top viral songs across all languages & platforms',
+      ytQuery: 'Top Hits 2026 Viral Songs',
+      saavnQuery: 'Trending Songs 2026'
     },
     {
       id: 'blues_rap',
       title: '🎷 Blues Rap Anthems',
       subtitle: 'Lee Richardson, blues riffs & heavy swagger beats',
-      query: 'Hunt You Down Lee Richardson Blues Rap'
+      ytQuery: 'Blues Rap Songs',
+      saavnQuery: 'Lee Richardson Blues Rap'
     },
     {
       id: 'rap',
       title: '🎤 Rap & Hip-Hop',
       subtitle: 'Heavy basslines, bars and global rap chart toppers',
-      query: 'Big Dawgs Hanumankind Eminem Houdini Divine 359'
+      ytQuery: 'Trending Hip Hop Songs 2026',
+      saavnQuery: 'Rap Hip Hop Hits 2026'
     },
     {
       id: 'rock',
       title: '🎸 Rock & Themes',
       subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
-      query: 'The Wild Theme OM Chapter 1 Imagine Dragons Believer Linkin Park'
+      ytQuery: 'Rock Music Video 2026',
+      saavnQuery: 'Trending Rock Songs 2026'
     },
     {
       id: 'kpop',
       title: '🇰🇷 K-Pop Worldwide',
-      subtitle: 'Global K-Pop chart toppers',
-      query: 'BLACKPINK How You Like That BTS Dynamite NewJeans Super Shy'
+      subtitle: 'Global K-Pop chart toppers & viral choreography',
+      ytQuery: 'Trending K-Pop Songs 2026',
+      saavnQuery: 'Kpop Top Hits 2026'
     },
     {
       id: 'korean',
       title: '🇰🇷 Korean Drama & OSTs',
       subtitle: 'Iconic Korean film & K-Drama soundtracks',
-      query: 'Crash Landing on You OST IU Goblin Stay With Me'
+      ytQuery: 'Korean OST Drama Hits 2026',
+      saavnQuery: 'Korean Drama OST 2026'
     },
     {
       id: 'bollywood',
       title: '🇮🇳 Hindi Bollywood 2026',
-      subtitle: "Hindi cinema's biggest fresh tracks & remixes",
-      query: 'Apna Bana Le Bhediya Kesariya Brahmastra Chaleya Jawan'
+      subtitle: "Hindi cinema's biggest fresh tracks & mass anthems",
+      ytQuery: 'Trending Hindi Songs 2026',
+      saavnQuery: 'Latest Bollywood Songs 2026'
     },
     {
       id: 'anime',
       title: '🌸 Anime & J-Pop',
-      subtitle: 'Japanese anime openings, remixes & OSTs',
-      query: 'LiSA Gurenge Demon Slayer Kenshi Yonezu Peace Sign Naruto Blue Bird'
+      subtitle: 'Viral anime openings, battle themes & J-Rock',
+      ytQuery: 'YOASOBI Idol Official Music Video',
+      saavnQuery: 'Anime Opening Theme Song 2026'
     },
     {
       id: 'global_pop',
       title: '🌍 Global English Pop',
-      subtitle: 'International English hits & club remixes',
-      query: 'Taylor Swift Cruel Summer Sabrina Carpenter Espresso Die With A Smile'
+      subtitle: 'International English hits & Billboard toppers',
+      ytQuery: 'Top Hits 2026 Global',
+      saavnQuery: 'Billboard Hot 100 2026'
     },
     {
       id: 'kannada',
       title: '🦁 Kannada Sandalwood',
       subtitle: 'Hottest Kannada movie songs & BGM scores',
-      query: 'KGF 2 Toofan Salaar Theme Kantara Singara Siriye'
+      ytQuery: 'Trending Kannada Songs 2026',
+      saavnQuery: 'Latest Kannada Movie Songs 2026'
     },
     {
       id: 'malayalam',
       title: '🌿 Malayalam Mollywood',
-      subtitle: 'Soulful Malayalam tracks & indie hits',
-      query: 'Illuminati Aavesham Jaada Aavesham Manjummel Boys'
+      subtitle: 'Soulful Malayalam tracks & viral Mollywood hits',
+      ytQuery: 'Trending Malayalam Songs 2026',
+      saavnQuery: 'Latest Malayalam Movie Songs 2026'
     },
     {
       id: 'telugu',
       title: '🎬 Telugu Tollywood',
       subtitle: 'Trending Telugu cinema songs & mass themes',
-      query: 'Alaakaa Loova OM Chapter 1 Naatu Naatu RRR Devara Fear Song'
+      ytQuery: 'Trending Telugu Songs 2026',
+      saavnQuery: 'Latest Telugu Movie Songs 2026'
     },
     {
       id: 'tamil',
       title: '⚡ Tamil Kollywood',
       subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
-      query: 'Alaakaa Loova OM Chapter 1 Badass Leo Hukum Jailer'
+      ytQuery: 'Trending Tamil Songs 2026',
+      saavnQuery: 'Latest Tamil Movie Songs 2026'
     },
     {
       id: 'marathi',
       title: '🚩 Marathi Cinema',
-      subtitle: 'Energetic & soulful Marathi tracks',
-      query: 'Zingaat Sairat Yad Lagla Apsara Aali'
+      subtitle: 'Energetic & soulful Marathi theatrical tracks',
+      ytQuery: 'Trending Marathi Songs 2026',
+      saavnQuery: 'Latest Marathi Movie Songs 2026'
     }
   ];
 
-  const charts = [];
-
-  for (const cat of CHART_CATEGORIES) {
+  // Fetch all regional charts concurrently for maximum speed and freshness
+  const chartPromises = CHART_CATEGORIES.map(async (cat) => {
     try {
       const seen = new Set();
       const catSongs = [];
 
-      // Concurrently fetch YouTube and JioSaavn
+      // Concurrently fetch fresh live YouTube tracks and JioSaavn lossless masters
       const [ytSongs, saavnSongs] = await Promise.all([
-        fetchYouTubeTracks(cat.query, 4).catch(() => []),
-        fetchSaavnSongs(cat.query, 6).catch(() => [])
+        fetchYouTubeTracks(cat.ytQuery, 6).catch(() => []),
+        fetchSaavnSongs(cat.saavnQuery, 6).catch(() => [])
       ]);
 
-      for (const yt of ytSongs) {
+      for (const yt of (ytSongs || [])) {
         const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(yt.id)) {
           seen.add(key);
@@ -931,7 +944,7 @@ export const getMusicCharts = async (req, res) => {
         }
       }
 
-      for (const s of saavnSongs) {
+      for (const s of (saavnSongs || [])) {
         const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
@@ -940,19 +953,21 @@ export const getMusicCharts = async (req, res) => {
         }
       }
 
-      charts.push({
+      return {
         id: cat.id,
         title: cat.title,
         subtitle: cat.subtitle,
-        songs: catSongs.slice(0, 8)
-      });
+        songs: catSongs.slice(0, 10),
+        isLive: true,
+        updatedAt: now
+      };
     } catch (e) {
       console.warn(`[Charts] Failed to fetch ${cat.id}:`, e.message);
-      charts.push({ id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [] });
+      return { id: cat.id, title: cat.title, subtitle: cat.subtitle, songs: [], isLive: true };
     }
-    await delay(100);
-  }
+  });
 
+  const charts = await Promise.all(chartPromises);
   chartsCache = { data: charts, timestamp: now };
   res.json(charts);
 };
