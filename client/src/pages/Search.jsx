@@ -141,6 +141,7 @@ export default function Search() {
   const [language, setLanguage] = useState(initialLanguage);
   const [country, setCountry] = useState(initialCountry);
   const [sort, setSort] = useState('latest');
+  const [year, setYear] = useState(searchParams.get('year') || '');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -155,6 +156,7 @@ export default function Search() {
     let g = searchParams.get('genre') || '';
     const l = searchParams.get('lang') || searchParams.get('language') || '';
     const c = searchParams.get('country') || '';
+    const y = searchParams.get('year') || '';
 
     // If genre was passed as a label (e.g. 'Action'), resolve it to key
     if (g && !g.startsWith('k_') && !g.startsWith('g_') && !g.startsWith('d_') && isNaN(parseInt(g, 10))) {
@@ -170,12 +172,13 @@ export default function Search() {
     setGenre(g);
     setLanguage(l);
     setCountry(c);
+    setYear(y);
     setPage(1);
     
-    executeSearch(q, t, g, l, c, 1, sort, 'all');
+    executeSearch(q, t, g, l, c, 1, sort, 'all', y);
   }, [searchParams]);
 
-  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory) => {
+  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory, activeYear = year) => {
     if (pageNum === 1) setLoading(true);
     else setLoadingMore(true);
     setSearched(true);
@@ -212,6 +215,7 @@ export default function Search() {
             language: activeLanguage, 
             country: activeCountry,
             sort: activeSort,
+            year: activeYear || undefined,
             page: pageNum
           }
         });
@@ -235,15 +239,15 @@ export default function Search() {
     if (page < MAX_PAGES) {
       const nextPage = page + 1;
       setPage(nextPage);
-      executeSearch(query, type, genre, language, country, nextPage);
+      executeSearch(query, type, genre, language, country, nextPage, sort, musicCategory, year);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: language, country });
-    executeSearch(query, type, genre, language, country, 1);
+    setSearchParams({ q: query, type, genre, lang: language, country, year });
+    executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year);
   };
 
   const handleTypeChange = (newType) => {
@@ -251,45 +255,54 @@ export default function Search() {
     setGenre('');
     setLanguage('');
     setCountry('');
+    setYear('');
     setPage(1);
     setSearchParams({ q: query, type: newType });
-    executeSearch(query, newType, '', '', '', 1);
+    executeSearch(query, newType, '', '', '', 1, sort, musicCategory, '');
   };
 
   const handleGenreChange = (newGenre) => {
     setGenre(newGenre);
     setPage(1);
-    setSearchParams({ q: query, type, genre: newGenre, lang: language, country });
-    executeSearch(query, type, newGenre, language, country, 1);
+    setSearchParams({ q: query, type, genre: newGenre, lang: language, country, year });
+    executeSearch(query, type, newGenre, language, country, 1, sort, musicCategory, year);
   };
 
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: newLang, country });
-    executeSearch(query, type, genre, newLang, country, 1);
+    setSearchParams({ q: query, type, genre, lang: newLang, country, year });
+    executeSearch(query, type, genre, newLang, country, 1, sort, musicCategory, year);
   };
 
   const handleCountryChange = (newCountry) => {
     setCountry(newCountry);
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: language, country: newCountry });
-    executeSearch(query, type, genre, language, newCountry, 1);
+    setSearchParams({ q: query, type, genre, lang: language, country: newCountry, year });
+    executeSearch(query, type, genre, language, newCountry, 1, sort, musicCategory, year);
+  };
+
+  const handleYearChange = (newYear) => {
+    setYear(newYear);
+    setPage(1);
+    setSearchParams({ q: query, type, genre, lang: language, country, year: newYear });
+    executeSearch(query, type, genre, language, country, 1, sort, musicCategory, newYear);
   };
 
   const handleResetFilters = () => {
     setGenre('');
     setLanguage('');
     setCountry('');
+    setYear('');
     setPage(1);
     setSearchParams({ q: query, type });
-    executeSearch(query, type, '', '', '', 1, sort);
+    executeSearch(query, type, '', '', '', 1, sort, musicCategory, '');
   };
 
   const handleSortChange = (newSort) => {
     setSort(newSort);
     setPage(1);
-    executeSearch(query, type, genre, language, country, 1, newSort);
+    executeSearch(query, type, genre, language, country, 1, newSort, musicCategory, year);
   };
 
   const filterTabs = [
@@ -492,8 +505,25 @@ export default function Search() {
             </div>
           )}
 
+          {/* Year filter (for movie/tv/anime, not music/manga) */}
+          {(type === 'movie' || type === 'tv' || type === 'anime') && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 font-bold uppercase tracking-wider">Year:</span>
+              <select
+                value={year}
+                onChange={(e) => handleYearChange(e.target.value)}
+                className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer font-semibold"
+              >
+                <option value="">All Years</option>
+                {Array.from({ length: new Date().getFullYear() - 1949 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                  <option key={y} value={String(y)} className="bg-darkBg">{y}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Reset Filters button */}
-          {(genre || language || country) && (
+          {(genre || language || country || year) && (
             <button
               type="button"
               onClick={handleResetFilters}

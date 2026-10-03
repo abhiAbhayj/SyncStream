@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio } from 'lucide-react';
+import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Home() {
@@ -130,22 +130,43 @@ export default function Home() {
     return grouped;
   };
 
-  useEffect(() => {
-    const fetchCatalog = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get('/api/media/trending');
-        setMedia(res.data);
-      } catch (err) {
-        console.error('Failed to load home catalog:', err);
-        setError('Could not connect to external media APIs. Retrying shortly...');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const lastFetchRef = React.useRef(0);
+  const STALE_AFTER = 60 * 60 * 1000; // 1 hour — matches server cache TTL
 
-    fetchCatalog();
-  }, []);
+  const fetchCatalog = React.useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastFetchRef.current < STALE_AFTER && media) return;
+    try {
+      setLoading(true);
+      const url = force ? '/api/media/trending?refresh=1' : '/api/media/trending';
+      const res = await axios.get(url);
+      setMedia(res.data);
+      setLastUpdated(res.data._fetchedAt ? new Date(res.data._fetchedAt) : new Date());
+      lastFetchRef.current = now;
+    } catch (err) {
+      console.error('Failed to load home catalog:', err);
+      setError('Could not connect to external media APIs. Retrying shortly...');
+    } finally {
+      setLoading(false);
+    }
+  }, [media]);
+
+  // Initial fetch
+  useEffect(() => { fetchCatalog(); }, []);
+
+  // Re-fetch when the user switches back to this tab (if data is stale)
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchCatalog(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [fetchCatalog]);
+
+  // Periodic background refresh every hour
+  useEffect(() => {
+    const timer = setInterval(() => fetchCatalog(true), STALE_AFTER);
+    return () => clearInterval(timer);
+  }, [fetchCatalog]);
 
   const tabs = [
     { id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-amber-500' },
@@ -247,6 +268,23 @@ export default function Home() {
             </button>
           );
         })}
+
+        {/* Live refresh button + last-updated timestamp */}
+        <div className="ml-auto shrink-0 flex items-center gap-2 pl-2">
+          {lastUpdated && (
+            <span className="text-[10px] text-gray-600 hidden sm:block whitespace-nowrap">
+              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          <button
+            onClick={() => fetchCatalog(true)}
+            disabled={loading}
+            title="Refresh catalog now"
+            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-500 hover:text-accentCyan border border-white/[0.06] transition active:scale-90 disabled:opacity-40"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Dashboard Grid Content */}
