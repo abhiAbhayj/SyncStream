@@ -736,6 +736,10 @@ export const searchMedia = async (req, res) => {
           }
         }
         
+        if (year && !isNaN(parseInt(year, 10))) {
+          endpoint += `&year=${parseInt(year, 10)}`;
+        }
+        
         const mangaRes = await axios.get(endpoint);
         results = (mangaRes.data.data || []).map(m => {
           const coverRel = m.relationships?.find(r => r.type === 'cover_art');

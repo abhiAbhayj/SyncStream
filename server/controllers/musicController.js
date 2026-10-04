@@ -562,6 +562,22 @@ export const fetchSaavnSongs = async (query, n = 8) => {
   return rawResults.slice(0, n);
 };
 
+// Aggressive normalization to prevent remixes/duplicate songs from flooding feeds
+const getBaseTitle = (title) => {
+  if (!title) return '';
+  return title.toLowerCase()
+    .replace(/\s*\(.*?\)\s*/g, '')
+    .replace(/\s*\[.*?\]\s*/g, '')
+    .replace(/\s*-.*$/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+};
+
+const getBaseArtist = (artist) => {
+  if (!artist) return '';
+  return artist.toLowerCase().split(',')[0].replace(/[^a-z0-9]/g, '').substring(0, 5);
+};
+
 // Direct helper for Home page live trending music feed (Dual-Engine + Live Charts)
 export const getTrendingMusicDirect = async (limit = 12) => {
   const seen = new Set();
@@ -578,7 +594,7 @@ export const getTrendingMusicDirect = async (limit = 12) => {
     for (const item of chartList) {
       const formatted = formatSong(item);
       if (formatted && formatted.audio_url && !isSpamTrack(formatted)) {
-        const key = `${(formatted.title || '').toLowerCase().trim()}_${(formatted.artist || '').toLowerCase().trim()}`;
+        const key = `${getBaseTitle(formatted.title)}_${getBaseArtist(formatted.artist)}`;
         if (!seen.has(key) && !seen.has(formatted.id)) {
           seen.add(key);
           seen.add(formatted.id);
@@ -596,7 +612,7 @@ export const getTrendingMusicDirect = async (limit = 12) => {
     try {
       const ytSongs = await fetchYouTubeTracks('Trending Songs 2026 Top Hits', 6);
       for (const s of ytSongs) {
-        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
@@ -656,7 +672,7 @@ export const getTrendingMusic = async (req, res) => {
         for (const item of pageItems) {
           const formatted = formatSong(item);
           if (formatted && formatted.audio_url && !isSpamTrack(formatted)) {
-            const key = `${(formatted.title || '').toLowerCase().trim()}_${(formatted.artist || '').toLowerCase().trim()}`;
+            const key = `${getBaseTitle(formatted.title)}_${getBaseArtist(formatted.artist)}`;
             if (!seen.has(key) && !seen.has(formatted.id)) {
               seen.add(key);
               seen.add(formatted.id);
@@ -673,7 +689,7 @@ export const getTrendingMusic = async (req, res) => {
         try {
           const ytSongs = await fetchYouTubeTracks(`Top Hits 2026 Viral Songs page ${page}`, 8);
           for (const s of (ytSongs || [])) {
-            const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+            const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
             if (!seen.has(key) && !seen.has(s.id)) {
               seen.add(key);
               seen.add(s.id);
@@ -719,7 +735,7 @@ export const getTrendingMusic = async (req, res) => {
       // Primary: Add JioSaavn studio masters first so user gets authentic 500x500 official album covers
       for (const list of saavnResults) {
         for (const s of (list || [])) {
-          const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+          const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
           if (!seen.has(key) && !seen.has(s.id)) {
             seen.add(key);
             seen.add(s.id);
@@ -730,7 +746,7 @@ export const getTrendingMusic = async (req, res) => {
 
       // Secondary: Supplement with official YouTube tracks for tracks not in JioSaavn
       for (const s of (ytSongs || [])) {
-        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
@@ -896,7 +912,7 @@ export const searchMusic = async (req, res) => {
       if (resItem && resItem.songs) {
         totalCount = Math.max(totalCount, resItem.total);
         for (const s of resItem.songs) {
-          const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+          const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
           if (!seen.has(key) && !seen.has(s.id)) {
             seen.add(key);
             seen.add(s.id);
@@ -908,7 +924,7 @@ export const searchMusic = async (req, res) => {
 
     // Secondary: Add YouTube Music tracks for any additional unique tracks
     for (const s of (ytResults || [])) {
-      const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+      const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
       if (!seen.has(key) && !seen.has(s.id)) {
         seen.add(key);
         seen.add(s.id);
@@ -1054,7 +1070,7 @@ export const getMusicCharts = async (req, res) => {
       // Prioritize studio masters with official album artwork
       for (const s of (saavnSongs || [])) {
         if (!isLanguageMatch(s, cat.id) || isSpamTrack(s)) continue;
-        const key = `${(s.title || '').toLowerCase().trim()}_${(s.artist || '').toLowerCase().trim()}`;
+        const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
@@ -1064,7 +1080,7 @@ export const getMusicCharts = async (req, res) => {
 
       for (const yt of (ytSongs || [])) {
         if (!isLanguageMatch(yt, cat.id) || isSpamTrack(yt)) continue;
-        const key = `${(yt.title || '').toLowerCase().trim()}_${(yt.artist || '').toLowerCase().trim()}`;
+        const key = `${getBaseTitle(yt.title)}_${getBaseArtist(yt.artist)}`;
         if (!seen.has(key) && !seen.has(yt.id)) {
           seen.add(key);
           seen.add(yt.id);

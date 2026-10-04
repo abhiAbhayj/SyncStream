@@ -539,8 +539,8 @@ export default function Search() {
             </div>
           )}
 
-          {/* Year filter (for movie/tv/anime, not music/manga) */}
-          {(type === 'movie' || type === 'tv' || type === 'anime') && (
+          {/* Year filter (for movie/tv/anime/manga, not music) */}
+          {(type === 'movie' || type === 'tv' || type === 'anime' || type === 'manga') && (
             <div className="flex items-center gap-2">
               <span className="text-gray-400 font-bold uppercase tracking-wider">Year:</span>
               <select
