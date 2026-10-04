@@ -151,7 +151,7 @@ export const isSpamTrack = (song) => {
   }
 
   // 2. Filter out Karaoke, backing track, amateur covers, lofi, practice, ringtone spam
-  if (/\b(zzang karaoke|melody karaoke version|piano tutorial practice|ringtone download|karaoke version|party tyme karaoke|made popular by|in the style of|tribute band|tribute version|backing tracks?|\(cover\)|\[cover\]|lofi remix|slowed down)\b/i.test(text)) {
+  if (/\b(zzang karaoke|melody karaoke version|piano tutorial practice|ringtone download|karaoke version|party tyme karaoke|made popular by|in the style of|tribute band|tribute version|backing tracks?|\(cover\)|\[cover\]|lofi remix|slowed down|8k video|4k video|16k video|lyric|lyrics|lyrical|full audio|full video|audio jukebox)\b/i.test(text)) {
     return true;
   }
 
@@ -467,6 +467,7 @@ const getBaseTitle = (title) => {
     .replace(/\s*\(.*?\)\s*/g, '')
     .replace(/\s*\[.*?\]\s*/g, '')
     .replace(/\s*-.*$/g, '')
+    .replace(/\s*\|.*$/g, '')
     .replace(/[^a-z0-9]/g, '')
     .trim();
 };
@@ -479,6 +480,7 @@ const getBaseArtist = (artist) => {
 // Direct helper for Home page live trending music feed (Dual-Engine + Live Charts)
 export const getTrendingMusicDirect = async (limit = 12) => {
   const seen = new Set();
+  const seenAlbums = new Set();
   const songs = [];
 
   // 1. Fetch live JioSaavn 'Trending Today' chart (listid 110858205)
@@ -492,7 +494,13 @@ export const getTrendingMusicDirect = async (limit = 12) => {
     for (const item of chartList) {
       const formatted = formatSong(item);
       if (formatted && formatted.audio_url && !isSpamTrack(formatted)) {
-        const key = `${getBaseTitle(formatted.title)}_${getBaseArtist(formatted.artist)}`;
+        if (isCompilationAlbum(formatted.album)) {
+          const albumKey = (formatted.album || '').toLowerCase().trim();
+          if (seenAlbums.has(albumKey)) continue;
+          seenAlbums.add(albumKey);
+        }
+        const baseTitle = getBaseTitle(formatted.title);
+        const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(formatted.artist)}`;
         if (!seen.has(key) && !seen.has(formatted.id)) {
           seen.add(key);
           seen.add(formatted.id);
@@ -550,6 +558,7 @@ export const getTrendingMusic = async (req, res) => {
 
   try {
     const seen = new Set();
+    const seenAlbums = new Set();
     const collected = [];
 
     // ── CASE A: 'ALL HITS' — Powered by Live Official Trending Charts ──
@@ -570,7 +579,13 @@ export const getTrendingMusic = async (req, res) => {
         for (const item of pageItems) {
           const formatted = formatSong(item);
           if (formatted && formatted.audio_url && !isSpamTrack(formatted)) {
-            const key = `${getBaseTitle(formatted.title)}_${getBaseArtist(formatted.artist)}`;
+            if (isCompilationAlbum(formatted.album)) {
+              const albumKey = (formatted.album || '').toLowerCase().trim();
+              if (seenAlbums.has(albumKey)) continue;
+              seenAlbums.add(albumKey);
+            }
+            const baseTitle = getBaseTitle(formatted.title);
+            const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(formatted.artist)}`;
             if (!seen.has(key) && !seen.has(formatted.id)) {
               seen.add(key);
               seen.add(formatted.id);
@@ -633,7 +648,13 @@ export const getTrendingMusic = async (req, res) => {
       // Primary: Add JioSaavn studio masters first so user gets authentic 500x500 official album covers
       for (const list of saavnResults) {
         for (const s of (list || [])) {
-          const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
+          if (isCompilationAlbum(s.album)) {
+            const albumKey = (s.album || '').toLowerCase().trim();
+            if (seenAlbums.has(albumKey)) continue;
+            seenAlbums.add(albumKey);
+          }
+          const baseTitle = getBaseTitle(s.title);
+        const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(s.artist)}`;
           if (!seen.has(key) && !seen.has(s.id)) {
             seen.add(key);
             seen.add(s.id);
@@ -644,7 +665,8 @@ export const getTrendingMusic = async (req, res) => {
 
       // Secondary: Supplement with official YouTube tracks for tracks not in JioSaavn
       for (const s of (ytSongs || [])) {
-        const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
+        const baseTitle = getBaseTitle(s.title);
+        const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(s.artist)}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
@@ -810,7 +832,8 @@ export const searchMusic = async (req, res) => {
       if (resItem && resItem.songs) {
         totalCount = Math.max(totalCount, resItem.total);
         for (const s of resItem.songs) {
-          const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
+          const baseTitle = getBaseTitle(s.title);
+          const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(s.artist)}`;
           if (!seen.has(key) && !seen.has(s.id)) {
             seen.add(key);
             seen.add(s.id);
@@ -968,7 +991,8 @@ export const getMusicCharts = async (req, res) => {
       // Prioritize studio masters with official album artwork
       for (const s of (saavnSongs || [])) {
         if (!isLanguageMatch(s, cat.id) || isSpamTrack(s)) continue;
-        const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
+        const baseTitle = getBaseTitle(s.title);
+        const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(s.artist)}`;
         if (!seen.has(key) && !seen.has(s.id)) {
           seen.add(key);
           seen.add(s.id);
