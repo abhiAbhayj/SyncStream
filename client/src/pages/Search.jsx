@@ -178,7 +178,7 @@ export default function Search() {
     executeSearch(q, t, g, l, c, 1, sort, 'all', y);
   }, [searchParams]);
 
-  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory, activeYear = year) => {
+  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory, activeYear = year, forceRefresh = false) => {
     if (pageNum === 1) setLoading(true);
     else setLoadingMore(true);
     setSearched(true);
@@ -192,7 +192,8 @@ export default function Search() {
             category: activeMusicCat || 'all',
             language: activeLanguage || 'all',
             page: pageNum,
-            limit: 24
+            limit: 24,
+            refresh: forceRefresh ? 'true' : undefined
           }
         });
         const musicItems = (res.data.songs || []).map(s => ({
@@ -353,7 +354,7 @@ export default function Search() {
           type="button"
           onClick={() => {
             setPage(1);
-            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year);
+            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
           }}
           disabled={loading}
           className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition active:scale-95 shrink-0 self-center sm:self-auto"

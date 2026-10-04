@@ -420,122 +420,20 @@ export const sortOriginalAlbumsFirst = (songs) => {
 
 // Multi-language & genre trending search queries continuously updated with verified authentic hit titles
 const TRENDING_QUERIES = {
-  all: [
-    'Trending Songs 2026',
-    'Billboard Hot 100',
-    'Top Hits Global',
-    'Viral Hits'
-  ],
-  blues_rap: [
-    'Lee Richardson Hunt You Down',
-    'Lee Richardson Wild Wild West',
-    'Lee Richardson The Devil Inside',
-    'Back Alley Blues Rap',
-    'Blues Saraceno The Evil You Know',
-    'Barns Courtney Fire'
-  ],
-  rap: [
-    'Hanumankind Big Dawgs',
-    'Kendrick Lamar Not Like Us',
-    'Eminem Houdini',
-    'Travis Scott FE!N',
-    'Divine 359 AM',
-    'Post Malone Rockstar'
-  ],
-  rock: [
-    'Linkin Park The Emptiness Machine',
-    'Imagine Dragons Believer',
-    'Imagine Dragons Bones',
-    'Coldplay We Pray',
-    'Queen Bohemian Rhapsody',
-    'Linkin Park In The End'
-  ],
-  kpop: [
-    'ROSÉ Bruno Mars APT',
-    'JENNIE Mantra',
-    'aespa Supernova',
-    'LE SSERAFIM CRAZY',
-    'ILLIT Magnetic',
-    'Jung Kook Seven',
-    'NewJeans Super Shy',
-    'Stray Kids Chk Chk Boom',
-    'BLACKPINK How You Like That',
-    'BTS Dynamite',
-    'TWICE Strategy',
-    'SEVENTEEN MAESTRO'
-  ],
-  korean: [
-    'Crash Landing on You OST Give You My Heart IU',
-    'Goblin OST Stay With Me Chanyeol',
-    'Queen of Tears OST Kim Soo Hyun',
-    'Descendants of the Sun OST Everytime',
-    'IU Love Wins All',
-    'Itaewon Class Start Over Gaho',
-    'Hotel Del Luna OST Taeyeon'
-  ],
-  hindi: [
-    'Apna Bana Le Bhediya',
-    'Chaleya Jawan',
-    'Kesariya Brahmastra',
-    'Satranga Animal',
-    'Tum Hi Ho Aashiqui 2',
-    'Raataan Lambiyan Shershaah',
-    'Kalyani Shreya Ghoshal'
-  ],
-  anime: [
-    'YOASOBI Idol Official Music Video',
-    'Creepy Nuts Bling Bang Bang Born',
-    'LiSA Gurenge Demon Slayer',
-    'Chainsaw Man Kick Back Kenshi Yonezu',
-    'Naruto Blue Bird Ikimonogakari',
-    'Attack on Titan Shinzo wo Sasageyo',
-    'Tokyo Ghoul Unravel TK'
-  ],
-  english: [
-    'Lady Gaga Bruno Mars Die With A Smile',
-    'Sabrina Carpenter Espresso',
-    'Billie Eilish Birds of a Feather',
-    'Taylor Swift Cruel Summer',
-    'The Weeknd Blinding Lights',
-    'Ed Sheeran Shape of You'
-  ],
-  kannada: [
-    'KGF 2 Toofan Ravi Basrur',
-    'Kantara Singara Siriye',
-    'Salaar Theme Ravi Basrur',
-    'Sanjith Hegde Kannada Hits',
-    'Puttamalli Anna from Mexico',
-    'Tagaru Title Song'
-  ],
-  malayalam: [
-    'Illuminati Aavesham Sushin Shyam',
-    'Jaada Aavesham Sushin Shyam',
-    'Manjummel Boys Kuthanthram',
-    'Premalu Welcome To Hyderabad',
-    'Premalu Mini Maharani'
-  ],
-  telugu: [
-    'Devara Fear Song Anirudh',
-    'Naatu Naatu RRR',
-    'Pushpa 2 The Rule Songs',
-    'Kurchi Madathapetti Guntur Kaaram',
-    'Alaakaa Loova OM Chapter 1 Telugu'
-  ],
-  tamil: [
-    'Alaakaa Loova OM Chapter 1',
-    'The Wild Theme OM Chapter 1',
-    'Badass Leo Anirudh',
-    'Hukum Jailer Anirudh',
-    'Pavazha Malli Sai Abhyankkar',
-    'Radhimaa Sai Abhyankkar'
-  ],
-  marathi: [
-    'Zingaat Sairat Ajay Atul',
-    'Yad Lagla Sairat',
-    'Apsara Aali Natarang',
-    'Chandra Chandramukhi',
-    'Chal Turu Turu Abhijeet Sawant'
-  ]
+  all: ['Trending Songs 2026', 'Billboard Hot 100', 'Top Hits Global', 'Viral Hits'],
+  blues_rap: ['Blues Rap Hits', 'Best of Blues', 'Top Blues Rap Songs', 'Trending Blues', 'Blues Classics', 'Rap and Blues', 'Blues Rock Hits'],
+  rap: ['Top Rap Hits', 'Rap Caviar', 'Trending Hip Hop', 'Global Rap Songs', 'Best Rap 2026', 'Viral Rap', 'Hip Hop Hits', 'Underground Rap'],
+  rock: ['Top Rock Hits', 'Trending Rock', 'Rock Classics', 'Best Rock Songs 2026', 'Viral Rock', 'Global Rock Hits', 'Alternative Rock', 'Hard Rock'],
+  kpop: ['K-Pop Top Hits', 'Trending K-Pop 2026', 'Best K-Pop Songs', 'Viral K-Pop', 'K-Pop Girl Groups', 'K-Pop Boy Groups', 'K-Pop Global', 'Korean Pop Hits'],
+  korean: ['Korean OST Hits', 'Trending Korean Drama Songs', 'Best K-Drama OST', 'Korean Hits 2026', 'Korean Pop', 'K-Drama Soundtrack', 'Viral Korean', 'Korean Acoustic'],
+  hindi: ['Latest Hindi Hits', 'Trending Bollywood 2026', 'Top Hindi Songs', 'Bollywood Hits', 'Viral Hindi', 'Best of Bollywood', 'Hindi Romantic Hits', 'Hindi Party Songs'],
+  anime: ['Anime Openings', 'Top Anime OST', 'Trending Anime Songs', 'Best Anime Endings', 'Viral Anime Music', 'Japanese Anime Hits', 'J-Pop Anime', 'Epic Anime Soundtracks'],
+  english: ['Top English Hits', 'Global Pop Songs', 'Trending English 2026', 'Billboard Top 50', 'Viral English Songs', 'Best Pop Music', 'English Acoustic', 'English Dance Hits'],
+  kannada: ['Kannada Top Hits', 'Trending Kannada Songs 2026', 'Best of Kannada', 'Sandalwood Hits', 'Viral Kannada', 'Kannada Romantic', 'Kannada Mass Songs', 'Kannada Melody'],
+  malayalam: ['Malayalam Top Hits', 'Trending Malayalam 2026', 'Mollywood Hits', 'Best Malayalam Songs', 'Viral Malayalam', 'Malayalam Melody', 'Malayalam Romantic', 'Malayalam Party'],
+  telugu: ['Telugu Top Hits', 'Trending Tollywood 2026', 'Best Telugu Songs', 'Tollywood Hits', 'Viral Telugu', 'Telugu Mass Songs', 'Telugu Romantic', 'Telugu Melody'],
+  tamil: ['Tamil Top Hits', 'Trending Kollywood 2026', 'Best Tamil Songs', 'Kollywood Hits', 'Viral Tamil', 'Tamil Mass Songs', 'Tamil Romantic', 'Tamil Melody'],
+  marathi: ['Marathi Top Hits', 'Trending Marathi 2026', 'Best Marathi Songs', 'Marathi Hits', 'Viral Marathi', 'Marathi Party Songs', 'Marathi Romantic', 'Marathi Melody']
 };
 
 // Helper: fetch songs from JioSaavn by query and prioritize original soundtrack albums
@@ -705,7 +603,7 @@ export const getTrendingMusic = async (req, res) => {
       // Dual-Engine: 1. Concurrently fetch JioSaavn tracks (Studio lossless masters with official album covers)
       const saavnPromises = queryList.slice(0, 8).map(async (q) => {
         try {
-          const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=3&p=${page}&q=${encodeURIComponent(q)}`;
+          const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=10&p=${page}&q=${encodeURIComponent(q)}`;
           const response = await axios.get(url, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
             timeout: 8000
