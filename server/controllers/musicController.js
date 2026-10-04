@@ -887,92 +887,92 @@ export const getMusicCharts = async (req, res) => {
       id: 'blues_rap',
       title: '🎷 Blues Rap Anthems',
       subtitle: 'Lee Richardson, blues riffs & heavy swagger beats',
-      ytQuery: 'Lee Richardson Hunt You Down Official',
-      saavnQuery: 'Lee Richardson Hunt You Down'
+      ytQuery: 'Blues Rap Hits Official MV',
+      saavnQuery: 'Best of Blues Rap'
     },
     {
       id: 'rap',
       title: '🎤 Rap & Hip-Hop',
       subtitle: 'Heavy basslines, bars and global rap chart toppers',
-      ytQuery: 'Hanumankind Big Dawgs Official Music Video',
-      saavnQuery: 'Hanumankind Big Dawgs Eminem Houdini'
+      ytQuery: 'Top Hip Hop Hits 2026',
+      saavnQuery: 'Trending Rap Songs'
     },
     {
       id: 'rock',
       title: '🎸 Rock & Themes',
       subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
-      ytQuery: 'Linkin Park The Emptiness Machine Official MV',
-      saavnQuery: 'Imagine Dragons Believer Linkin Park'
+      ytQuery: 'Trending Rock Hits Official MV',
+      saavnQuery: 'Best Rock Songs 2026'
     },
     {
       id: 'kpop',
       title: '🇰🇷 K-Pop Worldwide',
       subtitle: 'Global K-Pop chart toppers & viral choreography',
-      ytQuery: 'ROSÉ Bruno Mars APT Official MV',
-      saavnQuery: 'JENNIE Mantra NewJeans Super Shy aespa'
+      ytQuery: 'Top K-Pop Hits 2026 Official MV',
+      saavnQuery: 'Trending K-Pop'
     },
     {
       id: 'korean',
       title: '🇰🇷 Korean Drama & OSTs',
       subtitle: 'Iconic Korean film & K-Drama soundtracks',
-      ytQuery: 'Crash Landing on You OST IU Official MV',
-      saavnQuery: 'Goblin OST Stay With Me Crash Landing'
+      ytQuery: 'Best Korean OST 2026',
+      saavnQuery: 'Trending K-Drama Songs'
     },
     {
       id: 'bollywood',
       title: '🇮🇳 Hindi Bollywood 2026',
       subtitle: "Hindi cinema's biggest fresh tracks & mass anthems",
-      ytQuery: 'Apna Bana Le Bhediya Official Video',
-      saavnQuery: 'Apna Bana Le Chaleya Kesariya'
+      ytQuery: 'Latest Hindi Hits Official Video',
+      saavnQuery: 'Top Hindi Songs'
     },
     {
       id: 'anime',
       title: '🌸 Anime & J-Pop',
       subtitle: 'Viral anime openings, battle themes & J-Rock',
-      ytQuery: 'YOASOBI Idol Official Music Video',
-      saavnQuery: 'LiSA Gurenge Creepy Nuts Bling Bang Bang Born'
+      ytQuery: 'Trending Anime Openings',
+      saavnQuery: 'Best Anime OST'
     },
     {
       id: 'global_pop',
       title: '🌍 Global English Pop',
       subtitle: 'International English hits & Billboard toppers',
-      ytQuery: 'Lady Gaga Bruno Mars Die With A Smile Official Video',
-      saavnQuery: 'Sabrina Carpenter Espresso Taylor Swift Cruel Summer'
+      ytQuery: 'Trending Global Pop Official Video',
+      saavnQuery: 'Top English Hits'
     },
     {
       id: 'kannada',
       title: '🦁 Kannada Sandalwood',
       subtitle: 'Hottest Kannada movie songs & BGM scores',
-      ytQuery: 'Kantara Singara Siriye Official Video',
-      saavnQuery: 'KGF 2 Toofan Kantara Singara Siriye'
+      ytQuery: 'Latest Kannada Hits Official Video',
+      saavnQuery: 'Trending Kannada Songs'
     },
     {
       id: 'malayalam',
       title: '🌿 Malayalam Mollywood',
       subtitle: 'Soulful Malayalam tracks & viral Mollywood hits',
-      ytQuery: 'Illuminati Aavesham Sushin Shyam Official',
-      saavnQuery: 'Illuminati Aavesham Manjummel Boys'
+      ytQuery: 'Trending Malayalam Songs 2026',
+      saavnQuery: 'Top Malayalam Hits'
     },
     {
       id: 'telugu',
       title: '🎬 Telugu Tollywood',
       subtitle: 'Trending Telugu cinema songs & mass themes',
-      ytQuery: 'Devara Fear Song Anirudh Official Video',
-      saavnQuery: 'Devara Fear Song Naatu Naatu RRR Pushpa 2'
+      ytQuery: 'Latest Telugu Hits Official Video',
+      saavnQuery: 'Top Telugu Songs'
     },
     {
       id: 'tamil',
       title: '⚡ Tamil Kollywood',
       subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
-      ytQuery: 'Alaakaa Loova OM Chapter 1 Official',
-      saavnQuery: 'Badass Leo Hukum Jailer Alaakaa Loova'
+      ytQuery: 'Trending Tamil Hits Official',
+      saavnQuery: 'Top Tamil Songs'
     },
     {
       id: 'marathi',
       title: '🚩 Marathi Cinema',
       subtitle: 'Energetic & soulful Marathi theatrical tracks',
-      ytQuery: 'Zingaat Sairat Official Video',
-      saavnQuery: 'Zingaat Sairat Yad Lagla Apsara Aali'
+      ytQuery: 'Latest Marathi Hits Official Video',
+      saavnQuery: 'Trending Marathi Songs'
     }
   ];
 
@@ -980,17 +980,23 @@ export const getMusicCharts = async (req, res) => {
   const chartPromises = CHART_CATEGORIES.map(async (cat) => {
     try {
       const seen = new Set();
+      const seenAlbums = new Set();
       const catSongs = [];
 
       // Concurrently fetch JioSaavn lossless masters and fresh live YouTube tracks
       const [saavnSongs, ytSongs] = await Promise.all([
-        fetchSaavnSongs(cat.saavnQuery, 8).catch(() => []),
+        fetchSaavnSongs(cat.saavnQuery, 12).catch(() => []),
         fetchYouTubeTracks(cat.ytQuery, 6).catch(() => [])
       ]);
 
       // Prioritize studio masters with official album artwork
       for (const s of (saavnSongs || [])) {
         if (!isLanguageMatch(s, cat.id) || isSpamTrack(s)) continue;
+        if (isCompilationAlbum(s.album)) {
+          const albumKey = (s.album || '').toLowerCase().trim();
+          if (seenAlbums.has(albumKey)) continue;
+          seenAlbums.add(albumKey);
+        }
         const baseTitle = getBaseTitle(s.title);
         const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(s.artist)}`;
         if (!seen.has(key) && !seen.has(s.id)) {
@@ -1002,7 +1008,8 @@ export const getMusicCharts = async (req, res) => {
 
       for (const yt of (ytSongs || [])) {
         if (!isLanguageMatch(yt, cat.id) || isSpamTrack(yt)) continue;
-        const key = `${getBaseTitle(yt.title)}_${getBaseArtist(yt.artist)}`;
+        const baseTitle = getBaseTitle(yt.title);
+        const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(yt.artist)}`;
         if (!seen.has(key) && !seen.has(yt.id)) {
           seen.add(key);
           seen.add(yt.id);
