@@ -41,12 +41,12 @@ function AppContent() {
   const { currentTrack, songForPlaylistModal, closeAddToPlaylist } = useMusic();
 
   React.useEffect(() => {
-    const ALL_THEMES = ['theme-inferno', 'theme-matrix', 'theme-monochrome', 'theme-arctic', 'theme-tokyo', 'theme-cyber', 'theme-amethyst'];
-    const savedTheme = localStorage.getItem('syncstream_theme') || 'ocean';
+    const ALL_THEMES = ['theme-abyss', 'theme-eclipse', 'theme-quantum', 'theme-sakura', 'theme-mirage', 'theme-nebula', 'theme-glitch'];
+    const savedTheme = localStorage.getItem('syncstream_theme') || 'genesis';
     // Remove all theme classes first
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
     // Apply the saved theme
-    if (savedTheme !== 'ocean') {
+    if (savedTheme !== 'genesis') {
       document.body.classList.add(`theme-${savedTheme}`);
     }
   }, []);

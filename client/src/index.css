@@ -18,164 +18,113 @@ html, body, #root {
    THEME 1 (Default): Cosmic Stargate 🌌 (Nebula Wormhole & Multi-Chromatic)
 ───────────────────────────────────────────── */
 :root {
-  --dark-bg:     5 4 10;         /* #05040a - Deep Space Void */
-  --dark-card:   16 11 32;       /* #100b20 - Cosmic Nebula Card */
-  --dark-surf:   28 18 56;       /* #1c1238 - Elevated Stargate Surface */
+  --dark-bg:     9 5 20;
+  --dark-card:   16 12 30;
+  --dark-surf:   25 18 45;
   --dark-border: 168 85 247;
 
-  --accent-cyan:   0 245 212;     /* #00f5d4 - Hyper Turquoise */
-  --accent-purple: 168 85 247;    /* #a855f7 - Celestial Violet */
-  --accent-pink:   255 89 100;    /* #ff5964 - Solar Coral */
-  --accent-gold:   255 209 102;   /* #ffd166 - Supernova Gold */
-  --accent-green:  6 214 160;     /* #06d6a0 - Stargate Mint */
+  --accent-cyan:   0 240 255;
+  --accent-purple: 168 85 247;
+  --accent-pink:   255 0 102;
+  --accent-gold:   0 255 102;
+  --accent-green:  255 255 255;
 
-  --glow-1: rgba(168,  85, 247, 0.42);
-  --glow-2: rgba(0,   245, 212, 0.35);
-  --glow-3: rgba(255,  89, 100, 0.25);
+  --glow-1: rgba(168, 85, 247, 0.42);
+  --glow-2: rgba(0, 240, 255, 0.35);
+  --glow-3: rgba(0, 255, 102, 0.25);
 }
+
+/* =============================================
+   THEMES (Only affects Backgrounds/Surfaces)
+   ============================================= */
+
+.theme-abyss {
+  --dark-bg:     2 11 20;
+  --dark-card:   8 20 40;
+  --dark-surf:   12 30 60;
+  --dark-border: 0 245 212;
+}
+
+.theme-eclipse {
+  --dark-bg:     13 2 2;
+  --dark-card:   28 4 4;
+  --dark-surf:   40 8 8;
+  --dark-border: 255 0 60;
+}
+
+.theme-quantum {
+  --dark-bg:     5 9 20;
+  --dark-card:   15 25 50;
+  --dark-surf:   22 35 70;
+  --dark-border: 59 130 246;
+}
+
+.theme-sakura {
+  --dark-bg:     26 11 18;
+  --dark-card:   40 18 28;
+  --dark-surf:   55 25 40;
+  --dark-border: 255 183 178;
+}
+
+.theme-mirage {
+  --dark-bg:     20 10 3;
+  --dark-card:   35 20 10;
+  --dark-surf:   50 30 15;
+  --dark-border: 245 158 11;
+}
+
+.theme-nebula {
+  --dark-bg:     8 2 18;
+  --dark-card:   20 8 40;
+  --dark-surf:   35 15 65;
+  --dark-border: 217 70 239;
+}
+
+.theme-glitch {
+  --dark-bg:     5 5 5;
+  --dark-card:   15 25 15;
+  --dark-surf:   20 35 20;
+  --dark-border: 34 197 94;
+}
+
 
 /* ─────────────────────────────────────────────
    THEME 2: Inferno Solaris 🌋 (Sunfire Plasma & Lava Ruby)
 ───────────────────────────────────────────── */
-.theme-inferno {
-  --dark-bg:     15 7 5;         /* #0f0705 - Smoked Obsidian */
-  --dark-card:   32 12 10;       /* #200c0a - Volcanic Crucible Card */
-  --dark-surf:   54 18 14;       /* #36120e - Solar Prominence Surface */
-  --dark-border: 255 85 0;
 
-  --accent-cyan:   255 85 0;      /* #ff5500 - Blazing Sunfire */
-  --accent-purple: 255 0 68;      /* #ff0044 - Lava Ruby */
-  --accent-pink:   255 187 0;     /* #ffbb00 - Golden Solar Flare */
-  --accent-gold:   153 0 255;     /* #9900ff - Plasma Violet */
-  --accent-green:  255 136 0;     /* #ff8800 - Corona Amber */
-
-  --glow-1: rgba(255,  85,   0, 0.48);
-  --glow-2: rgba(255,   0,  68, 0.38);
-  --glow-3: rgba(255, 187,   0, 0.28);
-}
 
 /* ─────────────────────────────────────────────
    THEME 3: Cyberpunk Holo-Matrix ⚡ (Synth Neon & Hexagonal Shield)
 ───────────────────────────────────────────── */
-.theme-matrix {
-  --dark-bg:     4 7 13;         /* #04070d - Carbon Void */
-  --dark-card:   8 19 34;        /* #081322 - Cyber Shield Card */
-  --dark-surf:   14 32 58;       /* #0e203a - Hex Mesh Surface */
-  --dark-border: 0 240 255;
 
-  --accent-cyan:   0 240 255;     /* #00f0ff - Laser Cyan */
-  --accent-purple: 255 0 127;     /* #ff007f - Neon Fuchsia */
-  --accent-pink:   0 255 102;     /* #00ff66 - Electric Lime */
-  --accent-gold:   112 0 255;     /* #7000ff - Ultraviolet */
-  --accent-green:  0 240 255;     /* #00f0ff - Holo Teal */
-
-  --glow-1: rgba(0,   240, 255, 0.45);
-  --glow-2: rgba(255,   0, 127, 0.38);
-  --glow-3: rgba(0,   255, 102, 0.25);
-}
 
 /* ─────────────────────────────────────────────
    THEME 4: Monolith Chrono 🌑 (Architectural Dark & Liquid Chrome)
 ───────────────────────────────────────────── */
-.theme-monochrome {
-  --dark-bg:     5 5 5;          /* #050505 - Pitch Monolith */
-  --dark-card:   17 17 19;       /* #111113 - Chrono Obsidian Card */
-  --dark-surf:   28 28 32;       /* #1c1c20 - Polished Monolith Surface */
-  --dark-border: 226 232 240;
 
-  --accent-cyan:   226 232 240;   /* #e2e8f0 - Liquid Chrome */
-  --accent-purple: 59 130 246;    /* #3b82f6 - Electric Cobalt */
-  --accent-pink:   239 68 68;     /* #ef4444 - Neon Crimson Accent */
-  --accent-gold:   255 255 255;   /* #ffffff - Pure Platinum */
-  --accent-green:  148 163 184;   /* #94a3b8 - Titanium Slate */
-
-  --glow-1: rgba(226, 232, 240, 0.25);
-  --glow-2: rgba(59,  130, 246, 0.30);
-  --glow-3: rgba(239,  68,  68, 0.20);
-}
 
 
 
 /* ─────────────────────────────────────────────
    THEME 5: Glacial Prism 🧊 (Crystalline Aurora & Prismatic Rainbow)
 ───────────────────────────────────────────── */
-.theme-arctic {
-  --dark-bg:     3 10 22;        /* #030a16 - Deep Glacial Void */
-  --dark-card:   7 22 46;        /* #07162e - Frosted Geode Card */
-  --dark-surf:   12 36 74;       /* #0c244a - Prismatic Surface */
-  --dark-border: 56 189 248;
 
-  --accent-cyan:   56 189 248;    /* #38bdf8 - Arctic Ice Blue */
-  --accent-purple: 236 72 153;    /* #ec4899 - Prismatic Magenta */
-  --accent-pink:   52 211 153;    /* #34d399 - Aurora Mint */
-  --accent-gold:   168 85 247;    /* #a855f7 - Crystal Violet */
-  --accent-green:  240 253 244;   /* #f0fdf4 - Diamond White */
-
-  --glow-1: rgba(56,  189, 248, 0.45);
-  --glow-2: rgba(236,  72, 153, 0.35);
-  --glow-3: rgba(52,  211, 153, 0.25);
-}
 
 /* ─────────────────────────────────────────────
    THEME 6: Retro Synthwave Highway 🪩 (80s Sunset & Outrun Neon)
 ───────────────────────────────────────────── */
-.theme-tokyo {
-  --dark-bg:     18 4 26;        /* #12041a - Deep Sunset Plum */
-  --dark-card:   36 8 52;        /* #240834 - Synthwave Horizon Card */
-  --dark-surf:   58 14 82;       /* #3a0e52 - Outrun Neon Surface */
-  --dark-border: 255 69 91;
 
-  --accent-cyan:   0 245 255;     /* #00f5ff - Synth Laser Cyan */
-  --accent-purple: 255 69 91;     /* #ff455b - Sunset Crimson */
-  --accent-pink:   191 0 255;     /* #bf00ff - Electric Purple */
-  --accent-gold:   255 230 0;     /* #ffe600 - Sunshine Yellow */
-  --accent-green:  0 245 255;     /* #00f5ff - Neon Cyan */
-
-  --glow-1: rgba(255,  69,  91, 0.48);
-  --glow-2: rgba(0,   245, 255, 0.38);
-  --glow-3: rgba(191,   0, 255, 0.28);
-}
 
 /* ─────────────────────────────────────────────
    THEME 7: Imperial Gold Luxe 👑 (24K Gold & Velvet Bronze)
 ───────────────────────────────────────────── */
-.theme-cyber {
-  --dark-bg:     14 11 6;        /* #0e0b06 - Royal Bronze Noir */
-  --dark-card:   30 22 10;       /* #1e160a - 24K Liquid Gold Card */
-  --dark-surf:   48 34 14;       /* #30220e - Imperial Velvet Surface */
-  --dark-border: 255 199 0;
 
-  --accent-cyan:   255 199 0;     /* #ffc700 - 24K Liquid Gold */
-  --accent-purple: 224 122 0;     /* #e07a00 - Royal Amber */
-  --accent-pink:   255 240 170;   /* #fff0aa - Champagne Diamond */
-  --accent-gold:   0 212 170;     /* #00d4aa - Imperial Emerald Glow */
-  --accent-green:  254 240 138;   /* #fef08a - Sunlight Ivory */
-
-  --glow-1: rgba(255, 199,   0, 0.48);
-  --glow-2: rgba(224, 122,   0, 0.35);
-  --glow-3: rgba(0,   212, 170, 0.25);
-}
 
 
 /* ─────────────────────────────────────────────
    THEME 8: Bio-Luminescent Pandora 🌿 (Alien Jungle & Sacred Spores)
 ───────────────────────────────────────────── */
-.theme-amethyst {
-  --dark-bg:     2 11 8;         /* #020b08 - Deep Pandora Night */
-  --dark-card:   6 25 18;        /* #061912 - Alien Bio Card */
-  --dark-surf:   10 42 30;       /* #0a2a1e - Living Moss Surface */
-  --dark-border: 0 255 136;
 
-  --accent-cyan:   0 255 136;     /* #00ff88 - Bioluminescent Emerald */
-  --accent-purple: 255 42 133;    /* #ff2a85 - Alien Orchid Pink */
-  --accent-pink:   0 229 255;     /* #00e5ff - Phosphor Sky Teal */
-  --accent-gold:   180 255 57;    /* #b4ff39 - Luminescent Lime */
-  --accent-green:  0 255 136;     /* #00ff88 - Bio Emerald */
-
-  --glow-1: rgba(0,   255, 136, 0.45);
-  --glow-2: rgba(255,  42, 133, 0.38);
-  --glow-3: rgba(0,   229, 255, 0.25);
-}
 
 /* ─────────────────────────────────────────────
    BASE

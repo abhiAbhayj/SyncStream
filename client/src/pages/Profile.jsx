@@ -27,87 +27,87 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
-  'theme-inferno',
-  'theme-matrix',
-  'theme-monochrome',
-  'theme-arctic',
-  'theme-tokyo',
-  'theme-cyber',
-  'theme-amethyst'
+  'theme-abyss',
+  'theme-eclipse',
+  'theme-quantum',
+  'theme-sakura',
+  'theme-mirage',
+  'theme-nebula',
+  'theme-glitch'
 ];
 
 const THEME_OPTIONS = [
   {
-    id: 'ocean',
-    name: '🌌 Cosmic Stargate',
-    desc: 'Deep space void, auroral plasma light curtains & linear hyperspace warp beams',
-    animation: 'Auroral curtains & hyperspace warp beams',
-    swatch: ['#05040a', '#a855f7', '#00f5d4', '#ff5964', '#ffd166'],
-    icon: Sparkles,
+    id: 'genesis',
+    name: '🤖 Neon Genesis',
+    desc: 'Deep mecha void, intersecting neon green & purple geometric wireframes',
+    animation: 'Rotating 3D wireframes & neon nodes',
+    swatch: ['#090514', '#00ff66', '#a855f7', '#00f0ff', '#ffffff'],
+    icon: Bot,
     anim: 'animate-pulse'
   },
   {
-    id: 'inferno',
-    name: '🌋 Inferno Solaris',
-    desc: 'Smoked obsidian crucible, solar plasma prominences & coronal flare arcs',
-    animation: 'Solar plasma prominence arcs & sparks',
-    swatch: ['#0f0705', '#ff5500', '#ff0044', '#ffbb00', '#9900ff'],
+    id: 'abyss',
+    name: '🌊 Abyssal Trench',
+    desc: 'Deep underwater void, bioluminescent cyan bubbles & floating plankton',
+    animation: 'Rising luminous bubbles & plankton',
+    swatch: ['#020b14', '#00f5d4', '#0077b6', '#03045e', '#90e0ef'],
+    icon: Activity,
+    anim: 'animate-bounce-subtle'
+  },
+  {
+    id: 'eclipse',
+    name: '🌑 Crimson Eclipse',
+    desc: 'Blood moon obsidian, floating dark embers & crimson shadow fog',
+    animation: 'Floating embers & slow shadow fog',
+    swatch: ['#0d0202', '#ff003c', '#8a0303', '#ff5555', '#2b0000'],
     icon: Flame,
     anim: 'animate-pulse-glow'
   },
   {
-    id: 'matrix',
-    name: '⚡ Cyberpunk Holo-Matrix',
-    desc: 'Carbon void, dynamic 3D hexagonal energy shield & laser ray conduits',
-    animation: 'Hexagonal energy shield & laser network',
-    swatch: ['#04070d', '#00f0ff', '#ff007f', '#00ff66', '#7000ff'],
+    id: 'quantum',
+    name: '🧬 Quantum Nexus',
+    desc: 'Sci-fi processor core, electric blue data nodes & connecting silver pulses',
+    animation: 'Connecting data nodes & pulses',
+    swatch: ['#050914', '#3b82f6', '#60a5fa', '#e2e8f0', '#1d4ed8'],
     icon: Activity,
     anim: 'animate-shimmer'
   },
   {
-    id: 'monochrome',
-    name: '🌑 Monolith Chrono',
-    desc: 'Pitch monolith, 3D rotating tesseract hypercubes & digital oscilloscope beams',
-    animation: '3D tesseract hypercubes & oscilloscope lasers',
-    swatch: ['#050505', '#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'],
-    icon: Clock,
+    id: 'sakura',
+    name: '🌸 Sakura Breeze',
+    desc: 'Spring anime aesthetic, soft drifting cherry blossom petals & pink wind',
+    animation: 'Drifting cherry blossom petals',
+    swatch: ['#1a0b12', '#ffb7b2', '#ff9ce6', '#ffdac1', '#e28413'],
+    icon: Sparkles,
     anim: 'animate-spin-slow'
   },
   {
-    id: 'arctic',
-    name: '🧊 Glacial Prism',
-    desc: 'Deep glacial void, rotating 3D quartz crystals & refracting rainbow rays',
-    animation: 'Rotating 3D quartz & prismatic rainbow rays',
-    swatch: ['#030a16', '#38bdf8', '#ec4899', '#34d399', '#f0fdf4'],
+    id: 'mirage',
+    name: '🏜️ Desert Mirage',
+    desc: 'Golden dune expanse, drifting sand dust & rising heat waves',
+    animation: 'Drifting sand dust & heat waves',
+    swatch: ['#140a03', '#f59e0b', '#d97706', '#fbbf24', '#78350f'],
+    icon: Flame,
+    anim: 'animate-pulse'
+  },
+  {
+    id: 'nebula',
+    name: '🌌 Nebula Core',
+    desc: 'Vibrant interstellar clouds, swirling magenta gas & shooting stars',
+    animation: 'Swirling nebula gas & shooting stars',
+    swatch: ['#080212', '#d946ef', '#c026d3', '#e879f9', '#86198f'],
     icon: Palette,
     anim: 'animate-pulse-glow'
   },
   {
-    id: 'tokyo',
-    name: '🪩 Retro Synthwave Highway',
-    desc: 'Sunset plum, infinite 3D outrun wireframe road & striped neon sun',
-    animation: '3D outrun wireframe road & striped sun',
-    swatch: ['#12041a', '#ff455b', '#00f5ff', '#bf00ff', '#ffe600'],
-    icon: Radio,
-    anim: 'animate-pulse'
-  },
-  {
-    id: 'cyber',
-    name: '👑 Imperial Gold Luxe',
-    desc: 'Royal bronze noir, cascading 24K gold silk streams & 3D rotating gold ingots',
-    animation: 'Liquid gold silk streams & 3D gold ingots',
-    swatch: ['#0e0b06', '#ffc700', '#e07a00', '#fff0aa', '#00d4aa'],
-    icon: Sparkles,
-    anim: 'animate-bounce-subtle'
-  },
-  {
-    id: 'amethyst',
-    name: '🌿 Bio-Luminescent Pandora',
-    desc: 'Deep alien night, swimming bioluminescent jellyfish fauna & river of light waves',
-    animation: 'Swimming jellyfish fauna & bioluminescent river',
-    swatch: ['#020b08', '#00ff88', '#ff2a85', '#00e5ff', '#b4ff39'],
-    icon: Activity,
-    anim: 'animate-pulse'
+    id: 'glitch',
+    name: '👾 Glitch Dimension',
+    desc: 'Cyberpunk terminal, CRT green binary rain & horizontal data glitches',
+    animation: 'Binary rain & CRT horizontal glitches',
+    swatch: ['#050505', '#22c55e', '#16a34a', '#4ade80', '#14532d'],
+    icon: Gamepad2,
+    anim: 'animate-bounce'
   },
 ];
 
@@ -204,7 +204,7 @@ export default function Profile() {
   });
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'ocean';
+    return localStorage.getItem('syncstream_theme') || 'genesis';
   });
 
   const [loading, setLoading] = useState(false);
@@ -252,16 +252,16 @@ export default function Profile() {
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (newTheme !== 'ocean') {
+    if (newTheme !== 'genesis') {
       document.body.classList.add(`theme-${newTheme}`);
     }
   };
 
   React.useEffect(() => {
     return () => {
-      const currentPersisted = localStorage.getItem('syncstream_theme') || 'ocean';
+      const currentPersisted = localStorage.getItem('syncstream_theme') || 'genesis';
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      if (currentPersisted !== 'ocean') {
+      if (currentPersisted !== 'genesis') {
         document.body.classList.add(`theme-${currentPersisted}`);
       }
     };
@@ -557,7 +557,7 @@ export default function Profile() {
 
     localStorage.setItem('syncstream_theme', theme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (theme !== 'ocean') {
+    if (theme !== 'genesis') {
       document.body.classList.add(`theme-${theme}`);
     }
 
