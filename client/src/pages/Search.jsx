@@ -124,6 +124,14 @@ const MANGA_GENRES = [
   { key: 'd_josei', label: 'Josei' }
 ];
 
+const POPULAR_SEARCH_TAGS = {
+  movie: ['Inception', 'Deadpool', 'Oppenheimer', 'Interstellar', 'Spider-Man', 'Avatar', 'Batman'],
+  tv: ['Stranger Things', 'Breaking Bad', 'The Boys', 'Game of Thrones', 'Loki', 'The Last of Us'],
+  anime: ['Solo Leveling', 'Jujutsu Kaisen', 'Demon Slayer', 'Attack on Titan', 'One Piece', 'Bleach'],
+  manga: ['One Piece', 'Berserk', 'Chainsaw Man', 'Jujutsu Kaisen', 'Tokyo Ghoul', 'Vagabond'],
+  music: ['Anime OST', 'Hans Zimmer', 'K-Pop', 'Lo-Fi', 'Movie Soundtracks', 'Rock Hits']
+};
+
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { playTrack } = useMusic();
@@ -389,6 +397,32 @@ export default function Search() {
 
       {/* Search and Filters Console */}
       <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/30 border border-darkBorder/60 p-4 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-md shadow-2xl">
+        {/* Media Type Search Tags (Movies, Series, Anime, Manga, Music) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-darkBorder/60">
+          <span className="text-gray-400 font-bold uppercase tracking-wider shrink-0 mr-1 text-[11px] flex items-center gap-1">
+            <span>MEDIA:</span>
+          </span>
+          {filterTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = type === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => handleTypeChange(tab.key)}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition active:scale-95 border shrink-0 cursor-pointer ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-black border-transparent shadow-[0_0_14px_rgba(var(--accent-cyan),0.4)] font-extrabold'
+                    : 'bg-darkCard/70 border-darkBorder text-gray-300 hover:text-white hover:border-white/30 hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3">
           <div className="relative flex-grow">
             <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 sm:w-5 h-4 sm:h-5" />
@@ -396,7 +430,17 @@ export default function Search() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'Artist, Movie, Series, Anime, or Song name' : 'manga entries'}...`}
+              placeholder={
+                type === 'movie'
+                  ? 'Search for movies (e.g. Inception, Avatar, Deadpool)...'
+                  : type === 'tv'
+                  ? 'Search for TV series & shows (e.g. Stranger Things, Breaking Bad)...'
+                  : type === 'anime'
+                  ? 'Search for anime titles (e.g. Solo Leveling, Demon Slayer)...'
+                  : type === 'music'
+                  ? 'Search songs, artists, movie/anime OSTs (e.g. Monica, Hans Zimmer)...'
+                  : 'Search for manga, manhwa & manhua (e.g. One Piece, Berserk)...'
+              }
               className="w-full bg-darkCard border border-darkBorder rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-200 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-600 font-medium"
             />
           </div>
@@ -406,6 +450,29 @@ export default function Search() {
           >
             Search
           </button>
+        </div>
+
+        {/* Trending Search Tags for active media type */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-0.5">
+          <span className="text-gray-400 font-bold uppercase tracking-wider shrink-0 mr-1 text-[10px] flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-accentCyan" />
+            <span>TRENDING:</span>
+          </span>
+          {(POPULAR_SEARCH_TAGS[type] || []).map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => {
+                setQuery(tag);
+                setPage(1);
+                setSearchParams({ q: tag, type, genre, lang: language, country, year });
+                executeSearch(tag, type, genre, language, country, 1, sort, musicCategory, year);
+              }}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/5 border border-white/10 hover:border-accentCyan/50 hover:bg-accentCyan/10 text-gray-300 hover:text-white transition whitespace-nowrap active:scale-95 cursor-pointer"
+            >
+              #{tag}
+            </button>
+          ))}
         </div>
 
         {/* Music Category Selector Pills (Only when Music is active) */}
