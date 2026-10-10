@@ -662,30 +662,38 @@ export default function VoiceAssistant() {
     }
 
     // 7. THEME INTENTS
-    if (command.includes('theme') || command.includes('nebula') || command.includes('space') || command.includes('sunset') || command.includes('fire') || command.includes('rainforest') || command.includes('coral') || command.includes('ocean') || command.includes('daybreak') || command.includes('violet') || command.includes('autumn') || command.includes('frost') || command.includes('mint') || command.includes('ice') || command.includes('snow')) {
-      const ALL_THEMES = ['theme-sunset', 'theme-rainforest', 'theme-coral', 'theme-daybreak', 'theme-violet', 'theme-autumn', 'theme-frost'];
-            let newTheme = 'nebula';
-      if (command.includes('sunset') || command.includes('fire') || command.includes('orange') || command.includes('mirage')) newTheme = 'sunset';
-      else if (command.includes('rainforest') || command.includes('forest') || command.includes('green') || command.includes('leaves')) newTheme = 'rainforest';
-      else if (command.includes('coral') || command.includes('reef') || command.includes('teal') || command.includes('ocean')) newTheme = 'coral';
-      else if (command.includes('daybreak') || command.includes('horizon') || command.includes('morning') || command.includes('sunrise')) newTheme = 'daybreak';
-      else if (command.includes('violet') || command.includes('purple') || command.includes('electric') || command.includes('neon')) newTheme = 'violet';
-      else if (command.includes('autumn') || command.includes('gold') || command.includes('golden') || command.includes('fall')) newTheme = 'autumn';
-      else if (command.includes('frost') || command.includes('mint') || command.includes('ice') || command.includes('snow')) newTheme = 'frost';
-      else if (command.includes('nebula') || command.includes('space') || command.includes('stars')) newTheme = 'nebula';
+    if (command.includes('theme') || command.includes('quantum') || command.includes('cyber') || command.includes('matrix') || command.includes('aurora') || command.includes('prism') || command.includes('solar') || command.includes('flare') || command.includes('emerald') || command.includes('synapse') || command.includes('horizon') || command.includes('drift') || command.includes('cryo') || command.includes('sapphire')) {
+      const ALL_THEMES = [
+        'theme-cyberpunk',
+        'theme-aurora',
+        'theme-prism',
+        'theme-solar',
+        'theme-emerald',
+        'theme-neon-horizon',
+        'theme-cryo'
+      ];
+      let newTheme = 'quantum';
+      if (command.includes('cyber') || command.includes('matrix') || command.includes('hacker')) newTheme = 'cyberpunk';
+      else if (command.includes('aurora') || command.includes('borealis') || command.includes('northern')) newTheme = 'aurora';
+      else if (command.includes('prism') || command.includes('luxe') || command.includes('diamond') || command.includes('crystal')) newTheme = 'prism';
+      else if (command.includes('solar') || command.includes('flare') || command.includes('sun') || command.includes('corona')) newTheme = 'solar';
+      else if (command.includes('emerald') || command.includes('synapse') || command.includes('neural') || command.includes('forest')) newTheme = 'emerald';
+      else if (command.includes('horizon') || command.includes('drift') || command.includes('speed') || command.includes('synth')) newTheme = 'neon-horizon';
+      else if (command.includes('cryo') || command.includes('sapphire') || command.includes('ice') || command.includes('frost')) newTheme = 'cryo';
+      else if (command.includes('quantum') || command.includes('flux') || command.includes('default') || command.includes('reset')) newTheme = 'quantum';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
-      if (newTheme !== 'nebula') document.body.classList.add(`theme-${newTheme}`);
+      if (newTheme !== 'quantum') document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        nebula: '🌌 Deep Space Nebula',
-        sunset: '🏜️ Sunset Mirage',
-        rainforest: '🌿 Neon Rainforest',
-        coral: '🪸 Deep Coral Reef',
-        daybreak: '🌅 Daybreak Horizon',
-        violet: '🔮 Electric Violet',
-        autumn: '🍂 Golden Autumn',
-        frost: '❄️ Mint Frosting'
+        quantum: '🌌 Quantum Flux',
+        cyberpunk: '⚡ Cyberpunk Matrix',
+        aurora: '🌊 Aurora Borealis',
+        prism: '💎 Prism Luxe',
+        solar: '🔥 Solar Flare',
+        emerald: '🌿 Emerald Synapse',
+        'neon-horizon': '🏎️ Neon Horizon',
+        cryo: '🧊 Cryo Sapphire'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;

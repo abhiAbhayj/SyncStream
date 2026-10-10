@@ -23,71 +23,71 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
-  'theme-sunset',
-  'theme-rainforest',
-  'theme-coral',
-  'theme-daybreak',
-  'theme-violet',
-  'theme-autumn',
-  'theme-frost'
+  'theme-cyberpunk',
+  'theme-aurora',
+  'theme-prism',
+  'theme-solar',
+  'theme-emerald',
+  'theme-neon-horizon',
+  'theme-cryo'
 ];
 
 const THEME_OPTIONS = [
   {
-    id: 'nebula',
-    name: '🌌 Deep Space Nebula',
-    desc: 'Interconnected constellation network with cosmic particle dust',
-    animation: 'Floating constellation graph',
-    swatch: ['#0f172a', '#38bdf8', '#ec4899', '#f472b6', '#fde047'],
+    id: 'quantum',
+    name: '🌌 Quantum Flux',
+    desc: 'Gravitational particle orbits & celestial stardust flux',
+    animation: 'Orbital gravity field',
+    swatch: ['#0d1127', '#8b5cf6', '#06b6d4', '#f43f5e', '#fbbf24'],
   },
   {
-    id: 'sunset',
-    name: '🏜️ Sunset Mirage',
-    desc: 'Rising solar embers with atmospheric heat haze ripples',
-    animation: 'Ascending campfire embers',
-    swatch: ['#450a0a', '#fb923c', '#ef4444', '#facc15', '#a3e635'],
+    id: 'cyberpunk',
+    name: '⚡ Cyberpunk Matrix',
+    desc: '3D perspective cyber grid with high-speed laser data packets',
+    animation: 'Perspective cyber grid',
+    swatch: ['#091326', '#00f5ff', '#f72585', '#10b981', '#fee440'],
   },
   {
-    id: 'rainforest',
-    name: '🌿 Neon Rainforest',
-    desc: 'Bioluminescent fireflies drifting over deep canopy shadows',
-    animation: 'Dancing bioluminescent fireflies',
-    swatch: ['#064e3b', '#34d399', '#6ee7b7', '#a7f3d0', '#fcd34d'],
+    id: 'aurora',
+    name: '🌊 Aurora Borealis',
+    desc: 'Multi-layered harmonic plasma curtains & ion folds',
+    animation: 'Harmonic plasma waves',
+    swatch: ['#06232a', '#10e796', '#38bdf8', '#a855f7', '#fde047'],
   },
   {
-    id: 'coral',
-    name: '🪸 Deep Coral Reef',
-    desc: 'Gentle layered underwater currents & ocean wave swells',
-    animation: 'Rolling iridescent ocean waves',
-    swatch: ['#115e59', '#fb7185', '#2dd4bf', '#5eead4', '#fda4af'],
+    id: 'prism',
+    name: '💎 Prism Luxe',
+    desc: '3D rotating crystalline geometries with refracted spectral rays',
+    animation: 'Refractive 3D crystals',
+    swatch: ['#1e0e29', '#f472b6', '#6366f1', '#ec4899', '#fef08a'],
   },
   {
-    id: 'daybreak',
-    name: '🌅 Daybreak Horizon',
-    desc: 'Expanding radial light pulses and luminous morning sunrise',
-    animation: 'Harmonic radial sonar rings',
-    swatch: ['#312e81', '#60a5fa', '#c084fc', '#f472b6', '#fde047'],
+    id: 'solar',
+    name: '🔥 Solar Flare',
+    desc: 'Coronal magnetic prominence loops & radiant plasma arcs',
+    animation: 'Coronal magnetic loops',
+    swatch: ['#240d07', '#f97316', '#e11d48', '#facc15', '#a21caf'],
   },
   {
-    id: 'violet',
-    name: '🔮 Electric Violet',
-    desc: 'Pulsing floating neon geometric polygons and cyber crystals',
-    animation: 'Spinning neon polyhedra',
-    swatch: ['#4c1d95', '#e879f9', '#c026d3', '#38bdf8', '#facc15'],
+    id: 'emerald',
+    name: '🌿 Emerald Synapse',
+    desc: 'Neural circuit pathways with high-speed synaptic data impulses',
+    animation: 'Synaptic neural matrix',
+    swatch: ['#042018', '#10b981', '#84cc16', '#14b8a6', '#d9f99d'],
   },
   {
-    id: 'autumn',
-    name: '🍂 Golden Autumn',
-    desc: 'Swirling golden vortex of autumn leaves and warm breeze',
-    animation: 'Swirling golden leaf vortex',
-    swatch: ['#78350f', '#fbbf24', '#f59e0b', '#f87171', '#fde68a'],
+    id: 'neon-horizon',
+    name: '🏎️ Neon Horizon',
+    desc: 'High-velocity warp perspective speed-streamers & horizon glow',
+    animation: 'Warp perspective speed trails',
+    swatch: ['#170c29', '#ff007f', '#00dfd8', '#7928ca', '#ff6b35'],
   },
   {
-    id: 'frost',
-    name: '❄️ Mint Frosting',
-    desc: 'Crisp winter snow crystals with soft pastel frosted light',
-    animation: 'Gentle falling snow drift',
-    swatch: ['#1e293b', '#14b8a6', '#2dd4bf', '#a7f3d0', '#fde68a'],
+    id: 'cryo',
+    name: '🧊 Cryo Sapphire',
+    desc: 'Hexagonal crystal shield matrix with rotating radar sweep',
+    animation: 'Hexagonal radar scanner',
+    swatch: ['#08192b', '#00e5ff', '#2563eb', '#6ee7b7', '#e2e8f0'],
   },
 ];
 
@@ -184,7 +184,7 @@ export default function Profile() {
   });
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'nebula';
+    return localStorage.getItem('syncstream_theme') || 'quantum';
   });
 
   const [loading, setLoading] = useState(false);
@@ -232,16 +232,16 @@ export default function Profile() {
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (newTheme !== 'nebula') {
+    if (newTheme !== 'quantum') {
       document.body.classList.add(`theme-${newTheme}`);
     }
   };
 
   React.useEffect(() => {
     return () => {
-      const currentPersisted = localStorage.getItem('syncstream_theme') || 'nebula';
+      const currentPersisted = localStorage.getItem('syncstream_theme') || 'quantum';
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      if (currentPersisted !== 'nebula') {
+      if (currentPersisted !== 'quantum') {
         document.body.classList.add(`theme-${currentPersisted}`);
       }
     };
@@ -537,7 +537,7 @@ export default function Profile() {
 
     localStorage.setItem('syncstream_theme', theme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (theme !== 'nebula') {
+    if (theme !== 'quantum') {
       document.body.classList.add(`theme-${theme}`);
     }
 

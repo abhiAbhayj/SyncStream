@@ -41,12 +41,20 @@ function AppContent() {
   const { currentTrack, songForPlaylistModal, closeAddToPlaylist } = useMusic();
 
   React.useEffect(() => {
-    const ALL_THEMES = ['theme-sunset', 'theme-rainforest', 'theme-coral', 'theme-daybreak', 'theme-violet', 'theme-autumn', 'theme-frost'];
-    const savedTheme = localStorage.getItem('syncstream_theme') || 'nebula';
+    const ALL_THEMES = [
+      'theme-cyberpunk',
+      'theme-aurora',
+      'theme-prism',
+      'theme-solar',
+      'theme-emerald',
+      'theme-neon-horizon',
+      'theme-cryo'
+    ];
+    const savedTheme = localStorage.getItem('syncstream_theme') || 'quantum';
     // Remove all theme classes first
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
     // Apply the saved theme
-    if (savedTheme !== 'nebula') {
+    if (savedTheme !== 'quantum') {
       document.body.classList.add(`theme-${savedTheme}`);
     }
   }, []);
