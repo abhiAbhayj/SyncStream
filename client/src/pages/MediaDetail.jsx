@@ -253,7 +253,7 @@ export default function MediaDetail() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-[#151c38] text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
+          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-darkCard/90 text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
         >
           <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
           <span>Back to Home</span>
@@ -371,12 +371,12 @@ export default function MediaDetail() {
             </h2>
 
             {/* Tab selection */}
-            <div className="flex items-center gap-2 border-2 border-white/25 p-1.5 rounded-2xl bg-[#121938] shadow-md">
+            <div className="flex items-center gap-2 border-2 border-white/20 p-1.5 rounded-2xl bg-darkCard/90 shadow-md">
               <button
                 onClick={() => setPlaybackMode('solo-embed')}
                 className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
                   playbackMode === 'solo-embed' 
-                    ? 'bg-cyan-500/30 text-white border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)] ring-1 ring-cyan-400' 
+                    ? 'bg-accentCyan/30 text-white border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan' 
                     : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -398,7 +398,7 @@ export default function MediaDetail() {
                 onClick={() => setPlaybackMode('solo-html5')}
                 className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
                   playbackMode === 'solo-html5' 
-                    ? 'bg-purple-500/30 text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.5)]' 
+                    ? 'bg-accentPurple/30 text-white border-accentPurple shadow-[0_0_15px_rgba(var(--accent-purple),0.5)]' 
                     : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -409,7 +409,7 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-3 border-2 border-cyan-400/60 bg-[#141d3e] p-4 sm:p-5 rounded-2xl shadow-xl">
+            <div className="space-y-3 border-2 border-accentCyan/50 bg-darkCard/90 p-4 sm:p-5 rounded-2xl shadow-xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-accentCyan" />
@@ -428,16 +428,16 @@ export default function MediaDetail() {
                     onClick={() => setEmbedServer(server.key)}
                     className={`group relative px-4 py-3 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 border-2 flex flex-col items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-lg text-center ${
                       embedServer === server.key
-                        ? 'border-cyan-400 bg-cyan-500/30 text-white shadow-[0_0_20px_rgba(6,182,212,0.6)] ring-2 ring-cyan-400'
-                        : 'border-white/25 bg-[#1b2550] text-gray-200 hover:text-white hover:border-cyan-400 hover:bg-[#253268]'
+                        ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] ring-2 ring-accentCyan'
+                        : 'border-white/20 bg-darkSurf/80 text-gray-200 hover:text-white hover:border-accentCyan hover:bg-darkCard'
                     }`}
                   >
                     <span className="text-white font-black text-xs sm:text-sm">{server.label}</span>
                     {server.badge && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-md border font-black ${
                         embedServer === server.key
-                          ? 'border-cyan-400 bg-cyan-500/40 text-cyan-200'
-                          : server.tagColor || 'text-cyan-300 bg-white/10 border-white/20'
+                          ? 'border-accentCyan/60 bg-accentCyan/40 text-white'
+                          : server.tagColor || 'text-accentCyan bg-white/10 border-white/20'
                       }`}>
                         {server.badge}
                       </span>
@@ -580,7 +580,7 @@ export default function MediaDetail() {
             /* Renders grid of chapters */
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[420px] overflow-y-auto pr-2">
               {chapters.length === 0 ? (
-                <div className="col-span-full py-8 text-center text-gray-300 border-2 border-dashed border-white/25 rounded-2xl bg-[#141b38]">
+                <div className="col-span-full py-8 text-center text-gray-300 border-2 border-dashed border-white/20 rounded-2xl bg-darkCard/80">
                   No English chapters found for this manga.
                 </div>
               ) : (
@@ -591,15 +591,15 @@ export default function MediaDetail() {
                       setActiveChapterId(ch.id);
                       setActiveChapterTitle(`Chapter ${ch.chapter}: ${ch.title}`);
                     }}
-                    className="bg-[#162046] border-2 border-white/25 hover:border-cyan-400 hover:bg-[#202c5c] text-left p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
+                    className="bg-darkSurf/80 border-2 border-white/20 hover:border-accentCyan hover:bg-darkCard text-left p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
                   >
                     <div className="space-y-1">
-                      <p className="text-xs font-black text-cyan-300">Chapter {ch.chapter}</p>
+                      <p className="text-xs font-black text-accentCyan">Chapter {ch.chapter}</p>
                       <p className="text-sm font-bold text-white truncate max-w-[180px]">
                         {ch.title}
                       </p>
                     </div>
-                    <Play className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform fill-current" />
+                    <Play className="w-4 h-4 text-accentCyan group-hover:scale-110 transition-transform fill-current" />
                   </button>
                 ))
               )}
@@ -628,18 +628,18 @@ export default function MediaDetail() {
                 : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
 
               return (
-                <div className="flex items-center gap-2 bg-[#162046] p-2 px-3.5 rounded-2xl border-2 border-cyan-400 shadow-lg">
-                  <span className="text-xs font-black text-cyan-300 uppercase tracking-wider">Season:</span>
+                <div className="flex items-center gap-2 bg-darkCard/90 p-2 px-3.5 rounded-2xl border-2 border-accentCyan shadow-lg">
+                  <span className="text-xs font-black text-accentCyan uppercase tracking-wider">Season:</span>
                   <select
                     value={activeSeason || 1}
                     onChange={(e) => {
                       setActiveSeason(parseInt(e.target.value, 10));
                       setActiveEpisode(1);
                     }}
-                    className="px-4 py-2 bg-[#0d132b] border-2 border-cyan-400/50 hover:border-cyan-400 rounded-xl text-xs sm:text-sm font-black text-white focus:outline-none focus:border-cyan-400 transition cursor-pointer shadow-inner"
+                    className="px-4 py-2 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-xs sm:text-sm font-black text-white focus:outline-none focus:border-accentCyan transition cursor-pointer shadow-inner"
                   >
                     {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-[#0d132b] text-white">
+                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg text-white">
                         {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
                       </option>
                     ))}
@@ -670,18 +670,18 @@ export default function MediaDetail() {
                       }}
                       className={`p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-lg ${
                         isSelected
-                          ? 'border-cyan-400 bg-cyan-500/30 text-white shadow-[0_0_20px_rgba(6,182,212,0.6)] ring-2 ring-cyan-400'
-                          : 'border-white/25 bg-[#162046] text-slate-100 hover:text-white hover:border-cyan-400 hover:bg-[#202c5c] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                          ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] ring-2 ring-accentCyan'
+                          : 'border-white/20 bg-darkSurf/80 text-slate-100 hover:text-white hover:border-accentCyan hover:bg-darkCard hover:shadow-[0_0_15px_rgba(var(--accent-cyan),0.3)]'
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <span className={`text-[11px] uppercase font-black px-2 py-0.5 rounded-md ${
-                          isSelected ? 'bg-cyan-400 text-black font-black' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 group-hover:bg-cyan-400 group-hover:text-black transition'
+                          isSelected ? 'bg-accentCyan text-black font-black' : 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 group-hover:bg-accentCyan group-hover:text-black transition'
                         }`}>
                           EP {epNum}
                         </span>
                         {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                          <span className="w-2 h-2 rounded-full bg-accentCyan animate-ping" />
                         )}
                       </div>
                       <span className="text-xs font-bold truncate w-full text-white drop-shadow-sm" title={epTitle}>

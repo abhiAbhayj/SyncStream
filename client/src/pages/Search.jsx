@@ -338,7 +338,7 @@ export default function Search() {
       <div>
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-[#151c38] text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
+          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-darkCard/90 text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
         >
           <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
           <span>Back to Home</span>
@@ -369,7 +369,7 @@ export default function Search() {
             executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
           }}
           disabled={loading}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border-2 border-accentCyan bg-accentCyan/25 hover:bg-accentCyan hover:text-black text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 shrink-0 self-center sm:self-auto cursor-pointer"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border-2 border-accentCyan bg-accentCyan/20 hover:bg-accentCyan hover:text-black text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 shrink-0 self-center sm:self-auto cursor-pointer"
           title="Refresh current live feed"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -377,44 +377,57 @@ export default function Search() {
         </button>
       </div>
 
-      {/* Category Toggle Tabs */}
-      <div className="flex items-center justify-start gap-2 border-b-2 border-white/20 pb-3 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
-        {filterTabs.map((tab) => {
-          const Icon = tab.icon;
-          const isSelected = type === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => handleTypeChange(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition active:scale-95 shrink-0 border-2 cursor-pointer shadow-md ${
-                isSelected
-                  ? 'bg-cyan-400 text-black border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)] ring-1 ring-cyan-400'
-                  : 'text-slate-200 border-white/25 bg-[#162046] hover:text-white hover:border-cyan-400 hover:bg-[#202c5c]'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Search and Filters Console (with integrated category tabs) */}
+      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/90 border-2 border-accentCyan/40 p-4 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl shadow-2xl">
+        
+        {/* Category Selector Tabs (Movies, TV Shows, Anime, Manga, Music) */}
+        <div className="space-y-1.5 border-b-2 border-white/10 pb-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-accentCyan">
+              Select Category:
+            </span>
+            <span className="text-[10px] text-gray-400 font-semibold hidden sm:inline">
+              Currently searching: <strong className="text-white capitalize">{type}</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-2 px-2 sm:mx-0 sm:px-0">
+            {filterTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isSelected = type === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => handleTypeChange(tab.key)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-200 active:scale-95 shrink-0 border-2 cursor-pointer shadow-md ${
+                    isSelected
+                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_16px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan'
+                      : 'text-slate-200 border-white/20 bg-darkSurf/80 hover:text-white hover:border-accentCyan/60 hover:bg-darkSurf'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* Search and Filters Console */}
-      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-[#121938] border-2 border-white/25 p-4 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-md shadow-2xl">
+        {/* Search Input Row */}
         <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3">
           <div className="relative flex-grow">
-            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 w-4 sm:w-5 h-4 sm:h-5" />
+            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accentCyan w-4 sm:w-5 h-4 sm:h-5" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'Artist, Movie, Series, Anime, or Song name' : 'manga entries'}...`}
-              className="w-full bg-[#0d132b] border-2 border-white/25 focus:border-cyan-400 rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition shadow-inner placeholder:text-gray-400 font-semibold"
+              className="w-full bg-darkBg/90 border-2 border-white/20 focus:border-accentCyan rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-400 font-semibold"
             />
           </div>
           <button
             type="submit"
-            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-black shadow-lg shadow-cyan-400/30 active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-accentCyan hover:opacity-90 text-black font-black shadow-lg shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
           >
             Search
           </button>
@@ -441,8 +454,8 @@ export default function Search() {
                 }}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
                   musicCategory === cat.id
-                    ? 'bg-cyan-400 text-black border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.5)]'
-                    : 'bg-[#162046] border-white/20 text-slate-200 hover:text-white hover:border-cyan-400'
+                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
+                    : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
                 }`}
               >
                 {cat.label}
@@ -454,7 +467,7 @@ export default function Search() {
         {/* Feed Selector Clips (Trending, Ongoing Anime, Latest, Upcoming, Top Rated) */}
         {type !== 'music' && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
-            <span className="text-cyan-300 font-black uppercase tracking-wider shrink-0 mr-1 text-[11px]">Feed:</span>
+            <span className="text-accentCyan font-black uppercase tracking-wider shrink-0 mr-1 text-[11px]">Feed:</span>
             {[
               { key: 'trending', label: '🔥 Trending Hits' },
               { key: 'ongoing', label: type === 'anime' ? '⚡ Ongoing Anime' : type === 'tv' ? '⚡ Ongoing TV Shows' : type === 'manga' ? '⚡ Ongoing Manga' : '⚡ Now In Theaters' },
@@ -468,8 +481,8 @@ export default function Search() {
                 onClick={() => handleSortChange(s.key)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
                   sort === s.key
-                    ? 'bg-cyan-400 text-black border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.5)]'
-                    : 'bg-[#162046] border-white/20 text-slate-200 hover:text-white hover:border-cyan-400'
+                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
+                    : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
                 }`}
               >
                 {s.label}
@@ -484,18 +497,18 @@ export default function Search() {
           {/* 1. MUSIC: Show Languages Dropdown */}
           {type === 'music' ? (
             <div className="flex items-center gap-2">
-              <span className="text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1">
                 <Globe className="w-3.5 h-3.5 text-accentCyan" />
                 <span>Language:</span>
               </span>
               <select
                 value={language}
                 onChange={(e) => handleLanguageChange(e.target.value)}
-                className="px-4 py-2.5 bg-[#0d132b] border-2 border-cyan-400/50 hover:border-cyan-400 rounded-xl text-white focus:outline-none focus:border-cyan-400 transition cursor-pointer font-black shadow-md"
+                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
               >
                 <option value="">All Hits</option>
                 {MUSIC_LANGUAGES.map(lang => (
-                  <option key={lang.key} value={lang.key} className="bg-[#0d132b] text-white">
+                  <option key={lang.key} value={lang.key} className="bg-darkBg text-white">
                     {lang.flag} {lang.label}
                   </option>
                 ))}
@@ -504,18 +517,18 @@ export default function Search() {
           ) : (
             /* 2. MOVIES/TV/ANIME/MANGA: Show Genre Dropdown */
             <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-black uppercase tracking-wider flex items-center gap-1">
+              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1">
                 <Filter className="w-3.5 h-3.5 text-accentCyan" />
                 <span>Genre:</span>
               </span>
               <select
                 value={genre}
                 onChange={(e) => handleGenreChange(e.target.value)}
-                className="px-4 py-2.5 bg-[#0d132b] border-2 border-cyan-400/50 hover:border-cyan-400 rounded-xl text-white focus:outline-none focus:border-cyan-400 transition cursor-pointer font-black max-w-[200px] truncate shadow-md"
+                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black max-w-[200px] truncate shadow-md"
               >
                 <option value="">All Genres</option>
                 {currentGenres.map(g => (
-                  <option key={g.key} value={g.key} className="bg-[#0d132b] text-white">{g.label}</option>
+                  <option key={g.key} value={g.key} className="bg-darkBg text-white">{g.label}</option>
                 ))}
               </select>
             </div>
@@ -524,11 +537,11 @@ export default function Search() {
           {/* Country select (only for Movie/TV) */}
           {(type === 'movie' || type === 'tv') && (
             <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-black uppercase tracking-wider">Country:</span>
+              <span className="text-accentCyan font-black uppercase tracking-wider">Country:</span>
               <select
                 value={country}
                 onChange={(e) => handleCountryChange(e.target.value)}
-                className="px-4 py-2.5 bg-[#0d132b] border-2 border-cyan-400/50 hover:border-cyan-400 rounded-xl text-white focus:outline-none focus:border-cyan-400 transition cursor-pointer font-black shadow-md"
+                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
               >
                 <option value="">All Countries</option>
                 {[
@@ -546,7 +559,7 @@ export default function Search() {
                   { key: 'AU', label: 'Australia' },
                   { key: 'TH', label: 'Thailand' }
                 ].map(c => (
-                  <option key={c.key} value={c.key} className="bg-[#0d132b] text-white">{c.label}</option>
+                  <option key={c.key} value={c.key} className="bg-darkBg text-white">{c.label}</option>
                 ))}
               </select>
             </div>
@@ -555,15 +568,15 @@ export default function Search() {
           {/* Year filter (for movie/tv/anime/manga, not music) */}
           {(type === 'movie' || type === 'tv' || type === 'anime' || type === 'manga') && (
             <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-black uppercase tracking-wider">Year:</span>
+              <span className="text-accentCyan font-black uppercase tracking-wider">Year:</span>
               <select
                 value={year}
                 onChange={(e) => handleYearChange(e.target.value)}
-                className="px-4 py-2.5 bg-[#0d132b] border-2 border-cyan-400/50 hover:border-cyan-400 rounded-xl text-white focus:outline-none focus:border-cyan-400 transition cursor-pointer font-black shadow-md"
+                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
               >
                 <option value="">All Years</option>
                 {Array.from({ length: new Date().getFullYear() - 1949 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                  <option key={y} value={String(y)} className="bg-[#0d132b] text-white">{y}</option>
+                  <option key={y} value={String(y)} className="bg-darkBg text-white">{y}</option>
                 ))}
               </select>
             </div>
