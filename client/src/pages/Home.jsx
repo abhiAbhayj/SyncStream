@@ -202,26 +202,10 @@ export default function Home() {
   }, []);
 
   const tabs = [
-    { 
-      id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-amber-500',
-      bg: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.08))',
-      animation: 'animate-fade-up'
-    },
-    { 
-      id: 'ongoing', label: 'Ongoing & Airing', icon: Activity, color: 'text-emerald-400',
-      bg: 'linear-gradient(135deg, rgba(52,211,153,0.15), rgba(16,185,129,0.08))',
-      animation: 'animate-slide-up'
-    },
-    { 
-      id: 'schedule', label: 'Release Schedules', icon: Calendar, color: 'text-cyan-400',
-      bg: 'linear-gradient(135deg, rgba(34,211,238,0.15), rgba(56,189,248,0.08))',
-      animation: 'animate-scale-in'
-    },
-    { 
-      id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400',
-      bg: 'linear-gradient(135deg, rgba(232,121,249,0.15), rgba(192,38,211,0.08))',
-      animation: 'animate-fade-in'
-    }
+    { id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-amber-500' },
+    { id: 'ongoing', label: 'Ongoing & Airing', icon: Activity, color: 'text-emerald-400' },
+    { id: 'schedule', label: 'Release Schedules', icon: Calendar, color: 'text-cyan-400' },
+    { id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400' }
   ];
 
   return (
@@ -309,7 +293,7 @@ export default function Home() {
             >
               {isSelected && (
                 <div className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-100" style={{
-                  background: tab.bg
+                  background: `linear-gradient(135deg, rgba(var(--accent-purple),0.15), rgba(var(--accent-cyan),0.08))`
                 }} />
               )}
               <Icon className={`relative w-4 h-4 transition-all duration-300 ${isSelected ? tab.color : 'text-gray-500 group-hover:text-gray-300'}`} />
@@ -363,12 +347,12 @@ export default function Home() {
       ) : media ? (
         <div className="space-y-12 transition-opacity duration-300">
           {activeTab === 'trending' && (
-            <div className={`space-y-16 ${tabs.find(t => t.id === 'trending').animation}`}>
+            <div className="space-y-16 animate-fade-in">
               <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink="/catalog/trending/movie" />
               <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink="/catalog/trending/tv" />
 
               {/* ── Music Streaming Showcase Card ── */}
-              <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(var(--accent-cyan),0.18)] flex flex-col md:flex-row items-center justify-between gap-6 group">
+              <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-6 group">
                 <div className="space-y-2 text-center md:text-left max-w-xl">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accentCyan/10 border border-accentCyan/20 text-accentCyan text-xs font-bold uppercase tracking-wider font-mono">
                     <Radio className="w-3.5 h-3.5 animate-pulse" />
@@ -383,7 +367,7 @@ export default function Home() {
                 </div>
                 <Link
                   to="/music"
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] hover:shadow-[0_0_30px_rgba(var(--accent-cyan),0.7)] transition active:scale-95 shrink-0"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
                 >
                   <Music className="w-4 h-4" />
                   <span>Open Music Portal</span>
@@ -401,7 +385,7 @@ export default function Home() {
           )}
 
           {activeTab === 'ongoing' && (
-            <div className={`space-y-16 ${tabs.find(t => t.id === 'ongoing').animation}`}>
+            <div className="space-y-16 animate-fade-in">
               <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink="/catalog/ongoing/movie" />
               <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink="/catalog/ongoing/tv" showTimings={true} />
               <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Currently Airing Anime (MAL)" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
@@ -410,7 +394,7 @@ export default function Home() {
           )}
 
           {activeTab === 'schedule' && (
-            <div className={`space-y-8 ${tabs.find(t => t.id === 'schedule').animation}`}>
+            <div className="space-y-8 animate-fade-in">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2 border-l-4 border-accentCyan pl-3 font-outfit">
                   Weekly Release Schedules
@@ -568,7 +552,7 @@ export default function Home() {
           )}
 
           {activeTab === 'upcoming' && (
-            <div className={`space-y-16 ${tabs.find(t => t.id === 'upcoming').animation}`}>
+            <div className="space-y-16 animate-fade-in">
               <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink="/catalog/upcoming/movie" />
               <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink="/catalog/upcoming/tv" />
               <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink="/catalog/upcoming/anime" />

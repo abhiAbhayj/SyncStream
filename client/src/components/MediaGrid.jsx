@@ -10,7 +10,7 @@ const TYPE_CONFIG = {
   movie: {
     badge: 'badge-movie',
     label: 'Movie',
-    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(var(--accent-cyan),0.2)]',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(99,210,255,0.2)]',
     playBg: 'bg-accentCyan',
     titleHover: 'group-hover:from-accentCyan group-hover:to-accentPurple',
   },
@@ -38,7 +38,7 @@ const TYPE_CONFIG = {
   music: {
     badge: 'badge-anime',
     label: 'Music',
-    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(var(--accent-cyan),0.3)]',
+    hoverGlow: 'group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(99,210,255,0.3)]',
     playBg: 'bg-accentCyan',
     titleHover: 'group-hover:from-accentCyan group-hover:to-accentPurple',
   }
@@ -104,7 +104,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                     playTrack(item, musicList.length > 0 ? musicList : [item]);
                   }
                 }}
-                className={`group media-card h-full rounded-2xl overflow-hidden transition-all duration-300 ${cfg.hoverGlow} animate-fade-up cursor-pointer border ${isCurrentPlaying ? 'border-accentCyan shadow-[0_0_20px_rgba(var(--accent-cyan),0.3)] bg-accentCyan/10' : 'border-white/10 bg-darkCard/60 hover:border-accentCyan/40'}`}
+                className={`group media-card h-full rounded-2xl overflow-hidden transition-all duration-300 ${cfg.hoverGlow} animate-fade-up cursor-pointer border ${isCurrentPlaying ? 'border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.3)] bg-accentCyan/10' : 'border-white/10 bg-darkCard/60 hover:border-accentCyan/40'}`}
                 style={{ animationDelay: `${index * 0.04}s`, animationFillMode: 'both' }}
               >
                 {/* ── Music Square Album Cover (1:1 Ratio) ── */}
@@ -132,7 +132,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
 
                   {/* Play / Pause button overlay */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <div className="bg-accentCyan text-black p-3 rounded-full shadow-[0_0_20px_rgba(var(--accent-cyan),0.8)] transform scale-90 group-hover:scale-100 transition-transform">
+                    <div className="bg-accentCyan text-black p-3 rounded-full shadow-[0_0_20px_rgba(99,210,255,0.8)] transform scale-90 group-hover:scale-100 transition-transform">
                       {isCurrentPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
                     </div>
                   </div>
