@@ -662,24 +662,20 @@ export default function VoiceAssistant() {
     }
 
     // 7. THEME INTENTS
-    if (command.includes('theme') || command.includes('quantum') || command.includes('cyber') || command.includes('matrix') || command.includes('aurora') || command.includes('prism') || command.includes('solar') || command.includes('flare') || command.includes('emerald') || command.includes('synapse') || command.includes('horizon') || command.includes('drift') || command.includes('cryo') || command.includes('sapphire')) {
+    if (command.includes('theme') || command.includes('quantum') || command.includes('cyber') || command.includes('matrix') || command.includes('monolith') || command.includes('chrono') || command.includes('gyro') || command.includes('solar') || command.includes('flare') || command.includes('emerald') || command.includes('synapse') || command.includes('horizon') || command.includes('drift')) {
       const ALL_THEMES = [
         'theme-cyberpunk',
-        'theme-aurora',
-        'theme-prism',
+        'theme-monolith',
         'theme-solar',
         'theme-emerald',
-        'theme-neon-horizon',
-        'theme-cryo'
+        'theme-neon-horizon'
       ];
       let newTheme = 'quantum';
       if (command.includes('cyber') || command.includes('matrix') || command.includes('hacker')) newTheme = 'cyberpunk';
-      else if (command.includes('aurora') || command.includes('borealis') || command.includes('northern')) newTheme = 'aurora';
-      else if (command.includes('prism') || command.includes('luxe') || command.includes('diamond') || command.includes('crystal')) newTheme = 'prism';
+      else if (command.includes('monolith') || command.includes('chrono') || command.includes('gyro') || command.includes('mercury')) newTheme = 'monolith';
       else if (command.includes('solar') || command.includes('flare') || command.includes('sun') || command.includes('corona')) newTheme = 'solar';
       else if (command.includes('emerald') || command.includes('synapse') || command.includes('neural') || command.includes('forest')) newTheme = 'emerald';
       else if (command.includes('horizon') || command.includes('drift') || command.includes('speed') || command.includes('synth')) newTheme = 'neon-horizon';
-      else if (command.includes('cryo') || command.includes('sapphire') || command.includes('ice') || command.includes('frost')) newTheme = 'cryo';
       else if (command.includes('quantum') || command.includes('flux') || command.includes('default') || command.includes('reset')) newTheme = 'quantum';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
@@ -688,12 +684,10 @@ export default function VoiceAssistant() {
       const labels = {
         quantum: '🌌 Quantum Flux',
         cyberpunk: '⚡ Cyberpunk Matrix',
-        aurora: '🌊 Aurora Borealis',
-        prism: '💎 Prism Luxe',
+        monolith: '🌑 Monolith Chrono',
         solar: '🔥 Solar Flare',
         emerald: '🌿 Emerald Synapse',
-        'neon-horizon': '🏎️ Neon Horizon',
-        cryo: '🧊 Cryo Sapphire'
+        'neon-horizon': '🏎️ Neon Horizon'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;

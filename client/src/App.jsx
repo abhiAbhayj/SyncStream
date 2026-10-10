@@ -43,12 +43,10 @@ function AppContent() {
   React.useEffect(() => {
     const ALL_THEMES = [
       'theme-cyberpunk',
-      'theme-aurora',
-      'theme-prism',
+      'theme-monolith',
       'theme-solar',
       'theme-emerald',
-      'theme-neon-horizon',
-      'theme-cryo'
+      'theme-neon-horizon'
     ];
     const savedTheme = localStorage.getItem('syncstream_theme') || 'quantum';
     // Remove all theme classes first

@@ -24,12 +24,10 @@ import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
   'theme-cyberpunk',
-  'theme-aurora',
-  'theme-prism',
+  'theme-monolith',
   'theme-solar',
   'theme-emerald',
-  'theme-neon-horizon',
-  'theme-cryo'
+  'theme-neon-horizon'
 ];
 
 const THEME_OPTIONS = [
@@ -37,35 +35,28 @@ const THEME_OPTIONS = [
     id: 'quantum',
     name: '🌌 Quantum Flux',
     desc: 'Gravitational particle orbits & celestial stardust flux',
-    animation: 'Orbital gravity field',
+    animation: 'Subtle orbital gravity field',
     swatch: ['#0d1127', '#8b5cf6', '#06b6d4', '#f43f5e', '#fbbf24'],
   },
   {
     id: 'cyberpunk',
     name: '⚡ Cyberpunk Matrix',
     desc: '3D perspective cyber grid with high-speed laser data packets',
-    animation: 'Perspective cyber grid',
+    animation: 'Ambient perspective cyber grid',
     swatch: ['#091326', '#00f5ff', '#f72585', '#10b981', '#fee440'],
   },
   {
-    id: 'aurora',
-    name: '🌊 Aurora Borealis',
-    desc: 'Multi-layered harmonic plasma curtains & ion folds',
-    animation: 'Harmonic plasma waves',
-    swatch: ['#06232a', '#10e796', '#38bdf8', '#a855f7', '#fde047'],
-  },
-  {
-    id: 'prism',
-    name: '💎 Prism Luxe',
-    desc: '3D rotating crystalline geometries with refracted spectral rays',
-    animation: 'Refractive 3D crystals',
-    swatch: ['#1e0e29', '#f472b6', '#6366f1', '#ec4899', '#fef08a'],
+    id: 'monolith',
+    name: '🌑 Monolith Chrono',
+    desc: 'Rotating 3D gyroscope rings with liquid mercury orbs & architectural crosshairs',
+    animation: 'Quantum Gyroscope & Liquid Mercury',
+    swatch: ['#050505', '#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'],
   },
   {
     id: 'solar',
     name: '🔥 Solar Flare',
     desc: 'Coronal magnetic prominence loops & radiant plasma arcs',
-    animation: 'Coronal magnetic loops',
+    animation: 'Coronal magnetic loops & embers',
     swatch: ['#240d07', '#f97316', '#e11d48', '#facc15', '#a21caf'],
   },
   {
@@ -81,13 +72,6 @@ const THEME_OPTIONS = [
     desc: 'High-velocity warp perspective speed-streamers & horizon glow',
     animation: 'Warp perspective speed trails',
     swatch: ['#170c29', '#ff007f', '#00dfd8', '#7928ca', '#ff6b35'],
-  },
-  {
-    id: 'cryo',
-    name: '🧊 Cryo Sapphire',
-    desc: 'Hexagonal crystal shield matrix with rotating radar sweep',
-    animation: 'Hexagonal radar scanner',
-    swatch: ['#08192b', '#00e5ff', '#2563eb', '#6ee7b7', '#e2e8f0'],
   },
 ];
 
