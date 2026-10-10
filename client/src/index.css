@@ -94,52 +94,7 @@ html, body, #root {
   --glow-3: rgba(239,  68,  68, 0.20);
 }
 
-.theme-monochrome .btn-primary,
-.theme-monochrome .btn-glow-purple,
-.theme-monochrome button[class*="from-accentCyan"] {
-  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #3b82f6 100%) !important;
-  color: #09090b !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35) !important;
-}
 
-.theme-monochrome .btn-primary *,
-.theme-monochrome button[class*="from-accentCyan"] * {
-  color: #09090b !important;
-}
-
-.theme-monochrome .text-gradient,
-.theme-monochrome .text-gradient-aurora {
-  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 40%, #60a5fa 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-
-.theme-monochrome .badge-movie,
-.theme-monochrome .badge-tv,
-.theme-monochrome .badge-anime,
-.theme-monochrome .badge-manga {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-
-.theme-monochrome .rating-pill {
-  background: rgba(0, 0, 0, 0.85) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-}
-
-.theme-monochrome input,
-.theme-monochrome textarea {
-  background-color: rgba(17, 17, 19, 0.95) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-.theme-monochrome input::placeholder {
-  color: #71717a !important;
-}
 
 /* ─────────────────────────────────────────────
    THEME 5: Glacial Prism 🧊 (Crystalline Aurora & Prismatic Rainbow)
@@ -201,26 +156,6 @@ html, body, #root {
   --glow-3: rgba(0,   212, 170, 0.25);
 }
 
-.theme-cyber .btn-primary,
-.theme-cyber .btn-glow-purple,
-.theme-cyber button[class*="from-accentCyan"] {
-  background: linear-gradient(135deg, #ffc700 0%, #e07a00 50%, #b45309 100%) !important;
-  color: #1a1002 !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 20px rgba(255, 199, 0, 0.40) !important;
-}
-
-.theme-cyber .btn-primary *,
-.theme-cyber button[class*="from-accentCyan"] * {
-  color: #1a1002 !important;
-}
-
-.theme-cyber .text-gradient,
-.theme-cyber .text-gradient-aurora {
-  background: linear-gradient(135deg, #ffffff 0%, #fff0aa 30%, #ffc700 70%, #e07a00 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
 
 /* ─────────────────────────────────────────────
    THEME 8: Bio-Luminescent Pandora 🌿 (Alien Jungle & Sacred Spores)

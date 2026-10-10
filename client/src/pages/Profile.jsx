@@ -18,7 +18,11 @@ import {
   Plus,
   Trash2,
   Edit3,
-  RotateCcw
+  RotateCcw,
+  Flame,
+  Activity,
+  Clock,
+  Radio
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,6 +43,8 @@ const THEME_OPTIONS = [
     desc: 'Deep space void, auroral plasma light curtains & linear hyperspace warp beams',
     animation: 'Auroral curtains & hyperspace warp beams',
     swatch: ['#05040a', '#a855f7', '#00f5d4', '#ff5964', '#ffd166'],
+    icon: Sparkles,
+    anim: 'animate-pulse'
   },
   {
     id: 'inferno',
@@ -46,6 +52,8 @@ const THEME_OPTIONS = [
     desc: 'Smoked obsidian crucible, solar plasma prominences & coronal flare arcs',
     animation: 'Solar plasma prominence arcs & sparks',
     swatch: ['#0f0705', '#ff5500', '#ff0044', '#ffbb00', '#9900ff'],
+    icon: Flame,
+    anim: 'animate-pulse-glow'
   },
   {
     id: 'matrix',
@@ -53,6 +61,8 @@ const THEME_OPTIONS = [
     desc: 'Carbon void, dynamic 3D hexagonal energy shield & laser ray conduits',
     animation: 'Hexagonal energy shield & laser network',
     swatch: ['#04070d', '#00f0ff', '#ff007f', '#00ff66', '#7000ff'],
+    icon: Activity,
+    anim: 'animate-shimmer'
   },
   {
     id: 'monochrome',
@@ -60,6 +70,8 @@ const THEME_OPTIONS = [
     desc: 'Pitch monolith, 3D rotating tesseract hypercubes & digital oscilloscope beams',
     animation: '3D tesseract hypercubes & oscilloscope lasers',
     swatch: ['#050505', '#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'],
+    icon: Clock,
+    anim: 'animate-spin-slow'
   },
   {
     id: 'arctic',
@@ -67,6 +79,8 @@ const THEME_OPTIONS = [
     desc: 'Deep glacial void, rotating 3D quartz crystals & refracting rainbow rays',
     animation: 'Rotating 3D quartz & prismatic rainbow rays',
     swatch: ['#030a16', '#38bdf8', '#ec4899', '#34d399', '#f0fdf4'],
+    icon: Palette,
+    anim: 'animate-pulse-glow'
   },
   {
     id: 'tokyo',
@@ -74,6 +88,8 @@ const THEME_OPTIONS = [
     desc: 'Sunset plum, infinite 3D outrun wireframe road & striped neon sun',
     animation: '3D outrun wireframe road & striped sun',
     swatch: ['#12041a', '#ff455b', '#00f5ff', '#bf00ff', '#ffe600'],
+    icon: Radio,
+    anim: 'animate-pulse'
   },
   {
     id: 'cyber',
@@ -81,6 +97,8 @@ const THEME_OPTIONS = [
     desc: 'Royal bronze noir, cascading 24K gold silk streams & 3D rotating gold ingots',
     animation: 'Liquid gold silk streams & 3D gold ingots',
     swatch: ['#0e0b06', '#ffc700', '#e07a00', '#fff0aa', '#00d4aa'],
+    icon: Sparkles,
+    anim: 'animate-bounce-subtle'
   },
   {
     id: 'amethyst',
@@ -88,6 +106,8 @@ const THEME_OPTIONS = [
     desc: 'Deep alien night, swimming bioluminescent jellyfish fauna & river of light waves',
     animation: 'Swimming jellyfish fauna & bioluminescent river',
     swatch: ['#020b08', '#00ff88', '#ff2a85', '#00e5ff', '#b4ff39'],
+    icon: Activity,
+    anim: 'animate-pulse'
   },
 ];
 
@@ -832,7 +852,7 @@ export default function Profile() {
                     </p>
                     <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">{t.desc}</p>
                     <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-accentCyan">
-                      <Sparkles className="w-2.5 h-2.5 animate-pulse" />
+                      {t.icon && <t.icon className={`w-2.5 h-2.5 ${t.anim}`} />}
                       <span>{t.animation}</span>
                     </div>
 
