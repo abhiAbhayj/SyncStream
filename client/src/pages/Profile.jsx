@@ -23,71 +23,71 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
-  'theme-inferno',
-  'theme-matrix',
-  'theme-monochrome',
-  'theme-arctic',
-  'theme-tokyo',
-  'theme-cyber',
-  'theme-amethyst'
+  'theme-sunset',
+  'theme-rainforest',
+  'theme-coral',
+  'theme-daybreak',
+  'theme-violet',
+  'theme-autumn',
+  'theme-frost'
 ];
 
 const THEME_OPTIONS = [
   {
-    id: 'ocean',
-    name: '🟩 LifeGrid Neon',
-    desc: 'Real-time Conway\'s Game of Life cellular automaton grid',
-    animation: 'Interactive Game of Life cells',
-    swatch: ['#04060a', '#00ffaa', '#aa00ff', '#ff00aa', '#ffff00'],
+    id: 'nebula',
+    name: '🌌 Deep Space Nebula',
+    desc: 'Interconnected constellation network with cosmic particle dust',
+    animation: 'Floating constellation graph',
+    swatch: ['#0f172a', '#38bdf8', '#ec4899', '#f472b6', '#fde047'],
   },
   {
-    id: 'inferno',
-    name: '💽 Retro Bounce',
-    desc: 'Bouncing DVD logos with colorful trails',
-    animation: 'DVD logo bouncing physics',
-    swatch: ['#08080c', '#ff00ff', '#00ffff', '#ffff00', '#ff8000'],
+    id: 'sunset',
+    name: '🏜️ Sunset Mirage',
+    desc: 'Rising solar embers with atmospheric heat haze ripples',
+    animation: 'Ascending campfire embers',
+    swatch: ['#450a0a', '#fb923c', '#ef4444', '#facc15', '#a3e635'],
   },
   {
-    id: 'matrix',
-    name: '🌳 Neon Roots',
-    desc: 'Fractal branching trees that grow and sway in the wind',
-    animation: 'Swaying fractal trees',
-    swatch: ['#000a05', '#80ff00', '#00ff80', '#ff8000', '#ffc800'],
+    id: 'rainforest',
+    name: '🌿 Neon Rainforest',
+    desc: 'Bioluminescent fireflies drifting over deep canopy shadows',
+    animation: 'Dancing bioluminescent fireflies',
+    swatch: ['#064e3b', '#34d399', '#6ee7b7', '#a7f3d0', '#fcd34d'],
   },
   {
-    id: 'monochrome',
-    name: '🧬 Helix Genesis',
-    desc: '3D rotating double helix DNA strand made of glowing particles',
-    animation: '3D DNA double helix',
-    swatch: ['#0a050f', '#0080ff', '#ff0080', '#8000ff', '#ffffff'],
+    id: 'coral',
+    name: '🪸 Deep Coral Reef',
+    desc: 'Gentle layered underwater currents & ocean wave swells',
+    animation: 'Rolling iridescent ocean waves',
+    swatch: ['#115e59', '#fb7185', '#2dd4bf', '#5eead4', '#fda4af'],
   },
   {
-    id: 'arctic',
-    name: '🦅 Swarm Intelligence',
-    desc: 'Flocking boids simulating organic flight patterns',
-    animation: 'Interactive flocking boids',
-    swatch: ['#050f19', '#00ffff', '#ffffff', '#0080ff', '#80ffff'],
+    id: 'daybreak',
+    name: '🌅 Daybreak Horizon',
+    desc: 'Expanding radial light pulses and luminous morning sunrise',
+    animation: 'Harmonic radial sonar rings',
+    swatch: ['#312e81', '#60a5fa', '#c084fc', '#f472b6', '#fde047'],
   },
   {
-    id: 'tokyo',
-    name: '🚇 Warp Tunnel',
-    desc: 'Hyper-speed 3D tunnel flying effect',
-    animation: '3D hyperspeed tunnel',
-    swatch: ['#0a000a', '#ff0000', '#ff8000', '#ffff00', '#ffffff'],
+    id: 'violet',
+    name: '🔮 Electric Violet',
+    desc: 'Pulsing floating neon geometric polygons and cyber crystals',
+    animation: 'Spinning neon polyhedra',
+    swatch: ['#4c1d95', '#e879f9', '#c026d3', '#38bdf8', '#facc15'],
   },
   {
-    id: 'cyber',
-    name: '💧 Liquid Neon',
-    desc: 'Fluid physics simulation with flow fields',
-    animation: 'Flow field liquid physics',
-    swatch: ['#0f0f00', '#00ffff', '#ff00ff', '#ffff00', '#ff8000'],
+    id: 'autumn',
+    name: '🍂 Golden Autumn',
+    desc: 'Swirling golden vortex of autumn leaves and warm breeze',
+    animation: 'Swirling golden leaf vortex',
+    swatch: ['#78350f', '#fbbf24', '#f59e0b', '#f87171', '#fde68a'],
   },
   {
-    id: 'amethyst',
-    name: '🌸 Windy Sakura',
-    desc: 'Falling cherry blossoms with swirling wind physics',
-    animation: 'Cherry blossoms and wind',
-    swatch: ['#0f050a', '#ffb7c5', '#ff69b4', '#ff1493', '#ffffff'],
+    id: 'frost',
+    name: '❄️ Mint Frosting',
+    desc: 'Crisp winter snow crystals with soft pastel frosted light',
+    animation: 'Gentle falling snow drift',
+    swatch: ['#1e293b', '#14b8a6', '#2dd4bf', '#a7f3d0', '#fde68a'],
   },
 ];
 
@@ -184,7 +184,7 @@ export default function Profile() {
   });
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'ocean';
+    return localStorage.getItem('syncstream_theme') || 'nebula';
   });
 
   const [loading, setLoading] = useState(false);
@@ -232,16 +232,16 @@ export default function Profile() {
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (newTheme !== 'ocean') {
+    if (newTheme !== 'nebula') {
       document.body.classList.add(`theme-${newTheme}`);
     }
   };
 
   React.useEffect(() => {
     return () => {
-      const currentPersisted = localStorage.getItem('syncstream_theme') || 'ocean';
+      const currentPersisted = localStorage.getItem('syncstream_theme') || 'nebula';
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      if (currentPersisted !== 'ocean') {
+      if (currentPersisted !== 'nebula') {
         document.body.classList.add(`theme-${currentPersisted}`);
       }
     };
@@ -537,7 +537,7 @@ export default function Profile() {
 
     localStorage.setItem('syncstream_theme', theme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (theme !== 'ocean') {
+    if (theme !== 'nebula') {
       document.body.classList.add(`theme-${theme}`);
     }
 
