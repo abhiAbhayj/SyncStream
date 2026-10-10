@@ -338,9 +338,9 @@ export default function Search() {
       <div>
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
+          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-[#151c38] text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
         >
-          <ArrowLeft className="w-4 h-4 text-accentCyan" />
+          <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
           <span>Back to Home</span>
         </button>
       </div>
@@ -352,12 +352,12 @@ export default function Search() {
             <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit">
               Federated Discovery Engine
             </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/25 border-2 border-emerald-400 text-emerald-300 font-mono shadow-[0_0_12px_rgba(16,185,129,0.4)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               Live
             </span>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-slate-200">
             Query multiple global and regional catalogs simultaneously to stream movies, series, anime, manga, and music.
           </p>
         </div>
@@ -369,10 +369,10 @@ export default function Search() {
             executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
           }}
           disabled={loading}
-          className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition active:scale-95 shrink-0 self-center sm:self-auto"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border-2 border-accentCyan bg-accentCyan/25 hover:bg-accentCyan hover:text-black text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 shrink-0 self-center sm:self-auto cursor-pointer"
           title="Refresh current live feed"
         >
-          <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           <span>Live Refresh</span>
         </button>
       </div>

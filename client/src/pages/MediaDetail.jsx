@@ -253,9 +253,9 @@ export default function MediaDetail() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
+          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-[#151c38] text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
         >
-          <ArrowLeft className="w-4 h-4 text-accentCyan" />
+          <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
           <span>Back to Home</span>
         </button>
       </div>
@@ -403,14 +403,14 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-3 border-2 border-accentCyan/50 bg-[#121936] p-4 sm:p-5 rounded-2xl shadow-2xl">
+            <div className="space-y-2.5 border-2 border-accentCyan/30 bg-gradient-to-r from-accentCyan/5 via-darkCard/80 to-accentPurple/5 p-3.5 sm:p-4 rounded-2xl shadow-xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accentCyan" />
                   <span className="text-xs sm:text-sm text-white font-black uppercase tracking-wider">Free Streaming Servers:</span>
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black border border-emerald-500/40 shadow-sm">● 100% Free</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">● 100% Free</span>
                 </div>
-                <span className="text-xs text-gray-300 font-medium">
+                <span className="text-[11px] text-gray-400">
                   Switch server if a stream is buffering or fails to load
                 </span>
               </div>
@@ -420,18 +420,18 @@ export default function MediaDetail() {
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs font-black transition-all duration-200 border-2 flex items-center gap-2 active:scale-95 cursor-pointer shadow-md ${
+                    className={`group relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all duration-200 border flex items-center gap-2 active:scale-95 ${
                       embedServer === server.key
-                        ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(99,210,255,0.5)] ring-2 ring-accentCyan/70'
-                        : 'border-white/25 bg-[#1a2347] text-gray-200 hover:text-white hover:border-accentCyan/60 hover:bg-[#232f5e]'
+                        ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/40'
+                        : 'border-white/10 bg-darkCard/80 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-white/5'
                     }`}
                   >
-                    <span className="text-white font-bold">{server.label}</span>
+                    <span>{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-black ${
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-bold ${
                         embedServer === server.key
-                          ? 'border-accentCyan/60 bg-accentCyan/40 text-white'
-                          : server.tagColor || 'text-gray-300 bg-white/10 border-white/20'
+                          ? 'border-accentCyan/40 bg-accentCyan/30 text-accentCyan'
+                          : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
                       }`}>
                         {server.badge}
                       </span>
@@ -605,10 +605,10 @@ export default function MediaDetail() {
       {/* Episodes List (Anime and TV content) */}
       {(type === 'anime' || type === 'tv') && (
         <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b-2 border-accentCyan/30 pb-3">
-            <h2 className="text-xl font-black text-white flex items-center gap-2 font-outfit">
-              <Tv className="w-5 h-5 text-accentCyan" />
-              <span>{type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}</span>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b-2 border-white/20 pb-3">
+            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 font-outfit drop-shadow-md">
+              <Tv className="w-6 h-6 text-accentCyan" />
+              {type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}
             </h2>
 
             {/* Season Selector for TV Shows & Anime */}
@@ -622,18 +622,18 @@ export default function MediaDetail() {
                 : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
 
               return (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-gray-200 uppercase tracking-wider">Season:</span>
+                <div className="flex items-center gap-2 bg-[#1a2347] p-1.5 px-3 rounded-2xl border-2 border-accentCyan/50 shadow-md">
+                  <span className="text-xs font-black text-accentCyan uppercase tracking-wider">Season:</span>
                   <select
                     value={activeSeason || 1}
                     onChange={(e) => {
                       setActiveSeason(parseInt(e.target.value, 10));
                       setActiveEpisode(1);
                     }}
-                    className="px-4 py-2 bg-darkCard border-2 border-accentCyan/40 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-accentCyan transition cursor-pointer shadow-md"
+                    className="px-4 py-2 bg-[#0f142b] border-2 border-white/30 rounded-xl text-xs sm:text-sm font-black text-white focus:outline-none focus:border-accentCyan transition cursor-pointer shadow-inner"
                   >
                     {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg text-white">
+                      <option key={s.id || s.season_number} value={s.season_number} className="bg-[#0f142b] text-white">
                         {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
                       </option>
                     ))}
@@ -643,7 +643,7 @@ export default function MediaDetail() {
             })()}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[400px] overflow-y-auto pr-2 text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[380px] overflow-y-auto pr-2 text-left">
             {(() => {
                 const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
                 const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
@@ -664,16 +664,21 @@ export default function MediaDetail() {
                       }}
                       className={`p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-lg ${
                         isSelected
-                          ? 'border-accentCyan bg-accentCyan/25 text-white shadow-[0_0_20px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/60'
-                          : 'border-white/20 bg-darkCard hover:border-accentCyan hover:bg-darkCard/90 hover:shadow-md'
+                          ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] ring-2 ring-accentCyan'
+                          : 'border-white/20 bg-[#161e3d] text-slate-200 hover:text-white hover:border-accentCyan/70 hover:bg-[#202c59] hover:shadow-[0_0_15px_rgba(var(--accent-cyan),0.3)]'
                       }`}
                     >
-                      <span className={`text-[11px] uppercase font-black tracking-wider ${
-                        isSelected ? 'text-accentCyan' : 'text-accentPurple group-hover:text-accentCyan'
-                      }`}>
-                        Episode {epNum}
-                      </span>
-                      <span className="text-xs font-bold truncate w-full text-white" title={epTitle}>
+                      <div className="flex items-center justify-between w-full">
+                        <span className={`text-[11px] uppercase font-black px-2 py-0.5 rounded-md ${
+                          isSelected ? 'bg-accentCyan text-black font-extrabold' : 'bg-white/10 text-accentCyan group-hover:bg-accentCyan group-hover:text-black transition'
+                        }`}>
+                          EP {epNum}
+                        </span>
+                        {isSelected && (
+                          <span className="w-2 h-2 rounded-full bg-accentCyan animate-ping" />
+                        )}
+                      </div>
+                      <span className="text-xs font-bold truncate w-full text-white drop-shadow-sm" title={epTitle}>
                         {epTitle}
                       </span>
                     </button>

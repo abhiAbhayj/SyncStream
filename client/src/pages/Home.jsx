@@ -305,17 +305,19 @@ export default function Home() {
         {/* Live refresh button + last-updated timestamp */}
         <div className="ml-auto shrink-0 flex items-center gap-2 pl-2">
           {lastUpdated && (
-            <span className="text-[10px] text-gray-600 hidden sm:block whitespace-nowrap">
-              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <span className="text-[11px] font-black text-slate-300 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#141b38] border border-white/20 whitespace-nowrap">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+              <span>Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </span>
           )}
           <button
             onClick={() => fetchCatalog(true)}
             disabled={loading}
             title="Refresh catalog now"
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-500 hover:text-accentCyan border border-white/[0.06] transition active:scale-90 disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#151c38] hover:bg-accentCyan hover:text-black text-white border-2 border-accentCyan font-extrabold text-xs shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
