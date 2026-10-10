@@ -247,10 +247,10 @@ export default function MediaDetail() {
   }
 
   return (
-    <div className="space-y-12 pb-16">
+    <div className="space-y-6 sm:space-y-8 pb-16">
       
       {/* Back Button */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
         <button
           onClick={() => navigate(-1)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm"
@@ -363,15 +363,15 @@ export default function MediaDetail() {
 
       {/* Media Player Console (Video content) */}
       {type !== 'manga' && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
-          <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 font-outfit">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-3">
+          <div className="flex items-center justify-between border-b border-darkBorder pb-2.5 flex-wrap gap-3">
+            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2 font-outfit">
               <Film className="w-5 h-5 text-accentCyan" />
               Solo Stream Player Console
             </h2>
 
             {/* Tab selection */}
-            <div className="flex items-center gap-2 border border-darkBorder p-1 rounded-xl bg-black/20">
+            <div className="flex items-center gap-1.5 border border-darkBorder p-1 rounded-xl bg-black/20">
               <button
                 onClick={() => setPlaybackMode('solo-embed')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
@@ -384,10 +384,10 @@ export default function MediaDetail() {
                 <button
                   onClick={() => setPlaybackMode('trailer')}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                    playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                    playbackMode === 'trailer' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  YouTube Trailer
+                  ▶ YouTube Trailer
                 </button>
               )}
               <button
@@ -403,7 +403,7 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-3 border-2 border-accentCyan/30 bg-gradient-to-r from-accentCyan/5 via-darkCard/80 to-accentPurple/5 p-4 sm:p-5 rounded-2xl shadow-xl">
+            <div className="space-y-2.5 border-2 border-accentCyan/30 bg-gradient-to-r from-accentCyan/5 via-darkCard/80 to-accentPurple/5 p-3.5 sm:p-4 rounded-2xl shadow-xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accentCyan" />
@@ -415,12 +415,12 @@ export default function MediaDetail() {
                 </span>
               </div>
               
-              <div className="flex items-center gap-2 flex-wrap pt-1">
+              <div className="flex items-center gap-2 flex-wrap pt-0.5">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 border flex items-center gap-2 active:scale-95 ${
+                    className={`group relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all duration-200 border flex items-center gap-2 active:scale-95 ${
                       embedServer === server.key
                         ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/40'
                         : 'border-white/10 bg-darkCard/80 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-white/5'
@@ -443,7 +443,7 @@ export default function MediaDetail() {
           )}
 
           {/* Render Player based on mode */}
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto pt-1">
             {playbackMode === 'trailer' && detail.youtube_trailer && (
               <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl">
                 <iframe
@@ -604,15 +604,15 @@ export default function MediaDetail() {
 
       {/* Episodes List (Anime and TV content) */}
       {(type === 'anime' || type === 'tv') && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-darkBorder pb-4">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-darkBorder pb-3">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 font-outfit">
               <Tv className="w-5 h-5 text-accentCyan" />
               {type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}
             </h2>
 
             {/* Season Selector for TV Shows & Anime */}
-            {(type === 'tv' || type === 'anime') && detail.seasons && detail.seasons.length > 0 && (
+            {((detail.seasons && detail.seasons.length > 0) || type === 'anime' || type === 'tv') && (
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
                 <select
@@ -623,9 +623,9 @@ export default function MediaDetail() {
                   }}
                   className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer"
                 >
-                  {detail.seasons.map((s) => (
+                  {(detail.seasons && detail.seasons.length > 0 ? detail.seasons : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }]).map((s) => (
                     <option key={s.id} value={s.season_number} className="bg-darkBg">
-                      {s.name} ({s.episode_count} eps)
+                      {s.name} ({s.episode_count || detail.episodes_count || 12} eps)
                     </option>
                   ))}
                 </select>
@@ -633,17 +633,16 @@ export default function MediaDetail() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[300px] overflow-y-auto pr-2 text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[350px] overflow-y-auto pr-2 text-left">
             {(() => {
-                // TV Shows & Anime episode list (powered seamlessly by TMDB Seasons API)
                 const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
-                const epCount = currentSeasonInfo ? currentSeasonInfo.episode_count : (detail.episodes_count || 1);
+                const epCount = currentSeasonInfo ? (currentSeasonInfo.episode_count || 12) : (detail.episodes_count || 12);
                 
-                return Array.from({ length: epCount }, (_, i) => {
+                return Array.from({ length: Math.max(epCount, 1) }, (_, i) => {
                   const epNum = i + 1;
                   const isSelected = activeEpisode === epNum;
                   const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
-                  const epTitle = epDetail?.name || `Play Episode`;
+                  const epTitle = epDetail?.name || `Episode ${epNum}`;
                   
                   return (
                     <button
@@ -652,10 +651,10 @@ export default function MediaDetail() {
                         setActiveEpisode(epNum);
                         setPlaybackMode('solo-embed');
                       }}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col gap-1 group ${
+                      className={`p-3 rounded-xl border text-left transition flex flex-col gap-1 group active:scale-95 ${
                         isSelected
-                          ? 'border-accentCyan bg-accentCyan/15 text-accentCyan'
-                          : 'border-darkBorder bg-darkCard/50 text-gray-400 hover:text-white hover:border-white/20'
+                          ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_12px_rgba(99,210,255,0.3)]'
+                          : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/30 hover:bg-darkCard'
                       }`}
                     >
                       <span className="text-[10px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
