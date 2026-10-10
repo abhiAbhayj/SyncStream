@@ -403,14 +403,14 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-2.5 border-2 border-accentCyan/30 bg-gradient-to-r from-accentCyan/5 via-darkCard/80 to-accentPurple/5 p-3.5 sm:p-4 rounded-2xl shadow-xl">
+            <div className="space-y-3 border-2 border-accentCyan/50 bg-[#121936] p-4 sm:p-5 rounded-2xl shadow-2xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accentCyan" />
                   <span className="text-xs sm:text-sm text-white font-black uppercase tracking-wider">Free Streaming Servers:</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">● 100% Free</span>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black border border-emerald-500/40 shadow-sm">● 100% Free</span>
                 </div>
-                <span className="text-[11px] text-gray-400">
+                <span className="text-xs text-gray-300 font-medium">
                   Switch server if a stream is buffering or fails to load
                 </span>
               </div>
@@ -420,18 +420,18 @@ export default function MediaDetail() {
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all duration-200 border flex items-center gap-2 active:scale-95 ${
+                    className={`group relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs font-black transition-all duration-200 border-2 flex items-center gap-2 active:scale-95 cursor-pointer shadow-md ${
                       embedServer === server.key
-                        ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/40'
-                        : 'border-white/10 bg-darkCard/80 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-white/5'
+                        ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(99,210,255,0.5)] ring-2 ring-accentCyan/70'
+                        : 'border-white/25 bg-[#1a2347] text-gray-200 hover:text-white hover:border-accentCyan/60 hover:bg-[#232f5e]'
                     }`}
                   >
-                    <span>{server.label}</span>
+                    <span className="text-white font-bold">{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-bold ${
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-black ${
                         embedServer === server.key
-                          ? 'border-accentCyan/40 bg-accentCyan/30 text-accentCyan'
-                          : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
+                          ? 'border-accentCyan/60 bg-accentCyan/40 text-white'
+                          : server.tagColor || 'text-gray-300 bg-white/10 border-white/20'
                       }`}>
                         {server.badge}
                       </span>
@@ -605,10 +605,10 @@ export default function MediaDetail() {
       {/* Episodes List (Anime and TV content) */}
       {(type === 'anime' || type === 'tv') && (
         <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-darkBorder pb-3">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 font-outfit">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b-2 border-accentCyan/30 pb-3">
+            <h2 className="text-xl font-black text-white flex items-center gap-2 font-outfit">
               <Tv className="w-5 h-5 text-accentCyan" />
-              {type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}
+              <span>{type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}</span>
             </h2>
 
             {/* Season Selector for TV Shows & Anime */}
@@ -623,17 +623,17 @@ export default function MediaDetail() {
 
               return (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
+                  <span className="text-xs font-black text-gray-200 uppercase tracking-wider">Season:</span>
                   <select
                     value={activeSeason || 1}
                     onChange={(e) => {
                       setActiveSeason(parseInt(e.target.value, 10));
                       setActiveEpisode(1);
                     }}
-                    className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer"
+                    className="px-4 py-2 bg-darkCard border-2 border-accentCyan/40 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-accentCyan transition cursor-pointer shadow-md"
                   >
                     {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg">
+                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg text-white">
                         {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
                       </option>
                     ))}
@@ -643,7 +643,7 @@ export default function MediaDetail() {
             })()}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[350px] overflow-y-auto pr-2 text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[400px] overflow-y-auto pr-2 text-left">
             {(() => {
                 const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
                 const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
@@ -662,16 +662,18 @@ export default function MediaDetail() {
                         setActiveEpisode(epNum);
                         setPlaybackMode('solo-embed');
                       }}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col gap-1 group active:scale-95 ${
+                      className={`p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-lg ${
                         isSelected
-                          ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_12px_rgba(99,210,255,0.3)]'
-                          : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/30 hover:bg-darkCard'
+                          ? 'border-accentCyan bg-accentCyan/25 text-white shadow-[0_0_20px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/60'
+                          : 'border-white/20 bg-darkCard hover:border-accentCyan hover:bg-darkCard/90 hover:shadow-md'
                       }`}
                     >
-                      <span className="text-[10px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
+                      <span className={`text-[11px] uppercase font-black tracking-wider ${
+                        isSelected ? 'text-accentCyan' : 'text-accentPurple group-hover:text-accentCyan'
+                      }`}>
                         Episode {epNum}
                       </span>
-                      <span className="text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                      <span className="text-xs font-bold truncate w-full text-white" title={epTitle}>
                         {epTitle}
                       </span>
                     </button>

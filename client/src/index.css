@@ -429,8 +429,6 @@
    BASE
 ───────────────────────────────────────────── */
 @layer base {
-  * { @apply border-white/5; }
-
   html { scroll-behavior: smooth; }
 
   body {
