@@ -115,15 +115,9 @@ export default function MediaDetail() {
           }
         }
 
-        // If movie/tv/anime we default to trailer, but if play=true or episode param is present, or if no trailer is present, fallback to Embed player
+        // Default directly to solo-embed so verified free streaming servers are visible immediately
         if (type !== 'manga') {
-          if (urlPlay === 'true' || urlEpisode) {
-            setPlaybackMode('solo-embed');
-          } else if (detailData.youtube_trailer) {
-            setPlaybackMode('trailer');
-          } else {
-            setPlaybackMode('solo-embed');
-          }
+          setPlaybackMode('solo-embed');
         }
 
         // If manga, fetch chapters list
@@ -378,6 +372,14 @@ export default function MediaDetail() {
 
             {/* Tab selection */}
             <div className="flex items-center gap-2 border border-darkBorder p-1 rounded-xl bg-black/20">
+              <button
+                onClick={() => setPlaybackMode('solo-embed')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
+                  playbackMode === 'solo-embed' ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shadow-[0_0_10px_rgba(99,210,255,0.3)]' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🎬 Free Streaming Servers
+              </button>
               {detail.youtube_trailer && (
                 <button
                   onClick={() => setPlaybackMode('trailer')}
@@ -388,14 +390,6 @@ export default function MediaDetail() {
                   YouTube Trailer
                 </button>
               )}
-              <button
-                onClick={() => setPlaybackMode('solo-embed')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Standard Embed
-              </button>
               <button
                 onClick={() => setPlaybackMode('solo-html5')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
@@ -409,11 +403,12 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-2 border border-darkBorder bg-black/30 p-4 rounded-2xl">
+            <div className="space-y-3 border-2 border-accentCyan/30 bg-gradient-to-r from-accentCyan/5 via-darkCard/80 to-accentPurple/5 p-4 sm:p-5 rounded-2xl shadow-xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accentCyan" />
-                  <span className="text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
+                  <span className="text-xs sm:text-sm text-white font-black uppercase tracking-wider">Free Streaming Servers:</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">● 100% Free</span>
                 </div>
                 <span className="text-[11px] text-gray-400">
                   Switch server if a stream is buffering or fails to load
@@ -425,17 +420,17 @@ export default function MediaDetail() {
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 ${
+                    className={`group relative px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 border flex items-center gap-2 active:scale-95 ${
                       embedServer === server.key
-                        ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
-                        : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20'
+                        ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/40'
+                        : 'border-white/10 bg-darkCard/80 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-white/5'
                     }`}
                   >
                     <span>{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-bold ${
                         embedServer === server.key
-                          ? 'border-accentCyan/30 bg-accentCyan/20 text-accentCyan'
+                          ? 'border-accentCyan/40 bg-accentCyan/30 text-accentCyan'
                           : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
                       }`}>
                         {server.badge}
