@@ -159,9 +159,9 @@ export default function Catalog() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-[#151c38] text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
           >
-            <ArrowLeft className="w-4 h-4 text-accentCyan" />
+            <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
             <span>Back to Home</span>
           </button>
           <div className="space-y-1">

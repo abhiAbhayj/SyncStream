@@ -285,19 +285,14 @@ export default function Home() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`group relative flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold tracking-wide transition-all duration-300 shrink-0 active:scale-95 ${
+              className={`group relative flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black tracking-wide transition-all duration-300 shrink-0 active:scale-95 border-2 cursor-pointer shadow-md ${
                 isSelected
-                  ? 'bg-white/[0.08] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.15)] border border-white/[0.1]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                  ? 'bg-cyan-500/25 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] ring-1 ring-cyan-400'
+                  : 'bg-[#151d3e] border-white/25 text-slate-200 hover:text-white hover:border-cyan-400 hover:bg-[#1f2b5c]'
               }`}
             >
-              {isSelected && (
-                <div className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-100" style={{
-                  background: `linear-gradient(135deg, rgba(var(--accent-purple),0.15), rgba(var(--accent-cyan),0.08))`
-                }} />
-              )}
-              <Icon className={`relative w-4 h-4 transition-all duration-300 ${isSelected ? tab.color : 'text-gray-500 group-hover:text-gray-300'}`} />
-              <span className="relative">{tab.label}</span>
+              <Icon className={`relative w-4 h-4 transition-all duration-300 ${isSelected ? tab.color : 'text-cyan-400 group-hover:scale-110'}`} />
+              <span className="relative text-white font-black">{tab.label}</span>
             </button>
           );
         })}
@@ -305,7 +300,7 @@ export default function Home() {
         {/* Live refresh button + last-updated timestamp */}
         <div className="ml-auto shrink-0 flex items-center gap-2 pl-2">
           {lastUpdated && (
-            <span className="text-[11px] font-black text-slate-300 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#141b38] border border-white/20 whitespace-nowrap">
+            <span className="text-[11px] font-black text-slate-200 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#141b38] border-2 border-white/25 whitespace-nowrap shadow-md">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
               <span>Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </span>
@@ -314,7 +309,7 @@ export default function Home() {
             onClick={() => fetchCatalog(true)}
             disabled={loading}
             title="Refresh catalog now"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#151c38] hover:bg-accentCyan hover:text-black text-white border-2 border-accentCyan font-extrabold text-xs shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#151c38] hover:bg-cyan-400 hover:text-black text-cyan-300 border-2 border-cyan-400 font-black text-xs shadow-[0_0_15px_rgba(6,182,212,0.5)] transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>

@@ -363,19 +363,21 @@ export default function MediaDetail() {
 
       {/* Media Player Console (Video content) */}
       {type !== 'manga' && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-3">
-          <div className="flex items-center justify-between border-b border-darkBorder pb-2.5 flex-wrap gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2 font-outfit">
-              <Film className="w-5 h-5 text-accentCyan" />
+        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-4">
+          <div className="flex items-center justify-between border-b-2 border-white/20 pb-3 flex-wrap gap-3">
+            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 font-outfit drop-shadow-md">
+              <Film className="w-6 h-6 text-accentCyan" />
               Solo Stream Player Console
             </h2>
 
             {/* Tab selection */}
-            <div className="flex items-center gap-1.5 border border-darkBorder p-1 rounded-xl bg-black/20">
+            <div className="flex items-center gap-2 border-2 border-white/25 p-1.5 rounded-2xl bg-[#121938] shadow-md">
               <button
                 onClick={() => setPlaybackMode('solo-embed')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-embed' ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shadow-[0_0_10px_rgba(99,210,255,0.3)]' : 'text-gray-400 hover:text-white'
+                className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
+                  playbackMode === 'solo-embed' 
+                    ? 'bg-cyan-500/30 text-white border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)] ring-1 ring-cyan-400' 
+                    : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
                 }`}
               >
                 🎬 Free Streaming Servers
@@ -383,8 +385,10 @@ export default function MediaDetail() {
               {detail.youtube_trailer && (
                 <button
                   onClick={() => setPlaybackMode('trailer')}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                    playbackMode === 'trailer' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-gray-400 hover:text-white'
+                  className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
+                    playbackMode === 'trailer' 
+                      ? 'bg-red-500/30 text-white border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] ring-1 ring-red-400' 
+                      : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
                   }`}
                 >
                   ▶ YouTube Trailer
@@ -392,8 +396,10 @@ export default function MediaDetail() {
               )}
               <button
                 onClick={() => setPlaybackMode('solo-html5')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
+                  playbackMode === 'solo-html5' 
+                    ? 'bg-purple-500/30 text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.5)]' 
+                    : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
                 }`}
               >
                 Custom Video/Embed
@@ -403,35 +409,35 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-2.5 border-2 border-accentCyan/30 bg-gradient-to-r from-accentCyan/5 via-darkCard/80 to-accentPurple/5 p-3.5 sm:p-4 rounded-2xl shadow-xl">
+            <div className="space-y-3 border-2 border-cyan-400/60 bg-[#141d3e] p-4 sm:p-5 rounded-2xl shadow-xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accentCyan" />
-                  <span className="text-xs sm:text-sm text-white font-black uppercase tracking-wider">Free Streaming Servers:</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">● 100% Free</span>
+                  <Sparkles className="w-5 h-5 text-accentCyan" />
+                  <span className="text-sm sm:text-base text-white font-black uppercase tracking-wider">Free Streaming Servers:</span>
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-black border border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]">● 100% Free Verified</span>
                 </div>
-                <span className="text-[11px] text-gray-400">
+                <span className="text-xs text-slate-300 font-semibold">
                   Switch server if a stream is buffering or fails to load
                 </span>
               </div>
               
-              <div className="flex items-center gap-2 flex-wrap pt-0.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 pt-1">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all duration-200 border flex items-center gap-2 active:scale-95 ${
+                    className={`group relative px-4 py-3 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 border-2 flex flex-col items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-lg text-center ${
                       embedServer === server.key
-                        ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/40'
-                        : 'border-white/10 bg-darkCard/80 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-white/5'
+                        ? 'border-cyan-400 bg-cyan-500/30 text-white shadow-[0_0_20px_rgba(6,182,212,0.6)] ring-2 ring-cyan-400'
+                        : 'border-white/25 bg-[#1b2550] text-gray-200 hover:text-white hover:border-cyan-400 hover:bg-[#253268]'
                     }`}
                   >
-                    <span>{server.label}</span>
+                    <span className="text-white font-black text-xs sm:text-sm">{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-bold ${
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md border font-black ${
                         embedServer === server.key
-                          ? 'border-accentCyan/40 bg-accentCyan/30 text-accentCyan'
-                          : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
+                          ? 'border-cyan-400 bg-cyan-500/40 text-cyan-200'
+                          : server.tagColor || 'text-cyan-300 bg-white/10 border-white/20'
                       }`}>
                         {server.badge}
                       </span>
@@ -572,9 +578,9 @@ export default function MediaDetail() {
             </div>
           ) : (
             /* Renders grid of chapters */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[420px] overflow-y-auto pr-2">
               {chapters.length === 0 ? (
-                <div className="col-span-full py-8 text-center text-gray-500 border border-dashed border-darkBorder rounded-2xl bg-darkCard/10">
+                <div className="col-span-full py-8 text-center text-gray-300 border-2 border-dashed border-white/25 rounded-2xl bg-[#141b38]">
                   No English chapters found for this manga.
                 </div>
               ) : (
@@ -585,15 +591,15 @@ export default function MediaDetail() {
                       setActiveChapterId(ch.id);
                       setActiveChapterTitle(`Chapter ${ch.chapter}: ${ch.title}`);
                     }}
-                    className="glass-card text-left p-4 rounded-xl border border-darkBorder flex items-center justify-between group"
+                    className="bg-[#162046] border-2 border-white/25 hover:border-cyan-400 hover:bg-[#202c5c] text-left p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
                   >
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-accentCyan">Chapter {ch.chapter}</p>
-                      <p className="text-sm font-semibold text-gray-200 truncate max-w-[180px] group-hover:text-white">
+                      <p className="text-xs font-black text-cyan-300">Chapter {ch.chapter}</p>
+                      <p className="text-sm font-bold text-white truncate max-w-[180px]">
                         {ch.title}
                       </p>
                     </div>
-                    <Play className="w-4 h-4 text-gray-500 group-hover:text-accentCyan transition-colors fill-current" />
+                    <Play className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform fill-current" />
                   </button>
                 ))
               )}
@@ -622,18 +628,18 @@ export default function MediaDetail() {
                 : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
 
               return (
-                <div className="flex items-center gap-2 bg-[#1a2347] p-1.5 px-3 rounded-2xl border-2 border-accentCyan/50 shadow-md">
-                  <span className="text-xs font-black text-accentCyan uppercase tracking-wider">Season:</span>
+                <div className="flex items-center gap-2 bg-[#162046] p-2 px-3.5 rounded-2xl border-2 border-cyan-400 shadow-lg">
+                  <span className="text-xs font-black text-cyan-300 uppercase tracking-wider">Season:</span>
                   <select
                     value={activeSeason || 1}
                     onChange={(e) => {
                       setActiveSeason(parseInt(e.target.value, 10));
                       setActiveEpisode(1);
                     }}
-                    className="px-4 py-2 bg-[#0f142b] border-2 border-white/30 rounded-xl text-xs sm:text-sm font-black text-white focus:outline-none focus:border-accentCyan transition cursor-pointer shadow-inner"
+                    className="px-4 py-2 bg-[#0d132b] border-2 border-cyan-400/50 hover:border-cyan-400 rounded-xl text-xs sm:text-sm font-black text-white focus:outline-none focus:border-cyan-400 transition cursor-pointer shadow-inner"
                   >
                     {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-[#0f142b] text-white">
+                      <option key={s.id || s.season_number} value={s.season_number} className="bg-[#0d132b] text-white">
                         {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
                       </option>
                     ))}
@@ -643,7 +649,7 @@ export default function MediaDetail() {
             })()}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[380px] overflow-y-auto pr-2 text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[420px] overflow-y-auto pr-2 text-left">
             {(() => {
                 const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
                 const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
@@ -664,18 +670,18 @@ export default function MediaDetail() {
                       }}
                       className={`p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-lg ${
                         isSelected
-                          ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] ring-2 ring-accentCyan'
-                          : 'border-white/20 bg-[#161e3d] text-slate-200 hover:text-white hover:border-accentCyan/70 hover:bg-[#202c59] hover:shadow-[0_0_15px_rgba(var(--accent-cyan),0.3)]'
+                          ? 'border-cyan-400 bg-cyan-500/30 text-white shadow-[0_0_20px_rgba(6,182,212,0.6)] ring-2 ring-cyan-400'
+                          : 'border-white/25 bg-[#162046] text-slate-100 hover:text-white hover:border-cyan-400 hover:bg-[#202c5c] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <span className={`text-[11px] uppercase font-black px-2 py-0.5 rounded-md ${
-                          isSelected ? 'bg-accentCyan text-black font-extrabold' : 'bg-white/10 text-accentCyan group-hover:bg-accentCyan group-hover:text-black transition'
+                          isSelected ? 'bg-cyan-400 text-black font-black' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 group-hover:bg-cyan-400 group-hover:text-black transition'
                         }`}>
                           EP {epNum}
                         </span>
                         {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-accentCyan animate-ping" />
+                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
                         )}
                       </div>
                       <span className="text-xs font-bold truncate w-full text-white drop-shadow-sm" title={epTitle}>

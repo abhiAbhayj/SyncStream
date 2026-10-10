@@ -18,16 +18,16 @@ export default {
       },
       colors: {
         // Core backgrounds
-        darkBg:     'rgb(var(--dark-bg))',
-        darkCard:   'rgb(var(--dark-card))',
-        darkBorder: 'rgb(var(--dark-border))',
-        darkSurf:   'rgb(var(--dark-surf))',
+        darkBg:     'rgb(var(--dark-bg) / <alpha-value>)',
+        darkCard:   'rgb(var(--dark-card) / <alpha-value>)',
+        darkBorder: 'rgb(var(--dark-border) / <alpha-value>)',
+        darkSurf:   'rgb(var(--dark-surf) / <alpha-value>)',
         // Brand accents
-        accentCyan:   'rgb(var(--accent-cyan))',
-        accentPurple: 'rgb(var(--accent-purple))',
-        accentPink:   'rgb(var(--accent-pink))',
-        accentGold:   'rgb(var(--accent-gold))',
-        accentGreen:  'rgb(var(--accent-green))',
+        accentCyan:   'rgb(var(--accent-cyan) / <alpha-value>)',
+        accentPurple: 'rgb(var(--accent-purple) / <alpha-value>)',
+        accentPink:   'rgb(var(--accent-pink) / <alpha-value>)',
+        accentGold:   'rgb(var(--accent-gold) / <alpha-value>)',
+        accentGreen:  'rgb(var(--accent-green) / <alpha-value>)',
       },
       backgroundImage: {
         'gradient-brand':   'linear-gradient(135deg, rgb(var(--accent-purple)), rgb(var(--accent-cyan)))',
