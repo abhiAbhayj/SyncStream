@@ -612,33 +612,44 @@ export default function MediaDetail() {
             </h2>
 
             {/* Season Selector for TV Shows & Anime */}
-            {((detail.seasons && detail.seasons.length > 0) || type === 'anime' || type === 'tv') && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
-                <select
-                  value={activeSeason}
-                  onChange={(e) => {
-                    setActiveSeason(parseInt(e.target.value, 10));
-                    setActiveEpisode(1); // Reset to ep 1 on season change
-                  }}
-                  className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer"
-                >
-                  {(detail.seasons && detail.seasons.length > 0 ? detail.seasons : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }]).map((s) => (
-                    <option key={s.id} value={s.season_number} className="bg-darkBg">
-                      {s.name} ({s.episode_count || detail.episodes_count || 12} eps)
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {(() => {
+              const availableSeasons = (detail.seasons && detail.seasons.length > 0)
+                ? detail.seasons.filter(s => s.season_number > 0 || detail.seasons.length === 1)
+                : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
+
+              const seasonsList = availableSeasons.length > 0
+                ? availableSeasons
+                : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
+
+              return (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
+                  <select
+                    value={activeSeason || 1}
+                    onChange={(e) => {
+                      setActiveSeason(parseInt(e.target.value, 10));
+                      setActiveEpisode(1);
+                    }}
+                    className="px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan transition cursor-pointer"
+                  >
+                    {seasonsList.map((s) => (
+                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg">
+                        {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[350px] overflow-y-auto pr-2 text-left">
             {(() => {
                 const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
-                const epCount = currentSeasonInfo ? (currentSeasonInfo.episode_count || 12) : (detail.episodes_count || 12);
+                const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
+                const epCount = (typeof rawCount === 'number' && rawCount > 0) ? rawCount : 12;
                 
-                return Array.from({ length: Math.max(epCount, 1) }, (_, i) => {
+                return Array.from({ length: epCount }, (_, i) => {
                   const epNum = i + 1;
                   const isSelected = activeEpisode === epNum;
                   const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
