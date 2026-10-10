@@ -177,7 +177,7 @@ export default function MusicPlayerBar() {
             className="relative w-full h-1 sm:h-1.5 bg-white/10 cursor-pointer overflow-visible group/bar transition-all"
           >
             <div
-              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink shadow-[0_0_8px_rgba(99,210,255,0.8)]"
+              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink shadow-[0_0_8px_rgba(var(--accent-cyan),0.8)]"
               style={{ width: `${progressPercent}%` }}
             />
             <div
@@ -484,7 +484,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={togglePlay}
                 disabled={isLoading}
-                className="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_14px_rgba(99,210,255,0.5)] hover:shadow-[0_0_22px_rgba(99,210,255,0.8)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 sm:mx-1 border border-white/30 shrink-0"
+                className="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_14px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_22px_rgba(var(--accent-cyan),0.8)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 sm:mx-1 border border-white/30 shrink-0"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 {isLoading ? (

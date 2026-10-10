@@ -91,7 +91,7 @@ export default function Navbar() {
                   <Icon className={`w-4 h-4 ${active ? 'text-accentCyan' : ''}`} />
                   {link.label}
                   {active && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_6px_rgba(99,210,255,0.8)]" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_8px_rgb(var(--accent-cyan))]" />
                   )}
                 </Link>
               );

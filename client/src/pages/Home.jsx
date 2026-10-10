@@ -368,7 +368,7 @@ export default function Home() {
               <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink="/catalog/trending/tv" />
 
               {/* ── Music Streaming Showcase Card ── */}
-              <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-6 group">
+              <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(var(--accent-cyan),0.18)] flex flex-col md:flex-row items-center justify-between gap-6 group">
                 <div className="space-y-2 text-center md:text-left max-w-xl">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accentCyan/10 border border-accentCyan/20 text-accentCyan text-xs font-bold uppercase tracking-wider font-mono">
                     <Radio className="w-3.5 h-3.5 animate-pulse" />
@@ -383,7 +383,7 @@ export default function Home() {
                 </div>
                 <Link
                   to="/music"
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] hover:shadow-[0_0_30px_rgba(var(--accent-cyan),0.7)] transition active:scale-95 shrink-0"
                 >
                   <Music className="w-4 h-4" />
                   <span>Open Music Portal</span>

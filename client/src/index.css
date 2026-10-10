@@ -15,13 +15,13 @@
   --dark-surf:   35 45 95;
   --dark-border: 139 92 246;
 
-  --accent-cyan:   6 182 212;
-  --accent-purple: 139 92 246;
+  --accent-cyan:   139 92 246;
+  --accent-purple: 6 182 212;
   --accent-pink:   244 63 94;
   --accent-gold:   251 191 36;
   --accent-green:  16 185 129;
 
-  --glow-1: rgba(139, 92, 246, 0.45);
+  --glow-1: rgba(139, 92, 246, 0.48);
   --glow-2: rgba(6, 182, 212, 0.38);
   --glow-3: rgba(244, 63, 94, 0.28);
 }
@@ -171,153 +171,6 @@
   --glow-1: rgba(0, 229, 255, 0.48);
   --glow-2: rgba(37, 99, 235, 0.38);
   --glow-3: rgba(110, 231, 183, 0.30);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 2: Sunset Mirage 🏜️
-───────────────────────────────────────────── */
-
-.theme-sunset {
-  --dark-bg:     69 10 10;
-  --dark-card:   127 29 29;
-  --dark-surf:   153 27 27;
-  --dark-border: 239 68 68;
-
-  --accent-cyan:   251 146 60;
-  --accent-purple: 248 113 113;
-  --accent-pink:   250 204 21;
-  --accent-gold:   254 240 138;
-  --accent-green:  163 230 53;
-
-  --glow-1: rgba(251, 146, 60, 0.48);
-  --glow-2: rgba(239, 68, 68, 0.38);
-  --glow-3: rgba(250, 204, 21, 0.28);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 3: Neon Rainforest 🌿
-───────────────────────────────────────────── */
-
-.theme-rainforest {
-  --dark-bg:     6 78 59;
-  --dark-card:   4 120 87;
-  --dark-surf:   5 150 105;
-  --dark-border: 16 185 129;
-
-  --accent-cyan:   52 211 153;
-  --accent-purple: 110 231 183;
-  --accent-pink:   167 243 208;
-  --accent-gold:   252 211 77;
-  --accent-green:  52 211 153;
-
-  --glow-1: rgba(52, 211, 153, 0.45);
-  --glow-2: rgba(16, 185, 129, 0.38);
-  --glow-3: rgba(110, 231, 183, 0.25);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 4: Deep Coral Reef 🪸
-───────────────────────────────────────────── */
-
-.theme-coral {
-  --dark-bg:     17 94 89;
-  --dark-card:   15 118 110;
-  --dark-surf:   13 148 136;
-  --dark-border: 244 63 94;
-
-  --accent-cyan:   251 113 133;
-  --accent-purple: 45 212 191;
-  --accent-pink:   94 234 212;
-  --accent-gold:   253 164 175;
-  --accent-green:  20 184 166;
-
-  --glow-1: rgba(251, 113, 133, 0.35);
-  --glow-2: rgba(45, 212, 191, 0.30);
-  --glow-3: rgba(94, 234, 212, 0.20);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 5: Daybreak Horizon 🌅
-───────────────────────────────────────────── */
-
-.theme-daybreak {
-  --dark-bg:     49 46 129;
-  --dark-card:   67 56 202;
-  --dark-surf:   79 70 229;
-  --dark-border: 129 140 248;
-
-  --accent-cyan:   96 165 250;
-  --accent-purple: 192 132 252;
-  --accent-pink:   244 114 182;
-  --accent-gold:   253 224 71;
-  --accent-green:  52 211 153;
-
-  --glow-1: rgba(96, 165, 250, 0.45);
-  --glow-2: rgba(192, 132, 252, 0.35);
-  --glow-3: rgba(244, 114, 182, 0.25);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 6: Electric Violet 🔮
-───────────────────────────────────────────── */
-
-.theme-violet {
-  --dark-bg:     76 29 149;
-  --dark-card:   91 33 182;
-  --dark-surf:   109 40 217;
-  --dark-border: 217 70 239;
-
-  --accent-cyan:   232 121 249;
-  --accent-purple: 192 38 211;
-  --accent-pink:   56 189 248;
-  --accent-gold:   250 204 21;
-  --accent-green:  52 211 153;
-
-  --glow-1: rgba(232, 121, 249, 0.48);
-  --glow-2: rgba(192, 38, 211, 0.38);
-  --glow-3: rgba(56, 189, 248, 0.28);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 7: Golden Autumn 🍂
-───────────────────────────────────────────── */
-
-.theme-autumn {
-  --dark-bg:     120 53 15;
-  --dark-card:   146 64 14;
-  --dark-surf:   180 83 9;
-  --dark-border: 245 158 11;
-
-  --accent-cyan:   251 191 36;
-  --accent-purple: 252 211 77;
-  --accent-pink:   248 113 113;
-  --accent-gold:   253 230 138;
-  --accent-green:  163 230 53;
-
-  --glow-1: rgba(251, 191, 36, 0.48);
-  --glow-2: rgba(245, 158, 11, 0.35);
-  --glow-3: rgba(252, 211, 77, 0.25);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 8: Mint Frosting ❄️
-───────────────────────────────────────────── */
-
-.theme-frost {
-  --dark-bg:     30 41 59;
-  --dark-card:   51 65 85;
-  --dark-surf:   71 85 105;
-  --dark-border: 94 234 212;
-
-  --accent-cyan:   20 184 166;
-  --accent-purple: 45 212 191;
-  --accent-pink:   167 243 208;
-  --accent-gold:   253 230 138;
-  --accent-green:  163 230 53;
-
-  --glow-1: rgba(94, 234, 212, 0.45);
-  --glow-2: rgba(45, 212, 191, 0.38);
-  --glow-3: rgba(167, 243, 208, 0.25);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -565,13 +418,13 @@
 .btn-primary {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, rgb(var(--accent-purple)), rgb(var(--accent-cyan)));
+  background: linear-gradient(135deg, rgb(var(--accent-cyan)), rgb(var(--accent-purple)));
   color: #fff;
   font-weight: 700;
   border-radius: 12px;
   padding: 10px 24px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 20px rgba(var(--accent-purple), 0.3);
+  box-shadow: 0 4px 20px rgba(var(--accent-cyan), 0.35);
 }
 .btn-primary::before {
   content: '';
@@ -581,7 +434,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
 }
-.btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 32px rgba(var(--accent-purple),0.5); }
+.btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 32px rgba(var(--accent-cyan), 0.55); }
 .btn-primary:hover::before { opacity: 1; }
 .btn-primary:active  { transform: translateY(0) scale(0.98); }
 
@@ -596,9 +449,9 @@
 }
 .btn-ghost:hover {
   background: rgba(255,255,255,0.08);
-  border-color: rgba(var(--accent-purple), 0.4);
+  border-color: rgba(var(--accent-cyan), 0.5);
   color: #fff;
-  box-shadow: 0 0 20px rgba(var(--accent-purple), 0.15);
+  box-shadow: 0 0 20px rgba(var(--accent-cyan), 0.2);
 }
 
 /* ─────────────────────────────────────────────
@@ -610,11 +463,11 @@
   position: absolute;
   width: 0; height: 2px;
   bottom: -4px; left: 50%;
-  background: linear-gradient(90deg, rgb(var(--accent-purple)), rgb(var(--accent-cyan)));
+  background: linear-gradient(90deg, rgb(var(--accent-cyan)), rgb(var(--accent-purple)));
   transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
   transform: translateX(-50%);
   border-radius: 2px;
-  box-shadow: 0 0 6px rgba(var(--accent-cyan), 0.6);
+  box-shadow: 0 0 8px rgba(var(--accent-cyan), 0.7);
 }
 .nav-link:hover::after, .nav-link.active::after { width: 100%; }
 
@@ -632,8 +485,8 @@
   display: block;
   width: 4px; height: 100%; min-height: 24px;
   border-radius: 99px;
-  background: linear-gradient(180deg, rgb(var(--accent-purple)), rgb(var(--accent-cyan)));
-  box-shadow: 0 0 10px rgba(var(--accent-purple), 0.5);
+  background: linear-gradient(180deg, rgb(var(--accent-cyan)), rgb(var(--accent-purple)));
+  box-shadow: 0 0 10px rgba(var(--accent-cyan), 0.5);
 }
 
 /* ─────────────────────────────────────────────

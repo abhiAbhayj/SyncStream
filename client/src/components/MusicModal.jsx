@@ -284,7 +284,7 @@ export default function MusicModal() {
             onClick={() => setModalTab('player')}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
               modalTab === 'player'
-                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(99,210,255,0.4)]'
+                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -297,7 +297,7 @@ export default function MusicModal() {
             onClick={() => setModalTab('lyrics')}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
               modalTab === 'lyrics'
-                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(99,210,255,0.4)]'
+                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -310,7 +310,7 @@ export default function MusicModal() {
             onClick={() => setModalTab('queue')}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
               modalTab === 'queue'
-                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(99,210,255,0.4)]'
+                ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -342,7 +342,7 @@ export default function MusicModal() {
               <button
                 type="button"
                 onClick={() => setViewStyle('poster')}
-                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'poster' ? 'bg-accentCyan text-black font-black shadow-[0_0_10px_rgba(99,210,255,0.5)]' : 'hover:text-white'}`}
+                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'poster' ? 'bg-accentCyan text-black font-black shadow-[0_0_10px_rgba(var(--accent-cyan),0.5)]' : 'hover:text-white'}`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Poster Art</span>
@@ -350,7 +350,7 @@ export default function MusicModal() {
               <button
                 type="button"
                 onClick={() => setViewStyle('vinyl')}
-                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'vinyl' ? 'bg-accentCyan text-black font-black shadow-[0_0_10px_rgba(99,210,255,0.5)]' : 'hover:text-white'}`}
+                className={`flex items-center gap-1 px-3 py-0.5 rounded-full transition ${viewStyle === 'vinyl' ? 'bg-accentCyan text-black font-black shadow-[0_0_10px_rgba(var(--accent-cyan),0.5)]' : 'hover:text-white'}`}
               >
                 <Disc3 className="w-3.5 h-3.5" />
                 <span>Vinyl Disc</span>
@@ -380,7 +380,7 @@ export default function MusicModal() {
                     }}
                   />
                   {isPlaying && (
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-2.5 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-2.5 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(var(--accent-cyan),0.7)] z-20 pointer-events-none">
                       <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
                       <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
                       <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
@@ -407,8 +407,8 @@ export default function MusicModal() {
                   }}
                 />
                 <div
-                  className={`w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-68 md:h-68 lg:w-76 lg:h-76 max-h-[25vh] sm:max-h-[32vh] aspect-square rounded-full p-2 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_35px_rgba(99,210,255,0.35)] transition-all duration-700 relative z-10 ${
-                    isPlaying ? 'animate-spin-slow shadow-[0_0_50px_rgba(99,210,255,0.55)]' : ''
+                  className={`w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-68 md:h-68 lg:w-76 lg:h-76 max-h-[25vh] sm:max-h-[32vh] aspect-square rounded-full p-2 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_35px_rgba(var(--accent-cyan),0.35)] transition-all duration-700 relative z-10 ${
+                    isPlaying ? 'animate-spin-slow shadow-[0_0_50px_rgba(var(--accent-cyan),0.55)]' : ''
                   }`}
                 >
                   <div className="w-full h-full rounded-full vinyl-grooves border-2 border-white/20 relative flex items-center justify-center shadow-2xl overflow-hidden">
@@ -445,7 +445,7 @@ export default function MusicModal() {
                 </div>
 
                 {isPlaying && (
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-2.5 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(99,210,255,0.7)] z-20 pointer-events-none">
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-2.5 py-1 bg-black/85 backdrop-blur-xl rounded-full border border-white/25 shadow-[0_0_15px_rgba(var(--accent-cyan),0.7)] z-20 pointer-events-none">
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentCyan to-accentPurple animate-eq-1" />
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentPurple to-accentPink animate-eq-2" />
                     <span className="w-1 rounded-full bg-gradient-to-t from-accentPink to-accentGold animate-eq-3" />
@@ -589,7 +589,7 @@ export default function MusicModal() {
                       onClick={() => seek(line.time)}
                       className={`text-center sm:text-left transition-all duration-300 cursor-pointer rounded-xl px-3 py-1.5 sm:py-2 select-none ${
                         isActive
-                          ? 'text-accentCyan font-extrabold text-base sm:text-xl md:text-2xl scale-[1.02] bg-accentCyan/15 border border-accentCyan/40 shadow-[0_0_20px_rgba(99,210,255,0.35)]'
+                          ? 'text-accentCyan font-extrabold text-base sm:text-xl md:text-2xl scale-[1.02] bg-accentCyan/15 border border-accentCyan/40 shadow-[0_0_20px_rgba(var(--accent-cyan),0.35)]'
                           : 'text-gray-400/80 hover:text-white hover:bg-white/5 text-sm sm:text-base md:text-lg font-semibold'
                       }`}
                     >
@@ -654,7 +654,7 @@ export default function MusicModal() {
                     key={`${t.id}-${idx}`}
                     className={`flex items-center justify-between gap-2.5 p-2.5 rounded-xl transition ${
                       isCurrent
-                        ? 'bg-accentCyan/20 border border-accentCyan/40 text-white shadow-[0_0_15px_rgba(99,210,255,0.25)]'
+                        ? 'bg-accentCyan/20 border border-accentCyan/40 text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.25)]'
                         : 'hover:bg-white/10 text-gray-300 border border-transparent'
                     }`}
                   >
@@ -707,7 +707,7 @@ export default function MusicModal() {
             className="relative w-full h-2 rounded-full bg-white/20 cursor-pointer overflow-visible group/scrubber"
           >
             <div
-              className="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_12px_rgba(99,210,255,0.8)]"
+              className="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-accentPurple via-accentCyan to-accentPink shadow-[0_0_12px_rgba(var(--accent-cyan),0.8)]"
               style={{ width: `${progressPercent}%` }}
             />
             <div
@@ -728,7 +728,7 @@ export default function MusicModal() {
             type="button"
             onClick={toggleShuffle}
             className={`p-2 rounded-full transition active:scale-90 ${
-              isShuffling ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(99,210,255,0.4)]' : 'text-gray-400 hover:text-white'
+              isShuffling ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(var(--accent-cyan),0.4)]' : 'text-gray-400 hover:text-white'
             }`}
             title="Shuffle"
           >
@@ -758,7 +758,7 @@ export default function MusicModal() {
             type="button"
             onClick={togglePlay}
             disabled={isLoading}
-            className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(99,210,255,0.5)] hover:shadow-[0_0_35px_rgba(99,210,255,0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
+            className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isLoading ? (
@@ -793,7 +793,7 @@ export default function MusicModal() {
             type="button"
             onClick={toggleLoop}
             className={`p-2 rounded-full transition active:scale-90 ${
-              isLooping !== 'none' ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(99,210,255,0.4)]' : 'text-gray-400 hover:text-white'
+              isLooping !== 'none' ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(var(--accent-cyan),0.4)]' : 'text-gray-400 hover:text-white'
             }`}
             title={`Loop: ${isLooping}`}
           >

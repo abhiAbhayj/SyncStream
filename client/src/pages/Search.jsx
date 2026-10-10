@@ -429,7 +429,7 @@ export default function Search() {
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 border ${
                   musicCategory === cat.id
-                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_10px_rgba(99,210,255,0.4)]'
+                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_10px_rgba(var(--accent-cyan),0.4)]'
                     : 'bg-darkCard/60 border-darkBorder text-gray-300 hover:text-white'
                 }`}
               >
@@ -456,7 +456,7 @@ export default function Search() {
                 onClick={() => handleSortChange(s.key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 border ${
                   sort === s.key
-                    ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-black border-transparent shadow-[0_0_14px_rgba(99,210,255,0.45)] font-extrabold'
+                    ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-black border-transparent shadow-[0_0_14px_rgba(var(--accent-cyan),0.45)] font-extrabold'
                     : 'bg-darkCard/60 border-darkBorder text-gray-300 hover:text-white hover:border-white/25'
                 }`}
               >
@@ -586,7 +586,7 @@ export default function Search() {
                 onClick={() => handleLanguageChange(isSelected ? '' : item.key)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition active:scale-95 ${
                   isSelected
-                    ? 'bg-accentCyan text-black border-accentCyan font-extrabold shadow-[0_0_12px_rgba(99,210,255,0.4)]'
+                    ? 'bg-accentCyan text-black border-accentCyan font-extrabold shadow-[0_0_12px_rgba(var(--accent-cyan),0.4)]'
                     : 'border-darkBorder bg-darkCard/40 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-accentCyan/5'
                 }`}
               >
@@ -660,7 +660,7 @@ export default function Search() {
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold border transition active:scale-95 cursor-pointer ${
                     isSelected
-                      ? 'bg-accentCyan text-black border-accentCyan font-extrabold shadow-[0_0_12px_rgba(99,210,255,0.4)]'
+                      ? 'bg-accentCyan text-black border-accentCyan font-extrabold shadow-[0_0_12px_rgba(var(--accent-cyan),0.4)]'
                       : 'border-darkBorder bg-darkCard/40 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-accentCyan/5'
                   }`}
                 >

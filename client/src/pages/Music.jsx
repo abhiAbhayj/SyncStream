@@ -520,7 +520,7 @@ export default function Music() {
       {/* ── Top Header Banner & Navigation Tabs ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-3 border-b border-white/20">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(var(--accent-cyan),0.35)]">
             <Radio className="w-3.5 h-3.5 animate-pulse text-accentCyan" />
             <span>Dual-Engine: YouTube Music + Studio Masters 320kbps &bull; Live Updated</span>
           </div>
@@ -557,7 +557,7 @@ export default function Music() {
 
             <button
               type="submit"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-xs font-black hover:shadow-[0_0_18px_rgba(99,210,255,0.7)] transition active:scale-95"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-xs font-black hover:shadow-[0_0_18px_rgba(var(--accent-cyan),0.7)] transition active:scale-95"
             >
               Search
             </button>
@@ -587,7 +587,7 @@ export default function Music() {
           onClick={() => { setActiveTab('discover'); setSelectedPlaylistDetails(null); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
             activeTab === 'discover'
-              ? 'bg-gradient-to-r from-accentCyan/40 via-[#38bdf8]/30 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_20px_rgba(99,210,255,0.45)]'
+              ? 'bg-gradient-to-r from-accentCyan/40 via-[#38bdf8]/30 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.45)]'
               : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
           }`}
         >
@@ -647,7 +647,7 @@ export default function Music() {
                     onClick={() => handleCategoryChange(cat.id)}
                     className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-200 border active:scale-95 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black border-2 border-white shadow-[0_0_20px_rgba(99,210,255,0.7)]'
+                        ? 'bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black border-2 border-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.7)]'
                         : 'bg-[#1c2548] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/70 hover:bg-[#283564] shadow-md'
                     }`}
                   >
@@ -666,7 +666,7 @@ export default function Music() {
                 type="button"
                 onClick={handleRefreshAll}
                 disabled={isRefreshing || loading}
-                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all border-2 border-accentCyan/70 bg-accentCyan/30 hover:bg-accentCyan/45 text-white active:scale-95 shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.4)]"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all border-2 border-accentCyan/70 bg-accentCyan/30 hover:bg-accentCyan/45 text-white active:scale-95 shrink-0 shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]"
                 title="Refresh live trending hits & charts"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -688,7 +688,7 @@ export default function Music() {
                     }}
                     className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 border active:scale-95 shrink-0 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-accentCyan/40 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_18px_rgba(99,210,255,0.45)]'
+                        ? 'bg-gradient-to-r from-accentCyan/40 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.45)]'
                         : 'bg-[#1a2244] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/60 hover:bg-[#26325e] shadow-sm'
                     }`}
                   >
@@ -743,7 +743,7 @@ export default function Music() {
                         playTrack(featuredSong, songs);
                       }
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.6)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
+                    className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] hover:shadow-[0_0_30px_rgba(var(--accent-cyan),0.8)] transition active:scale-95"
                   >
                     {currentTrack?.id === featuredSong.id && isPlaying ? (
                       <>
@@ -839,7 +839,7 @@ export default function Music() {
                         key={`${song.id}-${idx}`}
                         className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden shadow-xl backdrop-blur-md ${
                           isCurrent
-                            ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_25px_rgba(99,210,255,0.45)] ring-2 ring-accentCyan/60'
+                            ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_25px_rgba(var(--accent-cyan),0.45)] ring-2 ring-accentCyan/60'
                             : 'border-white/20 bg-[#18203c]/95 hover:border-accentCyan/70 hover:bg-[#202b52] hover:shadow-[0_10px_30px_rgba(0,245,255,0.25)]'
                         }`}
                       >
@@ -936,7 +936,7 @@ export default function Music() {
                                 }}
                                 className={`p-1.5 rounded-full transition active:scale-90 border ${
                                   isCurrentPlaying
-                                    ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
+                                    ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(var(--accent-cyan),0.7)] font-black'
                                     : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
                                 }`}
                                 title={isCurrentPlaying ? 'Pause' : 'Play'}
@@ -957,7 +957,7 @@ export default function Music() {
                     <button
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 border-2 border-accentCyan text-white font-black text-xs sm:text-sm shadow-[0_0_25px_rgba(99,210,255,0.35)] hover:shadow-[0_0_30px_rgba(99,210,255,0.6)] transition active:scale-95 disabled:opacity-50"
+                      className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 border-2 border-accentCyan text-white font-black text-xs sm:text-sm shadow-[0_0_25px_rgba(var(--accent-cyan),0.35)] hover:shadow-[0_0_30px_rgba(var(--accent-cyan),0.6)] transition active:scale-95 disabled:opacity-50"
                     >
                       {loadingMore ? (
                         <>
@@ -999,7 +999,7 @@ export default function Music() {
                   type="button"
                   onClick={() => fetchCharts(true)}
                   disabled={chartsLoading || isRefreshing}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 text-white border-2 border-accentCyan/70 text-xs font-black transition active:scale-95 self-start sm:self-auto shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.3)]"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 text-white border-2 border-accentCyan/70 text-xs font-black transition active:scale-95 self-start sm:self-auto shrink-0 shadow-[0_0_15px_rgba(var(--accent-cyan),0.3)]"
                   title="Force refresh live charts"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${chartsLoading || isRefreshing ? 'animate-spin' : ''}`} />
@@ -1053,7 +1053,7 @@ export default function Music() {
                                   }
                                 }}
                                 className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-40 cursor-pointer p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-lg ${
-                                  isCur ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.4)]' : 'border-white/20 bg-[#18203c]/95 hover:bg-[#202b52] hover:border-accentCyan/60'
+                                  isCur ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)]' : 'border-white/20 bg-[#18203c]/95 hover:bg-[#202b52] hover:border-accentCyan/60'
                                 }`}
                               >
                                 <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-md bg-black">

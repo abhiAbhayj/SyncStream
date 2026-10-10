@@ -747,7 +747,7 @@ export default function Profile() {
                     onClick={() => handleSelectAvatar(item.url)}
                     className={`group relative aspect-square rounded-xl overflow-hidden border p-1 bg-darkBg/90 transition-all duration-300 active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] ring-2 ring-accentCyan/50'
+                        ? 'border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] ring-2 ring-accentCyan/50'
                         : 'border-white/10 hover:border-white/30'
                     }`}
                   >
@@ -813,7 +813,7 @@ export default function Profile() {
                     onClick={() => handleThemeChange(t.id)}
                     className={`relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] ${
                       isSelected
-                        ? 'border-accentPurple/80 bg-white/[0.08] shadow-[0_0_20px_rgba(149,100,255,0.2)] ring-1 ring-accentPurple/40'
+                        ? 'border-accentCyan/80 bg-accentCyan/[0.08] shadow-[0_0_20px_rgba(var(--accent-cyan),0.25)] ring-1 ring-accentCyan/50'
                         : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/15'
                     }`}
                   >
@@ -832,12 +832,12 @@ export default function Profile() {
                     </p>
                     <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">{t.desc}</p>
                     <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-accentCyan">
-                      <Sparkles className="w-2.5 h-2.5 animate-pulse" />
+                      <Sparkles className="w-2.5 h-2.5 animate-pulse text-accentCyan" />
                       <span>{t.animation}</span>
                     </div>
 
                     {isSelected && (
-                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentPurple text-white flex items-center justify-center shadow-[0_0_10px_rgba(149,100,255,0.6)]">
+                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-cyan),0.6)] font-black">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
@@ -1012,7 +1012,7 @@ export default function Profile() {
                   <img
                     src={aiPreviewUrl}
                     alt="AI Avatar Preview"
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.4)] shrink-0 bg-darkBg"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] shrink-0 bg-darkBg"
                   />
                   <div className="space-y-2 flex-1 w-full text-center sm:text-left min-w-0">
                     <div>
