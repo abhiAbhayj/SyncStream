@@ -2,15 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
- * 8 Exclusive, Fully Unique Mathematical Simulation Engines (Dull & Ambient for 100% UI Clarity):
- * 1. quantum      — 🌌 Quantum Harmonic Wave Lattice: 3D standing wave interference grid & probability nodes
- * 2. cyberpunk    — ⚡ Holographic Polyhedral Radar: Rotating 3D cyber-core with radar sweep & data conduits
- * 3. monolith     — 🌑 Space Geometry & Stock Market Matrix: 3D space polyhedra, live candlesticks, trend tickers & reticles
- * 4. solar        — 🔥 Heliocentric Eclipse Rings: Concentric eccentric solar rings & coronal plasma prominence arches
- * 5. emerald      — 🌿 Sacred Geometry Circuit Lattice: Rotating Metatron mandala & bioluminescent phosphor traces
- * 6. neon-horizon — 🏎️ Infinite Outrun 3D Wireframe Highway: Rolling 3D vector terrain road leading to a retro horizon sun
- * 7. stargate     — 🌀 3D Wormhole Stargate: Relativistic warp vortex with accretion disc stardust filaments
- * 8. imperial     — 👑 3D Golden Armillary Astrolabe: Concentric tilted orbital rings with planetary beads & gold leaf dust
+ * 8 Completely Non-Circular, Viewport-Spanning, 100% Unique Mathematical Simulation Engines:
+ * 1. quantum      — 🌌 3D Isometric Wave Lattice: Full-screen diamond/hex matrix oscillating with standing waves
+ * 2. cyberpunk    — ⚡ PCB Cyber Circuit Bus: Rectangular circuit tracks with 45°/90° routing & digital logic pulses
+ * 3. monolith     — 🌑 Wall Street Chrono Terminal: Real-time candlestick charts, trend channels, volume histograms & 3D pyramids
+ * 4. solar        — 🔥 Diagonal Solar Wind Streamers: Corner-to-corner sweeping radiation ribbons & angular heat vectors
+ * 5. emerald      — 🌿 Neural Dendrite Fractal Highway: Branching organic axons & synaptic impulses spreading from edges
+ * 6. neon-horizon — 🏎️ Vector Skyline & Audio Equalizer: Full-width horizontal frequency spectrum bars & neon mountain ridges
+ * 7. stargate     — 🌀 Relativistic Hyperdrive Warp: Linear perspective star-streaks & streaming chromatic warp rays
+ * 8. imperial     — 👑 Art Deco Diamond Tessellation: Interlocking geometric gold chevrons & cascading vertical silk streamers
  */
 export default function ThemeBackground() {
   const canvasRef = useRef(null);
@@ -71,7 +71,6 @@ export default function ThemeBackground() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Simulation state containers
     let state = {};
     let frame = 0;
 
@@ -81,131 +80,132 @@ export default function ThemeBackground() {
       const isMobile = width < 768;
 
       if (theme === 'quantum') {
-        // 1. 3D Quantum Harmonic Wave Lattice
-        const cols = isMobile ? 12 : 22;
-        const rows = isMobile ? 8 : 14;
-        state = { cols, rows };
+        // 1. Full-Screen 3D Isometric Wave Lattice (NO circles, edge-to-edge grid)
+        const spacing = isMobile ? 55 : 70;
+        const cols = Math.ceil(width / spacing) + 2;
+        const rows = Math.ceil(height / spacing) + 2;
+        state = { spacing, cols, rows };
       } else if (theme === 'cyberpunk') {
-        // 2. Holographic Polyhedral Radar & Rising Hex Conduits
-        const beams = [];
-        const beamCount = isMobile ? 8 : 16;
-        for (let i = 0; i < beamCount; i++) {
-          beams.push({
-            x: Math.random() * width,
-            y: height + Math.random() * 200,
-            speed: Math.random() * 1.5 + 0.8,
-            length: Math.random() * 60 + 30,
-            color: Math.random() > 0.4 ? 'rgba(0, 245, 255, 0.45)' : 'rgba(247, 37, 133, 0.4)'
+        // 2. Rectangular PCB Cyber Circuit Bus (45° and 90° straight circuit traces)
+        const traceCount = isMobile ? 12 : 24;
+        const traces = [];
+        for (let i = 0; i < traceCount; i++) {
+          const startX = Math.random() * width;
+          const startY = Math.random() * height;
+          const length1 = Math.random() * 120 + 60;
+          const length2 = Math.random() * 100 + 40;
+          const dir = Math.random() > 0.5 ? 1 : -1;
+          traces.push({
+            x: startX,
+            y: startY,
+            x2: startX + length1,
+            y2: startY,
+            x3: startX + length1 + length2 * 0.7,
+            y3: startY + length2 * dir * 0.7,
+            pulseProgress: Math.random(),
+            speed: Math.random() * 0.008 + 0.004,
+            color: Math.random() > 0.5 ? 'rgba(0, 245, 255, 0.45)' : 'rgba(247, 37, 133, 0.4)'
           });
         }
-        state = { rot: 0, beams };
+        state = { traces };
       } else if (theme === 'monolith') {
-        // 3. Space Geometric Shapes & Stock Market Chrono Matrix
-        // Live Financial Candlesticks
-        const candleCount = isMobile ? 16 : 32;
+        // 3. Wall Street Stock Terminal: Candlesticks, Moving Averages, Volume Bars & 3D Pyramids
+        const count = isMobile ? 18 : 36;
         const candles = [];
-        let price = height * 0.55;
-        for (let i = 0; i < candleCount; i++) {
-          const change = (Math.random() - 0.48) * 35;
+        let price = height * 0.48;
+        for (let i = 0; i < count; i++) {
+          const change = (Math.random() - 0.49) * 32;
           const open = price;
-          const close = Math.max(height * 0.25, Math.min(height * 0.75, open + change));
-          const high = Math.min(open, close) - Math.random() * 18;
-          const low = Math.max(open, close) + Math.random() * 18;
-          candles.push({ open, close, high, low });
+          const close = Math.max(height * 0.2, Math.min(height * 0.7, open + change));
+          const high = Math.min(open, close) - Math.random() * 16;
+          const low = Math.max(open, close) + Math.random() * 16;
+          const volume = Math.random() * 50 + 15;
+          candles.push({ open, close, high, low, volume });
           price = close;
         }
 
-        // Space Wireframe Geometric Polyhedra
-        const polyhedra = [
-          { x: width * 0.22, y: height * 0.32, size: isMobile ? 28 : 42, rotX: 0, rotY: 0, speedX: 0.008, speedY: 0.006, type: 'octa' },
-          { x: width * 0.80, y: height * 0.40, size: isMobile ? 32 : 50, rotX: 0.5, rotY: 0.3, speedX: -0.006, speedY: 0.009, type: 'cube' }
+        // Tumbling sharp 3D wireframe pyramids (Tetrahedrons) in corners
+        const pyramids = [
+          { x: width * 0.15, y: height * 0.25, size: isMobile ? 26 : 38, rotX: 0, rotY: 0, speed: 0.008 },
+          { x: width * 0.85, y: height * 0.35, size: isMobile ? 30 : 44, rotX: 0.4, rotY: 0.2, speed: -0.006 }
         ];
 
-        // Architectural Crosshair Grid Reticles
-        const reticles = [
-          { x: width * 0.5, y: height * 0.25, size: 26 },
-          { x: width * 0.15, y: height * 0.80, size: 20 },
-          { x: width * 0.88, y: height * 0.82, size: 22 }
-        ];
-
-        state = { candles, polyhedra, reticles, tickerShift: 0 };
+        state = { candles, pyramids, shift: 0 };
       } else if (theme === 'solar') {
-        // 4. Heliocentric Eclipse Rings & Coronal Prominence Arches
-        const rings = [
-          { rx: Math.min(width, height) * 0.22, ry: Math.min(width, height) * 0.12, rot: 0.3, speed: 0.004, color: 'rgba(249, 115, 22, 0.3)' },
-          { rx: Math.min(width, height) * 0.30, ry: Math.min(width, height) * 0.18, rot: -0.4, speed: -0.003, color: 'rgba(250, 204, 21, 0.25)' },
-          { rx: Math.min(width, height) * 0.38, ry: Math.min(width, height) * 0.24, rot: 0.6, speed: 0.002, color: 'rgba(225, 29, 72, 0.2)' }
-        ];
-        const flares = [];
-        for (let i = 0; i < (isMobile ? 18 : 35); i++) {
-          flares.push({
-            angle: Math.random() * Math.PI * 2,
-            dist: Math.random() * Math.min(width, height) * 0.35 + 40,
-            speed: (Math.random() * 0.004 + 0.002),
-            r: Math.random() * 1.8 + 0.8,
-            color: Math.random() > 0.4 ? 'rgba(250, 204, 21, 0.4)' : 'rgba(249, 115, 22, 0.35)'
+        // 4. Diagonal Solar Wind Radiation Streamers (Corner-to-corner sweeping ribbons)
+        const ribbonCount = isMobile ? 5 : 9;
+        const ribbons = [];
+        for (let i = 0; i < ribbonCount; i++) {
+          ribbons.push({
+            offset: (i / ribbonCount) * (width + height),
+            speed: Math.random() * 0.6 + 0.4,
+            amp: Math.random() * 40 + 20,
+            freq: Math.random() * 0.004 + 0.002,
+            color: Math.random() > 0.4 ? 'rgba(249, 115, 22, 0.22)' : 'rgba(225, 29, 72, 0.18)'
           });
         }
-        state = { rings, flares };
+        state = { ribbons };
       } else if (theme === 'emerald') {
-        // 5. Sacred Geometry & Metatron Circuit Lattice
-        const sacredRadius = Math.min(width, height) * (isMobile ? 0.26 : 0.34);
-        const spores = [];
-        for (let i = 0; i < (isMobile ? 16 : 30); i++) {
-          spores.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4,
-            r: Math.random() * 1.5 + 0.8
-          });
+        // 5. Neural Dendrite Fractal Highway (Branching organic tree corridors from edges)
+        const branchCount = isMobile ? 7 : 14;
+        const branches = [];
+        for (let i = 0; i < branchCount; i++) {
+          const startFromLeft = i % 2 === 0;
+          const startX = startFromLeft ? 0 : width;
+          const startY = (height / branchCount) * i + Math.random() * 30;
+          const segments = [];
+          let curX = startX;
+          let curY = startY;
+          const segCount = isMobile ? 4 : 6;
+          for (let s = 0; s < segCount; s++) {
+            const nextX = curX + (startFromLeft ? 1 : -1) * (Math.random() * 80 + 50);
+            const nextY = curY + (Math.random() - 0.5) * 70;
+            segments.push({ x1: curX, y1: curY, x2: nextX, y2: nextY });
+            curX = nextX;
+            curY = nextY;
+          }
+          branches.push({ segments, pulseSeg: 0, pulseProgress: Math.random(), speed: 0.015 });
         }
-        state = { sacredRadius, rot: 0, spores };
+        state = { branches };
       } else if (theme === 'neon-horizon') {
-        // 6. Infinite Outrun 3D Wireframe Retro Highway
-        const roadPoints = isMobile ? 12 : 20;
-        state = { roadPoints, time: 0 };
+        // 6. Vector Mountain Skyline & Full-Width Audio Frequency Spectrum Bars
+        const barCount = isMobile ? 24 : 48;
+        const bars = [];
+        for (let i = 0; i < barCount; i++) {
+          bars.push({
+            height: Math.random() * 60 + 15,
+            speed: Math.random() * 0.08 + 0.04,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+        state = { bars };
       } else if (theme === 'stargate') {
-        // 7. 3D Wormhole Stargate Vortex
-        const ringCount = isMobile ? 5 : 8;
-        const rings = [];
-        for (let i = 0; i < ringCount; i++) {
-          rings.push({
-            r: (Math.min(width, height) * 0.42 / ringCount) * (i + 1),
-            speed: (i % 2 === 0 ? 1 : -1) * (0.004 + (ringCount - i) * 0.0015),
-            rot: Math.random() * Math.PI * 2
-          });
-        }
-        const particles = [];
-        for (let i = 0; i < (isMobile ? 30 : 60); i++) {
-          particles.push({
-            angle: Math.random() * Math.PI * 2,
-            dist: Math.random() * Math.min(width, height) * 0.45 + 20,
-            speed: Math.random() * 0.012 + 0.005,
-            inwardSpeed: Math.random() * 0.4 + 0.2,
-            size: Math.random() * 1.4 + 0.6
-          });
-        }
-        state = { rings, particles };
-      } else if (theme === 'imperial') {
-        // 8. 3D Golden Armillary Astrolabe & Planetary Spheres
-        const astrolabeRings = [
-          { r: Math.min(width, height) * 0.32, tiltX: 0.8, tiltY: 0.2, speed: 0.004, beadAngle: 0 },
-          { r: Math.min(width, height) * 0.24, tiltX: -0.6, tiltY: 0.5, speed: -0.006, beadAngle: Math.PI / 3 },
-          { r: Math.min(width, height) * 0.16, tiltX: 0.4, tiltY: -0.7, speed: 0.008, beadAngle: Math.PI }
-        ];
-        const goldLeaf = [];
-        for (let i = 0; i < (isMobile ? 15 : 30); i++) {
-          goldLeaf.push({
+        // 7. Relativistic Star-Streaks & Hyper-Speed Linear Warp Rays (Full-width horizontal flight)
+        const streakCount = isMobile ? 35 : 70;
+        const streaks = [];
+        for (let i = 0; i < streakCount; i++) {
+          streaks.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            vy: Math.random() * 0.4 + 0.2,
-            vx: (Math.random() - 0.5) * 0.3,
-            rot: Math.random() * Math.PI,
-            size: Math.random() * 3 + 2
+            length: Math.random() * 100 + 40,
+            speed: Math.random() * 6 + 3,
+            color: ['rgba(147, 51, 234, 0.4)', 'rgba(6, 182, 212, 0.4)', 'rgba(244, 63, 94, 0.3)'][Math.floor(Math.random() * 3)]
           });
         }
-        state = { astrolabeRings, goldLeaf };
+        state = { streaks };
+      } else if (theme === 'imperial') {
+        // 8. Art Deco Geometric Diamond Chevrons & Cascading Vertical Silk Ribbons
+        const ribbonCount = isMobile ? 6 : 12;
+        const ribbons = [];
+        for (let i = 0; i < ribbonCount; i++) {
+          ribbons.push({
+            x: (width / (ribbonCount + 1)) * (i + 1),
+            width: Math.random() * 14 + 8,
+            speed: Math.random() * 0.4 + 0.2,
+            offset: Math.random() * height
+          });
+        }
+        state = { ribbons };
       }
     }
 
@@ -215,120 +215,115 @@ export default function ThemeBackground() {
       frame++;
 
       if (activeTheme === 'quantum') {
-        // 1. Quantum Harmonic Wave Lattice
-        ctx.fillStyle = 'rgba(13, 17, 39, 0.25)';
+        // 1. Full-Screen 3D Isometric Wave Lattice (NO circles)
+        ctx.fillStyle = 'rgba(13, 17, 39, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { cols, rows } = state;
+        const { spacing, cols, rows } = state;
         if (!cols) return;
 
-        const cellW = width / cols;
-        const cellH = height / rows;
-
         ctx.lineWidth = 0.6;
-        for (let r = 0; r <= rows; r++) {
-          ctx.beginPath();
-          for (let c = 0; c <= cols; c++) {
-            const x = c * cellW;
-            const baseY = r * cellH;
-            const wave = Math.sin(c * 0.4 + frame * 0.02) * Math.cos(r * 0.5 + frame * 0.015) * 16;
-            const y = baseY + wave;
-            if (c === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const x = c * spacing;
+            const waveY = Math.sin(c * 0.3 + frame * 0.015) * 12 + Math.cos(r * 0.3 + frame * 0.012) * 10;
+            const y = r * spacing + waveY;
 
-            // Small probability amplitude node
-            if (c % 2 === 0 && r % 2 === 0) {
+            // Draw isometric diagonal grid diamonds
+            if (c < cols - 1) {
+              const nextWaveY = Math.sin((c + 1) * 0.3 + frame * 0.015) * 12 + Math.cos(r * 0.3 + frame * 0.012) * 10;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + spacing, r * spacing + nextWaveY);
+              ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
+              ctx.stroke();
+            }
+
+            if (r < rows - 1) {
+              const downWaveY = Math.sin(c * 0.3 + frame * 0.015) * 12 + Math.cos((r + 1) * 0.3 + frame * 0.012) * 10;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x, (r + 1) * spacing + downWaveY);
+              ctx.strokeStyle = 'rgba(6, 182, 212, 0.10)';
+              ctx.stroke();
+            }
+
+            // Small diamond nodes
+            if ((c + r) % 3 === 0) {
               ctx.fillStyle = 'rgba(139, 92, 246, 0.35)';
-              ctx.fillRect(x - 1, y - 1, 2, 2);
+              ctx.fillRect(x - 1.2, y - 1.2, 2.4, 2.4);
             }
           }
-          ctx.strokeStyle = `rgba(139, 92, 246, ${0.08 + Math.sin(r + frame * 0.02) * 0.04})`;
-          ctx.stroke();
         }
       } else if (activeTheme === 'cyberpunk') {
-        // 2. Holographic Polyhedral Radar
-        ctx.fillStyle = 'rgba(9, 19, 38, 0.28)';
+        // 2. Rectangular PCB Cyber Circuit Bus (NO circles)
+        ctx.fillStyle = 'rgba(9, 19, 38, 0.30)';
         ctx.fillRect(0, 0, width, height);
 
-        const { beams } = state;
-        state.rot = (state.rot || 0) + 0.008;
+        const { traces } = state;
+        if (!traces) return;
 
-        // Rising hex data conduits
-        if (beams) {
-          for (const b of beams) {
-            b.y -= b.speed;
-            if (b.y < -50) {
-              b.y = height + 50;
-              b.x = Math.random() * width;
-            }
-            ctx.beginPath();
-            ctx.moveTo(b.x, b.y);
-            ctx.lineTo(b.x, b.y - b.length);
-            ctx.strokeStyle = b.color;
-            ctx.lineWidth = 1.0;
-            ctx.stroke();
-          }
-        }
-
-        // Rotating 3D wireframe cyber-cube at center
-        const cx = width / 2;
-        const cy = height * 0.45;
-        const s = Math.min(width, height) * 0.14;
-        const a = state.rot;
-
-        const vertices = [
-          { x: -1, y: -1, z: -1 }, { x: 1, y: -1, z: -1 },
-          { x: 1, y: 1, z: -1 }, { x: -1, y: 1, z: -1 },
-          { x: -1, y: -1, z: 1 }, { x: 1, y: -1, z: 1 },
-          { x: 1, y: 1, z: 1 }, { x: -1, y: 1, z: 1 }
-        ];
-
-        const projected = vertices.map((v) => {
-          let x1 = v.x * Math.cos(a) - v.z * Math.sin(a);
-          let z1 = v.x * Math.sin(a) + v.z * Math.cos(a);
-          let y2 = v.y * Math.cos(a * 0.7) - z1 * Math.sin(a * 0.7);
-          return { x: cx + x1 * s, y: cy + y2 * s };
-        });
-
-        const edges = [
-          [0, 1], [1, 2], [2, 3], [3, 0],
-          [4, 5], [5, 6], [6, 7], [7, 4],
-          [0, 4], [1, 5], [2, 6], [3, 7]
-        ];
-
-        ctx.lineWidth = 0.9;
-        ctx.strokeStyle = 'rgba(0, 245, 255, 0.28)';
-        for (const [i1, i2] of edges) {
+        ctx.lineWidth = 0.8;
+        for (const t of traces) {
+          // Draw circuit trace lines
           ctx.beginPath();
-          ctx.moveTo(projected[i1].x, projected[i1].y);
-          ctx.lineTo(projected[i2].x, projected[i2].y);
+          ctx.moveTo(t.x, t.y);
+          ctx.lineTo(t.x2, t.y2);
+          ctx.lineTo(t.x3, t.y3);
+          ctx.strokeStyle = 'rgba(0, 245, 255, 0.12)';
           ctx.stroke();
-        }
 
-        // Radar sweep circle
-        ctx.beginPath();
-        ctx.arc(cx, cy, s * 1.5, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(0, 245, 255, 0.10)';
-        ctx.stroke();
+          // Square chip pads at joints
+          ctx.fillStyle = 'rgba(0, 245, 255, 0.25)';
+          ctx.fillRect(t.x - 2, t.y - 2, 4, 4);
+          ctx.fillRect(t.x3 - 2, t.y3 - 2, 4, 4);
+
+          // Moving logic data pulse along the trace
+          t.pulseProgress += t.speed;
+          if (t.pulseProgress > 1) t.pulseProgress = 0;
+
+          let px, py;
+          if (t.pulseProgress < 0.6) {
+            const p = t.pulseProgress / 0.6;
+            px = t.x + (t.x2 - t.x) * p;
+            py = t.y;
+          } else {
+            const p = (t.pulseProgress - 0.6) / 0.4;
+            px = t.x2 + (t.x3 - t.x2) * p;
+            py = t.y2 + (t.y3 - t.y2) * p;
+          }
+
+          ctx.fillStyle = t.color;
+          ctx.fillRect(px - 2, py - 2, 4, 4);
+        }
       } else if (activeTheme === 'monolith') {
-        // 3. Space Geometric Shapes & Stock Market Chrono Matrix
-        ctx.fillStyle = 'rgba(5, 5, 5, 0.26)';
+        // 3. Wall Street Stock Terminal: Candlesticks, Moving Averages & 3D Pyramids (NO circles)
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { candles, polyhedra, reticles } = state;
+        const { candles, pyramids } = state;
         if (!candles) return;
 
-        state.tickerShift += 0.35;
         const candleW = width / candles.length;
+        const baseline = height * 0.88;
 
-        // Render Animated Stock Candlestick Chart (Subtle / Low Opacity)
+        // Draw Volume Histogram Bars rising from bottom edge
+        for (let i = 0; i < candles.length; i++) {
+          const c = candles[i];
+          const x = i * candleW + candleW * 0.15;
+          const isBull = c.close >= c.open;
+          ctx.fillStyle = isBull ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 68, 68, 0.14)';
+          ctx.fillRect(x, baseline - c.volume, candleW * 0.7, c.volume);
+        }
+
+        // Draw Candlestick Price Bars
         for (let i = 0; i < candles.length; i++) {
           const c = candles[i];
           const x = i * candleW + candleW * 0.2;
           const isBull = c.close >= c.open;
-          const color = isBull ? 'rgba(59, 130, 246, 0.30)' : 'rgba(239, 68, 68, 0.28)';
+          const color = isBull ? 'rgba(59, 130, 246, 0.35)' : 'rgba(239, 68, 68, 0.32)';
 
-          // Wick
+          // Upper & Lower Wicks
           ctx.strokeStyle = color;
           ctx.lineWidth = 0.8;
           ctx.beginPath();
@@ -336,14 +331,14 @@ export default function ThemeBackground() {
           ctx.lineTo(x + candleW * 0.3, c.low);
           ctx.stroke();
 
-          // Body
+          // Real Rectangular Candle Body
           const top = Math.min(c.open, c.close);
           const h = Math.max(3, Math.abs(c.close - c.open));
-          ctx.fillStyle = isBull ? 'rgba(59, 130, 246, 0.22)' : 'rgba(239, 68, 68, 0.20)';
+          ctx.fillStyle = isBull ? 'rgba(59, 130, 246, 0.25)' : 'rgba(239, 68, 68, 0.22)';
           ctx.fillRect(x, top, candleW * 0.6, h);
         }
 
-        // Trend ticker line overlay
+        // Moving Average Trend Lines
         ctx.beginPath();
         for (let i = 0; i < candles.length; i++) {
           const x = i * candleW + candleW * 0.5;
@@ -351,304 +346,195 @@ export default function ThemeBackground() {
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = 'rgba(226, 232, 240, 0.25)';
+        ctx.strokeStyle = 'rgba(226, 232, 240, 0.30)';
         ctx.lineWidth = 1.0;
         ctx.stroke();
 
-        // 3D Space Geometric Polyhedra
-        if (polyhedra) {
-          for (const poly of polyhedra) {
-            poly.rotX += poly.speedX;
-            poly.rotY += poly.speedY;
+        // Tumbling 3D Wireframe Pyramids (Sharp triangles/quads)
+        if (pyramids) {
+          for (const p of pyramids) {
+            p.rotX += p.speed;
+            p.rotY += p.speed * 0.7;
 
             ctx.save();
-            ctx.translate(poly.x, poly.y);
+            ctx.translate(p.x, p.y);
 
-            // Simple 3D Octahedron projection
-            const verts = [
-              { x: 0, y: -poly.size, z: 0 },
-              { x: poly.size, y: 0, z: 0 },
-              { x: 0, y: 0, z: poly.size },
-              { x: -poly.size, y: 0, z: 0 },
-              { x: 0, y: 0, z: -poly.size },
-              { x: 0, y: poly.size, z: 0 }
+            // 4 vertices of a 3D pyramid (tetrahedron)
+            const v = [
+              { x: 0, y: -p.size, z: 0 },
+              { x: p.size * 0.86, y: p.size * 0.5, z: -p.size * 0.5 },
+              { x: -p.size * 0.86, y: p.size * 0.5, z: -p.size * 0.5 },
+              { x: 0, y: p.size * 0.5, z: p.size }
             ];
 
-            const pVerts = verts.map((v) => {
-              const x1 = v.x * Math.cos(poly.rotY) - v.z * Math.sin(poly.rotY);
-              const z1 = v.x * Math.sin(poly.rotY) + v.z * Math.cos(poly.rotY);
-              const y2 = v.y * Math.cos(poly.rotX) - z1 * Math.sin(poly.rotX);
+            const pv = v.map((pt) => {
+              const x1 = pt.x * Math.cos(p.rotY) - pt.z * Math.sin(p.rotY);
+              const z1 = pt.x * Math.sin(p.rotY) + pt.z * Math.cos(p.rotY);
+              const y2 = pt.y * Math.cos(p.rotX) - z1 * Math.sin(p.rotX);
               return { x: x1, y: y2 };
             });
 
-            const pEdges = [
-              [0, 1], [0, 2], [0, 3], [0, 4],
-              [5, 1], [5, 2], [5, 3], [5, 4],
-              [1, 2], [2, 3], [3, 4], [4, 1]
-            ];
-
             ctx.strokeStyle = 'rgba(226, 232, 240, 0.22)';
             ctx.lineWidth = 0.8;
-            for (const [v1, v2] of pEdges) {
+            const edges = [[0, 1], [0, 2], [0, 3], [1, 2], [2, 3], [3, 1]];
+            for (const [e1, e2] of edges) {
               ctx.beginPath();
-              ctx.moveTo(pVerts[v1].x, pVerts[v1].y);
-              ctx.lineTo(pVerts[v2].x, pVerts[v2].y);
+              ctx.moveTo(pv[e1].x, pv[e1].y);
+              ctx.lineTo(pv[e2].x, pv[e2].y);
               ctx.stroke();
             }
             ctx.restore();
           }
         }
-
-        // Crosshairs & financial coordinate telemetry
-        if (reticles) {
-          for (const r of reticles) {
-            ctx.strokeStyle = 'rgba(226, 232, 240, 0.15)';
-            ctx.lineWidth = 0.6;
-            ctx.beginPath();
-            ctx.moveTo(r.x - r.size, r.y);
-            ctx.lineTo(r.x + r.size, r.y);
-            ctx.moveTo(r.x, r.y - r.size);
-            ctx.lineTo(r.x, r.y + r.size);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(r.x, r.y, r.size * 0.4, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-        }
       } else if (activeTheme === 'solar') {
-        // 4. Heliocentric Eclipse Rings & Coronal Prominence Arches
+        // 4. Diagonal Solar Wind Radiation Streamers (Corner-to-corner waves, NO circles)
         ctx.fillStyle = 'rgba(36, 13, 7, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { rings, flares } = state;
-        const cx = width / 2;
-        const cy = height * 0.45;
+        const { ribbons } = state;
+        if (!ribbons) return;
 
-        // Eccentric coronal rings
-        if (rings) {
-          for (const r of rings) {
-            r.rot += r.speed;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(r.rot);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, r.rx, r.ry, 0, 0, Math.PI * 2);
-            ctx.strokeStyle = r.color;
-            ctx.lineWidth = 1.0;
-            ctx.stroke();
-            ctx.restore();
+        ctx.lineWidth = 1.0;
+        for (const r of ribbons) {
+          ctx.beginPath();
+          // Draw diagonal sinusoidal wave across entire screen
+          for (let d = -100; d < width + height + 100; d += 25) {
+            const wave = Math.sin(d * r.freq + frame * 0.02) * r.amp;
+            const x = d * 0.6 + wave;
+            const y = d * 0.4 - wave;
+            if (d === -100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
           }
-        }
-
-        // Floating coronal mass flares
-        if (flares) {
-          for (const f of flares) {
-            f.angle += f.speed;
-            const fx = cx + Math.cos(f.angle) * f.dist;
-            const fy = cy + Math.sin(f.angle) * (f.dist * 0.6);
-            ctx.beginPath();
-            ctx.arc(fx, fy, f.r, 0, Math.PI * 2);
-            ctx.fillStyle = f.color;
-            ctx.fill();
-          }
+          ctx.strokeStyle = r.color;
+          ctx.stroke();
         }
       } else if (activeTheme === 'emerald') {
-        // 5. Sacred Geometry & Metatron Circuit Lattice
+        // 5. Neural Dendrite Fractal Highway (Branching organic tree corridors from edges, NO circles)
         ctx.fillStyle = 'rgba(4, 32, 24, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { sacredRadius, spores } = state;
-        state.rot += 0.003;
-        const cx = width / 2;
-        const cy = height * 0.45;
-        const R = sacredRadius || 120;
+        const { branches } = state;
+        if (!branches) return;
 
-        // Nested Metatron Sacred Hexagon / Star
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(state.rot);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.16)';
-        ctx.lineWidth = 0.8;
-
-        const hexPts = [];
-        for (let i = 0; i < 6; i++) {
-          const a = (i * Math.PI) / 3;
-          hexPts.push({ x: Math.cos(a) * R, y: Math.sin(a) * R });
-        }
-
-        // Outer hexagon
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-          if (i === 0) ctx.moveTo(hexPts[i].x, hexPts[i].y);
-          else ctx.lineTo(hexPts[i].x, hexPts[i].y);
-        }
-        ctx.closePath();
-        ctx.stroke();
-
-        // Inner interconnecting chords (Metatron's cube)
-        for (let i = 0; i < 6; i++) {
-          for (let j = i + 1; j < 6; j++) {
+        ctx.lineWidth = 0.7;
+        for (const b of branches) {
+          // Draw connected dendritic tree segments
+          for (const s of b.segments) {
             ctx.beginPath();
-            ctx.moveTo(hexPts[i].x, hexPts[i].y);
-            ctx.lineTo(hexPts[j].x, hexPts[j].y);
+            ctx.moveTo(s.x1, s.y1);
+            ctx.lineTo(s.x2, s.y2);
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.16)';
             ctx.stroke();
           }
-        }
 
-        ctx.restore();
+          // Electric action potential pulse traveling along the branch
+          b.pulseProgress += b.speed;
+          if (b.pulseProgress > 1) {
+            b.pulseProgress = 0;
+            b.pulseSeg = (b.pulseSeg + 1) % b.segments.length;
+          }
 
-        // Bioluminescent spores
-        if (spores) {
-          for (const s of spores) {
-            s.x += s.vx;
-            s.y += s.vy;
-            if (s.x < 0 || s.x > width) s.vx *= -1;
-            if (s.y < 0 || s.y > height) s.vy *= -1;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(52, 211, 153, 0.35)';
-            ctx.fill();
+          const curSeg = b.segments[b.pulseSeg];
+          if (curSeg) {
+            const px = curSeg.x1 + (curSeg.x2 - curSeg.x1) * b.pulseProgress;
+            const py = curSeg.y1 + (curSeg.y2 - curSeg.y1) * b.pulseProgress;
+            ctx.fillStyle = 'rgba(217, 249, 157, 0.55)';
+            ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
           }
         }
       } else if (activeTheme === 'neon-horizon') {
-        // 6. Infinite Outrun 3D Wireframe Retro Highway
+        // 6. Vector Mountain Skyline & Full-Width Audio Equalizer (NO circles)
         ctx.fillStyle = 'rgba(23, 12, 41, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        state.time += 0.02;
-        const horizon = height * 0.42;
-        const cx = width / 2;
+        const { bars } = state;
+        if (!bars) return;
 
-        // Retro striped horizon sun
-        const sunRadius = Math.min(width, height) * 0.12;
-        ctx.save();
+        // Draw Full-Width Vector Mountain Skyline
+        const groundY = height * 0.78;
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.22)';
+        ctx.lineWidth = 0.9;
         ctx.beginPath();
-        ctx.arc(cx, horizon, sunRadius, Math.PI, 0);
-        ctx.fillStyle = 'rgba(255, 0, 127, 0.22)';
-        ctx.fill();
-
-        // Striped sun horizontal bars
-        for (let y = horizon - sunRadius; y < horizon; y += 8) {
-          ctx.fillStyle = 'rgba(23, 12, 41, 0.85)';
-          ctx.fillRect(cx - sunRadius, y, sunRadius * 2, 2);
+        ctx.moveTo(0, groundY);
+        const peaks = [
+          { x: 0, y: groundY },
+          { x: width * 0.15, y: groundY - 55 },
+          { x: width * 0.30, y: groundY - 20 },
+          { x: width * 0.48, y: groundY - 75 },
+          { x: width * 0.65, y: groundY - 35 },
+          { x: width * 0.82, y: groundY - 60 },
+          { x: width, y: groundY }
+        ];
+        for (let i = 0; i < peaks.length; i++) {
+          ctx.lineTo(peaks[i].x, peaks[i].y);
         }
-        ctx.restore();
+        ctx.stroke();
 
-        // 3D Perspective Road Grid
-        ctx.strokeStyle = 'rgba(255, 0, 127, 0.18)';
-        ctx.lineWidth = 0.7;
+        // Draw Full-Width Equalizer Spectrum Bars across the bottom
+        const barW = width / bars.length;
+        for (let i = 0; i < bars.length; i++) {
+          const b = bars[i];
+          const dynamicH = Math.abs(Math.sin(frame * b.speed + b.phase)) * b.height;
+          const x = i * barW + barW * 0.2;
+          const y = height - dynamicH - 10;
 
-        // Perspective longitudinal lines
-        const roadW = width * 0.75;
-        const lines = 10;
-        for (let i = 0; i <= lines; i++) {
-          const bx = cx - roadW / 2 + (roadW / lines) * i;
-          ctx.beginPath();
-          ctx.moveTo(cx, horizon);
-          ctx.lineTo(bx, height);
-          ctx.stroke();
-        }
-
-        // Horizontal undulating scan lines
-        for (let i = 1; i <= 8; i++) {
-          const t = Math.pow((i / 8 + (state.time % 0.125)) % 1, 2.2);
-          const y = horizon + t * (height - horizon);
-          ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(width, y);
-          ctx.strokeStyle = `rgba(0, 223, 216, ${t * 0.25})`;
-          ctx.stroke();
+          ctx.fillStyle = i % 2 === 0 ? 'rgba(255, 0, 127, 0.22)' : 'rgba(0, 223, 216, 0.20)';
+          ctx.fillRect(x, y, barW * 0.6, dynamicH);
         }
       } else if (activeTheme === 'stargate') {
-        // 7. 3D Wormhole Stargate Vortex
+        // 7. Relativistic Hyper-Speed Linear Warp Rays (Full-screen horizontal flight, NO circles)
         ctx.fillStyle = 'rgba(7, 8, 20, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { rings, particles } = state;
-        const cx = width / 2;
-        const cy = height * 0.45;
+        const { streaks } = state;
+        if (!streaks) return;
 
-        // Concentric Stargate rings
-        if (rings) {
-          ctx.lineWidth = 0.9;
-          for (const r of rings) {
-            r.rot += r.speed;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(r.rot);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, r.r, r.r * 0.55, 0, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(147, 51, 234, 0.24)';
-            ctx.stroke();
-            ctx.restore();
+        for (const s of streaks) {
+          s.x -= s.speed;
+          if (s.x < -s.length) {
+            s.x = width + 50;
+            s.y = Math.random() * height;
           }
-        }
 
-        // Inward spiraling accretion disc stardust
-        if (particles) {
-          for (const p of particles) {
-            p.angle += p.speed;
-            p.dist -= p.inwardSpeed;
-            if (p.dist < 15) {
-              p.dist = Math.min(width, height) * 0.42;
-            }
-            const px = cx + Math.cos(p.angle) * p.dist;
-            const py = cy + Math.sin(p.angle) * (p.dist * 0.55);
-            ctx.beginPath();
-            ctx.arc(px, py, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(6, 182, 212, 0.35)';
-            ctx.fill();
-          }
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(s.x + s.length, s.y);
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 1.0;
+          ctx.stroke();
         }
       } else if (activeTheme === 'imperial') {
-        // 8. 3D Golden Armillary Astrolabe
+        // 8. Art Deco Geometric Diamond Chevrons & Cascading Vertical Silk Ribbons (NO circles)
         ctx.fillStyle = 'rgba(18, 14, 6, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { astrolabeRings, goldLeaf } = state;
-        const cx = width / 2;
-        const cy = height * 0.45;
+        const { ribbons } = state;
+        if (!ribbons) return;
 
-        // Tilted concentric astrolabe rings
-        if (astrolabeRings) {
-          for (const a of astrolabeRings) {
-            a.beadAngle += a.speed;
-            ctx.save();
-            ctx.translate(cx, cy);
+        // Draw Interlocking Art Deco Chevrons across the background
+        const chevronW = 80;
+        const chevronH = 35;
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.12)';
+        ctx.lineWidth = 0.8;
+        for (let x = 0; x <= width + chevronW; x += chevronW) {
+          for (let y = 0; y <= height + chevronH; y += chevronH) {
             ctx.beginPath();
-            ctx.ellipse(0, 0, a.r, a.r * Math.abs(a.tiltX), a.tiltY, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(251, 191, 36, 0.24)';
-            ctx.lineWidth = 1.0;
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + chevronW / 2, y + chevronH / 2);
+            ctx.lineTo(x + chevronW, y);
             ctx.stroke();
-
-            // Orbiting golden bead
-            const bx = Math.cos(a.beadAngle) * a.r;
-            const by = Math.sin(a.beadAngle) * (a.r * Math.abs(a.tiltX));
-            ctx.beginPath();
-            ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = '#fbbf24';
-            ctx.fill();
-
-            ctx.restore();
           }
         }
 
-        // Drifting gold leaf particles
-        if (goldLeaf) {
-          for (const g of goldLeaf) {
-            g.y += g.vy;
-            g.x += g.vx;
-            if (g.y > height) {
-              g.y = -10;
-              g.x = Math.random() * width;
-            }
-            ctx.save();
-            ctx.translate(g.x, g.y);
-            ctx.rotate(g.rot);
-            ctx.fillStyle = 'rgba(251, 191, 36, 0.22)';
-            ctx.fillRect(-g.size / 2, -g.size / 2, g.size, g.size * 0.6);
-            ctx.restore();
-          }
+        // Cascading Vertical Silk Ribbons
+        for (const r of ribbons) {
+          r.offset = (r.offset + r.speed) % height;
+          ctx.fillStyle = 'rgba(251, 191, 36, 0.10)';
+          ctx.fillRect(r.x, 0, r.width, height);
+
+          // Moving gold highlight beam
+          ctx.fillStyle = 'rgba(254, 243, 199, 0.22)';
+          ctx.fillRect(r.x, r.offset, r.width, 35);
         }
       }
 
