@@ -686,14 +686,14 @@ export default function VoiceAssistant() {
       if (newTheme !== 'quantum') document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        quantum: '🌌 Quantum Flux',
+        quantum: '❄️ Glacial Blizzard',
         cyberpunk: '⚡ Cyberpunk Matrix',
-        monolith: '🌑 Monolith Chrono',
-        solar: '🔥 Solar Flare',
-        emerald: '🌿 Emerald Synapse',
-        'neon-horizon': '🏎️ Neon Horizon',
-        stargate: '🌀 Cosmic Stargate',
-        imperial: '👑 Imperial Gold Luxe'
+        monolith: '📈 Monolith Chrono',
+        solar: '🔥 Solar Blaze',
+        emerald: '🗺️ Emerald GPS Grid',
+        'neon-horizon': '☄️ Neon Meteor Storm',
+        stargate: '🌌 Cosmic Milky Way',
+        imperial: '💎 Imperial Polyhedra'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;
