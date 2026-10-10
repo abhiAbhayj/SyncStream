@@ -46,9 +46,8 @@ export default function MediaDetail() {
 
   // Playback modes for Video Content
   // 'trailer' | 'solo-html5' | 'solo-embed'
-  const [playbackMode, setPlaybackMode] = useState(
-    urlPlay === 'true' || urlEpisode ? 'solo-embed' : 'trailer'
-  );
+  // Always default to solo-embed so streaming servers are immediately visible
+  const [playbackMode, setPlaybackMode] = useState('solo-embed');
 
   // Dynamic voice event listener for next/previous episode commands
   useEffect(() => {
@@ -115,15 +114,10 @@ export default function MediaDetail() {
           }
         }
 
-        // If movie/tv/anime we default to trailer, but if play=true or episode param is present, or if no trailer is present, fallback to Embed player
-        if (type !== 'manga') {
-          if (urlPlay === 'true' || urlEpisode) {
-            setPlaybackMode('solo-embed');
-          } else if (detailData.youtube_trailer) {
-            setPlaybackMode('trailer');
-          } else {
-            setPlaybackMode('solo-embed');
-          }
+        // Always stay on solo-embed so streaming servers remain visible
+        // Trailer tab is available for user to click manually
+        if (type !== 'manga' && (urlPlay === 'true' || urlEpisode)) {
+          setPlaybackMode('solo-embed');
         }
 
         // If manga, fetch chapters list
@@ -352,14 +346,30 @@ export default function MediaDetail() {
                 {inWatchlist ? 'Saved in Watchlist' : 'Add to Watchlist'}
               </button>
 
+              {/* Watch Now Button - scrolls to player */}
+              {type !== 'manga' && (
+                <button
+                  onClick={() => {
+                    setPlaybackMode('solo-embed');
+                    setTimeout(() => {
+                      document.getElementById('stream-player-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentCyan/30 hover:opacity-90 transition active:scale-95"
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  Watch Now (Free)
+                </button>
+              )}
+
               {/* Watch party (Only video content) */}
               {type !== 'manga' && (
                 <button
                   onClick={handleCreateWatchParty}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-102 transition btn-glow-purple"
+                  className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-accentPurple/50 text-accentPurple bg-accentPurple/10 font-extrabold hover:bg-accentPurple/20 transition active:scale-95"
                 >
-                  <Users className="w-4 h-4 text-black fill-current" />
-                  Host watch Party
+                  <Users className="w-4 h-4 fill-current" />
+                  Host Watch Party
                 </button>
               )}
             </div>
@@ -367,75 +377,83 @@ export default function MediaDetail() {
         </div>
       </div>
 
-      {/* Media Player Console (Video content) */}
+      {/* ══════════════════════════════════════════════════════
+          STREAMING PLAYER + FREE SERVERS (Video content only)
+          ══════════════════════════════════════════════════════ */}
       {type !== 'manga' && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
+        <section id="stream-player-section" className="max-w-7xl mx-auto px-4 md:px-8 space-y-5">
+          {/* Section header */}
           <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 font-outfit">
               <Film className="w-5 h-5 text-accentCyan" />
-              Solo Stream Player Console
+              Stream Player
             </h2>
 
-            {/* Tab selection */}
-            <div className="flex items-center gap-2 border border-darkBorder p-1 rounded-xl bg-black/20">
+            {/* Mode tabs */}
+            <div className="flex items-center gap-1 border border-darkBorder p-1 rounded-xl bg-black/20">
+              <button
+                onClick={() => setPlaybackMode('solo-embed')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
+                  playbackMode === 'solo-embed'
+                    ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/30'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🎬 Free Stream
+              </button>
               {detail.youtube_trailer && (
                 <button
                   onClick={() => setPlaybackMode('trailer')}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                    playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                    playbackMode === 'trailer'
+                      ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  YouTube Trailer
+                  ▶ Trailer
                 </button>
               )}
               <button
-                onClick={() => setPlaybackMode('solo-embed')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Standard Embed
-              </button>
-              <button
                 onClick={() => setPlaybackMode('solo-html5')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                  playbackMode === 'solo-html5'
+                    ? 'bg-accentCyan/10 text-accentCyan'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Custom Video/Embed
+                Custom URL
               </button>
             </div>
           </div>
 
-          {/* Server Mirror Selection Buttons (Only for standard embeds) */}
+          {/* ── FREE STREAMING SERVERS (always prominent) ── */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-2 border border-darkBorder bg-black/30 p-4 rounded-2xl">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="rounded-2xl border-2 border-accentCyan/30 bg-gradient-to-br from-accentCyan/5 to-accentPurple/5 p-4 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accentCyan" />
-                  <span className="text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
+                  <ShieldCheck className="w-4 h-4 text-accentCyan" />
+                  <span className="text-sm text-white font-black">Free Streaming Servers</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold">● All Free</span>
                 </div>
-                <span className="text-[11px] text-gray-400">
-                  Switch server if a stream is buffering or fails to load
-                </span>
+                <span className="text-[11px] text-gray-400">If one server fails, try another →</span>
               </div>
-              
-              <div className="flex items-center gap-2 flex-wrap pt-1">
+
+              <div className="flex items-center gap-2 flex-wrap">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 ${
                       embedServer === server.key
-                        ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
-                        : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20'
+                        ? 'border-accentCyan bg-accentCyan/20 text-accentCyan shadow-lg shadow-accentCyan/20 ring-1 ring-accentCyan/40'
+                        : 'border-darkBorder bg-darkCard/60 text-gray-300 hover:text-white hover:border-white/30'
                     }`}
                   >
                     <span>{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-bold ${
                         embedServer === server.key
-                          ? 'border-accentCyan/30 bg-accentCyan/20 text-accentCyan'
+                          ? 'border-accentCyan/40 bg-accentCyan/20 text-accentCyan'
                           : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
                       }`}>
                         {server.badge}
