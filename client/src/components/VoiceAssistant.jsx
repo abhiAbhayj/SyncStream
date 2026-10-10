@@ -662,7 +662,7 @@ export default function VoiceAssistant() {
     }
 
     // 7. THEME INTENTS
-    if (command.includes('theme') || command.includes('inferno') || command.includes('matrix') || command.includes('monochrome') || command.includes('black') || command.includes('white') || command.includes('arctic') || command.includes('ice') || command.includes('tokyo') || command.includes('gold') || command.includes('cyber') || command.includes('amethyst') || command.includes('ocean')) {
+    if (command.includes('theme') || command.includes('nebula') || command.includes('space') || command.includes('sunset') || command.includes('fire') || command.includes('rainforest') || command.includes('coral') || command.includes('ocean') || command.includes('daybreak') || command.includes('violet') || command.includes('autumn') || command.includes('frost') || command.includes('mint') || command.includes('ice') || command.includes('snow')) {
       const ALL_THEMES = ['theme-sunset', 'theme-rainforest', 'theme-coral', 'theme-daybreak', 'theme-violet', 'theme-autumn', 'theme-frost'];
             let newTheme = 'nebula';
       if (command.includes('sunset') || command.includes('fire') || command.includes('orange') || command.includes('mirage')) newTheme = 'sunset';

@@ -401,10 +401,10 @@ export default function ThemeBackground() {
   }, [activeTheme]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-darkBg">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-darkBg transition-all duration-700 ease-in-out">
       <div className="absolute inset-0 z-0 noise-overlay opacity-20"></div>
-      <canvas ref={canvasRef} className="absolute inset-0 z-10 block" />
-      <div className="absolute inset-0 z-20 pointer-events-none hero-gradient" />
+      <canvas ref={canvasRef} className="absolute inset-0 z-10 block animate-fade-in" key={activeTheme} />
+      <div className="absolute inset-0 z-20 pointer-events-none hero-gradient transition-all duration-700" />
     </div>
   );
 }
