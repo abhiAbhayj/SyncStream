@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Music, Loader2, Globe, Filter, RefreshCw } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Music, Loader2, Globe, Filter, RefreshCw, ArrowLeft } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
 
 const MUSIC_LANGUAGES = [
@@ -126,6 +126,7 @@ const MANGA_GENRES = [
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { playTrack } = useMusic();
   
   const initialQuery = searchParams.get('q') || '';
@@ -331,8 +332,19 @@ export default function Search() {
     : MANGA_GENRES;
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
+      {/* Back Button */}
+      <div>
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-accentCyan" />
+          <span>Back to Home</span>
+        </button>
+      </div>
+
       {/* Title with Live Indicator and Refresh Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1 text-center sm:text-left">

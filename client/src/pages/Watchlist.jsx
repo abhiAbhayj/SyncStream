@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import MediaGrid from '../components/MediaGrid';
-import { Heart, Search, Loader2 } from 'lucide-react';
+import { Heart, Search, Loader2, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Watchlist() {
@@ -43,8 +43,19 @@ export default function Watchlist() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
+      {/* Back Button */}
+      <div>
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-accentCyan" />
+          <span>Back to Home</span>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="space-y-2 text-center md:text-left">
         <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center justify-center md:justify-start gap-2">

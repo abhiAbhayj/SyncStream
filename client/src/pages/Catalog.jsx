@@ -158,10 +158,11 @@ export default function Catalog() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-darkBorder pb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
-            className="p-3 rounded-2xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-accentCyan" />
+            <span>Back to Home</span>
           </button>
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">

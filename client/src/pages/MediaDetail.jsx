@@ -252,11 +252,11 @@ export default function MediaDetail() {
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
         <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-darkBorder bg-darkCard/40 text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-accentCyan" />
-          <span>Back</span>
+          <span>Back to Home</span>
         </button>
       </div>
       

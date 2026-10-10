@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
 import {
@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Volume2,
   ArrowRight,
+  ArrowLeft,
   ChevronDown,
   FolderPlus,
   Trash2,
@@ -90,6 +91,7 @@ const SUGGESTIONS_BY_CATEGORY = {
 const FALLBACK_COVER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
 
 export default function Music() {
+  const navigate = useNavigate();
   const {
     currentTrack,
     isPlaying,
@@ -509,12 +511,23 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="relative max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[85vh] pb-24 overflow-x-hidden">
+    <div className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-24 overflow-x-hidden">
       {/* Radiant Background Ambient Aurora Glows (Contained to prevent horizontal scrolling) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-10 left-10 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-cyan-500/15 blur-[100px]" />
         <div className="absolute top-1/3 -right-10 w-72 sm:w-[450px] h-72 sm:h-[450px] rounded-full bg-purple-600/20 blur-[120px]" />
         <div className="absolute bottom-20 left-1/3 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-pink-500/15 blur-[100px]" />
+      </div>
+
+      {/* Back Button */}
+      <div>
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-darkCard/80 text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-accentCyan" />
+          <span>Back to Home</span>
+        </button>
       </div>
       
       {/* ── Top Header Banner & Navigation Tabs ── */}
