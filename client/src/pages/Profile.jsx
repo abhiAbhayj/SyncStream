@@ -18,96 +18,76 @@ import {
   Plus,
   Trash2,
   Edit3,
-  RotateCcw,
-  Flame,
-  Activity,
-  Clock,
-  Radio
+  RotateCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
-  'theme-abyss',
-  'theme-eclipse',
-  'theme-quantum',
-  'theme-sakura',
-  'theme-mirage',
-  'theme-nebula',
-  'theme-glitch'
+  'theme-inferno',
+  'theme-matrix',
+  'theme-monochrome',
+  'theme-arctic',
+  'theme-tokyo',
+  'theme-cyber',
+  'theme-amethyst'
 ];
 
 const THEME_OPTIONS = [
   {
-    id: 'genesis',
-    name: '🤖 Neon Genesis',
-    desc: 'Deep mecha void, intersecting neon green & purple geometric wireframes',
-    animation: 'Rotating 3D wireframes & neon nodes',
-    swatch: ['#090514', '#00ff66', '#a855f7', '#00f0ff', '#ffffff'],
-    icon: Bot,
-    anim: 'animate-pulse'
+    id: 'ocean',
+    name: '🟩 LifeGrid Neon',
+    desc: 'Real-time Conway\'s Game of Life cellular automaton grid',
+    animation: 'Interactive Game of Life cells',
+    swatch: ['#04060a', '#00ffaa', '#aa00ff', '#ff00aa', '#ffff00'],
   },
   {
-    id: 'abyss',
-    name: '🌊 Abyssal Trench',
-    desc: 'Deep underwater void, bioluminescent cyan bubbles & floating plankton',
-    animation: 'Rising luminous bubbles & plankton',
-    swatch: ['#020b14', '#00f5d4', '#0077b6', '#03045e', '#90e0ef'],
-    icon: Activity,
-    anim: 'animate-bounce-subtle'
+    id: 'inferno',
+    name: '💽 Retro Bounce',
+    desc: 'Bouncing DVD logos with colorful trails',
+    animation: 'DVD logo bouncing physics',
+    swatch: ['#08080c', '#ff00ff', '#00ffff', '#ffff00', '#ff8000'],
   },
   {
-    id: 'eclipse',
-    name: '🌑 Crimson Eclipse',
-    desc: 'Blood moon obsidian, floating dark embers & crimson shadow fog',
-    animation: 'Floating embers & slow shadow fog',
-    swatch: ['#0d0202', '#ff003c', '#8a0303', '#ff5555', '#2b0000'],
-    icon: Flame,
-    anim: 'animate-pulse-glow'
+    id: 'matrix',
+    name: '🌳 Neon Roots',
+    desc: 'Fractal branching trees that grow and sway in the wind',
+    animation: 'Swaying fractal trees',
+    swatch: ['#000a05', '#80ff00', '#00ff80', '#ff8000', '#ffc800'],
   },
   {
-    id: 'quantum',
-    name: '🧬 Quantum Nexus',
-    desc: 'Sci-fi processor core, electric blue data nodes & connecting silver pulses',
-    animation: 'Connecting data nodes & pulses',
-    swatch: ['#050914', '#3b82f6', '#60a5fa', '#e2e8f0', '#1d4ed8'],
-    icon: Activity,
-    anim: 'animate-shimmer'
+    id: 'monochrome',
+    name: '🧬 Helix Genesis',
+    desc: '3D rotating double helix DNA strand made of glowing particles',
+    animation: '3D DNA double helix',
+    swatch: ['#0a050f', '#0080ff', '#ff0080', '#8000ff', '#ffffff'],
   },
   {
-    id: 'sakura',
-    name: '🌸 Sakura Breeze',
-    desc: 'Spring anime aesthetic, soft drifting cherry blossom petals & pink wind',
-    animation: 'Drifting cherry blossom petals',
-    swatch: ['#1a0b12', '#ffb7b2', '#ff9ce6', '#ffdac1', '#e28413'],
-    icon: Sparkles,
-    anim: 'animate-spin-slow'
+    id: 'arctic',
+    name: '🦅 Swarm Intelligence',
+    desc: 'Flocking boids simulating organic flight patterns',
+    animation: 'Interactive flocking boids',
+    swatch: ['#050f19', '#00ffff', '#ffffff', '#0080ff', '#80ffff'],
   },
   {
-    id: 'mirage',
-    name: '🏜️ Desert Mirage',
-    desc: 'Golden dune expanse, drifting sand dust & rising heat waves',
-    animation: 'Drifting sand dust & heat waves',
-    swatch: ['#140a03', '#f59e0b', '#d97706', '#fbbf24', '#78350f'],
-    icon: Flame,
-    anim: 'animate-pulse'
+    id: 'tokyo',
+    name: '🚇 Warp Tunnel',
+    desc: 'Hyper-speed 3D tunnel flying effect',
+    animation: '3D hyperspeed tunnel',
+    swatch: ['#0a000a', '#ff0000', '#ff8000', '#ffff00', '#ffffff'],
   },
   {
-    id: 'nebula',
-    name: '🌌 Nebula Core',
-    desc: 'Vibrant interstellar clouds, swirling magenta gas & shooting stars',
-    animation: 'Swirling nebula gas & shooting stars',
-    swatch: ['#080212', '#d946ef', '#c026d3', '#e879f9', '#86198f'],
-    icon: Palette,
-    anim: 'animate-pulse-glow'
+    id: 'cyber',
+    name: '💧 Liquid Neon',
+    desc: 'Fluid physics simulation with flow fields',
+    animation: 'Flow field liquid physics',
+    swatch: ['#0f0f00', '#00ffff', '#ff00ff', '#ffff00', '#ff8000'],
   },
   {
-    id: 'glitch',
-    name: '👾 Glitch Dimension',
-    desc: 'Cyberpunk terminal, CRT green binary rain & horizontal data glitches',
-    animation: 'Binary rain & CRT horizontal glitches',
-    swatch: ['#050505', '#22c55e', '#16a34a', '#4ade80', '#14532d'],
-    icon: Gamepad2,
-    anim: 'animate-bounce'
+    id: 'amethyst',
+    name: '🌸 Windy Sakura',
+    desc: 'Falling cherry blossoms with swirling wind physics',
+    animation: 'Cherry blossoms and wind',
+    swatch: ['#0f050a', '#ffb7c5', '#ff69b4', '#ff1493', '#ffffff'],
   },
 ];
 
@@ -204,7 +184,7 @@ export default function Profile() {
   });
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'genesis';
+    return localStorage.getItem('syncstream_theme') || 'ocean';
   });
 
   const [loading, setLoading] = useState(false);
@@ -252,16 +232,16 @@ export default function Profile() {
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (newTheme !== 'genesis') {
+    if (newTheme !== 'ocean') {
       document.body.classList.add(`theme-${newTheme}`);
     }
   };
 
   React.useEffect(() => {
     return () => {
-      const currentPersisted = localStorage.getItem('syncstream_theme') || 'genesis';
+      const currentPersisted = localStorage.getItem('syncstream_theme') || 'ocean';
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      if (currentPersisted !== 'genesis') {
+      if (currentPersisted !== 'ocean') {
         document.body.classList.add(`theme-${currentPersisted}`);
       }
     };
@@ -557,7 +537,7 @@ export default function Profile() {
 
     localStorage.setItem('syncstream_theme', theme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (theme !== 'genesis') {
+    if (theme !== 'ocean') {
       document.body.classList.add(`theme-${theme}`);
     }
 
@@ -852,7 +832,7 @@ export default function Profile() {
                     </p>
                     <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">{t.desc}</p>
                     <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-accentCyan">
-                      {t.icon && <t.icon className={`w-2.5 h-2.5 ${t.anim}`} />}
+                      <Sparkles className="w-2.5 h-2.5 animate-pulse" />
                       <span>{t.animation}</span>
                     </div>
 

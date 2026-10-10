@@ -15,116 +15,232 @@ html, body, #root {
 }
 
 /* ─────────────────────────────────────────────
-   THEME 1 (Default): Cosmic Stargate 🌌 (Nebula Wormhole & Multi-Chromatic)
+   THEME 1 (Default): LifeGrid Neon 🟩 (Conway's Game of Life)
 ───────────────────────────────────────────── */
 :root {
-  --dark-bg:     9 5 20;
-  --dark-card:   16 12 30;
-  --dark-surf:   25 18 45;
-  --dark-border: 168 85 247;
+  --dark-bg:     4 6 10;
+  --dark-card:   10 14 20;
+  --dark-surf:   18 24 35;
+  --dark-border: 170 0 255;
 
-  --accent-cyan:   0 240 255;
-  --accent-purple: 168 85 247;
-  --accent-pink:   255 0 102;
-  --accent-gold:   0 255 102;
-  --accent-green:  255 255 255;
+  --accent-cyan:   0 255 170;
+  --accent-purple: 170 0 255;
+  --accent-pink:   255 0 170;
+  --accent-gold:   255 255 0;
+  --accent-green:  0 255 0;
 
-  --glow-1: rgba(168, 85, 247, 0.42);
-  --glow-2: rgba(0, 240, 255, 0.35);
-  --glow-3: rgba(0, 255, 102, 0.25);
+  --glow-1: rgba(0, 255, 170, 0.42);
+  --glow-2: rgba(170, 0, 255, 0.35);
+  --glow-3: rgba(255, 0, 170, 0.25);
 }
-
-/* =============================================
-   THEMES (Only affects Backgrounds/Surfaces)
-   ============================================= */
-
-.theme-abyss {
-  --dark-bg:     2 11 20;
-  --dark-card:   8 20 40;
-  --dark-surf:   12 30 60;
-  --dark-border: 0 245 212;
-}
-
-.theme-eclipse {
-  --dark-bg:     13 2 2;
-  --dark-card:   28 4 4;
-  --dark-surf:   40 8 8;
-  --dark-border: 255 0 60;
-}
-
-.theme-quantum {
-  --dark-bg:     5 9 20;
-  --dark-card:   15 25 50;
-  --dark-surf:   22 35 70;
-  --dark-border: 59 130 246;
-}
-
-.theme-sakura {
-  --dark-bg:     26 11 18;
-  --dark-card:   40 18 28;
-  --dark-surf:   55 25 40;
-  --dark-border: 255 183 178;
-}
-
-.theme-mirage {
-  --dark-bg:     20 10 3;
-  --dark-card:   35 20 10;
-  --dark-surf:   50 30 15;
-  --dark-border: 245 158 11;
-}
-
-.theme-nebula {
-  --dark-bg:     8 2 18;
-  --dark-card:   20 8 40;
-  --dark-surf:   35 15 65;
-  --dark-border: 217 70 239;
-}
-
-.theme-glitch {
-  --dark-bg:     5 5 5;
-  --dark-card:   15 25 15;
-  --dark-surf:   20 35 20;
-  --dark-border: 34 197 94;
-}
-
 
 /* ─────────────────────────────────────────────
-   THEME 2: Inferno Solaris 🌋 (Sunfire Plasma & Lava Ruby)
+   THEME 2: Retro Bounce 💽 (Bouncing DVD Logos)
 ───────────────────────────────────────────── */
+.theme-inferno {
+  --dark-bg:     8 8 12;
+  --dark-card:   16 16 24;
+  --dark-surf:   24 24 36;
+  --dark-border: 255 0 255;
 
+  --accent-cyan:   255 0 255;
+  --accent-purple: 0 255 255;
+  --accent-pink:   255 255 0;
+  --accent-gold:   255 128 0;
+  --accent-green:  0 255 128;
+
+  --glow-1: rgba(255, 0, 255, 0.48);
+  --glow-2: rgba(0, 255, 255, 0.38);
+  --glow-3: rgba(255, 255, 0, 0.28);
+}
 
 /* ─────────────────────────────────────────────
-   THEME 3: Cyberpunk Holo-Matrix ⚡ (Synth Neon & Hexagonal Shield)
+   THEME 3: Neon Roots 🌳 (Fractal Branching Trees)
 ───────────────────────────────────────────── */
+.theme-matrix {
+  --dark-bg:     0 10 5;
+  --dark-card:   0 20 10;
+  --dark-surf:   0 30 15;
+  --dark-border: 128 255 0;
 
+  --accent-cyan:   128 255 0;
+  --accent-purple: 0 255 128;
+  --accent-pink:   255 128 0;
+  --accent-gold:   255 200 0;
+  --accent-green:  0 200 50;
+
+  --glow-1: rgba(128, 255, 0, 0.45);
+  --glow-2: rgba(0, 255, 128, 0.38);
+  --glow-3: rgba(255, 128, 0, 0.25);
+}
 
 /* ─────────────────────────────────────────────
-   THEME 4: Monolith Chrono 🌑 (Architectural Dark & Liquid Chrome)
+   THEME 4: Helix Genesis 🧬 (3D Rotating DNA)
 ───────────────────────────────────────────── */
+.theme-monochrome {
+  --dark-bg:     10 5 15;
+  --dark-card:   20 10 30;
+  --dark-surf:   30 15 45;
+  --dark-border: 0 128 255;
 
+  --accent-cyan:   0 128 255;
+  --accent-purple: 255 0 128;
+  --accent-pink:   128 0 255;
+  --accent-gold:   255 255 255;
+  --accent-green:  0 255 255;
 
+  --glow-1: rgba(0, 128, 255, 0.25);
+  --glow-2: rgba(255, 0, 128, 0.30);
+  --glow-3: rgba(128, 0, 255, 0.20);
+}
 
+.theme-monochrome .btn-primary,
+.theme-monochrome .btn-glow-purple,
+.theme-monochrome button[class*="from-accentCyan"] {
+  background: linear-gradient(135deg, #0080ff 0%, #ff0080 50%, #8000ff 100%) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 20px rgba(0, 128, 255, 0.35) !important;
+}
+
+.theme-monochrome .btn-primary *,
+.theme-monochrome button[class*="from-accentCyan"] * {
+  color: #fff !important;
+}
+
+.theme-monochrome .text-gradient,
+.theme-monochrome .text-gradient-aurora {
+  background: linear-gradient(135deg, #0080ff 0%, #ff0080 40%, #8000ff 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.theme-monochrome .badge-movie,
+.theme-monochrome .badge-tv,
+.theme-monochrome .badge-anime,
+.theme-monochrome .badge-manga {
+  background: rgba(0, 128, 255, 0.12) !important;
+  color: #0080ff !important;
+  border: 1px solid rgba(0, 128, 255, 0.3) !important;
+}
+
+.theme-monochrome .rating-pill {
+  background: rgba(0, 0, 0, 0.85) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.theme-monochrome input,
+.theme-monochrome textarea {
+  background-color: rgba(20, 10, 30, 0.95) !important;
+  color: #ffffff !important;
+  border-color: rgba(0, 128, 255, 0.2) !important;
+}
+
+.theme-monochrome input::placeholder {
+  color: #71717a !important;
+}
 
 /* ─────────────────────────────────────────────
-   THEME 5: Glacial Prism 🧊 (Crystalline Aurora & Prismatic Rainbow)
+   THEME 5: Swarm Intelligence 🦅 (Flocking Boids)
 ───────────────────────────────────────────── */
+.theme-arctic {
+  --dark-bg:     5 15 25;
+  --dark-card:   10 30 50;
+  --dark-surf:   15 45 75;
+  --dark-border: 0 255 255;
 
+  --accent-cyan:   0 255 255;
+  --accent-purple: 255 255 255;
+  --accent-pink:   0 128 255;
+  --accent-gold:   128 255 255;
+  --accent-green:  0 255 128;
+
+  --glow-1: rgba(0, 255, 255, 0.45);
+  --glow-2: rgba(255, 255, 255, 0.35);
+  --glow-3: rgba(0, 128, 255, 0.25);
+}
 
 /* ─────────────────────────────────────────────
-   THEME 6: Retro Synthwave Highway 🪩 (80s Sunset & Outrun Neon)
+   THEME 6: Warp Tunnel 🚇 (Hyperspeed Tube)
 ───────────────────────────────────────────── */
+.theme-tokyo {
+  --dark-bg:     10 0 10;
+  --dark-card:   20 0 20;
+  --dark-surf:   30 0 30;
+  --dark-border: 255 0 0;
 
+  --accent-cyan:   255 0 0;
+  --accent-purple: 255 128 0;
+  --accent-pink:   255 255 0;
+  --accent-gold:   255 255 255;
+  --accent-green:  0 255 0;
+
+  --glow-1: rgba(255, 0, 0, 0.48);
+  --glow-2: rgba(255, 128, 0, 0.38);
+  --glow-3: rgba(255, 255, 0, 0.28);
+}
 
 /* ─────────────────────────────────────────────
-   THEME 7: Imperial Gold Luxe 👑 (24K Gold & Velvet Bronze)
+   THEME 7: Liquid Neon 💧 (Flow Field Physics)
 ───────────────────────────────────────────── */
+.theme-cyber {
+  --dark-bg:     15 15 0;
+  --dark-card:   30 30 0;
+  --dark-surf:   45 45 0;
+  --dark-border: 0 255 255;
 
+  --accent-cyan:   0 255 255;
+  --accent-purple: 255 0 255;
+  --accent-pink:   255 255 0;
+  --accent-gold:   255 128 0;
+  --accent-green:  0 255 0;
 
+  --glow-1: rgba(0, 255, 255, 0.48);
+  --glow-2: rgba(255, 0, 255, 0.35);
+  --glow-3: rgba(255, 255, 0, 0.25);
+}
+
+.theme-cyber .btn-primary,
+.theme-cyber .btn-glow-purple,
+.theme-cyber button[class*="from-accentCyan"] {
+  background: linear-gradient(135deg, #00ffff 0%, #ff00ff 50%, #ffff00 100%) !important;
+  color: #1a1002 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.40) !important;
+}
+
+.theme-cyber .btn-primary *,
+.theme-cyber button[class*="from-accentCyan"] * {
+  color: #1a1002 !important;
+}
+
+.theme-cyber .text-gradient,
+.theme-cyber .text-gradient-aurora {
+  background: linear-gradient(135deg, #00ffff 0%, #ff00ff 30%, #ffff00 70%, #ff8000 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
 
 /* ─────────────────────────────────────────────
-   THEME 8: Bio-Luminescent Pandora 🌿 (Alien Jungle & Sacred Spores)
+   THEME 8: Windy Sakura 🌸 (Falling Cherry Blossoms)
 ───────────────────────────────────────────── */
+.theme-amethyst {
+  --dark-bg:     15 5 10;
+  --dark-card:   30 10 20;
+  --dark-surf:   45 15 30;
+  --dark-border: 255 183 197;
 
+  --accent-cyan:   255 183 197;
+  --accent-purple: 255 105 180;
+  --accent-pink:   255 20 147;
+  --accent-gold:   255 255 255;
+  --accent-green:  255 192 203;
+
+  --glow-1: rgba(255, 183, 197, 0.45);
+  --glow-2: rgba(255, 105, 180, 0.38);
+  --glow-3: rgba(255, 20, 147, 0.25);
+}
 
 /* ─────────────────────────────────────────────
    BASE
