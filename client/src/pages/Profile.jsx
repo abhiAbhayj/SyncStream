@@ -27,51 +27,67 @@ const ALL_THEME_CLASSES = [
   'theme-monolith',
   'theme-solar',
   'theme-emerald',
-  'theme-neon-horizon'
+  'theme-neon-horizon',
+  'theme-stargate',
+  'theme-imperial'
 ];
 
 const THEME_OPTIONS = [
   {
     id: 'quantum',
     name: '🌌 Quantum Flux',
-    desc: 'Gravitational particle orbits & celestial stardust flux',
-    animation: 'Subtle orbital gravity field',
+    desc: '3D standing wave interference grid with quantum probability amplitude nodes',
+    animation: 'Quantum Harmonic Wave Lattice',
     swatch: ['#0d1127', '#8b5cf6', '#06b6d4', '#f43f5e', '#fbbf24'],
   },
   {
     id: 'cyberpunk',
     name: '⚡ Cyberpunk Matrix',
-    desc: '3D perspective cyber grid with high-speed laser data packets',
-    animation: 'Ambient perspective cyber grid',
+    desc: 'Rotating 3D wireframe cyber-cube with radar sweep & ascending data conduits',
+    animation: 'Holographic Polyhedral Radar',
     swatch: ['#091326', '#00f5ff', '#f72585', '#10b981', '#fee440'],
   },
   {
     id: 'monolith',
     name: '🌑 Monolith Chrono',
-    desc: 'Rotating 3D gyroscope rings with liquid mercury orbs & architectural crosshairs',
-    animation: 'Quantum Gyroscope & Liquid Mercury',
+    desc: 'Live financial candlestick tickers, trend vectors, 3D space polyhedra & reticles',
+    animation: 'Space Geometry & Stock Market Matrix',
     swatch: ['#050505', '#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'],
   },
   {
     id: 'solar',
     name: '🔥 Solar Flare',
-    desc: 'Coronal magnetic prominence loops & radiant plasma arcs',
-    animation: 'Coronal magnetic loops & embers',
+    desc: 'Concentric eccentric heliocentric eclipse rings with coronal plasma arches',
+    animation: 'Heliocentric Orbital Eclipse',
     swatch: ['#240d07', '#f97316', '#e11d48', '#facc15', '#a21caf'],
   },
   {
     id: 'emerald',
     name: '🌿 Emerald Synapse',
-    desc: 'Neural circuit pathways with high-speed synaptic data impulses',
-    animation: 'Synaptic neural matrix',
+    desc: 'Rotating Metatron sacred geometry mandala with fiber-optic phosphor traces',
+    animation: 'Sacred Geometry Circuit Lattice',
     swatch: ['#042018', '#10b981', '#84cc16', '#14b8a6', '#d9f99d'],
   },
   {
     id: 'neon-horizon',
     name: '🏎️ Neon Horizon',
-    desc: 'High-velocity warp perspective speed-streamers & horizon glow',
-    animation: 'Warp perspective speed trails',
+    desc: 'Rolling 3D vector terrain road leading toward a retro horizon striped sun',
+    animation: 'Infinite Outrun 3D Wireframe Highway',
     swatch: ['#170c29', '#ff007f', '#00dfd8', '#7928ca', '#ff6b35'],
+  },
+  {
+    id: 'stargate',
+    name: '🌀 Cosmic Stargate',
+    desc: '3D wormhole portal vortex with inward spiraling stardust accretion disc',
+    animation: '3D Wormhole Stargate Vortex',
+    swatch: ['#070814', '#9333ea', '#06b6d4', '#f43f5e', '#eab308'],
+  },
+  {
+    id: 'imperial',
+    name: '👑 Imperial Gold Luxe',
+    desc: 'Concentric 3D golden armillary astrolabe rings with orbiting planetary beads',
+    animation: '3D Golden Armillary Astrolabe',
+    swatch: ['#120e06', '#fbbf24', '#fef3c7', '#d97706', '#10b981'],
   },
 ];
 

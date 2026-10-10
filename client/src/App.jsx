@@ -46,7 +46,9 @@ function AppContent() {
       'theme-monolith',
       'theme-solar',
       'theme-emerald',
-      'theme-neon-horizon'
+      'theme-neon-horizon',
+      'theme-stargate',
+      'theme-imperial'
     ];
     const savedTheme = localStorage.getItem('syncstream_theme') || 'quantum';
     // Remove all theme classes first

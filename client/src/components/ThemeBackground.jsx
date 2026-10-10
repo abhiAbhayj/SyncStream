@@ -2,13 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
- * Refined Subtle & Non-Intrusive Simulation Engines (Dull & Ambient for 100% UI Visibility):
- * 1. quantum      — 🌌 Quantum Flux: Subtle gravitational particle orbits & soft stardust filaments
- * 2. cyberpunk    — ⚡ Cyberpunk Matrix: Soft 3D perspective cyber grid with faint laser data pulses
- * 3. monolith     — 🌑 Monolith Chrono: Interlocking 3D gyroscope rings with liquid mercury orbs & architectural crosshairs
- * 4. solar        — 🔥 Solar Flare: Gentle coronal magnetic plasma arches & soft ember drift
- * 5. emerald      — 🌿 Emerald Synapse: Minimalist synaptic neural circuit network with calm data pulses
- * 6. neon-horizon — 🏎️ Neon Horizon: Soft perspective speed trails & twilight vanishing horizon
+ * 8 Exclusive, Fully Unique Mathematical Simulation Engines (Dull & Ambient for 100% UI Clarity):
+ * 1. quantum      — 🌌 Quantum Harmonic Wave Lattice: 3D standing wave interference grid & probability nodes
+ * 2. cyberpunk    — ⚡ Holographic Polyhedral Radar: Rotating 3D cyber-core with radar sweep & data conduits
+ * 3. monolith     — 🌑 Space Geometry & Stock Market Matrix: 3D space polyhedra, live candlesticks, trend tickers & reticles
+ * 4. solar        — 🔥 Heliocentric Eclipse Rings: Concentric eccentric solar rings & coronal plasma prominence arches
+ * 5. emerald      — 🌿 Sacred Geometry Circuit Lattice: Rotating Metatron mandala & bioluminescent phosphor traces
+ * 6. neon-horizon — 🏎️ Infinite Outrun 3D Wireframe Highway: Rolling 3D vector terrain road leading to a retro horizon sun
+ * 7. stargate     — 🌀 3D Wormhole Stargate: Relativistic warp vortex with accretion disc stardust filaments
+ * 8. imperial     — 👑 3D Golden Armillary Astrolabe: Concentric tilted orbital rings with planetary beads & gold leaf dust
  */
 export default function ThemeBackground() {
   const canvasRef = useRef(null);
@@ -25,6 +27,8 @@ export default function ThemeBackground() {
       if (classList.contains('theme-solar')) return 'solar';
       if (classList.contains('theme-emerald')) return 'emerald';
       if (classList.contains('theme-neon-horizon')) return 'neon-horizon';
+      if (classList.contains('theme-stargate')) return 'stargate';
+      if (classList.contains('theme-imperial')) return 'imperial';
       return localStorage.getItem('syncstream_theme') || 'quantum';
     };
 
@@ -77,130 +81,131 @@ export default function ThemeBackground() {
       const isMobile = width < 768;
 
       if (theme === 'quantum') {
-        // Subtle gravitational flux particles
-        const count = isMobile ? 40 : 80;
-        const particles = [];
-        for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const dist = Math.random() * Math.min(width, height) * 0.4 + 40;
-          particles.push({
-            angle,
-            dist,
-            speed: (Math.random() * 0.005 + 0.002) * (Math.random() > 0.5 ? 1 : -1),
-            radialSpeed: (Math.random() - 0.5) * 0.2,
-            size: Math.random() * 1.5 + 0.8,
-            color: ['rgba(139, 92, 246, 0.45)', 'rgba(6, 182, 212, 0.45)', 'rgba(244, 63, 94, 0.35)'][Math.floor(Math.random() * 3)]
-          });
-        }
-        state = { particles };
+        // 1. 3D Quantum Harmonic Wave Lattice
+        const cols = isMobile ? 12 : 22;
+        const rows = isMobile ? 8 : 14;
+        state = { cols, rows };
       } else if (theme === 'cyberpunk') {
-        // Soft 3D Perspective Cyber Grid
-        const hLines = isMobile ? 10 : 16;
-        const vLines = isMobile ? 12 : 20;
-        const packets = [];
-        const packetCount = isMobile ? 10 : 18;
-        for (let i = 0; i < packetCount; i++) {
-          packets.push({
-            vLine: Math.floor(Math.random() * vLines),
-            progress: Math.random(),
-            speed: Math.random() * 0.006 + 0.003,
-            length: Math.random() * 0.08 + 0.04,
-            color: Math.random() > 0.5 ? 'rgba(0, 245, 255, 0.5)' : 'rgba(247, 37, 133, 0.45)'
+        // 2. Holographic Polyhedral Radar & Rising Hex Conduits
+        const beams = [];
+        const beamCount = isMobile ? 8 : 16;
+        for (let i = 0; i < beamCount; i++) {
+          beams.push({
+            x: Math.random() * width,
+            y: height + Math.random() * 200,
+            speed: Math.random() * 1.5 + 0.8,
+            length: Math.random() * 60 + 30,
+            color: Math.random() > 0.4 ? 'rgba(0, 245, 255, 0.45)' : 'rgba(247, 37, 133, 0.4)'
           });
         }
-        state = { hLines, vLines, packets };
+        state = { rot: 0, beams };
       } else if (theme === 'monolith') {
-        // Quantum Gyroscope & Liquid Mercury with Architectural Crosshairs
-        const gyroRings = [
-          { radius: Math.min(width, height) * (isMobile ? 0.22 : 0.28), speedX: 0.006, speedY: 0.008, color: 'rgba(226, 232, 240, 0.28)' },
-          { radius: Math.min(width, height) * (isMobile ? 0.16 : 0.21), speedX: -0.007, speedY: 0.005, color: 'rgba(59, 130, 246, 0.35)' },
-          { radius: Math.min(width, height) * (isMobile ? 0.10 : 0.14), speedX: 0.009, speedY: -0.008, color: 'rgba(239, 68, 68, 0.30)' }
-        ];
-
-        // Liquid mercury metaball orbs
-        const mercuryOrbs = [];
-        const orbCount = isMobile ? 4 : 8;
-        for (let i = 0; i < orbCount; i++) {
-          mercuryOrbs.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: (Math.random() - 0.5) * 0.5,
-            vy: (Math.random() - 0.5) * 0.5,
-            radius: Math.random() * 18 + 12
-          });
+        // 3. Space Geometric Shapes & Stock Market Chrono Matrix
+        // Live Financial Candlesticks
+        const candleCount = isMobile ? 16 : 32;
+        const candles = [];
+        let price = height * 0.55;
+        for (let i = 0; i < candleCount; i++) {
+          const change = (Math.random() - 0.48) * 35;
+          const open = price;
+          const close = Math.max(height * 0.25, Math.min(height * 0.75, open + change));
+          const high = Math.min(open, close) - Math.random() * 18;
+          const low = Math.max(open, close) + Math.random() * 18;
+          candles.push({ open, close, high, low });
+          price = close;
         }
 
-        // Architectural Crosshair reticles
+        // Space Wireframe Geometric Polyhedra
+        const polyhedra = [
+          { x: width * 0.22, y: height * 0.32, size: isMobile ? 28 : 42, rotX: 0, rotY: 0, speedX: 0.008, speedY: 0.006, type: 'octa' },
+          { x: width * 0.80, y: height * 0.40, size: isMobile ? 32 : 50, rotX: 0.5, rotY: 0.3, speedX: -0.006, speedY: 0.009, type: 'cube' }
+        ];
+
+        // Architectural Crosshair Grid Reticles
         const reticles = [
-          { x: width * 0.25, y: height * 0.3, size: 24 },
-          { x: width * 0.75, y: height * 0.7, size: 30 }
+          { x: width * 0.5, y: height * 0.25, size: 26 },
+          { x: width * 0.15, y: height * 0.80, size: 20 },
+          { x: width * 0.88, y: height * 0.82, size: 22 }
         ];
 
-        state = { gyroRings, mercuryOrbs, reticles, rot: 0 };
+        state = { candles, polyhedra, reticles, tickerShift: 0 };
       } else if (theme === 'solar') {
-        // Gentle Coronal Magnetic Loops & Soft Drifting Embers
-        const loopCount = isMobile ? 3 : 5;
-        const loops = [];
-        for (let i = 0; i < loopCount; i++) {
-          loops.push({
-            p1: { x: Math.random() * width, y: height + 20 },
-            p2: { x: Math.random() * width, y: height * (0.35 + Math.random() * 0.4) },
-            p3: { x: Math.random() * width, y: height + 20 },
-            pulse: Math.random() * Math.PI * 2,
-            speed: Math.random() * 0.01 + 0.005,
-            color: Math.random() > 0.5 ? 'rgba(249, 115, 22, 0.25)' : 'rgba(225, 29, 72, 0.20)'
+        // 4. Heliocentric Eclipse Rings & Coronal Prominence Arches
+        const rings = [
+          { rx: Math.min(width, height) * 0.22, ry: Math.min(width, height) * 0.12, rot: 0.3, speed: 0.004, color: 'rgba(249, 115, 22, 0.3)' },
+          { rx: Math.min(width, height) * 0.30, ry: Math.min(width, height) * 0.18, rot: -0.4, speed: -0.003, color: 'rgba(250, 204, 21, 0.25)' },
+          { rx: Math.min(width, height) * 0.38, ry: Math.min(width, height) * 0.24, rot: 0.6, speed: 0.002, color: 'rgba(225, 29, 72, 0.2)' }
+        ];
+        const flares = [];
+        for (let i = 0; i < (isMobile ? 18 : 35); i++) {
+          flares.push({
+            angle: Math.random() * Math.PI * 2,
+            dist: Math.random() * Math.min(width, height) * 0.35 + 40,
+            speed: (Math.random() * 0.004 + 0.002),
+            r: Math.random() * 1.8 + 0.8,
+            color: Math.random() > 0.4 ? 'rgba(250, 204, 21, 0.4)' : 'rgba(249, 115, 22, 0.35)'
           });
         }
-        const sparks = [];
-        for (let i = 0; i < (isMobile ? 20 : 40); i++) {
-          sparks.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vy: -(Math.random() * 1.0 + 0.3),
-            vx: (Math.random() - 0.5) * 0.5,
-            r: Math.random() * 1.5 + 0.8,
-            color: Math.random() > 0.4 ? 'rgba(250, 204, 21, 0.4)' : 'rgba(249, 115, 22, 0.35)',
-            life: Math.random() * 120
-          });
-        }
-        state = { loops, sparks };
+        state = { rings, flares };
       } else if (theme === 'emerald') {
-        // Minimalist Synaptic Circuit Matrix
-        const nodeCount = isMobile ? 18 : 36;
-        const nodes = [];
-        for (let i = 0; i < nodeCount; i++) {
-          nodes.push({
+        // 5. Sacred Geometry & Metatron Circuit Lattice
+        const sacredRadius = Math.min(width, height) * (isMobile ? 0.26 : 0.34);
+        const spores = [];
+        for (let i = 0; i < (isMobile ? 16 : 30); i++) {
+          spores.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            vx: (Math.random() - 0.5) * 0.35,
-            vy: (Math.random() - 0.5) * 0.35
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4,
+            r: Math.random() * 1.5 + 0.8
           });
         }
-        const pulses = [];
-        for (let i = 0; i < (isMobile ? 8 : 14); i++) {
-          pulses.push({
-            source: Math.floor(Math.random() * nodeCount),
-            target: Math.floor(Math.random() * nodeCount),
-            progress: Math.random(),
-            speed: Math.random() * 0.012 + 0.008
-          });
-        }
-        state = { nodes, pulses };
+        state = { sacredRadius, rot: 0, spores };
       } else if (theme === 'neon-horizon') {
-        // Soft Warp Speed Streamers
-        const count = isMobile ? 22 : 45;
-        const streamers = [];
-        for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          streamers.push({
-            angle,
-            dist: Math.random() * 800,
-            speed: Math.random() * 7 + 4,
-            length: Math.random() * 35 + 15,
-            color: ['rgba(255, 0, 127, 0.35)', 'rgba(0, 223, 216, 0.35)', 'rgba(121, 40, 202, 0.3)'][Math.floor(Math.random() * 3)]
+        // 6. Infinite Outrun 3D Wireframe Retro Highway
+        const roadPoints = isMobile ? 12 : 20;
+        state = { roadPoints, time: 0 };
+      } else if (theme === 'stargate') {
+        // 7. 3D Wormhole Stargate Vortex
+        const ringCount = isMobile ? 5 : 8;
+        const rings = [];
+        for (let i = 0; i < ringCount; i++) {
+          rings.push({
+            r: (Math.min(width, height) * 0.42 / ringCount) * (i + 1),
+            speed: (i % 2 === 0 ? 1 : -1) * (0.004 + (ringCount - i) * 0.0015),
+            rot: Math.random() * Math.PI * 2
           });
         }
-        state = { streamers };
+        const particles = [];
+        for (let i = 0; i < (isMobile ? 30 : 60); i++) {
+          particles.push({
+            angle: Math.random() * Math.PI * 2,
+            dist: Math.random() * Math.min(width, height) * 0.45 + 20,
+            speed: Math.random() * 0.012 + 0.005,
+            inwardSpeed: Math.random() * 0.4 + 0.2,
+            size: Math.random() * 1.4 + 0.6
+          });
+        }
+        state = { rings, particles };
+      } else if (theme === 'imperial') {
+        // 8. 3D Golden Armillary Astrolabe & Planetary Spheres
+        const astrolabeRings = [
+          { r: Math.min(width, height) * 0.32, tiltX: 0.8, tiltY: 0.2, speed: 0.004, beadAngle: 0 },
+          { r: Math.min(width, height) * 0.24, tiltX: -0.6, tiltY: 0.5, speed: -0.006, beadAngle: Math.PI / 3 },
+          { r: Math.min(width, height) * 0.16, tiltX: 0.4, tiltY: -0.7, speed: 0.008, beadAngle: Math.PI }
+        ];
+        const goldLeaf = [];
+        for (let i = 0; i < (isMobile ? 15 : 30); i++) {
+          goldLeaf.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vy: Math.random() * 0.4 + 0.2,
+            vx: (Math.random() - 0.5) * 0.3,
+            rot: Math.random() * Math.PI,
+            size: Math.random() * 3 + 2
+          });
+        }
+        state = { astrolabeRings, goldLeaf };
       }
     }
 
@@ -210,280 +215,440 @@ export default function ThemeBackground() {
       frame++;
 
       if (activeTheme === 'quantum') {
+        // 1. Quantum Harmonic Wave Lattice
         ctx.fillStyle = 'rgba(13, 17, 39, 0.25)';
         ctx.fillRect(0, 0, width, height);
 
-        const { particles } = state;
-        if (!particles) return;
+        const { cols, rows } = state;
+        if (!cols) return;
 
-        const cx = width / 2 + Math.sin(frame * 0.006) * 50;
-        const cy = height / 2 + Math.cos(frame * 0.005) * 40;
+        const cellW = width / cols;
+        const cellH = height / rows;
 
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          p.angle += p.speed;
-          p.dist += p.radialSpeed;
-          if (p.dist < 30 || p.dist > Math.min(width, height) * 0.42) {
-            p.radialSpeed *= -1;
-          }
-
-          const x = cx + Math.cos(p.angle) * p.dist;
-          const y = cy + Math.sin(p.angle) * p.dist;
-
+        ctx.lineWidth = 0.6;
+        for (let r = 0; r <= rows; r++) {
           ctx.beginPath();
-          ctx.arc(x, y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.fill();
+          for (let c = 0; c <= cols; c++) {
+            const x = c * cellW;
+            const baseY = r * cellH;
+            const wave = Math.sin(c * 0.4 + frame * 0.02) * Math.cos(r * 0.5 + frame * 0.015) * 16;
+            const y = baseY + wave;
+            if (c === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
 
-          for (let j = i + 1; j < particles.length; j++) {
-            const p2 = particles[j];
-            const x2 = cx + Math.cos(p2.angle) * p2.dist;
-            const y2 = cy + Math.sin(p2.angle) * p2.dist;
-            const d = Math.hypot(x - x2, y - y2);
-            if (d < 70) {
-              ctx.beginPath();
-              ctx.moveTo(x, y);
-              ctx.lineTo(x2, y2);
-              ctx.strokeStyle = `rgba(139, 92, 246, ${(1 - d / 70) * 0.18})`;
-              ctx.lineWidth = 0.6;
-              ctx.stroke();
+            // Small probability amplitude node
+            if (c % 2 === 0 && r % 2 === 0) {
+              ctx.fillStyle = 'rgba(139, 92, 246, 0.35)';
+              ctx.fillRect(x - 1, y - 1, 2, 2);
             }
           }
+          ctx.strokeStyle = `rgba(139, 92, 246, ${0.08 + Math.sin(r + frame * 0.02) * 0.04})`;
+          ctx.stroke();
         }
       } else if (activeTheme === 'cyberpunk') {
+        // 2. Holographic Polyhedral Radar
         ctx.fillStyle = 'rgba(9, 19, 38, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { hLines, vLines, packets } = state;
-        if (!packets) return;
+        const { beams } = state;
+        state.rot = (state.rot || 0) + 0.008;
 
-        const horizon = height * 0.4;
-        const vanishingX = width / 2;
+        // Rising hex data conduits
+        if (beams) {
+          for (const b of beams) {
+            b.y -= b.speed;
+            if (b.y < -50) {
+              b.y = height + 50;
+              b.x = Math.random() * width;
+            }
+            ctx.beginPath();
+            ctx.moveTo(b.x, b.y);
+            ctx.lineTo(b.x, b.y - b.length);
+            ctx.strokeStyle = b.color;
+            ctx.lineWidth = 1.0;
+            ctx.stroke();
+          }
+        }
 
-        ctx.lineWidth = 0.5;
-        ctx.strokeStyle = 'rgba(0, 245, 255, 0.06)';
+        // Rotating 3D wireframe cyber-cube at center
+        const cx = width / 2;
+        const cy = height * 0.45;
+        const s = Math.min(width, height) * 0.14;
+        const a = state.rot;
 
-        for (let i = 0; i < hLines; i++) {
-          const t = i / hLines;
-          const y = horizon + Math.pow(t, 2.2) * (height - horizon);
+        const vertices = [
+          { x: -1, y: -1, z: -1 }, { x: 1, y: -1, z: -1 },
+          { x: 1, y: 1, z: -1 }, { x: -1, y: 1, z: -1 },
+          { x: -1, y: -1, z: 1 }, { x: 1, y: -1, z: 1 },
+          { x: 1, y: 1, z: 1 }, { x: -1, y: 1, z: 1 }
+        ];
+
+        const projected = vertices.map((v) => {
+          let x1 = v.x * Math.cos(a) - v.z * Math.sin(a);
+          let z1 = v.x * Math.sin(a) + v.z * Math.cos(a);
+          let y2 = v.y * Math.cos(a * 0.7) - z1 * Math.sin(a * 0.7);
+          return { x: cx + x1 * s, y: cy + y2 * s };
+        });
+
+        const edges = [
+          [0, 1], [1, 2], [2, 3], [3, 0],
+          [4, 5], [5, 6], [6, 7], [7, 4],
+          [0, 4], [1, 5], [2, 6], [3, 7]
+        ];
+
+        ctx.lineWidth = 0.9;
+        ctx.strokeStyle = 'rgba(0, 245, 255, 0.28)';
+        for (const [i1, i2] of edges) {
           ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(width, y);
+          ctx.moveTo(projected[i1].x, projected[i1].y);
+          ctx.lineTo(projected[i2].x, projected[i2].y);
           ctx.stroke();
         }
 
-        for (let i = 0; i <= vLines; i++) {
-          const xBottom = (width / vLines) * i;
-          ctx.beginPath();
-          ctx.moveTo(vanishingX, horizon);
-          ctx.lineTo(xBottom, height);
-          ctx.stroke();
-        }
-
-        for (const p of packets) {
-          p.progress += p.speed;
-          if (p.progress > 1) p.progress = 0;
-
-          const xBottom = (width / vLines) * p.vLine;
-          const startT = Math.max(0, p.progress - p.length);
-          const endT = p.progress;
-
-          const y1 = horizon + Math.pow(startT, 2.2) * (height - horizon);
-          const x1 = vanishingX + (xBottom - vanishingX) * startT;
-          const y2 = horizon + Math.pow(endT, 2.2) * (height - horizon);
-          const x2 = vanishingX + (xBottom - vanishingX) * endT;
-
-          ctx.beginPath();
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = 1.3;
-          ctx.stroke();
-        }
+        // Radar sweep circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, s * 1.5, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 245, 255, 0.10)';
+        ctx.stroke();
       } else if (activeTheme === 'monolith') {
-        // Monolith Chrono: 3D Interlocking Gyroscope & Liquid Mercury
-        ctx.fillStyle = 'rgba(5, 5, 5, 0.25)';
+        // 3. Space Geometric Shapes & Stock Market Chrono Matrix
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.26)';
         ctx.fillRect(0, 0, width, height);
 
-        const { gyroRings, mercuryOrbs, reticles } = state;
-        if (!gyroRings) return;
+        const { candles, polyhedra, reticles } = state;
+        if (!candles) return;
 
-        state.rot += 0.006;
-        const cx = width / 2;
-        const cy = height / 2;
+        state.tickerShift += 0.35;
+        const candleW = width / candles.length;
 
-        // Render 3D Interlocking Gyroscope Rings
-        for (let i = 0; i < gyroRings.length; i++) {
-          const g = gyroRings[i];
-          const rotX = state.rot * (1 + i * 0.4);
-          const rotY = state.rot * (0.8 - i * 0.3);
+        // Render Animated Stock Candlestick Chart (Subtle / Low Opacity)
+        for (let i = 0; i < candles.length; i++) {
+          const c = candles[i];
+          const x = i * candleW + candleW * 0.2;
+          const isBull = c.close >= c.open;
+          const color = isBull ? 'rgba(59, 130, 246, 0.30)' : 'rgba(239, 68, 68, 0.28)';
 
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.beginPath();
-          ctx.ellipse(0, 0, g.radius, g.radius * Math.abs(Math.cos(rotX)), rotY, 0, Math.PI * 2);
-          ctx.strokeStyle = g.color;
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-
-          // Small orbital node on ring perimeter
-          const beadAngle = state.rot * (2 + i);
-          const bx = Math.cos(beadAngle) * g.radius;
-          const by = Math.sin(beadAngle) * (g.radius * Math.abs(Math.cos(rotX)));
-          ctx.beginPath();
-          ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = i === 1 ? '#3b82f6' : (i === 2 ? '#ef4444' : '#e2e8f0');
-          ctx.fill();
-
-          ctx.restore();
-        }
-
-        // Floating Liquid Mercury Metaball Orbs
-        for (const orb of mercuryOrbs) {
-          orb.x += orb.vx;
-          orb.y += orb.vy;
-          if (orb.x < 0 || orb.x > width) orb.vx *= -1;
-          if (orb.y < 0 || orb.y > height) orb.vy *= -1;
-
-          const grad = ctx.createRadialGradient(orb.x, orb.y, 1, orb.x, orb.y, orb.radius);
-          grad.addColorStop(0, 'rgba(226, 232, 240, 0.18)');
-          grad.addColorStop(0.7, 'rgba(59, 130, 246, 0.08)');
-          grad.addColorStop(1, 'rgba(5, 5, 5, 0)');
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Architectural Crosshair Reticles
-        for (const r of reticles) {
-          ctx.strokeStyle = 'rgba(226, 232, 240, 0.15)';
+          // Wick
+          ctx.strokeStyle = color;
           ctx.lineWidth = 0.8;
           ctx.beginPath();
-          ctx.moveTo(r.x - r.size, r.y);
-          ctx.lineTo(r.x + r.size, r.y);
-          ctx.moveTo(r.x, r.y - r.size);
-          ctx.lineTo(r.x, r.y + r.size);
+          ctx.moveTo(x + candleW * 0.3, c.high);
+          ctx.lineTo(x + candleW * 0.3, c.low);
           ctx.stroke();
 
-          ctx.beginPath();
-          ctx.arc(r.x, r.y, r.size * 0.4, 0, Math.PI * 2);
-          ctx.stroke();
+          // Body
+          const top = Math.min(c.open, c.close);
+          const h = Math.max(3, Math.abs(c.close - c.open));
+          ctx.fillStyle = isBull ? 'rgba(59, 130, 246, 0.22)' : 'rgba(239, 68, 68, 0.20)';
+          ctx.fillRect(x, top, candleW * 0.6, h);
+        }
+
+        // Trend ticker line overlay
+        ctx.beginPath();
+        for (let i = 0; i < candles.length; i++) {
+          const x = i * candleW + candleW * 0.5;
+          const y = (candles[i].open + candles[i].close) / 2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(226, 232, 240, 0.25)';
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
+
+        // 3D Space Geometric Polyhedra
+        if (polyhedra) {
+          for (const poly of polyhedra) {
+            poly.rotX += poly.speedX;
+            poly.rotY += poly.speedY;
+
+            ctx.save();
+            ctx.translate(poly.x, poly.y);
+
+            // Simple 3D Octahedron projection
+            const verts = [
+              { x: 0, y: -poly.size, z: 0 },
+              { x: poly.size, y: 0, z: 0 },
+              { x: 0, y: 0, z: poly.size },
+              { x: -poly.size, y: 0, z: 0 },
+              { x: 0, y: 0, z: -poly.size },
+              { x: 0, y: poly.size, z: 0 }
+            ];
+
+            const pVerts = verts.map((v) => {
+              const x1 = v.x * Math.cos(poly.rotY) - v.z * Math.sin(poly.rotY);
+              const z1 = v.x * Math.sin(poly.rotY) + v.z * Math.cos(poly.rotY);
+              const y2 = v.y * Math.cos(poly.rotX) - z1 * Math.sin(poly.rotX);
+              return { x: x1, y: y2 };
+            });
+
+            const pEdges = [
+              [0, 1], [0, 2], [0, 3], [0, 4],
+              [5, 1], [5, 2], [5, 3], [5, 4],
+              [1, 2], [2, 3], [3, 4], [4, 1]
+            ];
+
+            ctx.strokeStyle = 'rgba(226, 232, 240, 0.22)';
+            ctx.lineWidth = 0.8;
+            for (const [v1, v2] of pEdges) {
+              ctx.beginPath();
+              ctx.moveTo(pVerts[v1].x, pVerts[v1].y);
+              ctx.lineTo(pVerts[v2].x, pVerts[v2].y);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+        }
+
+        // Crosshairs & financial coordinate telemetry
+        if (reticles) {
+          for (const r of reticles) {
+            ctx.strokeStyle = 'rgba(226, 232, 240, 0.15)';
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(r.x - r.size, r.y);
+            ctx.lineTo(r.x + r.size, r.y);
+            ctx.moveTo(r.x, r.y - r.size);
+            ctx.lineTo(r.x, r.y + r.size);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, r.size * 0.4, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         }
       } else if (activeTheme === 'solar') {
+        // 4. Heliocentric Eclipse Rings & Coronal Prominence Arches
         ctx.fillStyle = 'rgba(36, 13, 7, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { loops, sparks } = state;
-        if (!loops || !sparks) return;
+        const { rings, flares } = state;
+        const cx = width / 2;
+        const cy = height * 0.45;
 
-        for (const l of loops) {
-          l.pulse += l.speed;
-          const offsetY = Math.sin(l.pulse) * 25;
-
-          ctx.beginPath();
-          ctx.moveTo(l.p1.x, l.p1.y);
-          ctx.quadraticCurveTo(l.p2.x, l.p2.y + offsetY, l.p3.x, l.p3.y);
-          ctx.lineWidth = 1.4;
-          ctx.strokeStyle = l.color;
-          ctx.stroke();
+        // Eccentric coronal rings
+        if (rings) {
+          for (const r of rings) {
+            r.rot += r.speed;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(r.rot);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r.rx, r.ry, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = r.color;
+            ctx.lineWidth = 1.0;
+            ctx.stroke();
+            ctx.restore();
+          }
         }
 
-        for (const s of sparks) {
-          s.y += s.vy;
-          s.x += s.vx + Math.sin(frame * 0.03 + s.y) * 0.4;
-          s.life--;
-          if (s.y < 0 || s.life <= 0) {
-            s.y = height + 10;
-            s.x = Math.random() * width;
-            s.life = Math.random() * 120 + 40;
+        // Floating coronal mass flares
+        if (flares) {
+          for (const f of flares) {
+            f.angle += f.speed;
+            const fx = cx + Math.cos(f.angle) * f.dist;
+            const fy = cy + Math.sin(f.angle) * (f.dist * 0.6);
+            ctx.beginPath();
+            ctx.arc(fx, fy, f.r, 0, Math.PI * 2);
+            ctx.fillStyle = f.color;
+            ctx.fill();
           }
-
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-          ctx.fillStyle = s.color;
-          ctx.fill();
         }
       } else if (activeTheme === 'emerald') {
-        ctx.fillStyle = 'rgba(4, 32, 24, 0.26)';
+        // 5. Sacred Geometry & Metatron Circuit Lattice
+        ctx.fillStyle = 'rgba(4, 32, 24, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { nodes, pulses } = state;
-        if (!nodes || !pulses) return;
+        const { sacredRadius, spores } = state;
+        state.rot += 0.003;
+        const cx = width / 2;
+        const cy = height * 0.45;
+        const R = sacredRadius || 120;
 
-        for (let i = 0; i < nodes.length; i++) {
-          const n = nodes[i];
-          n.x += n.vx;
-          n.y += n.vy;
-          if (n.x < 0 || n.x > width) n.vx *= -1;
-          if (n.y < 0 || n.y > height) n.vy *= -1;
+        // Nested Metatron Sacred Hexagon / Star
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(state.rot);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.16)';
+        ctx.lineWidth = 0.8;
 
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
-          ctx.fill();
+        const hexPts = [];
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI) / 3;
+          hexPts.push({ x: Math.cos(a) * R, y: Math.sin(a) * R });
+        }
 
-          for (let j = i + 1; j < nodes.length; j++) {
-            const n2 = nodes[j];
-            const d = Math.hypot(n.x - n2.x, n.y - n2.y);
-            if (d < 95) {
-              ctx.beginPath();
-              ctx.moveTo(n.x, n.y);
-              ctx.lineTo(n2.x, n2.y);
-              ctx.strokeStyle = `rgba(16, 185, 129, ${(1 - d / 95) * 0.14})`;
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
-            }
+        // Outer hexagon
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          if (i === 0) ctx.moveTo(hexPts[i].x, hexPts[i].y);
+          else ctx.lineTo(hexPts[i].x, hexPts[i].y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // Inner interconnecting chords (Metatron's cube)
+        for (let i = 0; i < 6; i++) {
+          for (let j = i + 1; j < 6; j++) {
+            ctx.beginPath();
+            ctx.moveTo(hexPts[i].x, hexPts[i].y);
+            ctx.lineTo(hexPts[j].x, hexPts[j].y);
+            ctx.stroke();
           }
         }
 
-        for (const p of pulses) {
-          p.progress += p.speed;
-          if (p.progress > 1) {
-            p.progress = 0;
-            p.source = Math.floor(Math.random() * nodes.length);
-            p.target = Math.floor(Math.random() * nodes.length);
-          }
+        ctx.restore();
 
-          const sNode = nodes[p.source];
-          const tNode = nodes[p.target];
-          if (sNode && tNode) {
-            const ix = sNode.x + (tNode.x - sNode.x) * p.progress;
-            const iy = sNode.y + (tNode.y - sNode.y) * p.progress;
-
+        // Bioluminescent spores
+        if (spores) {
+          for (const s of spores) {
+            s.x += s.vx;
+            s.y += s.vy;
+            if (s.x < 0 || s.x > width) s.vx *= -1;
+            if (s.y < 0 || s.y > height) s.vy *= -1;
             ctx.beginPath();
-            ctx.arc(ix, iy, 2.0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(217, 249, 157, 0.6)';
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(52, 211, 153, 0.35)';
             ctx.fill();
           }
         }
       } else if (activeTheme === 'neon-horizon') {
+        // 6. Infinite Outrun 3D Wireframe Retro Highway
         ctx.fillStyle = 'rgba(23, 12, 41, 0.28)';
         ctx.fillRect(0, 0, width, height);
 
-        const { streamers } = state;
-        if (!streamers) return;
+        state.time += 0.02;
+        const horizon = height * 0.42;
+        const cx = width / 2;
 
+        // Retro striped horizon sun
+        const sunRadius = Math.min(width, height) * 0.12;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, horizon, sunRadius, Math.PI, 0);
+        ctx.fillStyle = 'rgba(255, 0, 127, 0.22)';
+        ctx.fill();
+
+        // Striped sun horizontal bars
+        for (let y = horizon - sunRadius; y < horizon; y += 8) {
+          ctx.fillStyle = 'rgba(23, 12, 41, 0.85)';
+          ctx.fillRect(cx - sunRadius, y, sunRadius * 2, 2);
+        }
+        ctx.restore();
+
+        // 3D Perspective Road Grid
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.18)';
+        ctx.lineWidth = 0.7;
+
+        // Perspective longitudinal lines
+        const roadW = width * 0.75;
+        const lines = 10;
+        for (let i = 0; i <= lines; i++) {
+          const bx = cx - roadW / 2 + (roadW / lines) * i;
+          ctx.beginPath();
+          ctx.moveTo(cx, horizon);
+          ctx.lineTo(bx, height);
+          ctx.stroke();
+        }
+
+        // Horizontal undulating scan lines
+        for (let i = 1; i <= 8; i++) {
+          const t = Math.pow((i / 8 + (state.time % 0.125)) % 1, 2.2);
+          const y = horizon + t * (height - horizon);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.strokeStyle = `rgba(0, 223, 216, ${t * 0.25})`;
+          ctx.stroke();
+        }
+      } else if (activeTheme === 'stargate') {
+        // 7. 3D Wormhole Stargate Vortex
+        ctx.fillStyle = 'rgba(7, 8, 20, 0.28)';
+        ctx.fillRect(0, 0, width, height);
+
+        const { rings, particles } = state;
         const cx = width / 2;
         const cy = height * 0.45;
 
-        for (const s of streamers) {
-          s.dist += s.speed;
-          if (s.dist > Math.max(width, height)) {
-            s.dist = 10;
+        // Concentric Stargate rings
+        if (rings) {
+          ctx.lineWidth = 0.9;
+          for (const r of rings) {
+            r.rot += r.speed;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(r.rot);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r.r, r.r * 0.55, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(147, 51, 234, 0.24)';
+            ctx.stroke();
+            ctx.restore();
           }
+        }
 
-          const x1 = cx + Math.cos(s.angle) * s.dist;
-          const y1 = cy + Math.sin(s.angle) * (s.dist * 0.6);
-          const x2 = cx + Math.cos(s.angle) * (s.dist + s.length);
-          const y2 = cy + Math.sin(s.angle) * ((s.dist + s.length) * 0.6);
+        // Inward spiraling accretion disc stardust
+        if (particles) {
+          for (const p of particles) {
+            p.angle += p.speed;
+            p.dist -= p.inwardSpeed;
+            if (p.dist < 15) {
+              p.dist = Math.min(width, height) * 0.42;
+            }
+            const px = cx + Math.cos(p.angle) * p.dist;
+            const py = cy + Math.sin(p.angle) * (p.dist * 0.55);
+            ctx.beginPath();
+            ctx.arc(px, py, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.35)';
+            ctx.fill();
+          }
+        }
+      } else if (activeTheme === 'imperial') {
+        // 8. 3D Golden Armillary Astrolabe
+        ctx.fillStyle = 'rgba(18, 14, 6, 0.28)';
+        ctx.fillRect(0, 0, width, height);
 
-          ctx.beginPath();
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.strokeStyle = s.color;
-          ctx.lineWidth = Math.min(2.0, (s.dist / 250));
-          ctx.stroke();
+        const { astrolabeRings, goldLeaf } = state;
+        const cx = width / 2;
+        const cy = height * 0.45;
+
+        // Tilted concentric astrolabe rings
+        if (astrolabeRings) {
+          for (const a of astrolabeRings) {
+            a.beadAngle += a.speed;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, a.r, a.r * Math.abs(a.tiltX), a.tiltY, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.24)';
+            ctx.lineWidth = 1.0;
+            ctx.stroke();
+
+            // Orbiting golden bead
+            const bx = Math.cos(a.beadAngle) * a.r;
+            const by = Math.sin(a.beadAngle) * (a.r * Math.abs(a.tiltX));
+            ctx.beginPath();
+            ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fill();
+
+            ctx.restore();
+          }
+        }
+
+        // Drifting gold leaf particles
+        if (goldLeaf) {
+          for (const g of goldLeaf) {
+            g.y += g.vy;
+            g.x += g.vx;
+            if (g.y > height) {
+              g.y = -10;
+              g.x = Math.random() * width;
+            }
+            ctx.save();
+            ctx.translate(g.x, g.y);
+            ctx.rotate(g.rot);
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.22)';
+            ctx.fillRect(-g.size / 2, -g.size / 2, g.size, g.size * 0.6);
+            ctx.restore();
+          }
         }
       }
 
