@@ -17,232 +17,172 @@ html, body, #root {
 /* ─────────────────────────────────────────────
    THEME 1 (Default): LifeGrid Neon 🟩 (Conway's Game of Life)
 ───────────────────────────────────────────── */
+
 :root {
-  --dark-bg:     4 6 10;
-  --dark-card:   10 14 20;
-  --dark-surf:   18 24 35;
-  --dark-border: 170 0 255;
+  --dark-bg:     15 23 42;
+  --dark-card:   30 41 59;
+  --dark-surf:   51 65 85;
+  --dark-border: 14 165 233;
 
-  --accent-cyan:   0 255 170;
-  --accent-purple: 170 0 255;
-  --accent-pink:   255 0 170;
-  --accent-gold:   255 255 0;
-  --accent-green:  0 255 0;
+  --accent-cyan:   56 189 248;
+  --accent-purple: 236 72 153;
+  --accent-pink:   244 114 182;
+  --accent-gold:   253 224 71;
+  --accent-green:  74 222 128;
 
-  --glow-1: rgba(0, 255, 170, 0.42);
-  --glow-2: rgba(170, 0, 255, 0.35);
-  --glow-3: rgba(255, 0, 170, 0.25);
+  --glow-1: rgba(56, 189, 248, 0.42);
+  --glow-2: rgba(236, 72, 153, 0.35);
+  --glow-3: rgba(244, 114, 182, 0.25);
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 2: Retro Bounce 💽 (Bouncing DVD Logos)
 ───────────────────────────────────────────── */
-.theme-inferno {
-  --dark-bg:     8 8 12;
-  --dark-card:   16 16 24;
-  --dark-surf:   24 24 36;
-  --dark-border: 255 0 255;
 
-  --accent-cyan:   255 0 255;
-  --accent-purple: 0 255 255;
-  --accent-pink:   255 255 0;
-  --accent-gold:   255 128 0;
-  --accent-green:  0 255 128;
+.theme-sunset {
+  --dark-bg:     69 10 10;
+  --dark-card:   127 29 29;
+  --dark-surf:   153 27 27;
+  --dark-border: 239 68 68;
 
-  --glow-1: rgba(255, 0, 255, 0.48);
-  --glow-2: rgba(0, 255, 255, 0.38);
-  --glow-3: rgba(255, 255, 0, 0.28);
+  --accent-cyan:   251 146 60;
+  --accent-purple: 248 113 113;
+  --accent-pink:   250 204 21;
+  --accent-gold:   254 240 138;
+  --accent-green:  163 230 53;
+
+  --glow-1: rgba(251, 146, 60, 0.48);
+  --glow-2: rgba(239, 68, 68, 0.38);
+  --glow-3: rgba(250, 204, 21, 0.28);
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 3: Neon Roots 🌳 (Fractal Branching Trees)
 ───────────────────────────────────────────── */
-.theme-matrix {
-  --dark-bg:     0 10 5;
-  --dark-card:   0 20 10;
-  --dark-surf:   0 30 15;
-  --dark-border: 128 255 0;
 
-  --accent-cyan:   128 255 0;
-  --accent-purple: 0 255 128;
-  --accent-pink:   255 128 0;
-  --accent-gold:   255 200 0;
-  --accent-green:  0 200 50;
+.theme-rainforest {
+  --dark-bg:     6 78 59;
+  --dark-card:   4 120 87;
+  --dark-surf:   5 150 105;
+  --dark-border: 16 185 129;
 
-  --glow-1: rgba(128, 255, 0, 0.45);
-  --glow-2: rgba(0, 255, 128, 0.38);
-  --glow-3: rgba(255, 128, 0, 0.25);
+  --accent-cyan:   52 211 153;
+  --accent-purple: 110 231 183;
+  --accent-pink:   167 243 208;
+  --accent-gold:   252 211 77;
+  --accent-green:  52 211 153;
+
+  --glow-1: rgba(52, 211, 153, 0.45);
+  --glow-2: rgba(16, 185, 129, 0.38);
+  --glow-3: rgba(110, 231, 183, 0.25);
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 4: Helix Genesis 🧬 (3D Rotating DNA)
 ───────────────────────────────────────────── */
-.theme-monochrome {
-  --dark-bg:     10 5 15;
-  --dark-card:   20 10 30;
-  --dark-surf:   30 15 45;
-  --dark-border: 0 128 255;
 
-  --accent-cyan:   0 128 255;
-  --accent-purple: 255 0 128;
-  --accent-pink:   128 0 255;
-  --accent-gold:   255 255 255;
-  --accent-green:  0 255 255;
+.theme-coral {
+  --dark-bg:     17 94 89;
+  --dark-card:   15 118 110;
+  --dark-surf:   13 148 136;
+  --dark-border: 244 63 94;
 
-  --glow-1: rgba(0, 128, 255, 0.25);
-  --glow-2: rgba(255, 0, 128, 0.30);
-  --glow-3: rgba(128, 0, 255, 0.20);
+  --accent-cyan:   251 113 133;
+  --accent-purple: 45 212 191;
+  --accent-pink:   94 234 212;
+  --accent-gold:   253 164 175;
+  --accent-green:  20 184 166;
+
+  --glow-1: rgba(251, 113, 133, 0.35);
+  --glow-2: rgba(45, 212, 191, 0.30);
+  --glow-3: rgba(94, 234, 212, 0.20);
 }
 
-.theme-monochrome .btn-primary,
-.theme-monochrome .btn-glow-purple,
-.theme-monochrome button[class*="from-accentCyan"] {
-  background: linear-gradient(135deg, #0080ff 0%, #ff0080 50%, #8000ff 100%) !important;
-  color: #fff !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 20px rgba(0, 128, 255, 0.35) !important;
-}
-
-.theme-monochrome .btn-primary *,
-.theme-monochrome button[class*="from-accentCyan"] * {
-  color: #fff !important;
-}
-
-.theme-monochrome .text-gradient,
-.theme-monochrome .text-gradient-aurora {
-  background: linear-gradient(135deg, #0080ff 0%, #ff0080 40%, #8000ff 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-
-.theme-monochrome .badge-movie,
-.theme-monochrome .badge-tv,
-.theme-monochrome .badge-anime,
-.theme-monochrome .badge-manga {
-  background: rgba(0, 128, 255, 0.12) !important;
-  color: #0080ff !important;
-  border: 1px solid rgba(0, 128, 255, 0.3) !important;
-}
-
-.theme-monochrome .rating-pill {
-  background: rgba(0, 0, 0, 0.85) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-}
-
-.theme-monochrome input,
-.theme-monochrome textarea {
-  background-color: rgba(20, 10, 30, 0.95) !important;
-  color: #ffffff !important;
-  border-color: rgba(0, 128, 255, 0.2) !important;
-}
-
-.theme-monochrome input::placeholder {
-  color: #71717a !important;
-}
-
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 5: Swarm Intelligence 🦅 (Flocking Boids)
 ───────────────────────────────────────────── */
-.theme-arctic {
-  --dark-bg:     5 15 25;
-  --dark-card:   10 30 50;
-  --dark-surf:   15 45 75;
-  --dark-border: 0 255 255;
 
-  --accent-cyan:   0 255 255;
-  --accent-purple: 255 255 255;
-  --accent-pink:   0 128 255;
-  --accent-gold:   128 255 255;
-  --accent-green:  0 255 128;
+.theme-daybreak {
+  --dark-bg:     49 46 129;
+  --dark-card:   67 56 202;
+  --dark-surf:   79 70 229;
+  --dark-border: 129 140 248;
 
-  --glow-1: rgba(0, 255, 255, 0.45);
-  --glow-2: rgba(255, 255, 255, 0.35);
-  --glow-3: rgba(0, 128, 255, 0.25);
+  --accent-cyan:   96 165 250;
+  --accent-purple: 192 132 252;
+  --accent-pink:   244 114 182;
+  --accent-gold:   253 224 71;
+  --accent-green:  52 211 153;
+
+  --glow-1: rgba(96, 165, 250, 0.45);
+  --glow-2: rgba(192, 132, 252, 0.35);
+  --glow-3: rgba(244, 114, 182, 0.25);
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 6: Warp Tunnel 🚇 (Hyperspeed Tube)
 ───────────────────────────────────────────── */
-.theme-tokyo {
-  --dark-bg:     10 0 10;
-  --dark-card:   20 0 20;
-  --dark-surf:   30 0 30;
-  --dark-border: 255 0 0;
 
-  --accent-cyan:   255 0 0;
-  --accent-purple: 255 128 0;
-  --accent-pink:   255 255 0;
-  --accent-gold:   255 255 255;
-  --accent-green:  0 255 0;
+.theme-violet {
+  --dark-bg:     76 29 149;
+  --dark-card:   91 33 182;
+  --dark-surf:   109 40 217;
+  --dark-border: 217 70 239;
 
-  --glow-1: rgba(255, 0, 0, 0.48);
-  --glow-2: rgba(255, 128, 0, 0.38);
-  --glow-3: rgba(255, 255, 0, 0.28);
+  --accent-cyan:   232 121 249;
+  --accent-purple: 192 38 211;
+  --accent-pink:   56 189 248;
+  --accent-gold:   250 204 21;
+  --accent-green:  52 211 153;
+
+  --glow-1: rgba(232, 121, 249, 0.48);
+  --glow-2: rgba(192, 38, 211, 0.38);
+  --glow-3: rgba(56, 189, 248, 0.28);
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 7: Liquid Neon 💧 (Flow Field Physics)
 ───────────────────────────────────────────── */
-.theme-cyber {
-  --dark-bg:     15 15 0;
-  --dark-card:   30 30 0;
-  --dark-surf:   45 45 0;
-  --dark-border: 0 255 255;
 
-  --accent-cyan:   0 255 255;
-  --accent-purple: 255 0 255;
-  --accent-pink:   255 255 0;
-  --accent-gold:   255 128 0;
-  --accent-green:  0 255 0;
+.theme-autumn {
+  --dark-bg:     120 53 15;
+  --dark-card:   146 64 14;
+  --dark-surf:   180 83 9;
+  --dark-border: 245 158 11;
 
-  --glow-1: rgba(0, 255, 255, 0.48);
-  --glow-2: rgba(255, 0, 255, 0.35);
-  --glow-3: rgba(255, 255, 0, 0.25);
+  --accent-cyan:   251 191 36;
+  --accent-purple: 252 211 77;
+  --accent-pink:   248 113 113;
+  --accent-gold:   253 230 138;
+  --accent-green:  163 230 53;
+
+  --glow-1: rgba(251, 191, 36, 0.48);
+  --glow-2: rgba(245, 158, 11, 0.35);
+  --glow-3: rgba(252, 211, 77, 0.25);
 }
 
-.theme-cyber .btn-primary,
-.theme-cyber .btn-glow-purple,
-.theme-cyber button[class*="from-accentCyan"] {
-  background: linear-gradient(135deg, #00ffff 0%, #ff00ff 50%, #ffff00 100%) !important;
-  color: #1a1002 !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.40) !important;
-}
-
-.theme-cyber .btn-primary *,
-.theme-cyber button[class*="from-accentCyan"] * {
-  color: #1a1002 !important;
-}
-
-.theme-cyber .text-gradient,
-.theme-cyber .text-gradient-aurora {
-  background: linear-gradient(135deg, #00ffff 0%, #ff00ff 30%, #ffff00 70%, #ff8000 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    THEME 8: Windy Sakura 🌸 (Falling Cherry Blossoms)
 ───────────────────────────────────────────── */
-.theme-amethyst {
-  --dark-bg:     15 5 10;
-  --dark-card:   30 10 20;
-  --dark-surf:   45 15 30;
-  --dark-border: 255 183 197;
 
-  --accent-cyan:   255 183 197;
-  --accent-purple: 255 105 180;
-  --accent-pink:   255 20 147;
-  --accent-gold:   255 255 255;
-  --accent-green:  255 192 203;
+.theme-frost {
+  --dark-bg:     30 41 59;
+  --dark-card:   51 65 85;
+  --dark-surf:   71 85 105;
+  --dark-border: 94 234 212;
 
-  --glow-1: rgba(255, 183, 197, 0.45);
-  --glow-2: rgba(255, 105, 180, 0.38);
-  --glow-3: rgba(255, 20, 147, 0.25);
+  --accent-cyan:   20 184 166;
+  --accent-purple: 45 212 191;
+  --accent-pink:   167 243 208;
+  --accent-gold:   253 230 138;
+  --accent-green:  163 230 53;
+
+  --glow-1: rgba(94, 234, 212, 0.45);
+  --glow-2: rgba(45, 212, 191, 0.38);
+  --glow-3: rgba(167, 243, 208, 0.25);
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    BASE
 ───────────────────────────────────────────── */
 @layer base {

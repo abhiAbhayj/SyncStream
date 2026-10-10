@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import re
 
-/**
- * ThemeBackground — High-Performance Cinematic Background Visualizer
+with open('client/src/components/ThemeBackground.jsx', 'r', encoding='utf-8') as f:
+    js = f.read()
+
+# Replace the intro comment
+intro = """ * ThemeBackground — High-Performance Cinematic Background Visualizer
  * 8 Custom Mathematical Simulation Engines:
  * 1. nebula    — 🌌 Deep Space Network: Interconnected constellation nodes
  * 2. sunset    — 🏜️ Sunset Mirage: Heat haze and rising embers
@@ -10,72 +13,25 @@ import React, { useEffect, useRef, useState } from 'react';
  * 5. daybreak  — 🌅 Daybreak Horizon: Radial expanding sunburst rings
  * 6. violet    — 🔮 Electric Violet: Pulsing neon polygons
  * 7. autumn    — 🍂 Golden Autumn: Swirling wind particles
- * 8. frost     — ❄️ Mint Frosting: Gentle falling snow and frost
- */
-export default function ThemeBackground() {
-  const canvasRef = useRef(null);
-  const [activeTheme, setActiveTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'nebula';
-  });
+ * 8. frost     — ❄️ Mint Frosting: Gentle falling snow and frost"""
+js = re.sub(r' \* ThemeBackground .*? \*/', intro + '\n */', js, flags=re.DOTALL)
 
-  // Track body class changes to switch animation mode instantly
-  useEffect(() => {
-    const detectTheme = () => {
-      const classList = document.body.classList;
-      if (classList.contains('theme-sunset')) return 'sunset';
+# Replace class names in detectTheme
+js = re.sub(r"if \(classList\.contains\('theme-inferno'\)\).*?return localStorage\.getItem\('syncstream_theme'\) \|\| 'ocean';",
+'''if (classList.contains('theme-sunset')) return 'sunset';
       if (classList.contains('theme-rainforest')) return 'rainforest';
       if (classList.contains('theme-coral')) return 'coral';
       if (classList.contains('theme-daybreak')) return 'daybreak';
       if (classList.contains('theme-violet')) return 'violet';
       if (classList.contains('theme-autumn')) return 'autumn';
       if (classList.contains('theme-frost')) return 'frost';
-      return localStorage.getItem('syncstream_theme') || 'nebula';
-    };
+      return localStorage.getItem('syncstream_theme') || 'nebula';''', js, flags=re.DOTALL)
 
-    setActiveTheme(detectTheme());
+# Replace initial state and handleStorage fallback
+js = js.replace("'ocean'", "'nebula'")
 
-    const observer = new MutationObserver(() => {
-      setActiveTheme(detectTheme());
-    });
-
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-    const handleStorage = (e) => {
-      if (e.key === 'syncstream_theme') {
-        setActiveTheme(e.newValue || 'nebula');
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) return;
-
-    let animationFrameId;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      initScene(activeTheme);
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Simulation state containers
-    let state = {};
-    let frame = 0;
-
-    function initScene(theme) {
+# Now replace the entire initScene and render functions
+init_scene_replacement = '''    function initScene(theme) {
       state = {};
       frame = 0;
 
@@ -390,21 +346,9 @@ export default function ThemeBackground() {
       }
 
       animationFrameId = requestAnimationFrame(render);
-    };
+    };'''
 
-    render();
+js = re.sub(r'    function initScene\(theme\) \{.*animationFrameId = requestAnimationFrame\(render\);\n    \};\n', init_scene_replacement + '\n', js, flags=re.DOTALL)
 
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [activeTheme]);
-
-  return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-darkBg">
-      <div className="absolute inset-0 z-0 noise-overlay opacity-20"></div>
-      <canvas ref={canvasRef} className="absolute inset-0 z-10 block" />
-      <div className="absolute inset-0 z-20 pointer-events-none hero-gradient" />
-    </div>
-  );
-}
+with open('client/src/components/ThemeBackground.jsx', 'w', encoding='utf-8') as f:
+    f.write(js)

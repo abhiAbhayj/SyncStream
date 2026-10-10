@@ -663,28 +663,29 @@ export default function VoiceAssistant() {
 
     // 7. THEME INTENTS
     if (command.includes('theme') || command.includes('inferno') || command.includes('matrix') || command.includes('monochrome') || command.includes('black') || command.includes('white') || command.includes('arctic') || command.includes('ice') || command.includes('tokyo') || command.includes('gold') || command.includes('cyber') || command.includes('amethyst') || command.includes('ocean')) {
-      const ALL_THEMES = ['theme-inferno', 'theme-matrix', 'theme-monochrome', 'theme-arctic', 'theme-tokyo', 'theme-cyber', 'theme-amethyst'];
-      let newTheme = 'ocean';
-      if (command.includes('inferno') || command.includes('fire') || command.includes('lava') || command.includes('red')) newTheme = 'inferno';
-      else if (command.includes('matrix') || command.includes('terminal') || command.includes('green') || command.includes('lime')) newTheme = 'matrix';
-      else if (command.includes('monochrome') || command.includes('black') || command.includes('white') || command.includes('noir') || command.includes('lunar')) newTheme = 'monochrome';
-      else if (command.includes('arctic') || command.includes('ice') || command.includes('frost') || command.includes('glacier')) newTheme = 'arctic';
-      else if (command.includes('tokyo') || command.includes('vaporwave') || command.includes('pink') || command.includes('neon')) newTheme = 'tokyo';
-      else if (command.includes('cyber') || command.includes('gold') || command.includes('golden') || command.includes('solar')) newTheme = 'cyber';
-      else if (command.includes('amethyst') || command.includes('nebula') || command.includes('purple') || command.includes('violet')) newTheme = 'amethyst';
+      const ALL_THEMES = ['theme-sunset', 'theme-rainforest', 'theme-coral', 'theme-daybreak', 'theme-violet', 'theme-autumn', 'theme-frost'];
+            let newTheme = 'nebula';
+      if (command.includes('sunset') || command.includes('fire') || command.includes('orange') || command.includes('mirage')) newTheme = 'sunset';
+      else if (command.includes('rainforest') || command.includes('forest') || command.includes('green') || command.includes('leaves')) newTheme = 'rainforest';
+      else if (command.includes('coral') || command.includes('reef') || command.includes('teal') || command.includes('ocean')) newTheme = 'coral';
+      else if (command.includes('daybreak') || command.includes('horizon') || command.includes('morning') || command.includes('sunrise')) newTheme = 'daybreak';
+      else if (command.includes('violet') || command.includes('purple') || command.includes('electric') || command.includes('neon')) newTheme = 'violet';
+      else if (command.includes('autumn') || command.includes('gold') || command.includes('golden') || command.includes('fall')) newTheme = 'autumn';
+      else if (command.includes('frost') || command.includes('mint') || command.includes('ice') || command.includes('snow')) newTheme = 'frost';
+      else if (command.includes('nebula') || command.includes('space') || command.includes('stars')) newTheme = 'nebula';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
-      if (newTheme !== 'ocean') document.body.classList.add(`theme-${newTheme}`);
+      if (newTheme !== 'nebula') document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        ocean: '🌌 Cosmic Stargate',
-        inferno: '🌋 Inferno Solaris',
-        matrix: '⚡ Cyberpunk Holo-Matrix',
-        monochrome: '🌑 Monolith Chrono',
-        arctic: '🧊 Glacial Prism',
-        tokyo: '🪩 Retro Synthwave Highway',
-        cyber: '👑 Imperial Gold Luxe',
-        amethyst: '🌿 Bio-Luminescent Pandora'
+        nebula: '🌌 Deep Space Nebula',
+        sunset: '🏜️ Sunset Mirage',
+        rainforest: '🌿 Neon Rainforest',
+        coral: '🪸 Deep Coral Reef',
+        daybreak: '🌅 Daybreak Horizon',
+        violet: '🔮 Electric Violet',
+        autumn: '🍂 Golden Autumn',
+        frost: '❄️ Mint Frosting'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;
