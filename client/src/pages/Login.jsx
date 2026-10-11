@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Phone, Lock, LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Tv, Phone, Lock, LogIn, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -37,10 +37,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-8 max-w-md mx-auto space-y-4">
+      {/* Back Button */}
+      <div className="w-full flex justify-start">
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-accentCyan bg-darkCard/95 text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+        >
+          <ArrowLeft className="w-4 h-4 stroke-[3] text-accentCyan group-hover:text-black transition-colors" />
+          <span>Back</span>
+        </button>
+      </div>
+
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-accentPurple/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="w-full max-w-md glass-panel border border-darkBorder rounded-3xl p-8 shadow-2xl relative space-y-6 animate-fade-in">
+      <div className="w-full glass-panel border border-darkBorder rounded-3xl p-8 shadow-2xl relative space-y-6 animate-fade-in">
         
         {/* Title / Logo */}
         <div className="text-center space-y-2">

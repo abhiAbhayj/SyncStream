@@ -566,10 +566,10 @@ export default function Profile() {
       <div>
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border-2 border-accentCyan bg-darkCard/90 text-white hover:bg-accentCyan hover:text-black font-extrabold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] transition-all duration-300 active:scale-95 cursor-pointer z-20"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-accentCyan bg-darkCard/95 text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
         >
-          <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
-          <span>Back to Home</span>
+          <ArrowLeft className="w-4 h-4 stroke-[3] text-accentCyan group-hover:text-black transition-colors" />
+          <span>Back</span>
         </button>
       </div>
 

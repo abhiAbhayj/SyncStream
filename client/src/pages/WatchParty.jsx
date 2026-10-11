@@ -295,11 +295,12 @@ export default function WatchParty() {
       <div className="flex flex-wrap items-center justify-between gap-4 glass-panel border border-darkBorder p-4 rounded-2xl shadow-xl">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(`/media/${room.media_type}/${room.external_media_id}`)}
-            className="p-2 border border-darkBorder hover:border-white/10 hover:bg-white/5 rounded-xl transition"
-            title="Go Back to Detail Page"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 border-accentCyan bg-darkCard/95 text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+            title="Return to Home"
           >
-            <ArrowLeft className="w-4 h-4 text-gray-300" />
+            <ArrowLeft className="w-4 h-4 stroke-[3] text-accentCyan group-hover:text-black transition-colors" />
+            <span>Back</span>
           </button>
           
           <div className="space-y-1">

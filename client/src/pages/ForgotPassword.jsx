@@ -79,8 +79,19 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-slide-up">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 max-w-md mx-auto space-y-4">
+      {/* Back Button */}
+      <div className="w-full flex justify-start">
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-accentCyan bg-darkCard/95 text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+        >
+          <ArrowLeft className="w-4 h-4 stroke-[3] text-accentCyan group-hover:text-black transition-colors" />
+          <span>Back</span>
+        </button>
+      </div>
+
+      <div className="w-full animate-slide-up">
         <div className="glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500">
           
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentCyan to-accentPurple"></div>
