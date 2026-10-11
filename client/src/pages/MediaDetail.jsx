@@ -115,8 +115,20 @@ export default function MediaDetail() {
           }
         }
 
-        // Default directly to solo-embed so verified free streaming servers are visible immediately
-        if (type !== 'manga') {
+        // Anime episodes list loading
+        if (type === 'anime') {
+          try {
+            const epsRes = await axios.get(`/api/media/anime/episodes/${id}`);
+            setEpisodes(epsRes.data || []);
+          } catch (epsErr) {
+            console.warn('Failed to load anime episodes list:', epsErr.message);
+          }
+        }
+
+        // Set default playback mode based on trailer presence
+        if (detailData.youtube_trailer && !urlPlay && !urlEpisode) {
+          setPlaybackMode('trailer');
+        } else if (type !== 'manga') {
           setPlaybackMode('solo-embed');
         }
 
@@ -247,199 +259,136 @@ export default function MediaDetail() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-16">
+    <div className="max-w-7xl mx-auto py-6 px-4 md:px-8 space-y-6 relative">
       
-      {/* Back Button */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
-        <button
-          onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-        >
-          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
-            <ArrowLeft className="w-4 h-4 stroke-[3]" />
-          </span>
-          <span className="font-extrabold tracking-wider">Back</span>
-        </button>
-      </div>
-      
-      {/* Media Jumbotron Header with Blur Backdrop */}
-      <div className="relative w-full min-h-[40vh] py-12 px-4 md:px-8 border-b border-darkBorder overflow-hidden flex items-center">
-        <div 
-          className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-20 pointer-events-none"
-          style={{ backgroundImage: `url(${detail.backdrop_path || detail.poster_path})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-darkBg via-darkBg/80 to-transparent pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto flex flex-col md:flex-row gap-8 items-center md:items-start z-10 w-full">
-          <div className="w-[200px] sm:w-[240px] md:w-[280px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard">
-            {detail.poster_path ? (
-              <img 
-                src={detail.poster_path} 
-                alt={detail.title}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-tr from-gray-800 to-gray-900">
-                <span className="font-bold text-lg mb-2 text-white drop-shadow-md">{detail.title}</span>
-                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No Poster</span>
-              </div>
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="flex-grow space-y-6 text-center md:text-left">
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white font-outfit">
-                {detail.title}
-              </h1>
-              
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm font-semibold text-gray-400">
-                <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider">
-                  {type}
+      {/* Top Controls Header Info */}
+      <div className="flex flex-wrap items-center justify-between gap-4 glass-panel border border-darkBorder p-4 rounded-2xl shadow-xl">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+            title="Return to Home"
+          >
+            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
+              <ArrowLeft className="w-4 h-4 stroke-[3]" />
+            </span>
+            <span className="font-extrabold tracking-wider">Back</span>
+          </button>
+          
+          <div className="space-y-1">
+            <h1 className="font-extrabold text-lg md:text-xl text-white font-outfit line-clamp-1">
+              Watch: {detail.title}
+            </h1>
+            <p className="text-xs text-gray-400 flex items-center gap-2">
+              <span className="text-accentCyan font-semibold capitalize">Solo Stream</span>
+              <span>•</span>
+              <span className="capitalize">{type}</span>
+              {detail.release_date && <span>• {detail.release_date}</span>}
+              {detail.vote_average && (
+                <span className="flex items-center gap-1 text-yellow-400">
+                  • <Star className="w-3.5 h-3.5 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
                 </span>
-                {detail.release_date && <span>&bull; {detail.release_date}</span>}
-                {detail.vote_average && (
-                  <span className="flex items-center gap-1 text-yellow-400">
-                    &bull; <Star className="w-4 h-4 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
-                  </span>
-                )}
-              </div>
-
-              {/* Genres Badges */}
-              {detail.genres && detail.genres.length > 0 && (
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-1">
-                  {detail.genres.map((g, idx) => (
-                    <button
-                      key={g.id || `${g.name}-${idx}`}
-                      type="button"
-                      onClick={() => navigate(`/search?type=${type}&genre=${g.id || encodeURIComponent(g.name)}`)}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 hover:bg-accentCyan/20 text-gray-300 hover:text-accentCyan border border-white/10 hover:border-accentCyan/40 transition-all cursor-pointer backdrop-blur-md active:scale-95 shadow-sm"
-                      title={`Explore more ${g.name} ${type === 'movie' ? 'movies' : type}`}
-                    >
-                      {g.name}
-                    </button>
-                  ))}
-                </div>
               )}
-            </div>
-
-            {/* Synopsis */}
-            <div className="space-y-2">
-              <h3 className="font-bold text-gray-200">Synopsis</h3>
-              <p className="text-gray-400 text-sm leading-relaxed max-w-4xl">
-                {detail.overview}
-              </p>
-            </div>
-
-            {/* Dynamic Buttons */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-              {/* Watch watchlist */}
-              <button
-                onClick={handleWatchlistToggle}
-                disabled={watchlistLoading}
-                className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold transition border ${
-                  inWatchlist
-                    ? 'border-accentPink text-accentPink bg-accentPink/15 hover:bg-accentPink/25'
-                    : 'border-darkBorder text-gray-300 hover:text-white hover:bg-white/5 bg-black/20'
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${inWatchlist ? 'fill-current' : ''}`} />
-                {inWatchlist ? 'Saved in Watchlist' : 'Add to Watchlist'}
-              </button>
-
-              {/* Watch party (Only video content) */}
-              {type !== 'manga' && (
-                <button
-                  onClick={handleCreateWatchParty}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-102 transition btn-glow-purple"
-                >
-                  <Users className="w-4 h-4 text-black fill-current" />
-                  Host watch Party
-                </button>
-              )}
-            </div>
+            </p>
           </div>
+        </div>
+
+        {/* Action Widgets */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Library / Watchlist */}
+          <button
+            onClick={handleWatchlistToggle}
+            disabled={watchlistLoading}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+              inWatchlist
+                ? 'border-accentPink text-accentPink bg-accentPink/15 hover:bg-accentPink/25'
+                : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5'
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${inWatchlist ? 'fill-current' : ''}`} />
+            {inWatchlist ? 'Saved in Library' : 'Add to Library'}
+          </button>
+
+          {/* Watch Party Button */}
+          {type !== 'manga' && (
+            <button
+              onClick={handleCreateWatchParty}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
+            >
+              <Users className="w-3.5 h-3.5" />
+              Watch Party
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Media Player Console (Video content) */}
+      {/* Video Block & Theater Controls */}
       {type !== 'manga' && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-4">
-          <div className="flex items-center justify-between border-b-2 border-white/20 pb-3 flex-wrap gap-3">
-            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 font-outfit drop-shadow-md">
-              <Film className="w-6 h-6 text-accentCyan" />
-              Solo Stream Player Console
-            </h2>
-
-            {/* Tab selection */}
-            <div className="flex items-center gap-2 border-2 border-accentCyan/50 p-1.5 rounded-2xl bg-darkCard/95 shadow-md">
-              <button
-                onClick={() => setPlaybackMode('solo-embed')}
-                className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
-                  playbackMode === 'solo-embed' 
-                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.7)] ring-1 ring-accentCyan' 
-                    : 'text-white border-2 border-accentCyan/40 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-darkCard shadow-sm'
-                }`}
-              >
-                🎬 Free Streaming Servers
-              </button>
+        <div className="space-y-4 text-left">
+          {/* Playback Mode tabs */}
+          <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-4">
+            <div className="flex items-center gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold">
               {detail.youtube_trailer && (
                 <button
                   onClick={() => setPlaybackMode('trailer')}
-                  className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
-                    playbackMode === 'trailer' 
-                      ? 'bg-red-500 text-white border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.7)] ring-1 ring-red-400' 
-                      : 'text-white border-2 border-red-500/40 bg-[#12182f] hover:text-white hover:border-red-500 hover:bg-darkCard shadow-sm'
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                    playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  ▶ YouTube Trailer
+                  YouTube Trailer
                 </button>
               )}
               <button
+                onClick={() => setPlaybackMode('solo-embed')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                  playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Standard Embed
+              </button>
+              <button
                 onClick={() => setPlaybackMode('solo-html5')}
-                className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
-                  playbackMode === 'solo-html5' 
-                    ? 'bg-accentPurple text-white border-accentPurple shadow-[0_0_15px_rgba(var(--accent-purple),0.7)]' 
-                    : 'text-white border-2 border-accentPurple/40 bg-[#12182f] hover:text-white hover:border-accentPurple hover:bg-darkCard shadow-sm'
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                  playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 Custom Video/Embed
               </button>
             </div>
+            
+            <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">
+              Solo Stream: Active
+            </span>
           </div>
 
-          {/* Server Mirror Selection Buttons (Only for standard embeds) */}
+          {/* Streaming Server Selector (only for Standard Embed) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-3 border-2 border-accentCyan bg-darkCard/95 p-4 sm:p-5 rounded-2xl shadow-xl">
+            <div className="space-y-2 border border-darkBorder bg-black/30 p-4 rounded-2xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-accentCyan" />
-                  <span className="text-sm sm:text-base text-white font-black uppercase tracking-wider">Free Streaming Servers:</span>
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-black border border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]">● 100% Free Verified</span>
+                  <Sparkles className="w-4 h-4 text-accentCyan" />
+                  <span className="text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
                 </div>
-                <span className="text-xs text-slate-300 font-semibold">
-                  Switch server if a stream is buffering or fails to load
-                </span>
+                <span className="text-[11px] text-gray-400">Switch server if stream buffers</span>
               </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 pt-1">
+
+              <div className="flex items-center gap-2 flex-wrap pt-1">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-4 py-3 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 border-2 flex flex-col items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-lg text-center ${
+                    className={`group relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer ${
                       embedServer === server.key
-                        ? 'border-2 border-accentCyan bg-gradient-to-r from-accentCyan/40 to-accentPurple/30 text-white shadow-[0_0_25px_rgba(var(--accent-cyan),0.7)] ring-2 ring-accentCyan'
-                        : 'border-2 border-accentCyan/50 bg-[#12182f] text-white hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
+                        ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
+                        : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20'
                     }`}
                   >
-                    <span className="text-white font-black text-xs sm:text-sm">{server.label}</span>
+                    <span>{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-md border font-black ${
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${
                         embedServer === server.key
-                          ? 'border-accentCyan bg-accentCyan text-black shadow-sm'
-                          : 'border-accentCyan/50 bg-accentCyan/20 text-accentCyan'
+                          ? 'border-accentCyan/30 bg-accentCyan/20 text-accentCyan'
+                          : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
                       }`}>
                         {server.badge}
                       </span>
@@ -450,8 +399,34 @@ export default function MediaDetail() {
             </div>
           )}
 
-          {/* Render Player based on mode */}
-          <div className="max-w-5xl mx-auto pt-1">
+          {/* Custom Stream Input Box (only for Custom mode) */}
+          {playbackMode === 'solo-html5' && (
+            <div className="flex flex-col gap-2 border border-darkBorder bg-black/20 p-4 rounded-2xl">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Paste Direct Video URL (.mp4, .m3u8) or Custom Embed URL:
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  className="flex-grow px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
+                />
+                {customUrl && (
+                  <button
+                    onClick={() => setCustomUrl('')}
+                    className="px-3 py-2 bg-darkCard border border-darkBorder hover:border-red-500/30 hover:text-red-400 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Players Rendering */}
+          <div className="max-w-5xl mx-auto w-full">
             {playbackMode === 'trailer' && detail.youtube_trailer && (
               <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl">
                 <iframe
@@ -462,72 +437,6 @@ export default function MediaDetail() {
                 />
               </div>
             )}
-            
-            {playbackMode === 'solo-html5' && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-2 border border-darkBorder bg-black/20 p-4 rounded-2xl max-w-3xl mx-auto text-left">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    Paste Direct Video URL (.mp4, .m3u8) or Custom Embed URL:
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
-                      value={customUrl}
-                      onChange={(e) => setCustomUrl(e.target.value)}
-                      className="flex-grow px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
-                    />
-                    {customUrl && (
-                      <button
-                        onClick={() => setCustomUrl('')}
-                        className="px-3 py-2 bg-darkCard border border-darkBorder hover:border-red-500/30 hover:text-red-400 rounded-xl text-xs font-bold transition"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-gray-500 font-medium">
-                    Direct video formats will use the native HTML5 player. Other URLs (including custom embeds) will load in an isolated iframe.
-                  </p>
-                </div>
-
-                <div className="max-w-5xl mx-auto">
-                  {(() => {
-                    const videoSrc = customUrl || detail.video_url || '';
-                    if (!videoSrc) {
-                      return (
-                        <div className="flex flex-col items-center justify-center aspect-video w-full rounded-2xl bg-darkCard border border-darkBorder text-center p-6 gap-3">
-                          <Play className="w-12 h-12 text-gray-500" />
-                          <h4 className="text-lg font-bold text-gray-300">Enter a video or embed URL above</h4>
-                          <p className="text-sm text-gray-500 max-w-sm">Paste a stream source to start watching.</p>
-                        </div>
-                      );
-                    }
-
-                    // Check if it looks like an embed URL rather than a direct stream
-                    const isDirectStream = videoSrc.match(/\.(mp4|m3u8|webm|ogg|mp3)(\?.*)?$/i) || 
-                                          videoSrc.includes('gtv-videos-bucket') || 
-                                          videoSrc.includes('stream') ||
-                                          videoSrc.includes('.m3u8');
-                    
-                    if (isDirectStream) {
-                      return (
-                        <div className="space-y-4">
-                          <VideoPlayer src={videoSrc} isHost={true} />
-                          <p className="text-xs text-gray-500 text-center">
-                            Playing direct HTML5 stream source. In watch parties, this mode supports real-time sync.
-                          </p>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <EmbedPlayer embedUrl={videoSrc} title={detail.title} />
-                      );
-                    }
-                  })()}
-                </div>
-              </div>
-            )}
 
             {playbackMode === 'solo-embed' && (
               <EmbedPlayer
@@ -535,152 +444,223 @@ export default function MediaDetail() {
                 title={detail.title}
               />
             )}
+
+            {playbackMode === 'solo-html5' && (() => {
+              const videoSrc = customUrl || detail.video_url || '';
+              if (!videoSrc) {
+                return (
+                  <div className="flex flex-col items-center justify-center aspect-video w-full rounded-2xl bg-darkCard border border-darkBorder text-center p-6 gap-3">
+                    <Tv className="w-12 h-12 text-gray-500" />
+                    <h4 className="text-lg font-bold text-gray-300">Awaiting stream source...</h4>
+                    <p className="text-sm text-gray-500 max-w-sm">Please paste a video URL or embed link above to start playback.</p>
+                  </div>
+                );
+              }
+
+              const isDirectStream = videoSrc.match(/\.(mp4|m3u8|webm|ogg|mp3)(\?.*)?$/i) || 
+                                    videoSrc.includes('gtv-videos-bucket') || 
+                                    videoSrc.includes('stream') ||
+                                    videoSrc.includes('.m3u8');
+              
+              if (isDirectStream) {
+                return (
+                  <VideoPlayer
+                    src={videoSrc}
+                    isHost={true}
+                  />
+                );
+              } else {
+                return (
+                  <EmbedPlayer embedUrl={videoSrc} title={detail.title} />
+                );
+              }
+            })()}
           </div>
 
-          {/* Season Selector & Episodes Directory for Series & Anime directly below player */}
-          {(type === 'anime' || type === 'tv' || detail.number_of_seasons > 0 || (detail.seasons && detail.seasons.length > 0)) && (
-            <div className="border-2 border-accentCyan bg-darkCard/95 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-[0_0_25px_rgba(var(--accent-cyan),0.35)] space-y-4 sm:space-y-5 mt-6">
-              
-              {/* Header with Season Dropdown */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <span className="p-2.5 rounded-xl bg-accentCyan text-black font-black shadow-md flex items-center justify-center shrink-0">
-                    <Tv className="w-5 h-5 stroke-[2.5]" />
-                  </span>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider font-outfit drop-shadow-md">
-                      {type === 'anime' ? 'Anime Episodes Directory' : 'TV Series Seasons & Episodes'}
-                    </h3>
-                    <p className="text-xs text-slate-300 font-semibold">
-                      Click any episode to instantly stream on {STREAMING_SERVERS.find(s => s.key === embedServer)?.label || 'Server'}
-                    </p>
-                  </div>
-                </div>
+          {/* Season and Episode selector Directory for TV/Anime */}
+          {(type === 'tv' || type === 'anime' || detail.number_of_seasons > 0 || (detail.seasons && detail.seasons.length > 0)) && (
+            <div className="border border-darkBorder bg-black/10 rounded-2xl p-4 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-darkBorder/60 pb-3">
+                <h4 className="font-bold text-sm text-gray-300 flex items-center gap-1.5 font-outfit">
+                  <Play className="w-4 h-4 text-accentCyan fill-current" />
+                  Episodes Directory
+                </h4>
 
-                {/* Season Dropdown */}
+                {/* Season selector (TV shows or anime with seasons) */}
                 {(() => {
                   const availableSeasons = (detail.seasons && detail.seasons.length > 0)
                     ? detail.seasons.filter(s => s.season_number > 0 || detail.seasons.length === 1)
                     : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
 
-                  const seasonsList = availableSeasons.length > 0
-                    ? availableSeasons
-                    : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
-
-                  return (
-                    <div className="flex items-center gap-2.5 bg-[#0d1226] p-2 px-3.5 rounded-xl border-2 border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]">
-                      <span className="text-xs font-black text-accentCyan uppercase tracking-wider">
-                        Season:
-                      </span>
-                      <select
-                        value={activeSeason || 1}
-                        onChange={(e) => {
-                          setActiveSeason(parseInt(e.target.value, 10));
-                          setActiveEpisode(1);
-                        }}
-                        className="px-3.5 py-2 bg-[#151c38] border-2 border-accentCyan text-white font-black text-xs sm:text-sm rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-accentCyan shadow-inner"
-                      >
-                        {seasonsList.map((s) => (
-                          <option key={s.id || s.season_number} value={s.season_number} className="bg-[#111827] text-white font-bold">
-                            {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} Episodes)
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
+                  if (availableSeasons.length > 1 || (type === 'tv' && availableSeasons.length > 0)) {
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
+                        <select
+                          value={activeSeason || 1}
+                          onChange={(e) => {
+                            setActiveSeason(parseInt(e.target.value, 10));
+                            setActiveEpisode(1);
+                          }}
+                          className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer"
+                        >
+                          {availableSeasons.map((s) => (
+                            <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg font-medium">
+                              {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
+                  return null;
                 })()}
               </div>
 
-              {/* Quick Season Selection Buttons (when multiple seasons available) */}
-              {(() => {
-                const availableSeasons = (detail.seasons && detail.seasons.length > 0)
-                  ? detail.seasons.filter(s => s.season_number > 0 || detail.seasons.length === 1)
-                  : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[220px] overflow-y-auto pr-2">
+                {(() => {
+                  if (type === 'anime') {
+                    const totalCount = detail.episodes_count || (episodes.length > 0 ? episodes.length : 12);
+                    const generatedEpisodes = Array.from({ length: totalCount }, (_, i) => {
+                      const epNum = i + 1;
+                      const matchedEp = episodes.find(e => parseInt(e.episode || e.number, 10) === epNum);
+                      return {
+                        id: epNum,
+                        episode: epNum.toString(),
+                        title: matchedEp?.title || `Episode ${epNum}`
+                      };
+                    });
 
-                if (availableSeasons.length <= 1) return null;
-
-                return (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-accentCyan shrink-0">
-                      Season Pills:
-                    </span>
-                    {availableSeasons.map((s) => {
-                      const isCurrentSeason = (activeSeason || 1) === s.season_number;
+                    return generatedEpisodes.map((ep) => {
+                      const epNum = ep.id;
+                      const isSelected = activeEpisode === epNum;
                       return (
                         <button
-                          key={s.id || s.season_number}
+                          key={ep.id}
                           onClick={() => {
-                            setActiveSeason(s.season_number);
-                            setActiveEpisode(1);
+                            setActiveEpisode(epNum);
+                            setPlaybackMode('solo-embed');
                           }}
-                          className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 border-2 shrink-0 cursor-pointer shadow-md active:scale-95 ${
-                            isCurrentSeason
-                              ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan'
-                              : 'border-2 border-accentCyan/50 bg-[#151c38] text-white hover:border-accentCyan hover:bg-accentCyan/20'
+                          className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group cursor-pointer ${
+                            isSelected
+                              ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-md shadow-accentCyan/10 ring-1 ring-accentCyan/30'
+                              : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white hover:border-white/20'
                           }`}
                         >
-                          {s.name || `Season ${s.season_number}`}
+                          <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
+                            Episode {ep.episode}
+                          </span>
+                          <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white" title={ep.title}>
+                            {ep.title}
+                          </span>
                         </button>
                       );
-                    })}
-                  </div>
-                );
-              })()}
+                    });
+                  } else {
+                    const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
+                    const epCount = currentSeasonInfo ? currentSeasonInfo.episode_count : (seasonEpisodes.length > 0 ? seasonEpisodes.length : (detail.episodes_count || 1));
+                    
+                    return Array.from({ length: epCount }, (_, i) => {
+                      const epNum = i + 1;
+                      const isSelected = activeEpisode === epNum;
+                      const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
+                      const epTitle = epDetail?.name || `Episode ${epNum}`;
 
-              {/* Episode Buttons Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3 max-h-[440px] overflow-y-auto pr-1 text-left">
-                {(() => {
-                  const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
-                  const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
-                  const epCount = (typeof rawCount === 'number' && rawCount > 0) ? rawCount : 12;
-
-                  return Array.from({ length: epCount }, (_, i) => {
-                    const epNum = i + 1;
-                    const isSelected = activeEpisode === epNum;
-                    const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
-                    const epTitle = epDetail?.name || `Episode ${epNum}`;
-
-                    return (
-                      <button
-                        key={epNum}
-                        onClick={() => {
-                          setActiveEpisode(epNum);
-                          setPlaybackMode('solo-embed');
-                        }}
-                        className={`p-3 rounded-xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-md ${
-                          isSelected
-                            ? 'border-2 border-accentCyan bg-gradient-to-r from-accentCyan/40 to-accentPurple/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.7)] ring-2 ring-accentCyan'
-                            : 'border-2 border-accentCyan/50 bg-[#12182f] text-white shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)] hover:border-accentCyan hover:bg-accentCyan/20 hover:shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <span className={`text-[11px] uppercase font-black px-2 py-0.5 rounded-md font-mono ${
-                            isSelected 
-                              ? 'bg-accentCyan text-black font-black shadow-sm' 
-                              : 'bg-accentCyan/25 text-accentCyan border border-accentCyan/50 font-black'
-                          }`}>
-                            EP {epNum}
+                      return (
+                        <button
+                          key={epNum}
+                          onClick={() => {
+                            setActiveEpisode(epNum);
+                            setPlaybackMode('solo-embed');
+                          }}
+                          className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group cursor-pointer ${
+                            isSelected
+                              ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-md shadow-accentCyan/10 ring-1 ring-accentCyan/30'
+                              : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white hover:border-white/20'
+                          }`}
+                        >
+                          <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
+                            Episode {epNum}
                           </span>
-                          {isSelected && (
-                            <span className="w-2.5 h-2.5 rounded-full bg-accentCyan animate-ping" />
-                          )}
-                        </div>
-                        <span className="text-xs font-bold truncate w-full text-white drop-shadow-sm" title={epTitle}>
-                          {epTitle}
-                        </span>
-                      </button>
-                    );
-                  });
+                          <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                            {epTitle}
+                          </span>
+                        </button>
+                      );
+                    });
+                  }
                 })()}
               </div>
             </div>
           )}
-        </section>
+        </div>
       )}
+
+      {/* Media Details Overview Card */}
+      <div className="glass-panel border border-darkBorder p-6 sm:p-8 rounded-2xl shadow-xl flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+        <div className="w-[140px] sm:w-[180px] md:w-[220px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto md:mx-0">
+          {detail.poster_path ? (
+            <img 
+              src={detail.poster_path} 
+              alt={detail.title}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-tr from-gray-800 to-gray-900">
+              <span className="font-bold text-base mb-1 text-white">{detail.title}</span>
+              <span className="text-xs text-gray-400 uppercase tracking-wider">No Poster</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-grow space-y-4 text-left">
+          <div className="space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-outfit">
+              {detail.title}
+            </h2>
+            <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-400 font-semibold">
+              <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider">
+                {type}
+              </span>
+              {detail.release_date && <span>• {detail.release_date}</span>}
+              {detail.vote_average && (
+                <span className="flex items-center gap-1 text-yellow-400">
+                  • <Star className="w-4 h-4 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
+                </span>
+              )}
+            </div>
+
+            {/* Genres */}
+            {detail.genres && detail.genres.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                {detail.genres.map((g, idx) => (
+                  <button
+                    key={g.id || `${g.name}-${idx}`}
+                    type="button"
+                    onClick={() => navigate(`/search?type=${type}&genre=${g.id || encodeURIComponent(g.name)}`)}
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 hover:bg-accentCyan/20 text-gray-300 hover:text-accentCyan border border-white/10 hover:border-accentCyan/40 transition-all cursor-pointer backdrop-blur-md active:scale-95 shadow-sm"
+                  >
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Synopsis */}
+          <div className="space-y-1.5">
+            <h3 className="font-bold text-gray-200 text-sm uppercase tracking-wider">Synopsis</h3>
+            <p className="text-gray-400 text-sm leading-relaxed max-w-4xl">
+              {detail.overview || 'No synopsis available for this title.'}
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Manga Chapters List (Manga content) */}
       {type === 'manga' && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
+        <section className="space-y-6">
           <h2 className="text-xl font-bold text-white flex items-center gap-2 font-outfit">
             <BookOpen className="w-5 h-5 text-accentCyan" />
             MangaDex Chapters Directory
@@ -751,7 +731,7 @@ export default function MediaDetail() {
 
       {/* Recommendations */}
       {detail.recommendations && detail.recommendations.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 border-t border-darkBorder/40 pt-12">
+        <section className="border-t border-darkBorder/40 pt-12">
           <MediaGrid items={detail.recommendations} title="Suggested Recommendations" />
         </section>
       )}
