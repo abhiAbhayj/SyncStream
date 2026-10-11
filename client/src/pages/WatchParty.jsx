@@ -8,7 +8,28 @@ import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star } from 'lucide-react';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star, Clock } from 'lucide-react';
+
+const formatDuration = (mins, mediaType, episodesCount) => {
+  const m = parseInt(mins, 10);
+  if (!isNaN(m) && m > 0) {
+    if (mediaType === 'movie') {
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return h > 0 ? (rem > 0 ? `${h}h ${rem}m` : `${h}h`) : `${m}m`;
+    }
+    if (m >= 60 && mediaType !== 'anime') {
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return `${h > 0 ? `${h}h ${rem}m` : `${m}m`} / ep`;
+    }
+    return `${m}m / ep`;
+  }
+  if (episodesCount) {
+    return `${episodesCount} eps`;
+  }
+  return null;
+};
 
 export default function WatchParty() {
   const { code } = useParams();
@@ -272,27 +293,77 @@ export default function WatchParty() {
 
 
   const isEpisodic = (room?.media_type === 'tv' || room?.media_type === 'anime');
-  const currentSeason = isEpisodic ? (mediaDetail?.seasons?.find(s => s.season_number === activeSeason) || mediaDetail?.seasons?.[0]) : null;
+  const durationLabel = formatDuration(mediaDetail?.runtime || mediaDetail?.duration, room?.media_type, mediaDetail?.episodes_count);
+
+  const seasonsList = (() => {
+    if (!isEpisodic) return [];
+    const list = [];
+    const seenSeasonNums = new Set();
+
+    if (mediaDetail?.seasons && mediaDetail.seasons.length > 0) {
+      mediaDetail.seasons.forEach((s) => {
+        if (!seenSeasonNums.has(s.season_number)) {
+          seenSeasonNums.add(s.season_number);
+          list.push(s);
+        }
+      });
+    }
+
+    // Fallback: If only 1 season was returned but number_of_seasons > 1
+    if (mediaDetail?.number_of_seasons && mediaDetail.number_of_seasons > list.length) {
+      for (let sNum = 1; sNum <= mediaDetail.number_of_seasons; sNum++) {
+        if (!seenSeasonNums.has(sNum)) {
+          seenSeasonNums.add(sNum);
+          list.push({
+            id: sNum,
+            season_number: sNum,
+            name: `Season ${sNum}`,
+            episode_count: Math.round((mediaDetail.number_of_episodes || 12) / mediaDetail.number_of_seasons) || 12,
+            poster_path: mediaDetail.poster_path
+          });
+        }
+      }
+    }
+
+    // Check related_franchise for other seasons if still only 1
+    if (list.length <= 1 && mediaDetail?.related_franchise?.length > 0) {
+      mediaDetail.related_franchise.forEach((rf) => {
+        const match = (rf.title || '').match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+        const sNum = match ? parseInt(match[1] || match[2], 10) : null;
+        if (sNum && !seenSeasonNums.has(sNum)) {
+          seenSeasonNums.add(sNum);
+          list.push({
+            id: rf.id,
+            season_number: sNum,
+            name: rf.title || `Season ${sNum}`,
+            episode_count: 12,
+            poster_path: rf.poster_path
+          });
+        }
+      });
+    }
+
+    if (list.length === 0) {
+      list.push({ id: 1, season_number: 1, name: 'Season 1', episode_count: mediaDetail?.episodes_count || 12 });
+    }
+
+    return list.sort((a, b) => a.season_number - b.season_number);
+  })();
+
+  const currentSeason = isEpisodic ? (seasonsList.find(s => s.season_number === activeSeason) || seasonsList[0]) : null;
   const activeOverview = (isEpisodic && (currentSeasonData?.overview || currentSeason?.overview)) ? (currentSeasonData?.overview || currentSeason?.overview) : (mediaDetail?.overview || 'No synopsis available for this title.');
   const activePoster = (isEpisodic && currentSeasonData?.poster_path)
     ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
     : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : mediaDetail?.poster_path);
   const activeSeasonName = isEpisodic ? (currentSeason?.name || `Season ${activeSeason}`) : '';
 
-  const seasonsList = isEpisodic
-    ? ((mediaDetail?.seasons && mediaDetail.seasons.length > 0)
-        ? mediaDetail.seasons
-        : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: mediaDetail?.episodes_count || 12 }])
-    : [];
-
-
   const relatedEntries = (() => {
     if (!mediaDetail) return [];
     const list = [];
     
-    // 1. All seasons from mediaDetail.seasons (only for TV & Anime)
-    if (isEpisodic && mediaDetail.seasons && mediaDetail.seasons.length > 0) {
-      mediaDetail.seasons.forEach((s) => {
+    // 1. All seasons from seasonsList (only for TV & Anime)
+    if (isEpisodic && seasonsList.length > 0) {
+      seasonsList.forEach((s) => {
         let badge = `SEASON ${s.season_number}`;
         if (s.season_number === 0) badge = 'SPECIAL';
         else if (s.name && s.name.toLowerCase().includes('ova')) badge = 'OVA';
@@ -450,6 +521,17 @@ export default function WatchParty() {
                 <span>• Season Air: {currentSeason.air_date}</span>
               ) : (
                 mediaDetail.release_date && <span>• {mediaDetail.release_date}</span>
+              )}
+              {durationLabel && (
+                <span className="flex items-center gap-1 text-accentCyan font-bold">
+                  • <Clock className="w-3.5 h-3.5 text-accentCyan" /> {durationLabel}
+                </span>
+              )}
+              {isEpisodic && (seasonsList.length > 1 || mediaDetail.number_of_seasons > 1) && (
+                <span>• {seasonsList.length || mediaDetail.number_of_seasons} Seasons</span>
+              )}
+              {mediaDetail.episodes_count && (
+                <span>• {mediaDetail.episodes_count} Eps</span>
               )}
               {mediaDetail.vote_average && (
                 <span className="flex items-center gap-1 text-yellow-400">

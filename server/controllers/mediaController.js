@@ -251,6 +251,8 @@ export const searchAniListAnime = async (query, page = 1) => {
         format: fmt,
         episodes: m.episodes || null,
         season_number: seasonNumber,
+        duration: m.duration || null,
+        runtime: m.duration || null,
         genre_ids: []
       });
     };
@@ -364,6 +366,17 @@ export const getAniListMediaDetail = async (alId) => {
     // Resolve TMDB ID for video streaming
     const tmdbMapping = await getTmdbIdForAnime(titleRomaji, titleEnglish, m.seasonYear?.toString());
 
+    // If mapped to a TMDB TV show, fetch full TV details to get all seasons and runtime
+    let tmdbTvData = null;
+    if (tmdbMapping?.id && tmdbMapping.type === 'tv' && isTmdbConfigured()) {
+      try {
+        const tmdbTvRes = await axios.get(`${TMDB_BASE_URL}/tv/${tmdbMapping.id}?api_key=${TMDB_API_KEY}`, { timeout: 4000 });
+        tmdbTvData = tmdbTvRes.data;
+      } catch (err) {
+        console.warn('TMDB TV lookup in getAniListMediaDetail failed:', err.message);
+      }
+    }
+
     // Map relations (sequels, prequels, movies, OVAs, ONAs, manga)
     const relatedFranchise = [];
     if (m.relations?.edges?.length) {
@@ -384,14 +397,84 @@ export const getAniListMediaDetail = async (alId) => {
     }
 
     const epCount = m.episodes || 14;
-    const seasons = [{
+    const currentPoster = m.coverImage?.extraLarge || m.coverImage?.large;
+
+    // Build complete multi-season list for Season Filter dropdown & episodes
+    const seasonsMap = new Map();
+
+    // 1. If TMDB has seasons (Season 1, Season 2, etc.), populate all of them
+    if (tmdbTvData?.seasons && tmdbTvData.seasons.length > 0) {
+      tmdbTvData.seasons.forEach((s) => {
+        if (s.season_number > 0) {
+          seasonsMap.set(s.season_number, {
+            id: s.id,
+            season_number: s.season_number,
+            name: s.name || `Season ${s.season_number}`,
+            episode_count: s.episode_count || epCount,
+            poster_path: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : currentPoster,
+            air_date: s.air_date || (m.seasonYear ? `${m.seasonYear}-01-01` : '')
+          });
+        }
+      });
+    }
+
+    // 2. Ensure current anime entry is placed at detectedSeason
+    const activeSeasonObj = seasonsMap.get(detectedSeason) || {
       id: m.id,
       season_number: detectedSeason,
       name: fullTitle.includes(`Season ${detectedSeason}`) ? fullTitle : `Season ${detectedSeason}`,
       episode_count: epCount,
-      poster_path: m.coverImage?.extraLarge || m.coverImage?.large,
+      poster_path: currentPoster,
       air_date: m.seasonYear ? `${m.seasonYear}-01-01` : ''
-    }];
+    };
+    activeSeasonObj.id = m.id;
+    activeSeasonObj.poster_path = currentPoster;
+    if (m.episodes) activeSeasonObj.episode_count = m.episodes;
+    seasonsMap.set(detectedSeason, activeSeasonObj);
+
+    // 3. Scan AniList relations for sequels, prequels and other seasons
+    if (m.relations?.edges?.length) {
+      m.relations.edges.forEach((edge) => {
+        const node = edge.node;
+        if (!node || node.format === 'MANGA') return;
+        const relTitle = node.title?.english || node.title?.romaji || '';
+        const relMatch = relTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+        let sNum = relMatch ? parseInt(relMatch[1] || relMatch[2], 10) : null;
+
+        if (!sNum) {
+          if (edge.relationType === 'SEQUEL') {
+            sNum = detectedSeason + 1;
+          } else if (edge.relationType === 'PREQUEL' && detectedSeason > 1) {
+            sNum = detectedSeason - 1;
+          }
+        }
+
+        if (sNum && !seasonsMap.has(sNum)) {
+          seasonsMap.set(sNum, {
+            id: `al_${node.id}`,
+            season_number: sNum,
+            name: relTitle || `Season ${sNum}`,
+            episode_count: node.episodes || 12,
+            poster_path: node.coverImage?.extraLarge || node.coverImage?.large,
+            air_date: node.seasonYear ? `${node.seasonYear}-01-01` : ''
+          });
+        }
+      });
+    }
+
+    // 4. If current is Season > 1 but Season 1 wasn't mapped, ensure Season 1 exists
+    if (detectedSeason > 1 && !seasonsMap.has(1)) {
+      seasonsMap.set(1, {
+        id: 1,
+        season_number: 1,
+        name: 'Season 1',
+        episode_count: 12,
+        poster_path: currentPoster,
+        air_date: ''
+      });
+    }
+
+    const seasons = Array.from(seasonsMap.values()).sort((a, b) => a.season_number - b.season_number);
 
     const cast = (m.characters?.edges || []).slice(0, 10).map(c => ({
       name: c.node?.name?.full || 'Actor',
@@ -407,20 +490,26 @@ export const getAniListMediaDetail = async (alId) => {
         media_type: 'anime'
       }));
 
+    const animeDuration = m.duration || (tmdbTvData?.episode_run_time && tmdbTvData.episode_run_time[0]) || null;
+
     const details = {
       id: `al_${m.id}`,
       external_media_id: `al_${m.id}`,
       tmdb_id: tmdbMapping?.id || null,
       title: fullTitle,
       overview: m.description ? m.description.replace(/<[^>]*>/g, '') : '',
-      poster_path: m.coverImage?.extraLarge || m.coverImage?.large,
-      backdrop_path: m.bannerImage || m.coverImage?.extraLarge || m.coverImage?.large,
+      poster_path: currentPoster,
+      backdrop_path: m.bannerImage || currentPoster,
       release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '',
       vote_average: m.averageScore ? (m.averageScore / 10).toFixed(1) : 8.0,
       genres: (m.genres || []).map(g => ({ id: g, name: g })),
       media_type: 'anime',
       format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
       episodes_count: epCount,
+      duration: animeDuration,
+      runtime: animeDuration,
+      number_of_seasons: seasons.filter(s => s.season_number > 0).length || 1,
+      number_of_episodes: tmdbTvData?.number_of_episodes || m.episodes || null,
       default_season: detectedSeason,
       seasons,
       related_franchise: relatedFranchise,
@@ -454,6 +543,7 @@ const expandTvSeasons = async (tvResults) => {
     try {
       const res = await axios.get(`${TMDB_BASE_URL}/tv/${r.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
       const d = res.data;
+      const episodeRuntime = (d.episode_run_time && d.episode_run_time[0]) || d.last_episode_to_air?.runtime || null;
       if (d.seasons && d.seasons.length > 1) {
         const seasonEntries = [];
         d.seasons.forEach((s) => {
@@ -472,13 +562,15 @@ const expandTvSeasons = async (tvResults) => {
               media_type: 'tv',
               format: `Season ${s.season_number}`,
               episodes: s.episode_count || null,
-              season_number: s.season_number
+              season_number: s.season_number,
+              runtime: episodeRuntime,
+              duration: episodeRuntime
             });
           }
         });
-        return seasonEntries.length > 0 ? seasonEntries : [r];
+        return seasonEntries.length > 0 ? seasonEntries : [{ ...r, runtime: episodeRuntime, duration: episodeRuntime }];
       }
-      return [r];
+      return [{ ...r, runtime: episodeRuntime, duration: episodeRuntime }];
     } catch {
       return [r];
     }
@@ -493,18 +585,22 @@ const expandTvSeasons = async (tvResults) => {
 // Expand movie results with franchise collection sequels/prequels
 const expandMovieCollections = async (movieResults) => {
   if (!movieResults || movieResults.length === 0) return [];
-  const expanded = [...movieResults];
-  const seenIds = new Set(movieResults.map(m => m.id.toString()));
+  const expanded = [];
+  const seenIds = new Set();
 
-  const topMovies = movieResults.slice(0, 5);
+  const topMovies = movieResults.slice(0, 6);
+  const remainingMovies = movieResults.slice(6);
+
   const colPromises = topMovies.map(async (m) => {
     try {
       const res = await axios.get(`${TMDB_BASE_URL}/movie/${m.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
+      const mRuntime = res.data?.runtime || null;
+      const baseMovie = { ...m, runtime: mRuntime, duration: mRuntime };
       const col = res.data?.belongs_to_collection;
       if (col && col.id) {
         const colRes = await axios.get(`${TMDB_BASE_URL}/collection/${col.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
         const parts = colRes.data?.parts || [];
-        return parts.filter(p => !seenIds.has(p.id.toString())).map(p => ({
+        const extraParts = parts.filter(p => p.id.toString() !== m.id.toString()).map(p => ({
           id: p.id.toString(),
           external_media_id: p.id.toString(),
           title: p.title || p.name,
@@ -515,23 +611,33 @@ const expandMovieCollections = async (movieResults) => {
           vote_average: p.vote_average || 0,
           genre_ids: p.genre_ids || [],
           media_type: 'movie',
-          format: 'Movie'
+          format: 'Movie',
+          runtime: null,
+          duration: null
         }));
+        return [baseMovie, ...extraParts];
       }
-      return [];
+      return [baseMovie];
     } catch {
-      return [];
+      return [m];
     }
   });
 
-  const resolvedParts = await Promise.all(colPromises);
-  resolvedParts.forEach(parts => {
-    parts.forEach(p => {
-      if (!seenIds.has(p.id.toString())) {
-        seenIds.add(p.id.toString());
-        expanded.push(p);
+  const resolved = await Promise.all(colPromises);
+  resolved.forEach(group => {
+    group.forEach(it => {
+      if (!seenIds.has(it.id.toString())) {
+        seenIds.add(it.id.toString());
+        expanded.push(it);
       }
     });
+  });
+
+  remainingMovies.forEach(it => {
+    if (!seenIds.has(it.id.toString())) {
+      seenIds.add(it.id.toString());
+      expanded.push(it);
+    }
   });
 
   return expanded;
@@ -584,7 +690,9 @@ export const getTrending = async (req, res) => {
       poster_path: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
       release_date: m.release_date || '',
       vote_average: m.vote_average,
-      media_type: 'movie'
+      media_type: 'movie',
+      runtime: m.runtime || null,
+      duration: m.runtime || null
     });
 
     const mapTv = t => ({
@@ -594,7 +702,9 @@ export const getTrending = async (req, res) => {
       poster_path: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : null,
       release_date: t.first_air_date || '',
       vote_average: t.vote_average,
-      media_type: 'tv'
+      media_type: 'tv',
+      runtime: t.runtime || (t.episode_run_time && t.episode_run_time[0]) || null,
+      duration: t.runtime || (t.episode_run_time && t.episode_run_time[0]) || null
     });
 
     if (isTmdbConfigured()) {
@@ -1263,6 +1373,25 @@ export const getMediaDetail = async (req, res) => {
             episode_count: s.episode_count || 0
           }));
 
+          // Ensure all seasons 1..d.number_of_seasons are represented in formattedSeasons
+          if (type === 'tv' && d.number_of_seasons && d.number_of_seasons > 1) {
+            const existingNums = new Set(formattedSeasons.map(s => s.season_number));
+            for (let sNum = 1; sNum <= d.number_of_seasons; sNum++) {
+              if (!existingNums.has(sNum)) {
+                formattedSeasons.push({
+                  id: `s_${d.id}_${sNum}`,
+                  season_number: sNum,
+                  name: `Season ${sNum}`,
+                  overview: d.overview || '',
+                  poster_path: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null,
+                  air_date: '',
+                  episode_count: Math.round((d.number_of_episodes || 12) / d.number_of_seasons) || 10
+                });
+              }
+            }
+            formattedSeasons.sort((a, b) => a.season_number - b.season_number);
+          }
+
           let relatedFranchise = [];
           try {
             const rawTitle = d.title || d.name || '';
@@ -1347,6 +1476,10 @@ export const getMediaDetail = async (req, res) => {
             console.warn('Franchise search error:', relErr.message);
           }
 
+          const mediaDuration = type === 'movie'
+            ? (d.runtime || null)
+            : ((d.episode_run_time && d.episode_run_time[0]) || d.last_episode_to_air?.runtime || d.runtime || null);
+
           details = {
             id: d.id.toString(),
             title: d.title || d.name,
@@ -1356,6 +1489,10 @@ export const getMediaDetail = async (req, res) => {
             release_date: d.release_date || d.first_air_date,
             vote_average: d.vote_average,
             genres,
+            duration: mediaDuration,
+            runtime: mediaDuration,
+            number_of_seasons: type === 'tv' ? (d.number_of_seasons || (formattedSeasons.filter(s => s.season_number > 0).length || 1)) : null,
+            number_of_episodes: d.number_of_episodes || null,
             seasons: (type === 'movie')
               ? []
               : (formattedSeasons.length > 0 ? formattedSeasons : [{
@@ -1473,8 +1610,12 @@ export const getTvSeason = async (req, res) => {
         }
       }
 
-      // Generate episodes for this anime season based on episode count
-      const epCount = alDetail?.episodes_count || 12;
+      // Generate episodes for this anime season based on season-specific episode count
+      const targetSeason = alDetail?.seasons?.find(s => s.season_number === sNum);
+      const epCount = targetSeason?.episode_count || alDetail?.episodes_count || 12;
+      const seasonPoster = targetSeason?.poster_path || alDetail?.backdrop_path || alDetail?.poster_path || null;
+      const seasonTitle = targetSeason?.name || (alDetail?.title ? `${alDetail.title} Season ${sNum}` : `Season ${sNum}`);
+
       const syntheticEpisodes = [];
       for (let ep = 1; ep <= epCount; ep++) {
         syntheticEpisodes.push({
@@ -1482,17 +1623,18 @@ export const getTvSeason = async (req, res) => {
           episode_number: ep,
           season_number: sNum,
           name: `Episode ${ep}`,
-          overview: `${alDetail?.title || 'Anime'} Episode ${ep}`,
-          still_path: alDetail?.backdrop_path || alDetail?.poster_path || null,
-          air_date: alDetail?.release_date || ''
+          overview: `${seasonTitle} Episode ${ep}`,
+          still_path: seasonPoster,
+          air_date: targetSeason?.air_date || alDetail?.release_date || ''
         });
       }
 
       return res.json({
         _id: id,
-        name: alDetail?.title ? `${alDetail.title} Season ${sNum}` : `Season ${sNum}`,
-        overview: alDetail?.overview || '',
+        name: seasonTitle,
+        overview: targetSeason?.overview || alDetail?.overview || '',
         season_number: sNum,
+        poster_path: seasonPoster,
         episodes: syntheticEpisodes
       });
     }

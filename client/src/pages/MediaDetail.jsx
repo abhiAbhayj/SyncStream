@@ -8,7 +8,28 @@ import MangaReader from '../components/MangaReader';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers } from 'lucide-react';
+import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock } from 'lucide-react';
+
+const formatDuration = (mins, mediaType, episodesCount) => {
+  const m = parseInt(mins, 10);
+  if (!isNaN(m) && m > 0) {
+    if (mediaType === 'movie') {
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return h > 0 ? (rem > 0 ? `${h}h ${rem}m` : `${h}h`) : `${m}m`;
+    }
+    if (m >= 60 && mediaType !== 'anime') {
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return `${h > 0 ? `${h}h ${rem}m` : `${m}m`} / ep`;
+    }
+    return `${m}m / ep`;
+  }
+  if (episodesCount) {
+    return `${episodesCount} eps`;
+  }
+  return null;
+};
 
 export default function MediaDetail() {
   const { type, id } = useParams();
@@ -261,27 +282,77 @@ export default function MediaDetail() {
   }
 
   const isEpisodic = (type === 'tv' || type === 'anime');
-  const currentSeason = isEpisodic ? (detail?.seasons?.find(s => s.season_number === activeSeason) || detail?.seasons?.[0]) : null;
+  const durationLabel = formatDuration(detail?.runtime || detail?.duration, type, detail?.episodes_count);
+
+  const seasonsList = (() => {
+    if (!isEpisodic) return [];
+    const list = [];
+    const seenSeasonNums = new Set();
+
+    if (detail?.seasons && detail.seasons.length > 0) {
+      detail.seasons.forEach((s) => {
+        if (!seenSeasonNums.has(s.season_number)) {
+          seenSeasonNums.add(s.season_number);
+          list.push(s);
+        }
+      });
+    }
+
+    // Fallback: If only 1 season was returned but number_of_seasons > 1
+    if (detail?.number_of_seasons && detail.number_of_seasons > list.length) {
+      for (let sNum = 1; sNum <= detail.number_of_seasons; sNum++) {
+        if (!seenSeasonNums.has(sNum)) {
+          seenSeasonNums.add(sNum);
+          list.push({
+            id: sNum,
+            season_number: sNum,
+            name: `Season ${sNum}`,
+            episode_count: Math.round((detail.number_of_episodes || 12) / detail.number_of_seasons) || 12,
+            poster_path: detail.poster_path
+          });
+        }
+      }
+    }
+
+    // Check related_franchise for other seasons if still only 1
+    if (list.length <= 1 && detail?.related_franchise?.length > 0) {
+      detail.related_franchise.forEach((rf) => {
+        const match = (rf.title || '').match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+        const sNum = match ? parseInt(match[1] || match[2], 10) : null;
+        if (sNum && !seenSeasonNums.has(sNum)) {
+          seenSeasonNums.add(sNum);
+          list.push({
+            id: rf.id,
+            season_number: sNum,
+            name: rf.title || `Season ${sNum}`,
+            episode_count: 12,
+            poster_path: rf.poster_path
+          });
+        }
+      });
+    }
+
+    if (list.length === 0) {
+      list.push({ id: 1, season_number: 1, name: 'Season 1', episode_count: detail?.episodes_count || 12 });
+    }
+
+    return list.sort((a, b) => a.season_number - b.season_number);
+  })();
+
+  const currentSeason = isEpisodic ? (seasonsList.find(s => s.season_number === activeSeason) || seasonsList[0]) : null;
   const activeOverview = (isEpisodic && (currentSeasonData?.overview || currentSeason?.overview)) ? (currentSeasonData?.overview || currentSeason?.overview) : (detail?.overview || 'No synopsis available for this title.');
   const activePoster = (isEpisodic && currentSeasonData?.poster_path)
     ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
     : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : detail?.poster_path);
   const activeSeasonName = isEpisodic ? (currentSeason?.name || `Season ${activeSeason}`) : '';
 
-  const seasonsList = isEpisodic
-    ? ((detail?.seasons && detail.seasons.length > 0)
-        ? detail.seasons
-        : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail?.episodes_count || 12 }])
-    : [];
-
-
   const relatedEntries = (() => {
     if (!detail) return [];
     const list = [];
     
-    // 1. All seasons from detail.seasons (only for TV & Anime)
-    if (isEpisodic && detail.seasons && detail.seasons.length > 0) {
-      detail.seasons.forEach((s) => {
+    // 1. All seasons from seasonsList (only for TV & Anime)
+    if (isEpisodic && seasonsList.length > 0) {
+      seasonsList.forEach((s) => {
         let badge = `SEASON ${s.season_number}`;
         if (s.season_number === 0) badge = 'SPECIAL';
         else if (s.name && s.name.toLowerCase().includes('ova')) badge = 'OVA';
@@ -357,6 +428,11 @@ export default function MediaDetail() {
               <span>•</span>
               <span className="capitalize">{type}</span>
               {detail.release_date && <span>• {detail.release_date}</span>}
+              {durationLabel && (
+                <span className="flex items-center gap-1 text-accentCyan font-bold">
+                  • <Clock className="w-3 h-3 text-accentCyan" /> {durationLabel}
+                </span>
+              )}
               {detail.vote_average && (
                 <span className="flex items-center gap-1 text-yellow-400">
                   • <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
@@ -432,6 +508,17 @@ export default function MediaDetail() {
                 <span>• Season Air: {currentSeason.air_date}</span>
               ) : (
                 detail.release_date && <span>• {detail.release_date}</span>
+              )}
+              {durationLabel && (
+                <span className="flex items-center gap-1 text-accentCyan font-bold">
+                  • <Clock className="w-3.5 h-3.5 text-accentCyan" /> {durationLabel}
+                </span>
+              )}
+              {isEpisodic && (seasonsList.length > 1 || detail.number_of_seasons > 1) && (
+                <span>• {seasonsList.length || detail.number_of_seasons} Seasons</span>
+              )}
+              {detail.episodes_count && (
+                <span>• {detail.episodes_count} Eps</span>
               )}
               {detail.vote_average && (
                 <span className="flex items-center gap-1 text-yellow-400">

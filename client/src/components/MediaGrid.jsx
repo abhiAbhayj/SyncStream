@@ -44,6 +44,22 @@ const TYPE_CONFIG = {
   }
 };
 
+const formatDuration = (mins, mediaType, episodesCount) => {
+  const m = parseInt(mins, 10);
+  if (!isNaN(m) && m > 0) {
+    if (mediaType === 'movie') {
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return h > 0 ? (rem > 0 ? `${h}h ${rem}m` : `${h}h`) : `${m}m`;
+    }
+    return `${m}m/ep`;
+  }
+  if (episodesCount && (mediaType === 'tv' || mediaType === 'anime')) {
+    return `${episodesCount} eps`;
+  }
+  return null;
+};
+
 export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
   const { playTrack, currentTrack, isPlaying, togglePlay, openAddToPlaylist } = useMusic();
   if (!items || items.length === 0) {
@@ -191,6 +207,10 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
           const isSeasonBadge = Boolean(item.format && item.format.toLowerCase().startsWith('season'));
           const isOvaOna = Boolean(item.format && ['ova', 'ona', 'special'].includes(item.format.toLowerCase()));
           const isMovieBadge = Boolean(item.format && item.format.toLowerCase() === 'movie');
+          const durationText = formatDuration(item.runtime || item.duration, item.media_type, item.episodes);
+          const moviePillDuration = (item.runtime || item.duration) && (item.media_type === 'movie' || isMovieBadge)
+            ? formatDuration(item.runtime || item.duration, 'movie')
+            : null;
 
           return (
             <Link
@@ -253,12 +273,16 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                   {formatLabel}
                 </div>
 
-                {/* Episode count pill */}
-                {item.episodes && (
+                {/* Duration / Episode count pill */}
+                {item.episodes ? (
                   <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md">
                     {item.episodes} {item.episodes === 1 ? 'EP' : 'EPS'}
                   </div>
-                )}
+                ) : moviePillDuration ? (
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md">
+                    {moviePillDuration}
+                  </div>
+                ) : null}
               </div>
 
               {/* ── Info ── */}
@@ -269,11 +293,17 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                   {item.title || item.name}
                 </h3>
 
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   {(item.release_date || item.first_air_date) && (
-                    <span className="text-[11px] text-gray-600 font-medium">
+                    <span className="text-[11px] text-gray-500 font-medium">
                       {(item.release_date || item.first_air_date).substring(0, 4)}
                     </span>
+                  )}
+                  {durationText && (
+                    <div className="flex items-center gap-1 text-[11px] text-accentCyan font-semibold">
+                      <Clock className="w-3 h-3 text-accentCyan" />
+                      <span>{durationText}</span>
+                    </div>
                   )}
                   {showTimings && (item.broadcast || item.broadcast_day) && (
                     <div className="flex items-center gap-1 text-[11px] text-accentCyan font-semibold">
