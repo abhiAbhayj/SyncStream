@@ -338,10 +338,12 @@ export default function Search() {
       <div>
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-accentCyan bg-darkCard/95 text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+          className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
         >
-          <ArrowLeft className="w-4 h-4 stroke-[3] text-accentCyan group-hover:text-black transition-colors" />
-          <span>Back</span>
+          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
+            <ArrowLeft className="w-4 h-4 stroke-[3]" />
+          </span>
+          <span className="font-extrabold tracking-wider">Back</span>
         </button>
       </div>
 
@@ -402,7 +404,7 @@ export default function Search() {
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-200 active:scale-95 shrink-0 border-2 cursor-pointer shadow-md ${
                     isSelected
                       ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_16px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan'
-                      : 'text-slate-200 border-white/20 bg-darkSurf/80 hover:text-white hover:border-accentCyan/60 hover:bg-darkSurf'
+                      : 'text-white border-2 border-accentCyan/50 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />

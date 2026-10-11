@@ -253,10 +253,12 @@ export default function MediaDetail() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-accentCyan bg-darkCard/95 text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+          className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
         >
-          <ArrowLeft className="w-4 h-4 stroke-[3] text-accentCyan group-hover:text-black transition-colors" />
-          <span>Back</span>
+          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
+            <ArrowLeft className="w-4 h-4 stroke-[3]" />
+          </span>
+          <span className="font-extrabold tracking-wider">Back</span>
         </button>
       </div>
       
@@ -371,13 +373,13 @@ export default function MediaDetail() {
             </h2>
 
             {/* Tab selection */}
-            <div className="flex items-center gap-2 border-2 border-white/20 p-1.5 rounded-2xl bg-darkCard/90 shadow-md">
+            <div className="flex items-center gap-2 border-2 border-accentCyan/50 p-1.5 rounded-2xl bg-darkCard/95 shadow-md">
               <button
                 onClick={() => setPlaybackMode('solo-embed')}
                 className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
                   playbackMode === 'solo-embed' 
-                    ? 'bg-accentCyan/30 text-white border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan' 
-                    : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
+                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.7)] ring-1 ring-accentCyan' 
+                    : 'text-white border-2 border-accentCyan/40 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-darkCard shadow-sm'
                 }`}
               >
                 🎬 Free Streaming Servers
@@ -387,8 +389,8 @@ export default function MediaDetail() {
                   onClick={() => setPlaybackMode('trailer')}
                   className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
                     playbackMode === 'trailer' 
-                      ? 'bg-red-500/30 text-white border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] ring-1 ring-red-400' 
-                      : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
+                      ? 'bg-red-500 text-white border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.7)] ring-1 ring-red-400' 
+                      : 'text-white border-2 border-red-500/40 bg-[#12182f] hover:text-white hover:border-red-500 hover:bg-darkCard shadow-sm'
                   }`}
                 >
                   ▶ YouTube Trailer
@@ -398,8 +400,8 @@ export default function MediaDetail() {
                 onClick={() => setPlaybackMode('solo-html5')}
                 className={`text-xs sm:text-sm font-black px-4 py-2 rounded-xl transition cursor-pointer border-2 ${
                   playbackMode === 'solo-html5' 
-                    ? 'bg-accentPurple/30 text-white border-accentPurple shadow-[0_0_15px_rgba(var(--accent-purple),0.5)]' 
-                    : 'text-gray-300 border-transparent hover:text-white hover:bg-white/10'
+                    ? 'bg-accentPurple text-white border-accentPurple shadow-[0_0_15px_rgba(var(--accent-purple),0.7)]' 
+                    : 'text-white border-2 border-accentPurple/40 bg-[#12182f] hover:text-white hover:border-accentPurple hover:bg-darkCard shadow-sm'
                 }`}
               >
                 Custom Video/Embed
@@ -409,7 +411,7 @@ export default function MediaDetail() {
 
           {/* Server Mirror Selection Buttons (Only for standard embeds) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-3 border-2 border-accentCyan/50 bg-darkCard/90 p-4 sm:p-5 rounded-2xl shadow-xl">
+            <div className="space-y-3 border-2 border-accentCyan bg-darkCard/95 p-4 sm:p-5 rounded-2xl shadow-xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-accentCyan" />
@@ -428,16 +430,16 @@ export default function MediaDetail() {
                     onClick={() => setEmbedServer(server.key)}
                     className={`group relative px-4 py-3 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 border-2 flex flex-col items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-lg text-center ${
                       embedServer === server.key
-                        ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] ring-2 ring-accentCyan'
-                        : 'border-white/20 bg-darkSurf/80 text-gray-200 hover:text-white hover:border-accentCyan hover:bg-darkCard'
+                        ? 'border-2 border-accentCyan bg-gradient-to-r from-accentCyan/40 to-accentPurple/30 text-white shadow-[0_0_25px_rgba(var(--accent-cyan),0.7)] ring-2 ring-accentCyan'
+                        : 'border-2 border-accentCyan/50 bg-[#12182f] text-white hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
                     }`}
                   >
                     <span className="text-white font-black text-xs sm:text-sm">{server.label}</span>
                     {server.badge && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-md border font-black ${
                         embedServer === server.key
-                          ? 'border-accentCyan/60 bg-accentCyan/40 text-white'
-                          : server.tagColor || 'text-accentCyan bg-white/10 border-white/20'
+                          ? 'border-accentCyan bg-accentCyan text-black shadow-sm'
+                          : 'border-accentCyan/50 bg-accentCyan/20 text-accentCyan'
                       }`}>
                         {server.badge}
                       </span>
@@ -534,6 +536,145 @@ export default function MediaDetail() {
               />
             )}
           </div>
+
+          {/* Season Selector & Episodes Directory for Series & Anime directly below player */}
+          {(type === 'anime' || type === 'tv' || detail.number_of_seasons > 0 || (detail.seasons && detail.seasons.length > 0)) && (
+            <div className="border-2 border-accentCyan bg-darkCard/95 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-[0_0_25px_rgba(var(--accent-cyan),0.35)] space-y-4 sm:space-y-5 mt-6">
+              
+              {/* Header with Season Dropdown */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="p-2.5 rounded-xl bg-accentCyan text-black font-black shadow-md flex items-center justify-center shrink-0">
+                    <Tv className="w-5 h-5 stroke-[2.5]" />
+                  </span>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider font-outfit drop-shadow-md">
+                      {type === 'anime' ? 'Anime Episodes Directory' : 'TV Series Seasons & Episodes'}
+                    </h3>
+                    <p className="text-xs text-slate-300 font-semibold">
+                      Click any episode to instantly stream on {STREAMING_SERVERS.find(s => s.key === embedServer)?.label || 'Server'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Season Dropdown */}
+                {(() => {
+                  const availableSeasons = (detail.seasons && detail.seasons.length > 0)
+                    ? detail.seasons.filter(s => s.season_number > 0 || detail.seasons.length === 1)
+                    : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
+
+                  const seasonsList = availableSeasons.length > 0
+                    ? availableSeasons
+                    : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
+
+                  return (
+                    <div className="flex items-center gap-2.5 bg-[#0d1226] p-2 px-3.5 rounded-xl border-2 border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]">
+                      <span className="text-xs font-black text-accentCyan uppercase tracking-wider">
+                        Season:
+                      </span>
+                      <select
+                        value={activeSeason || 1}
+                        onChange={(e) => {
+                          setActiveSeason(parseInt(e.target.value, 10));
+                          setActiveEpisode(1);
+                        }}
+                        className="px-3.5 py-2 bg-[#151c38] border-2 border-accentCyan text-white font-black text-xs sm:text-sm rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-accentCyan shadow-inner"
+                      >
+                        {seasonsList.map((s) => (
+                          <option key={s.id || s.season_number} value={s.season_number} className="bg-[#111827] text-white font-bold">
+                            {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} Episodes)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Quick Season Selection Buttons (when multiple seasons available) */}
+              {(() => {
+                const availableSeasons = (detail.seasons && detail.seasons.length > 0)
+                  ? detail.seasons.filter(s => s.season_number > 0 || detail.seasons.length === 1)
+                  : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
+
+                if (availableSeasons.length <= 1) return null;
+
+                return (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-accentCyan shrink-0">
+                      Season Pills:
+                    </span>
+                    {availableSeasons.map((s) => {
+                      const isCurrentSeason = (activeSeason || 1) === s.season_number;
+                      return (
+                        <button
+                          key={s.id || s.season_number}
+                          onClick={() => {
+                            setActiveSeason(s.season_number);
+                            setActiveEpisode(1);
+                          }}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 border-2 shrink-0 cursor-pointer shadow-md active:scale-95 ${
+                            isCurrentSeason
+                              ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan'
+                              : 'border-2 border-accentCyan/50 bg-[#151c38] text-white hover:border-accentCyan hover:bg-accentCyan/20'
+                          }`}
+                        >
+                          {s.name || `Season ${s.season_number}`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+
+              {/* Episode Buttons Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3 max-h-[440px] overflow-y-auto pr-1 text-left">
+                {(() => {
+                  const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
+                  const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
+                  const epCount = (typeof rawCount === 'number' && rawCount > 0) ? rawCount : 12;
+
+                  return Array.from({ length: epCount }, (_, i) => {
+                    const epNum = i + 1;
+                    const isSelected = activeEpisode === epNum;
+                    const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
+                    const epTitle = epDetail?.name || `Episode ${epNum}`;
+
+                    return (
+                      <button
+                        key={epNum}
+                        onClick={() => {
+                          setActiveEpisode(epNum);
+                          setPlaybackMode('solo-embed');
+                        }}
+                        className={`p-3 rounded-xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-md ${
+                          isSelected
+                            ? 'border-2 border-accentCyan bg-gradient-to-r from-accentCyan/40 to-accentPurple/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.7)] ring-2 ring-accentCyan'
+                            : 'border-2 border-accentCyan/50 bg-[#12182f] text-white shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)] hover:border-accentCyan hover:bg-accentCyan/20 hover:shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className={`text-[11px] uppercase font-black px-2 py-0.5 rounded-md font-mono ${
+                            isSelected 
+                              ? 'bg-accentCyan text-black font-black shadow-sm' 
+                              : 'bg-accentCyan/25 text-accentCyan border border-accentCyan/50 font-black'
+                          }`}>
+                            EP {epNum}
+                          </span>
+                          {isSelected && (
+                            <span className="w-2.5 h-2.5 rounded-full bg-accentCyan animate-ping" />
+                          )}
+                        </div>
+                        <span className="text-xs font-bold truncate w-full text-white drop-shadow-sm" title={epTitle}>
+                          {epTitle}
+                        </span>
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -591,7 +732,7 @@ export default function MediaDetail() {
                       setActiveChapterId(ch.id);
                       setActiveChapterTitle(`Chapter ${ch.chapter}: ${ch.title}`);
                     }}
-                    className="bg-darkSurf/80 border-2 border-white/20 hover:border-accentCyan hover:bg-darkCard text-left p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
+                    className="bg-[#12182f] border-2 border-accentCyan/50 hover:border-accentCyan hover:bg-accentCyan/20 text-left p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-black text-accentCyan">Chapter {ch.chapter}</p>
@@ -605,93 +746,6 @@ export default function MediaDetail() {
               )}
             </div>
           )}
-        </section>
-      )}
-
-      {/* Episodes List (Anime and TV content) */}
-      {(type === 'anime' || type === 'tv') && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b-2 border-white/20 pb-3">
-            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 font-outfit drop-shadow-md">
-              <Tv className="w-6 h-6 text-accentCyan" />
-              {type === 'anime' ? 'Anime Episodes Directory' : 'TV Shows Episodes Directory'}
-            </h2>
-
-            {/* Season Selector for TV Shows & Anime */}
-            {(() => {
-              const availableSeasons = (detail.seasons && detail.seasons.length > 0)
-                ? detail.seasons.filter(s => s.season_number > 0 || detail.seasons.length === 1)
-                : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
-
-              const seasonsList = availableSeasons.length > 0
-                ? availableSeasons
-                : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail.episodes_count || 12 }];
-
-              return (
-                <div className="flex items-center gap-2 bg-darkCard/90 p-2 px-3.5 rounded-2xl border-2 border-accentCyan shadow-lg">
-                  <span className="text-xs font-black text-accentCyan uppercase tracking-wider">Season:</span>
-                  <select
-                    value={activeSeason || 1}
-                    onChange={(e) => {
-                      setActiveSeason(parseInt(e.target.value, 10));
-                      setActiveEpisode(1);
-                    }}
-                    className="px-4 py-2 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-xs sm:text-sm font-black text-white focus:outline-none focus:border-accentCyan transition cursor-pointer shadow-inner"
-                  >
-                    {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg text-white">
-                        {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              );
-            })()}
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[420px] overflow-y-auto pr-2 text-left">
-            {(() => {
-                const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
-                const rawCount = currentSeasonInfo ? currentSeasonInfo.episode_count : detail.episodes_count;
-                const epCount = (typeof rawCount === 'number' && rawCount > 0) ? rawCount : 12;
-                
-                return Array.from({ length: epCount }, (_, i) => {
-                  const epNum = i + 1;
-                  const isSelected = activeEpisode === epNum;
-                  const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
-                  const epTitle = epDetail?.name || `Episode ${epNum}`;
-                  
-                  return (
-                    <button
-                      key={epNum}
-                      onClick={() => {
-                        setActiveEpisode(epNum);
-                        setPlaybackMode('solo-embed');
-                      }}
-                      className={`p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col gap-1.5 group active:scale-95 cursor-pointer shadow-lg ${
-                        isSelected
-                          ? 'border-accentCyan bg-accentCyan/30 text-white shadow-[0_0_20px_rgba(var(--accent-cyan),0.6)] ring-2 ring-accentCyan'
-                          : 'border-white/20 bg-darkSurf/80 text-slate-100 hover:text-white hover:border-accentCyan hover:bg-darkCard hover:shadow-[0_0_15px_rgba(var(--accent-cyan),0.3)]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className={`text-[11px] uppercase font-black px-2 py-0.5 rounded-md ${
-                          isSelected ? 'bg-accentCyan text-black font-black' : 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 group-hover:bg-accentCyan group-hover:text-black transition'
-                        }`}>
-                          EP {epNum}
-                        </span>
-                        {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-accentCyan animate-ping" />
-                        )}
-                      </div>
-                      <span className="text-xs font-bold truncate w-full text-white drop-shadow-sm" title={epTitle}>
-                        {epTitle}
-                      </span>
-                    </button>
-                  );
-                });
-            })()}
-          </div>
         </section>
       )}
 
