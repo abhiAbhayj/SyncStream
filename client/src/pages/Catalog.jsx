@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate, useNavigationType } from 'react-router-dom';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { ArrowLeft, Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
+import { Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
 
 const CACHE_TTL = 10 * 60 * 1000; // 10 min — discard stale session cache
 
@@ -154,18 +154,9 @@ export default function Catalog() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
       
-      {/* Header with Back button */}
+      {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-darkBorder pb-5 sm:pb-6">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <button
-            onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-          >
-            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-              <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-            </span>
-            <span className="font-extrabold tracking-wider">Back</span>
-          </button>
+        <div className="flex items-center gap-3 min-w-0">
           <div className="space-y-0.5 sm:space-y-1 min-w-0">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
               <IconComponent className="w-3.5 h-3.5 text-accentCyan shrink-0" />

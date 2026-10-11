@@ -8,7 +8,7 @@ import MangaReader from '../components/MangaReader';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ArrowLeft, ShieldCheck, Sparkles, Layers } from 'lucide-react';
+import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers } from 'lucide-react';
 
 export default function MediaDetail() {
   const { type, id } = useParams();
@@ -274,13 +274,6 @@ export default function MediaDetail() {
         : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail?.episodes_count || 12 }])
     : [];
 
-  const handleBack = () => {
-    if (window.history.state && window.history.state.idx > 0) {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
-  };
 
   const relatedEntries = (() => {
     if (!detail) return [];
@@ -354,18 +347,7 @@ export default function MediaDetail() {
       
       {/* Top Controls Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          <button
-            onClick={handleBack}
-            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-            title="Go Back"
-          >
-            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-              <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-            </span>
-            <span className="font-extrabold tracking-wider">Back</span>
-          </button>
-          
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
             <h1 className="font-extrabold text-base sm:text-lg md:text-xl text-white font-outfit truncate">
               Watch: {detail.title}

@@ -18,8 +18,7 @@ import {
   Plus,
   Trash2,
   Edit3,
-  RotateCcw,
-  ArrowLeft
+  RotateCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -562,19 +561,6 @@ export default function Profile() {
 
   return (
     <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-6 md:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-28 sm:pb-12">
-      {/* Back Button */}
-      <div>
-        <button
-          onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-        >
-          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-          </span>
-          <span className="font-extrabold tracking-wider">Back</span>
-        </button>
-      </div>
-
       {/* Title */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
