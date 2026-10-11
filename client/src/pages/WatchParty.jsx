@@ -8,7 +8,7 @@ import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles } from 'lucide-react';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star } from 'lucide-react';
 
 export default function WatchParty() {
   const { code } = useParams();
@@ -46,6 +46,7 @@ export default function WatchParty() {
 
   // TV episodes metadata list (for titles)
   const [seasonEpisodes, setSeasonEpisodes] = useState([]);
+  const [currentSeasonData, setCurrentSeasonData] = useState(null);
 
   // Incoming sync state from host socket
   const [inboundSyncEvent, setInboundSyncEvent] = useState(null);
@@ -73,8 +74,8 @@ export default function WatchParty() {
           setPlaybackMode('solo-embed');
         }
 
-        // TV series seasons initialization
-        if (roomData.media_type === 'tv' && detailData.seasons && detailData.seasons.length > 0) {
+        // TV / Anime series seasons initialization
+        if ((roomData.media_type === 'tv' || roomData.media_type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
           const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
           setActiveSeason(firstSeason.season_number);
         }
@@ -101,12 +102,13 @@ export default function WatchParty() {
     }
   }, [code]);
 
-  // 1.5 Fetch Season Episodes for TV
+  // 1.5 Fetch Season Episodes for TV & Anime
   useEffect(() => {
     if ((room?.media_type === 'tv' || room?.media_type === 'anime') && activeSeason !== null) {
       const fetchSeason = async () => {
         try {
           const res = await axios.get(`/api/media/tv/${room.external_media_id}/season/${activeSeason}`);
+          setCurrentSeasonData(res.data);
           setSeasonEpisodes(res.data.episodes || []);
         } catch (err) {
           console.error('Failed to load season details:', err);
@@ -269,6 +271,65 @@ export default function WatchParty() {
 
 
 
+  const currentSeason = mediaDetail?.seasons?.find(s => s.season_number === activeSeason) || mediaDetail?.seasons?.[0];
+  const activeOverview = currentSeasonData?.overview || currentSeason?.overview || mediaDetail?.overview || 'No synopsis available for this title.';
+  const activePoster = currentSeasonData?.poster_path
+    ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
+    : (currentSeason?.poster_path || mediaDetail?.poster_path);
+  const activeSeasonName = currentSeason?.name || `Season ${activeSeason}`;
+
+  const seasonsList = (mediaDetail?.seasons && mediaDetail.seasons.length > 0)
+    ? mediaDetail.seasons
+    : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: mediaDetail?.episodes_count || 12 }];
+
+  const relatedEntries = (() => {
+    if (!mediaDetail) return [];
+    const list = [];
+    
+    // 1. All seasons from mediaDetail.seasons
+    if (mediaDetail.seasons && mediaDetail.seasons.length > 0) {
+      mediaDetail.seasons.forEach((s) => {
+        let badge = `SEASON ${s.season_number}`;
+        if (s.season_number === 0) badge = 'SPECIAL';
+        else if (s.name && s.name.toLowerCase().includes('ova')) badge = 'OVA';
+        else if (s.name && s.name.toLowerCase().includes('special')) badge = 'SPECIAL';
+        else if (s.name && s.name.toLowerCase() !== `season ${s.season_number}` && s.name.length <= 12) badge = s.name.toUpperCase();
+
+        list.push({
+          id: `season_${s.season_number}`,
+          season_number: s.season_number,
+          title: s.name || `${mediaDetail.title} Season ${s.season_number}`,
+          badge,
+          badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+          type: 'tv',
+          release_date: s.air_date ? s.air_date.split('-')[0] : (mediaDetail.release_date?.split('-')[0] || ''),
+          poster_path: s.poster_path || mediaDetail.poster_path,
+          isSeason: true,
+          isActive: (activeSeason || 1) === s.season_number
+        });
+      });
+    }
+
+    // 2. Any related franchise movies/series from mediaDetail.related_franchise
+    if (mediaDetail.related_franchise && mediaDetail.related_franchise.length > 0) {
+      mediaDetail.related_franchise.forEach((rf) => {
+        list.push({
+          id: rf.id,
+          title: rf.title,
+          badge: rf.badge || (rf.type === 'movie' ? 'MOVIE' : 'TV'),
+          badgeColor: rf.type === 'movie' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40',
+          type: rf.type,
+          release_date: rf.release_date ? rf.release_date.split('-')[0] : '',
+          poster_path: rf.poster_path || mediaDetail.poster_path,
+          isSeason: false,
+          isActive: false
+        });
+      });
+    }
+
+    return list;
+  })();
+
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 md:px-8 space-y-6 relative">
       
@@ -326,7 +387,7 @@ export default function WatchParty() {
           {/* Share Room Code Button */}
           <button
             onClick={handleCopyCode}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
               copied
                 ? 'border-green-500/30 text-green-400 bg-green-500/10'
                 : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5'
@@ -335,6 +396,80 @@ export default function WatchParty() {
             <Copy className="w-3.5 h-3.5" />
             {copied ? 'Code Copied!' : `Share Code: ${code}`}
           </button>
+        </div>
+      </div>
+
+      {/* ── Media Details Overview Card AT THE TOP (Requested by User) ── */}
+      <div className="glass-panel border border-darkBorder p-5 sm:p-6 rounded-2xl shadow-xl flex flex-col md:flex-row gap-5 md:gap-6 items-start">
+        <div className="w-[120px] sm:w-[150px] md:w-[180px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto md:mx-0">
+          {activePoster ? (
+            <img 
+              src={activePoster} 
+              alt={mediaDetail.title}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-tr from-gray-800 to-gray-900">
+              <span className="font-bold text-sm mb-1 text-white">{mediaDetail.title}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider">No Poster</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-grow space-y-3 text-left w-full">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-white font-outfit">
+                {mediaDetail.title}
+              </h2>
+              {(room.media_type === 'tv' || room.media_type === 'anime') && activeSeason && (
+                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
+                  {activeSeasonName}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 font-semibold">
+              <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider">
+                {room.media_type}
+              </span>
+              {currentSeason?.air_date ? (
+                <span>• Season Air: {currentSeason.air_date}</span>
+              ) : (
+                mediaDetail.release_date && <span>• {mediaDetail.release_date}</span>
+              )}
+              {mediaDetail.vote_average && (
+                <span className="flex items-center gap-1 text-yellow-400">
+                  • <Star className="w-3.5 h-3.5 fill-current" /> {parseFloat(mediaDetail.vote_average).toFixed(1)}
+                </span>
+              )}
+            </div>
+
+            {/* Genres */}
+            {mediaDetail.genres && mediaDetail.genres.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                {mediaDetail.genres.map((g, idx) => (
+                  <span
+                    key={g.id || `${g.name}-${idx}`}
+                    className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-white/5 text-gray-300 border border-white/10"
+                  >
+                    {g.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Synopsis (Displays the active season's synopsis!) */}
+          <div className="space-y-1">
+            <h3 className="font-bold text-gray-200 text-xs uppercase tracking-wider">
+              {activeSeasonName ? `${activeSeasonName} Synopsis` : 'Synopsis'}
+            </h3>
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed max-w-4xl font-normal">
+              {activeOverview}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -352,7 +487,7 @@ export default function WatchParty() {
                   disabled={!isHost}
                   onClick={() => handlePlaybackModeChange('trailer')}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                    playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                    playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   YouTube Trailer
@@ -362,7 +497,7 @@ export default function WatchParty() {
                 disabled={!isHost}
                 onClick={() => handlePlaybackModeChange('solo-embed')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                  playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 Standard Embed
@@ -371,7 +506,7 @@ export default function WatchParty() {
                 disabled={!isHost}
                 onClick={() => handlePlaybackModeChange('solo-html5')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                  playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan' : 'text-gray-400 hover:text-white'
+                  playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 Custom Video/Embed
@@ -508,95 +643,128 @@ export default function WatchParty() {
                   Episodes Directory
                 </h4>
 
-                {/* Season selector (TV shows only) */}
-                {room.media_type === 'tv' && mediaDetail.seasons && mediaDetail.seasons.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
-                    <select
-                      disabled={!isHost}
-                      value={activeSeason}
-                      onChange={(e) => handleSeasonChange(parseInt(e.target.value, 10))}
-                      className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer disabled:opacity-75"
-                    >
-                      {mediaDetail.seasons.map((s) => (
-                        <option key={s.id} value={s.season_number} className="bg-darkBg font-medium">
-                          {s.name} ({s.episode_count} eps)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                {/* Season selector (TV shows & Anime - ALWAYS VISIBLE!) */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
+                  <select
+                    disabled={!isHost}
+                    value={activeSeason || 1}
+                    onChange={(e) => handleSeasonChange(parseInt(e.target.value, 10))}
+                    className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer disabled:opacity-75"
+                    title={!isHost ? "Host controls active season" : "Select season"}
+                  >
+                    {seasonsList.map((s) => (
+                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg font-medium">
+                        {s.name || `Season ${s.season_number}`} ({s.episode_count || 12} eps)
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[200px] overflow-y-auto pr-2">
+              {/* Vertical Scrollbar Episodes Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-accentCyan/50 scrollbar-track-black/40">
                 {(() => {
-                  if (room.media_type === 'anime') {
-                    const totalCount = mediaDetail.episodes_count || 12;
-                    const generatedEpisodes = Array.from({ length: totalCount }, (_, i) => {
-                      const epNum = i + 1;
-                      const matchedEp = episodes.find(e => parseInt(e.episode, 10) === epNum);
-                      return {
-                        id: epNum,
-                        episode: epNum.toString(),
-                        title: matchedEp?.title || `Episode ${epNum}`
-                      };
-                    });
+                  const currentSeasonInfo = mediaDetail.seasons?.find(s => s.season_number === activeSeason);
+                  const epCount = seasonEpisodes.length > 0
+                    ? seasonEpisodes.length
+                    : (currentSeasonInfo ? currentSeasonInfo.episode_count : (mediaDetail.episodes_count || 12));
 
-                    return generatedEpisodes.map((ep) => {
-                      const epNum = ep.id;
-                      const isSelected = activeEpisode === epNum;
-                      return (
-                        <button
-                          key={ep.id}
-                          disabled={!isHost}
-                          onClick={() => handleEpisodeChange(epNum)}
-                          className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group ${
-                            isSelected
-                              ? 'border-accentCyan bg-accentCyan/15 text-accentCyan'
-                              : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white disabled:opacity-50'
-                          }`}
-                        >
-                          <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
-                            Episode {ep.episode}
-                          </span>
-                          <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white">
-                            {ep.title}
-                          </span>
-                        </button>
-                      );
-                    });
-                  } else {
-                    const currentSeasonInfo = mediaDetail.seasons?.find(s => s.season_number === activeSeason);
-                    const epCount = currentSeasonInfo ? currentSeasonInfo.episode_count : 1;
-                    
-                    return Array.from({ length: epCount }, (_, i) => {
-                      const epNum = i + 1;
-                      const isSelected = activeEpisode === epNum;
-                      const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
-                      const epTitle = epDetail?.name || `Play Episode`;
+                  return Array.from({ length: Math.max(epCount, 1) }, (_, i) => {
+                    const epNum = i + 1;
+                    const isSelected = activeEpisode === epNum;
+                    const epDetail = seasonEpisodes.find(e => e.episode_number === epNum);
+                    const matchedAnimeEp = episodes.find(e => parseInt(e.episode || e.number, 10) === epNum);
+                    const epTitle = epDetail?.name || matchedAnimeEp?.title || `Episode ${epNum}`;
 
-                      return (
-                        <button
-                          key={epNum}
-                          disabled={!isHost}
-                          onClick={() => handleEpisodeChange(epNum)}
-                          className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group ${
-                            isSelected
-                              ? 'border-accentCyan bg-accentCyan/15 text-accentCyan'
-                              : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white disabled:opacity-50'
-                          }`}
-                        >
-                          <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
-                            Episode {epNum}
-                          </span>
-                          <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
-                            {epTitle}
-                          </span>
-                        </button>
-                      );
-                    });
-                  }
+                    return (
+                      <button
+                        key={epNum}
+                        disabled={!isHost}
+                        onClick={() => handleEpisodeChange(epNum)}
+                        className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group ${
+                          isSelected
+                            ? 'border-accentCyan bg-accentCyan/15 text-accentCyan'
+                            : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white disabled:opacity-50'
+                        }`}
+                      >
+                        <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
+                          Episode {epNum}
+                        </span>
+                        <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                          {epTitle}
+                        </span>
+                      </button>
+                    );
+                  });
                 })()}
+              </div>
+            </div>
+          )}
+
+          {/* ── RELATED SEASONS & SERIES in WatchParty ── */}
+          {(room.media_type === 'tv' || room.media_type === 'anime') && relatedEntries.length > 0 && (
+            <div className="glass-panel border border-darkBorder p-4 sm:p-5 rounded-2xl shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-darkBorder/60 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-[#10b981]/20 text-[#10b981] flex items-center justify-center">
+                    <Layers className="w-4 h-4 stroke-[2.5]" />
+                  </span>
+                  <h3 className="font-black text-sm uppercase tracking-wider text-white font-outfit">
+                    Related Seasons & Series
+                  </h3>
+                </div>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider font-mono">
+                  {relatedEntries.length} Entries
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {relatedEntries.map((item) => (
+                  <button
+                    key={item.id}
+                    disabled={!isHost && item.isSeason}
+                    onClick={() => {
+                      if (item.isSeason) {
+                        handleSeasonChange(item.season_number);
+                      }
+                    }}
+                    className={`relative overflow-hidden rounded-xl p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[90px] ${
+                      isHost ? 'cursor-pointer active:scale-95' : 'cursor-default'
+                    } ${
+                      item.isActive
+                        ? 'border-2 border-[#10b981] bg-[#10b981]/15 text-white shadow-[0_0_20px_rgba(16,185,129,0.45)] ring-1 ring-[#10b981]'
+                        : 'border border-darkBorder bg-darkCard/70 hover:border-white/30 hover:bg-darkCard text-gray-300'
+                    }`}
+                  >
+                    {item.poster_path && (
+                      <div 
+                        className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 pointer-events-none transition-opacity"
+                        style={{ backgroundImage: `url(${item.poster_path})` }}
+                      />
+                    )}
+                    
+                    <div className="relative z-10 space-y-1">
+                      <span className={`inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded-md border tracking-wider ${
+                        item.isActive
+                          ? 'bg-[#10b981] text-black border-[#10b981]'
+                          : item.badgeColor
+                      }`}>
+                        {item.badge}
+                      </span>
+                      <h4 className="text-xs font-bold line-clamp-2 text-white group-hover:text-accentCyan transition">
+                        {item.title}
+                      </h4>
+                    </div>
+
+                    <div className="relative z-10 pt-2 flex items-center justify-between text-[10px] text-gray-400 font-semibold uppercase">
+                      <span>{item.type} {item.release_date ? `• ${item.release_date}` : ''}</span>
+                      {item.isActive && (
+                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+                      )}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           )}
