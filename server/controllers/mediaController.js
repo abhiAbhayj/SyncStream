@@ -100,6 +100,16 @@ const getTmdbIdForAnime = async (title, titleEnglish, releaseDate) => {
   if (titleEnglish) queries.push(titleEnglish);
   if (title && title !== titleEnglish) queries.push(title);
   
+  // Also add clean base title (without "Season 2", "2nd Season", "Part 2", etc.)
+  [titleEnglish, title].forEach(t => {
+    if (t) {
+      const base = t.replace(/season\s*\d+|\d+(?:nd|rd|th)?\s*season|part\s*\d+|cour\s*\d+/gi, '').trim();
+      if (base && base.length >= 3 && !queries.includes(base)) {
+        queries.push(base);
+      }
+    }
+  });
+
   // Extract year from releaseDate
   let year = null;
   if (releaseDate) {
@@ -147,6 +157,386 @@ const getTmdbIdForAnime = async (title, titleEnglish, releaseDate) => {
   }
   return null;
 };
+
+// AniList Cache Maps
+const anilistSearchCache = new Map();
+const anilistDetailCache = new Map();
+
+// Search AniList for all anime entries, sequels, prequels, movies, OVAs, ONAs
+export const searchAniListAnime = async (query, page = 1) => {
+  const cacheKey = `${query.toLowerCase().trim()}_p${page}`;
+  if (anilistSearchCache.has(cacheKey)) {
+    const cached = anilistSearchCache.get(cacheKey);
+    if (Date.now() - cached.timestamp < 10 * 60 * 1000) {
+      return cached.data;
+    }
+  }
+
+  const gqlQuery = `
+    query ($search: String, $page: Int) {
+      Page(page: $page, perPage: 25) {
+        media(search: $search, type: ANIME, sort: [SEARCH_MATCH, POPULARITY_DESC]) {
+          id
+          title { english romaji native }
+          format
+          episodes
+          duration
+          status
+          season
+          seasonYear
+          averageScore
+          description(asHtml: false)
+          coverImage { large extraLarge }
+          bannerImage
+          genres
+          relations {
+            edges {
+              relationType
+              node {
+                id
+                title { english romaji native }
+                format
+                episodes
+                coverImage { large extraLarge }
+                seasonYear
+                averageScore
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await axios.post('https://graphql.anilist.co', {
+      query: gqlQuery,
+      variables: { search: query.trim(), page }
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 6000
+    });
+
+    const rawList = res.data?.data?.Page?.media || [];
+    const results = [];
+    const seenIds = new Set();
+
+    const addAnimeItem = (m) => {
+      if (!m || seenIds.has(m.id)) return;
+      seenIds.add(m.id);
+
+      const title = m.title?.english || m.title?.romaji || 'Unknown Anime';
+      const sMatch = title.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+      const seasonNumber = sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : (m.format === 'TV' ? 1 : null);
+
+      let fmt = m.format || 'Anime';
+      if (fmt === 'TV' && seasonNumber && seasonNumber > 1) {
+        fmt = `Season ${seasonNumber}`;
+      } else if (fmt === 'MOVIE') {
+        fmt = 'Movie';
+      }
+
+      results.push({
+        id: `al_${m.id}`,
+        external_media_id: `al_${m.id}`,
+        title,
+        title_romaji: m.title?.romaji,
+        title_english: m.title?.english,
+        overview: m.description ? m.description.replace(/<[^>]*>/g, '') : '',
+        poster_path: m.coverImage?.extraLarge || m.coverImage?.large,
+        backdrop_path: m.bannerImage || m.coverImage?.large,
+        release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '',
+        vote_average: m.averageScore ? (m.averageScore / 10).toFixed(1) : 8.0,
+        media_type: 'anime',
+        format: fmt,
+        episodes: m.episodes || null,
+        season_number: seasonNumber,
+        genre_ids: []
+      });
+    };
+
+    rawList.forEach(m => addAnimeItem(m));
+
+    // Incorporate all related sequels, prequels, movies, OVAs, ONAs from relations
+    rawList.forEach(m => {
+      if (m.relations?.edges?.length) {
+        m.relations.edges.forEach(edge => {
+          const relType = edge.relationType;
+          const node = edge.node;
+          if (['SEQUEL', 'PREQUEL', 'SIDE_STORY', 'SPIN_OFF', 'ALTERNATIVE'].includes(relType) && node.format !== 'MANGA') {
+            addAnimeItem(node);
+          }
+        });
+      }
+    });
+
+    anilistSearchCache.set(cacheKey, { data: results, timestamp: Date.now() });
+    return results;
+  } catch (err) {
+    console.warn('AniList anime search error:', err.message);
+    return [];
+  }
+};
+
+// Fetch rich AniList anime details by ID
+export const getAniListMediaDetail = async (alId) => {
+  const numId = parseInt(alId, 10);
+  if (anilistDetailCache.has(numId)) {
+    const cached = anilistDetailCache.get(numId);
+    if (Date.now() - cached.timestamp < 10 * 60 * 1000) {
+      return cached.data;
+    }
+  }
+
+  const gqlQuery = `
+    query ($id: Int) {
+      Media(id: $id, type: ANIME) {
+        id
+        title { english romaji native }
+        format
+        episodes
+        duration
+        status
+        season
+        seasonYear
+        averageScore
+        description(asHtml: false)
+        coverImage { large extraLarge }
+        bannerImage
+        genres
+        trailer { id site }
+        studios(isMain: true) { nodes { name } }
+        characters(role: MAIN) {
+          edges {
+            role
+            node {
+              name { full }
+            }
+          }
+        }
+        recommendations(sort: RATING_DESC, perPage: 6) {
+          nodes {
+            mediaRecommendation {
+              id
+              title { english romaji }
+              coverImage { large }
+              format
+            }
+          }
+        }
+        relations {
+          edges {
+            relationType
+            node {
+              id
+              title { english romaji native }
+              format
+              episodes
+              coverImage { large extraLarge }
+              seasonYear
+              averageScore
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await axios.post('https://graphql.anilist.co', {
+      query: gqlQuery,
+      variables: { id: numId }
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 6000
+    });
+
+    const m = res.data?.data?.Media;
+    if (!m) return null;
+
+    const titleEnglish = m.title?.english;
+    const titleRomaji = m.title?.romaji;
+    const fullTitle = titleEnglish || titleRomaji || 'Unknown Anime';
+
+    const sMatch = fullTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+    const detectedSeason = sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : 1;
+
+    // Resolve TMDB ID for video streaming
+    const tmdbMapping = await getTmdbIdForAnime(titleRomaji, titleEnglish, m.seasonYear?.toString());
+
+    // Map relations (sequels, prequels, movies, OVAs, ONAs, manga)
+    const relatedFranchise = [];
+    if (m.relations?.edges?.length) {
+      m.relations.edges.forEach(edge => {
+        const node = edge.node;
+        const relTitle = node.title?.english || node.title?.romaji || 'Related Title';
+        const isManga = node.format === 'MANGA';
+        relatedFranchise.push({
+          id: isManga ? node.id.toString() : `al_${node.id}`,
+          title: relTitle,
+          badge: edge.relationType,
+          type: isManga ? 'manga' : 'anime',
+          release_date: node.seasonYear ? node.seasonYear.toString() : '',
+          poster_path: node.coverImage?.extraLarge || node.coverImage?.large,
+          overview: ''
+        });
+      });
+    }
+
+    const epCount = m.episodes || 14;
+    const seasons = [{
+      id: m.id,
+      season_number: detectedSeason,
+      name: fullTitle.includes(`Season ${detectedSeason}`) ? fullTitle : `Season ${detectedSeason}`,
+      episode_count: epCount,
+      poster_path: m.coverImage?.extraLarge || m.coverImage?.large,
+      air_date: m.seasonYear ? `${m.seasonYear}-01-01` : ''
+    }];
+
+    const cast = (m.characters?.edges || []).slice(0, 10).map(c => ({
+      name: c.node?.name?.full || 'Actor',
+      character: c.role || 'Main'
+    }));
+
+    const recommendations = (m.recommendations?.nodes || [])
+      .filter(r => r.mediaRecommendation)
+      .map(r => ({
+        id: `al_${r.mediaRecommendation.id}`,
+        title: r.mediaRecommendation.title?.english || r.mediaRecommendation.title?.romaji || 'Anime',
+        poster_path: r.mediaRecommendation.coverImage?.large,
+        media_type: 'anime'
+      }));
+
+    const details = {
+      id: `al_${m.id}`,
+      external_media_id: `al_${m.id}`,
+      tmdb_id: tmdbMapping?.id || null,
+      title: fullTitle,
+      overview: m.description ? m.description.replace(/<[^>]*>/g, '') : '',
+      poster_path: m.coverImage?.extraLarge || m.coverImage?.large,
+      backdrop_path: m.bannerImage || m.coverImage?.extraLarge || m.coverImage?.large,
+      release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '',
+      vote_average: m.averageScore ? (m.averageScore / 10).toFixed(1) : 8.0,
+      genres: (m.genres || []).map(g => ({ id: g, name: g })),
+      media_type: 'anime',
+      format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
+      episodes_count: epCount,
+      default_season: detectedSeason,
+      seasons,
+      related_franchise: relatedFranchise,
+      youtube_trailer: m.trailer?.site?.toLowerCase() === 'youtube' ? m.trailer.id : null,
+      cast,
+      recommendations,
+      video_url: null,
+      embed_url: tmdbMapping?.id
+        ? (m.format === 'MOVIE'
+            ? `https://vidsrc.to/embed/movie/${tmdbMapping.id}`
+            : `https://vidsrc.to/embed/tv/${tmdbMapping.id}/${detectedSeason}/1`)
+        : null
+    };
+
+    anilistDetailCache.set(numId, { data: details, timestamp: Date.now() });
+    return details;
+  } catch (err) {
+    console.warn('AniList getMediaDetail error:', err.message);
+    return null;
+  }
+};
+
+// Expand TV series results into multi-season entries if number_of_seasons > 1
+const expandTvSeasons = async (tvResults) => {
+  if (!tvResults || tvResults.length === 0) return [];
+  const expanded = [];
+  const topShows = tvResults.slice(0, 6);
+  const remainingShows = tvResults.slice(6);
+
+  const detailPromises = topShows.map(async (r) => {
+    try {
+      const res = await axios.get(`${TMDB_BASE_URL}/tv/${r.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
+      const d = res.data;
+      if (d.seasons && d.seasons.length > 1) {
+        const seasonEntries = [];
+        d.seasons.forEach((s) => {
+          if (s.season_number > 0) {
+            seasonEntries.push({
+              id: `${r.id}_s${s.season_number}`,
+              external_media_id: r.id.toString(),
+              tmdb_id: r.id.toString(),
+              title: s.season_number === 1 ? (r.name || r.title) : `${r.name || r.title} Season ${s.season_number}`,
+              overview: s.overview || r.overview || '',
+              poster_path: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : (r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null),
+              backdrop_path: r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null,
+              release_date: s.air_date || r.first_air_date || '',
+              vote_average: r.vote_average || 0,
+              genre_ids: r.genre_ids || [],
+              media_type: 'tv',
+              format: `Season ${s.season_number}`,
+              episodes: s.episode_count || null,
+              season_number: s.season_number
+            });
+          }
+        });
+        return seasonEntries.length > 0 ? seasonEntries : [r];
+      }
+      return [r];
+    } catch {
+      return [r];
+    }
+  });
+
+  const resolved = await Promise.all(detailPromises);
+  resolved.forEach(items => expanded.push(...items));
+  expanded.push(...remainingShows);
+  return expanded;
+};
+
+// Expand movie results with franchise collection sequels/prequels
+const expandMovieCollections = async (movieResults) => {
+  if (!movieResults || movieResults.length === 0) return [];
+  const expanded = [...movieResults];
+  const seenIds = new Set(movieResults.map(m => m.id.toString()));
+
+  const topMovies = movieResults.slice(0, 5);
+  const colPromises = topMovies.map(async (m) => {
+    try {
+      const res = await axios.get(`${TMDB_BASE_URL}/movie/${m.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
+      const col = res.data?.belongs_to_collection;
+      if (col && col.id) {
+        const colRes = await axios.get(`${TMDB_BASE_URL}/collection/${col.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
+        const parts = colRes.data?.parts || [];
+        return parts.filter(p => !seenIds.has(p.id.toString())).map(p => ({
+          id: p.id.toString(),
+          external_media_id: p.id.toString(),
+          title: p.title || p.name,
+          overview: p.overview || '',
+          poster_path: p.poster_path ? `https://image.tmdb.org/t/p/w500${p.poster_path}` : null,
+          backdrop_path: p.backdrop_path ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}` : null,
+          release_date: p.release_date || '',
+          vote_average: p.vote_average || 0,
+          genre_ids: p.genre_ids || [],
+          media_type: 'movie',
+          format: 'Movie'
+        }));
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  const resolvedParts = await Promise.all(colPromises);
+  resolvedParts.forEach(parts => {
+    parts.forEach(p => {
+      if (!seenIds.has(p.id.toString())) {
+        seenIds.add(p.id.toString());
+        expanded.push(p);
+      }
+    });
+  });
+
+  return expanded;
+};
+
 
 
 let dashboardCache = null;
@@ -594,96 +984,101 @@ export const searchMedia = async (req, res) => {
             }));
           } else {
             // Search Mode (Text query)
-            let url = `${TMDB_BASE_URL}/search/${tmdbType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`;
-            // Year filter for text search
-            if (year && !isNaN(parseInt(year, 10))) {
-              const y = parseInt(year, 10);
-              if (tmdbType === 'movie') {
-                url += `&primary_release_year=${y}`;
-              } else {
-                url += `&first_air_date_year=${y}`;
-              }
-            }
-            const searchRes = await axios.get(url);
-            let combinedResults = searchRes.data.results || [];
-            
-            // Apply filtering for Language, Genre and Country
-            if (selectedIso) {
-              combinedResults = combinedResults.filter(r => r.original_language === selectedIso);
-            }
-
             if (type === 'anime') {
-              // Anime MUST be Japanese Animation — NEVER western TV shows
-              combinedResults = combinedResults.filter(isAnimeItem);
-              if (genre) {
-                const cleanGenreId = genre.startsWith('g_') 
-                  ? parseInt(genre.replace('g_', ''), 10) 
-                  : (genre.startsWith('k_') ? null : parseInt(genre, 10));
-                if (cleanGenreId && !isNaN(cleanGenreId)) {
-                  combinedResults = combinedResults.filter(r => r.genre_ids?.includes(cleanGenreId));
+              // 1. ANIME: Search AniList for all seasons, sequels, prequels, movies, OVAs, ONAs, specials
+              const aniListMatches = await searchAniListAnime(query, page);
+
+              // 2. Concurrently search TMDB for Anime TV series and Anime Movies
+              const [tmdbTvRes, tmdbMovieRes] = await Promise.all([
+                axios.get(`${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`).catch(() => ({ data: {} })),
+                axios.get(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`).catch(() => ({ data: {} }))
+              ]);
+
+              const tmdbTv = (tmdbTvRes.data?.results || []).filter(isAnimeItem);
+              const tmdbMovies = (tmdbMovieRes.data?.results || []).filter(isAnimeItem);
+
+              const merged = [...aniListMatches];
+              const seenTitles = new Set(aniListMatches.map(m => (m.title || '').toLowerCase().trim()));
+
+              [...tmdbTv, ...tmdbMovies].forEach(r => {
+                const title = r.title || r.name || '';
+                const clean = title.toLowerCase().trim();
+                if (clean && !seenTitles.has(clean)) {
+                  seenTitles.add(clean);
+                  merged.push({
+                    id: r.id.toString(),
+                    title,
+                    overview: r.overview || '',
+                    poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
+                    release_date: r.release_date || r.first_air_date || '',
+                    vote_average: r.vote_average || 0,
+                    genre_ids: r.genre_ids || [],
+                    media_type: 'anime',
+                    format: r.title ? 'Movie' : 'TV'
+                  });
                 }
-              }
+              });
+
+              results = merged;
             } else if (type === 'tv') {
-              // TV Shows MUST NEVER contain Japanese Anime!
-              combinedResults = combinedResults.filter(r => !isAnimeItem(r));
+              // TV Shows
+              let url = `${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`;
+              if (year && !isNaN(parseInt(year, 10))) {
+                url += `&first_air_date_year=${parseInt(year, 10)}`;
+              }
+              const searchRes = await axios.get(url);
+              let combinedResults = (searchRes.data.results || []).filter(r => !isAnimeItem(r));
+
+              if (selectedIso) {
+                combinedResults = combinedResults.filter(r => r.original_language === selectedIso);
+              }
               if (genre) {
                 const gId = parseInt(genre.replace('k_', '').replace('g_', ''), 10);
-                if (!isNaN(gId)) {
-                  combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
-                }
+                if (!isNaN(gId)) combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
               }
               if (country) {
                 if (country === 'IN') {
                   const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi', 'mr'];
-                  combinedResults = combinedResults.filter(r => 
-                    r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language)
-                  );
+                  combinedResults = combinedResults.filter(r => r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language));
                 } else {
-                  const countryToLang = {
-                    'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de'
-                  };
+                  const countryToLang = { 'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de' };
                   const expectedLang = countryToLang[country];
-                  combinedResults = combinedResults.filter(r => 
-                    r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang)
-                  );
+                  combinedResults = combinedResults.filter(r => r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang));
                 }
               }
+
+              // Expand TV series seasons so Season 1, Season 2, Season 3 appear as distinct cards
+              results = await expandTvSeasons(combinedResults);
             } else {
               // Movies
+              let url = `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`;
+              if (year && !isNaN(parseInt(year, 10))) {
+                url += `&primary_release_year=${parseInt(year, 10)}`;
+              }
+              const searchRes = await axios.get(url);
+              let combinedResults = searchRes.data.results || [];
+
+              if (selectedIso) {
+                combinedResults = combinedResults.filter(r => r.original_language === selectedIso);
+              }
               if (genre) {
                 const gId = parseInt(genre.replace('k_', '').replace('g_', ''), 10);
-                if (!isNaN(gId)) {
-                  combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
-                }
+                if (!isNaN(gId)) combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
               }
               if (country) {
                 if (country === 'IN') {
                   const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi', 'mr'];
-                  combinedResults = combinedResults.filter(r => 
-                    r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language)
-                  );
+                  combinedResults = combinedResults.filter(r => r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language));
                 } else {
-                  const countryToLang = {
-                    'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de'
-                  };
+                  const countryToLang = { 'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de' };
                   const expectedLang = countryToLang[country];
-                  combinedResults = combinedResults.filter(r => 
-                    r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang)
-                  );
+                  combinedResults = combinedResults.filter(r => r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang));
                 }
               }
-            }
 
-            results = combinedResults.slice(0, 20).map(r => ({
-              id: r.id.toString(),
-              title: r.title || r.name,
-              overview: r.overview || '',
-              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
-              release_date: r.release_date || r.first_air_date || '',
-              vote_average: r.vote_average || 0,
-              genre_ids: r.genre_ids || [],
-              media_type: type
-            }));
+              // Expand movie collections so franchise sequels & prequels are included
+              results = await expandMovieCollections(combinedResults);
+            }
 
             // Sort search results if requested
             if (sort === 'latest') {
@@ -785,6 +1180,15 @@ export const getMediaDetail = async (req, res) => {
 
   if (type === 'music') {
     return getSongDetails(req, res);
+  }
+
+  // Intercept AniList Anime details
+  if (id.startsWith('al_') || (type === 'anime' && isNaN(parseInt(id, 10)))) {
+    const alId = id.replace('al_', '');
+    const alDetail = await getAniListMediaDetail(alId);
+    if (alDetail) {
+      return res.json(alDetail);
+    }
   }
 
   try {
@@ -1050,6 +1454,49 @@ export const getTvSeason = async (req, res) => {
   const { id, season_number } = req.params;
 
   try {
+    const sNum = parseInt(season_number, 10) || 1;
+
+    // Handle AniList Anime episode requests
+    if (id.startsWith('al_') || isNaN(parseInt(id, 10))) {
+      const alId = id.replace('al_', '');
+      const alDetail = await getAniListMediaDetail(alId);
+
+      // If mapped to a TMDB TV show, try fetching official TMDB season first
+      if (alDetail?.tmdb_id && isTmdbConfigured()) {
+        try {
+          const tmdbRes = await axios.get(`${TMDB_BASE_URL}/tv/${alDetail.tmdb_id}/season/${sNum}?api_key=${TMDB_API_KEY}`);
+          if (tmdbRes.data?.episodes?.length > 0) {
+            return res.json(tmdbRes.data);
+          }
+        } catch {
+          // If TMDB does not have this specific season number, fall through to synthetic episodes
+        }
+      }
+
+      // Generate episodes for this anime season based on episode count
+      const epCount = alDetail?.episodes_count || 12;
+      const syntheticEpisodes = [];
+      for (let ep = 1; ep <= epCount; ep++) {
+        syntheticEpisodes.push({
+          id: `al_${alId}_s${sNum}_e${ep}`,
+          episode_number: ep,
+          season_number: sNum,
+          name: `Episode ${ep}`,
+          overview: `${alDetail?.title || 'Anime'} Episode ${ep}`,
+          still_path: alDetail?.backdrop_path || alDetail?.poster_path || null,
+          air_date: alDetail?.release_date || ''
+        });
+      }
+
+      return res.json({
+        _id: id,
+        name: alDetail?.title ? `${alDetail.title} Season ${sNum}` : `Season ${sNum}`,
+        overview: alDetail?.overview || '',
+        season_number: sNum,
+        episodes: syntheticEpisodes
+      });
+    }
+
     if (!isTmdbConfigured()) {
       return res.json({ episodes: [] });
     }

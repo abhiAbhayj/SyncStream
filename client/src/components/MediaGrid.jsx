@@ -173,9 +173,28 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             );
           }
 
+          const rawTargetId = item.external_media_id || item.id;
+          const hasQueryInId = String(rawTargetId).includes('?');
+          let baseTargetId = rawTargetId;
+          let seasonQuery = '';
+
+          if (hasQueryInId) {
+            const parts = String(rawTargetId).split('?');
+            baseTargetId = parts[0];
+            seasonQuery = `?${parts[1]}`;
+          } else if (item.season_number && item.season_number > 1) {
+            seasonQuery = `?season=${item.season_number}`;
+          }
+
+          const mediaLink = `/media/${item.media_type || 'movie'}/${baseTargetId}${seasonQuery}`;
+          const formatLabel = item.format || cfg.label;
+          const isSeasonBadge = Boolean(item.format && item.format.toLowerCase().startsWith('season'));
+          const isOvaOna = Boolean(item.format && ['ova', 'ona', 'special'].includes(item.format.toLowerCase()));
+          const isMovieBadge = Boolean(item.format && item.format.toLowerCase() === 'movie');
+
           return (
             <Link
-              to={`/media/${item.media_type}/${targetId}`}
+              to={mediaLink}
               key={`${item.media_type}-${targetId}-${index}`}
               className={`group media-card h-full transition-all duration-500 ${cfg.hoverGlow} animate-fade-up`}
               style={{ animationDelay: `${index * 0.04}s`, animationFillMode: 'both' }}
@@ -219,10 +238,27 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                   </div>
                 )}
 
-                {/* Type badge */}
-                <div className={`badge ${cfg.badge} absolute bottom-2 left-2 backdrop-blur-md`}>
-                  {cfg.label}
+                {/* Format / Type badge */}
+                <div
+                  className={`badge ${
+                    isSeasonBadge
+                      ? 'bg-emerald-500/80 text-black font-extrabold border-emerald-400/50'
+                      : isOvaOna
+                      ? 'bg-purple-600/85 text-white font-extrabold border-purple-400/50'
+                      : isMovieBadge && item.media_type === 'anime'
+                      ? 'bg-amber-500/80 text-black font-extrabold border-amber-400/50'
+                      : cfg.badge
+                  } absolute bottom-2 left-2 backdrop-blur-md text-[10px] font-bold px-2 py-0.5 shadow-md`}
+                >
+                  {formatLabel}
                 </div>
+
+                {/* Episode count pill */}
+                {item.episodes && (
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md">
+                    {item.episodes} {item.episodes === 1 ? 'EP' : 'EPS'}
+                  </div>
+                )}
               </div>
 
               {/* ── Info ── */}

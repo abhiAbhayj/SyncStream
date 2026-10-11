@@ -112,7 +112,7 @@ export default function MediaDetail() {
         if ((type === 'tv' || type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
           if (!urlSeason) {
             const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
-            setActiveSeason(firstSeason.season_number);
+            setActiveSeason(detailData.default_season || firstSeason.season_number);
           }
         }
 
