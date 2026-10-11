@@ -23,71 +23,72 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
-  'theme-cyberpunk',
-  'theme-monolith',
-  'theme-solar',
-  'theme-emerald',
-  'theme-neon-horizon',
-  'theme-stargate',
-  'theme-imperial'
+  'theme-synthwave',
+  'theme-aurora',
+  'theme-solar-flare',
+  'theme-neon-frost',
+  'theme-plasma-web',
+  'theme-abyssal-trench',
+  'theme-nebula-drift',
+  'theme-citrus-arcade'
 ];
 
 const THEME_OPTIONS = [
   {
-    id: 'quantum',
-    name: '❄️ Glacial Blizzard',
-    desc: 'Multi-layered 6-arm crystal snowflakes drifting with winter physics & soft glow',
-    animation: 'Snow Flakes Falling',
-    swatch: ['#0d1127', '#8b5cf6', '#06b6d4', '#f43f5e', '#fbbf24'],
+    id: 'synthwave',
+    name: '⚡ Vibrant Synthwave Horizon',
+    desc: 'A slow-gliding, low-frequency grid floor fading into a distant foggy horizon with ambient glow nodes',
+    animation: 'Gliding Grid Floor & Foggy Horizon',
+    swatch: ['#0a0a0c', '#ff007f', '#00f0ff', '#14141b', '#ffffff'],
   },
   {
-    id: 'cyberpunk',
-    name: '⚡ Cyberpunk Matrix',
-    desc: 'PCB motherboard tracks with high-voltage electric currents & logic spark nodes',
-    animation: 'AI Circuit Electric Flows',
-    swatch: ['#091326', '#00f5ff', '#f72585', '#10b981', '#fee440'],
+    id: 'aurora',
+    name: '🌌 Electric Twilight Aurora',
+    desc: 'Soft, ultra-slow northern lights wash gently morphing in deep background for subtle depth',
+    animation: 'Northern Lights Gradient Wash',
+    swatch: ['#0b0f19', '#8b5cf6', '#10b981', '#1e2238', '#f3f4f6'],
   },
   {
-    id: 'monolith',
-    name: '📈 Monolith Chrono',
-    desc: 'Live stock market charts fluctuating up & down with support/resistance lines & beacons',
-    animation: 'Stock Market Lines Up/Down',
-    swatch: ['#050505', '#e2e8f0', '#3b82f6', '#ef4444', '#ffffff'],
+    id: 'solar-flare',
+    name: '🔥 Crimson Solar Flare',
+    desc: 'Very sparse, tiny ember dust motes drifting upward lazily with muted warmth and minimal motion',
+    animation: 'Sparse Warm Ember Dust Motes',
+    swatch: ['#0f080a', '#ff5e00', '#ffb703', '#1a1215', '#fffbeb'],
   },
   {
-    id: 'solar',
-    name: '🔥 Solar Blaze',
-    desc: 'Cascading burning fire embers & sparks falling with heat turbulence & convection',
-    animation: 'Fire Blaze Falling',
-    swatch: ['#240d07', '#f97316', '#e11d48', '#facc15', '#a21caf'],
+    id: 'neon-frost',
+    name: '💎 Neon Frost Glassmorphism',
+    desc: 'Lazy, glass-refraction light leak sliding across the upper corner over a smooth 20+ second cycle',
+    animation: 'Refraction Glass Light Leak',
+    swatch: ['#0f172a', '#38bdf8', '#c084fc', '#1e293b', '#ffffff'],
   },
   {
-    id: 'emerald',
-    name: '🗺️ Emerald GPS Grid',
-    desc: 'Futuristic vector street roadmap with waypoint pins & animated route tracing',
-    animation: 'GPS Map Type Routing Effect',
-    swatch: ['#042018', '#10b981', '#84cc16', '#14b8a6', '#d9f99d'],
+    id: 'plasma-web',
+    name: '🪐 Cyberpunk Plasma Web',
+    desc: 'Ultra-thin, low-opacity connecting vector nodes drifting like stardust with soft fade transitions',
+    animation: 'Connecting Vector Plasma Nodes',
+    swatch: ['#090d16', '#00ff66', '#2563eb', '#111827', '#ffffff'],
   },
   {
-    id: 'neon-horizon',
-    name: '☄️ Neon Meteor Storm',
-    desc: 'Diagonal hyper-velocity shooting stars with luminous ionization tails & stardust',
-    animation: 'Meteor Beam Star Falling',
-    swatch: ['#170c29', '#ff007f', '#00dfd8', '#7928ca', '#ff6b35'],
+    id: 'abyssal-trench',
+    name: '🌊 Neon Abyssal Trench',
+    desc: 'Slow, sweeping horizontal wave lines with minimal opacity fluctuation mimicking deep ocean reflection',
+    animation: 'Sweeping Deep Ocean Wave Lines',
+    swatch: ['#060913', '#06b6d4', '#6366f1', '#0f172a', '#f8fafc'],
   },
   {
-    id: 'stargate',
-    name: '🌌 Cosmic Milky Way',
-    desc: 'Diagonal celestial galactic river with shimmering star clusters & deep nebula clouds',
-    animation: 'Space Milky Way',
-    swatch: ['#070814', '#9333ea', '#06b6d4', '#f43f5e', '#eab308'],
+    id: 'nebula-drift',
+    name: '🚀 Quantum Nebula Drift',
+    desc: 'Sparse starfield background where distant stars twinkle independently at randomized slow intervals',
+    animation: 'Sparse Starfield & Twinkling Nodes',
+    swatch: ['#0c0714', '#ec4899', '#a855f7', '#181028', '#ffffff'],
   },
   {
-    id: 'imperial',
-    name: '💎 Imperial Polyhedra',
-    desc: 'Static 3D wireframe polyhedra (cubes, octahedrons, tetrahedrons) rotating on 3D axes',
-    animation: 'Static 3D Geometric Shapes Rotating',
-    swatch: ['#120e06', '#fbbf24', '#fef3c7', '#d97706', '#10b981'],
+    id: 'citrus-arcade',
+    name: '🍊 Neon Citrus Arcade',
+    desc: 'Micro-geometric squares and digital static pixels drifting down at very low density and high transparency',
+    animation: 'Micro Geometric Arcade Pixels',
+    swatch: ['#121212', '#ff7a00', '#ffd600', '#1e1e1e', '#ffffff'],
   },
 ];
 
@@ -184,7 +185,9 @@ export default function Profile() {
   });
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('syncstream_theme') || 'quantum';
+    const saved = localStorage.getItem('syncstream_theme');
+    if (saved && THEME_OPTIONS.some(t => t.id === saved)) return saved;
+    return 'synthwave';
   });
 
   const [loading, setLoading] = useState(false);
@@ -232,18 +235,17 @@ export default function Profile() {
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (newTheme !== 'quantum') {
-      document.body.classList.add(`theme-${newTheme}`);
-    }
+    document.body.classList.add(`theme-${newTheme}`);
   };
 
   React.useEffect(() => {
     return () => {
-      const currentPersisted = localStorage.getItem('syncstream_theme') || 'quantum';
-      ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      if (currentPersisted !== 'quantum') {
-        document.body.classList.add(`theme-${currentPersisted}`);
+      let currentPersisted = localStorage.getItem('syncstream_theme') || 'synthwave';
+      if (!THEME_OPTIONS.some(t => t.id === currentPersisted)) {
+        currentPersisted = 'synthwave';
       }
+      ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
+      document.body.classList.add(`theme-${currentPersisted}`);
     };
   }, []);
 
@@ -537,9 +539,7 @@ export default function Profile() {
 
     localStorage.setItem('syncstream_theme', theme);
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    if (theme !== 'quantum') {
-      document.body.classList.add(`theme-${theme}`);
-    }
+    document.body.classList.add(`theme-${theme}`);
 
     const res = await updateProfile(username, selectedAvatar);
     setLoading(false);

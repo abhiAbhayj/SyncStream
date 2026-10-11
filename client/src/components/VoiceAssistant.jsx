@@ -662,38 +662,39 @@ export default function VoiceAssistant() {
     }
 
     // 7. THEME INTENTS
-    if (command.includes('theme') || command.includes('quantum') || command.includes('cyber') || command.includes('matrix') || command.includes('monolith') || command.includes('chrono') || command.includes('gyro') || command.includes('solar') || command.includes('flare') || command.includes('emerald') || command.includes('synapse') || command.includes('horizon') || command.includes('drift') || command.includes('stargate') || command.includes('wormhole') || command.includes('imperial') || command.includes('gold') || command.includes('luxe')) {
+    if (command.includes('theme') || command.includes('synthwave') || command.includes('aurora') || command.includes('solar flare') || command.includes('crimson') || command.includes('frost') || command.includes('glass') || command.includes('plasma') || command.includes('abyssal') || command.includes('trench') || command.includes('nebula') || command.includes('citrus') || command.includes('arcade')) {
       const ALL_THEMES = [
-        'theme-cyberpunk',
-        'theme-monolith',
-        'theme-solar',
-        'theme-emerald',
-        'theme-neon-horizon',
-        'theme-stargate',
-        'theme-imperial'
+        'theme-synthwave',
+        'theme-aurora',
+        'theme-solar-flare',
+        'theme-neon-frost',
+        'theme-plasma-web',
+        'theme-abyssal-trench',
+        'theme-nebula-drift',
+        'theme-citrus-arcade'
       ];
-      let newTheme = 'quantum';
-      if (command.includes('cyber') || command.includes('matrix') || command.includes('hacker')) newTheme = 'cyberpunk';
-      else if (command.includes('monolith') || command.includes('chrono') || command.includes('gyro') || command.includes('stock')) newTheme = 'monolith';
-      else if (command.includes('solar') || command.includes('flare') || command.includes('sun') || command.includes('corona')) newTheme = 'solar';
-      else if (command.includes('emerald') || command.includes('synapse') || command.includes('neural') || command.includes('forest')) newTheme = 'emerald';
-      else if (command.includes('horizon') || command.includes('drift') || command.includes('speed') || command.includes('synth')) newTheme = 'neon-horizon';
-      else if (command.includes('stargate') || command.includes('wormhole') || command.includes('vortex')) newTheme = 'stargate';
-      else if (command.includes('imperial') || command.includes('gold') || command.includes('luxe') || command.includes('astrolabe')) newTheme = 'imperial';
-      else if (command.includes('quantum') || command.includes('flux') || command.includes('default') || command.includes('reset')) newTheme = 'quantum';
+      let newTheme = 'synthwave';
+      if (command.includes('aurora') || command.includes('twilight')) newTheme = 'aurora';
+      else if (command.includes('solar') || command.includes('flare') || command.includes('crimson') || command.includes('ember')) newTheme = 'solar-flare';
+      else if (command.includes('frost') || command.includes('glass') || command.includes('ice')) newTheme = 'neon-frost';
+      else if (command.includes('plasma') || command.includes('web') || command.includes('cyber')) newTheme = 'plasma-web';
+      else if (command.includes('abyssal') || command.includes('trench') || command.includes('ocean') || command.includes('wave')) newTheme = 'abyssal-trench';
+      else if (command.includes('nebula') || command.includes('drift') || command.includes('quantum') || command.includes('star')) newTheme = 'nebula-drift';
+      else if (command.includes('citrus') || command.includes('arcade') || command.includes('tangerine') || command.includes('pixel')) newTheme = 'citrus-arcade';
+      else if (command.includes('synthwave') || command.includes('horizon') || command.includes('grid') || command.includes('default') || command.includes('reset')) newTheme = 'synthwave';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
-      if (newTheme !== 'quantum') document.body.classList.add(`theme-${newTheme}`);
+      document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        quantum: '❄️ Glacial Blizzard',
-        cyberpunk: '⚡ Cyberpunk Matrix',
-        monolith: '📈 Monolith Chrono',
-        solar: '🔥 Solar Blaze',
-        emerald: '🗺️ Emerald GPS Grid',
-        'neon-horizon': '☄️ Neon Meteor Storm',
-        stargate: '🌌 Cosmic Milky Way',
-        imperial: '💎 Imperial Polyhedra'
+        synthwave: '⚡ Vibrant Synthwave Horizon',
+        aurora: '🌌 Electric Twilight Aurora',
+        'solar-flare': '🔥 Crimson Solar Flare',
+        'neon-frost': '💎 Neon Frost Glassmorphism',
+        'plasma-web': '🪐 Cyberpunk Plasma Web',
+        'abyssal-trench': '🌊 Neon Abyssal Trench',
+        'nebula-drift': '🚀 Quantum Nebula Drift',
+        'citrus-arcade': '🍊 Neon Citrus Arcade'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;

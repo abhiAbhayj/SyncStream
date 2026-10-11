@@ -6,423 +6,172 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   THEME 1 (Default): Quantum Flux (Midnight Indigo) 🌌
+   THEME 1 (Default): ⚡ Vibrant Synthwave Horizon
+   Pitch Black, Electric Magenta & Bright Cyan
 ───────────────────────────────────────────── */
-
-:root {
-  --dark-bg:     13 17 39;
-  --dark-card:   23 30 65;
-  --dark-surf:   35 45 95;
-  --dark-border: 139 92 246;
-
-  --accent-cyan:   139 92 246;
-  --accent-purple: 6 182 212;
-  --accent-pink:   244 63 94;
-  --accent-gold:   251 191 36;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(139, 92, 246, 0.18);
-  --glow-2: rgba(6, 182, 212, 0.12);
-  --glow-3: rgba(244, 63, 94, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 2: Cyberpunk Matrix (Deep Cyber Cobalt) ⚡
-───────────────────────────────────────────── */
-
-.theme-cyberpunk {
-  --dark-bg:     9 19 38;
-  --dark-card:   14 31 62;
-  --dark-surf:   22 47 94;
-  --dark-border: 0 245 255;
-
-  --accent-cyan:   0 245 255;
-  --accent-purple: 247 37 133;
-  --accent-pink:   255 0 110;
-  --accent-gold:   254 228 64;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(0, 245, 255, 0.20);
-  --glow-2: rgba(247, 37, 133, 0.14);
-  --glow-3: rgba(254, 228, 64, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 3: Monolith Chrono (Pitch Chrome & Cobalt Stock Matrix) 🌑
-───────────────────────────────────────────── */
-
-.theme-monolith {
-  --dark-bg:     5 5 5;
-  --dark-card:   18 18 22;
-  --dark-surf:   28 28 34;
-  --dark-border: 226 232 240;
-
-  --accent-cyan:   226 232 240;
-  --accent-purple: 59 130 246;
-  --accent-pink:   239 68 68;
-  --accent-gold:   255 255 255;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(226, 232, 240, 0.18);
-  --glow-2: rgba(59, 130, 246, 0.14);
-  --glow-3: rgba(239, 68, 68, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 4: Solar Flare (Molten Amber-Ruby) 🔥
-───────────────────────────────────────────── */
-
-.theme-solar {
-  --dark-bg:     36 13 7;
-  --dark-card:   61 22 12;
-  --dark-surf:   90 32 18;
-  --dark-border: 249 115 22;
-
-  --accent-cyan:   249 115 22;
-  --accent-purple: 225 29 72;
-  --accent-pink:   250 204 21;
-  --accent-gold:   254 240 138;
-  --accent-green:  162 28 175;
-
-  --glow-1: rgba(249, 115, 22, 0.20);
-  --glow-2: rgba(225, 29, 72, 0.14);
-  --glow-3: rgba(250, 204, 21, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 5: Emerald Synapse (Cyber Forest Deep) 🌿
-───────────────────────────────────────────── */
-
-.theme-emerald {
-  --dark-bg:     4 32 24;
-  --dark-card:   8 54 41;
-  --dark-surf:   12 80 61;
-  --dark-border: 16 185 129;
-
-  --accent-cyan:   16 185 129;
-  --accent-purple: 132 204 22;
-  --accent-pink:   20 184 166;
-  --accent-gold:   217 249 157;
-  --accent-green:  52 211 153;
-
-  --glow-1: rgba(16, 185, 129, 0.18);
-  --glow-2: rgba(132, 204, 22, 0.12);
-  --glow-3: rgba(20, 184 166, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 6: Neon Horizon (Nightshade Velvet) 🏎️
-───────────────────────────────────────────── */
-
-.theme-neon-horizon {
-  --dark-bg:     23 12 41;
-  --dark-card:   40 21 71;
-  --dark-surf:   60 32 107;
+:root,
+.theme-synthwave {
+  --dark-bg:     10 10 12;
+  --dark-card:   20 20 27;
+  --dark-surf:   28 28 38;
   --dark-border: 255 0 127;
 
-  --accent-cyan:   255 0 127;
-  --accent-purple: 121 40 202;
-  --accent-pink:   0 223 216;
-  --accent-gold:   255 107 53;
-  --accent-green:  250 204 21;
-
-  --glow-1: rgba(255, 0, 127, 0.20);
-  --glow-2: rgba(0, 223, 216, 0.14);
-  --glow-3: rgba(121, 40, 202, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 7: Cosmic Stargate (Obsidian Celestial Violet) 🌀
-───────────────────────────────────────────── */
-
-.theme-stargate {
-  --dark-bg:     7 8 20;
-  --dark-card:   16 18 42;
-  --dark-surf:   26 29 64;
-  --dark-border: 147 51 234;
-
-  --accent-cyan:   147 51 234;
-  --accent-purple: 6 182 212;
-  --accent-pink:   244 63 94;
-  --accent-gold:   234 179 8;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(147, 51, 234, 0.20);
-  --glow-2: rgba(6, 182, 212, 0.14);
-  --glow-3: rgba(244, 63, 94, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 8: Imperial Gold Luxe (Bronze Noir & 24K Gold) 👑
-───────────────────────────────────────────── */
-
-.theme-imperial {
-  --dark-bg:     18 14 6;
-  --dark-card:   34 26 10;
-  --dark-surf:   52 40 16;
-  --dark-border: 251 191 36;
-
-  --accent-cyan:   251 191 36;
-  --accent-purple: 217 119 6;
-  --accent-pink:   254 243 199;
-  --accent-gold:   253 230 138;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(251, 191, 36, 0.20);
-  --glow-2: rgba(217, 119, 6, 0.14);
-  --glow-3: rgba(254, 243, 199, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 2: Cyberpunk Matrix (Deep Cyber Cobalt) ⚡
-───────────────────────────────────────────── */
-
-.theme-cyberpunk {
-  --dark-bg:     9 19 38;
-  --dark-card:   14 31 62;
-  --dark-surf:   22 47 94;
-  --dark-border: 0 245 255;
-
-  --accent-cyan:   0 245 255;
-  --accent-purple: 247 37 133;
-  --accent-pink:   255 0 110;
-  --accent-gold:   254 228 64;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(0, 245, 255, 0.22);
-  --glow-2: rgba(247, 37, 133, 0.15);
-  --glow-3: rgba(254, 228, 64, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 3: Monolith Chrono (Pitch Chrome & Cobalt) 🌑
-───────────────────────────────────────────── */
-
-.theme-monolith {
-  --dark-bg:     5 5 5;
-  --dark-card:   18 18 22;
-  --dark-surf:   28 28 34;
-  --dark-border: 226 232 240;
-
-  --accent-cyan:   226 232 240;
-  --accent-purple: 59 130 246;
-  --accent-pink:   239 68 68;
-  --accent-gold:   255 255 255;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(226, 232, 240, 0.20);
-  --glow-2: rgba(59, 130, 246, 0.15);
-  --glow-3: rgba(239, 68, 68, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 4: Solar Flare (Molten Amber-Ruby) 🔥
-───────────────────────────────────────────── */
-
-.theme-solar {
-  --dark-bg:     36 13 7;
-  --dark-card:   61 22 12;
-  --dark-surf:   90 32 18;
-  --dark-border: 249 115 22;
-
-  --accent-cyan:   249 115 22;
-  --accent-purple: 225 29 72;
-  --accent-pink:   250 204 21;
-  --accent-gold:   254 240 138;
-  --accent-green:  162 28 175;
-
-  --glow-1: rgba(249, 115, 22, 0.22);
-  --glow-2: rgba(225, 29, 72, 0.15);
-  --glow-3: rgba(250, 204, 21, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 5: Emerald Synapse (Cyber Forest Deep) 🌿
-───────────────────────────────────────────── */
-
-.theme-emerald {
-  --dark-bg:     4 32 24;
-  --dark-card:   8 54 41;
-  --dark-surf:   12 80 61;
-  --dark-border: 16 185 129;
-
-  --accent-cyan:   16 185 129;
-  --accent-purple: 132 204 22;
-  --accent-pink:   20 184 166;
-  --accent-gold:   217 249 157;
-  --accent-green:  52 211 153;
-
-  --glow-1: rgba(16, 185, 129, 0.20);
-  --glow-2: rgba(132, 204, 22, 0.14);
-  --glow-3: rgba(20, 184 166, 0.08);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 6: Neon Horizon (Nightshade Velvet) 🏎️
-───────────────────────────────────────────── */
-
-.theme-neon-horizon {
-  --dark-bg:     23 12 41;
-  --dark-card:   40 21 71;
-  --dark-surf:   60 32 107;
-  --dark-border: 255 0 127;
-
-  --accent-cyan:   255 0 127;
-  --accent-purple: 121 40 202;
-  --accent-pink:   0 223 216;
-  --accent-gold:   255 107 53;
-  --accent-green:  250 204 21;
+  --accent-cyan:   0 240 255;
+  --accent-purple: 255 0 127;
+  --accent-pink:   255 51 153;
+  --accent-gold:   255 183 3;
+  --accent-green:  0 255 163;
 
   --glow-1: rgba(255, 0, 127, 0.22);
-  --glow-2: rgba(0, 223, 216, 0.15);
-  --glow-3: rgba(121, 40, 202, 0.08);
+  --glow-2: rgba(0, 240, 255, 0.18);
+  --glow-3: rgba(255, 51, 153, 0.10);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 2: Cyberpunk Matrix (Deep Cyber Cobalt) ⚡
+/* ─────────────────────────────────────────────
+   THEME 2: 🌌 Electric Twilight Aurora
+   Deep Indigo Night, Vivid Violet & Emerald Mint
 ───────────────────────────────────────────── */
-
-.theme-cyberpunk {
-  --dark-bg:     9 19 38;
-  --dark-card:   14 31 62;
-  --dark-surf:   22 47 94;
-  --dark-border: 0 245 255;
-
-  --accent-cyan:   0 245 255;
-  --accent-purple: 247 37 133;
-  --accent-pink:   255 0 110;
-  --accent-gold:   254 228 64;
-  --accent-green:  16 185 129;
-
-  --glow-1: rgba(0, 245, 255, 0.48);
-  --glow-2: rgba(247, 37, 133, 0.40);
-  --glow-3: rgba(254, 228, 64, 0.28);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 3: Aurora Borealis (Nordic Teal Deep) 🌊
-───────────────────────────────────────────── */
-
 .theme-aurora {
-  --dark-bg:     6 35 42;
-  --dark-card:   10 56 66;
-  --dark-surf:   16 80 94;
-  --dark-border: 16 231 150;
-
-  --accent-cyan:   16 231 150;
-  --accent-purple: 56 189 248;
-  --accent-pink:   168 85 247;
-  --accent-gold:   253 224 71;
-  --accent-green:  52 211 153;
-
-  --glow-1: rgba(16, 231, 150, 0.48);
-  --glow-2: rgba(56, 189, 248, 0.38);
-  --glow-3: rgba(168, 85, 247, 0.30);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 4: Prism Luxe (Royal Obsidian Plum) 💎
-───────────────────────────────────────────── */
-
-.theme-prism {
-  --dark-bg:     30 14 41;
-  --dark-card:   48 23 66;
-  --dark-surf:   68 33 94;
-  --dark-border: 244 114 182;
-
-  --accent-cyan:   244 114 182;
-  --accent-purple: 99 102 241;
-  --accent-pink:   236 72 153;
-  --accent-gold:   254 240 138;
-  --accent-green:  45 212 191;
-
-  --glow-1: rgba(244, 114, 182, 0.45);
-  --glow-2: rgba(99, 102, 241, 0.38);
-  --glow-3: rgba(254, 240, 138, 0.28);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 5: Solar Flare (Molten Amber-Ruby) 🔥
-───────────────────────────────────────────── */
-
-.theme-solar {
-  --dark-bg:     36 13 7;
-  --dark-card:   61 22 12;
-  --dark-surf:   90 32 18;
-  --dark-border: 249 115 22;
-
-  --accent-cyan:   249 115 22;
-  --accent-purple: 225 29 72;
-  --accent-pink:   250 204 21;
-  --accent-gold:   254 240 138;
-  --accent-green:  162 28 175;
-
-  --glow-1: rgba(249, 115, 22, 0.50);
-  --glow-2: rgba(225, 29, 72, 0.42);
-  --glow-3: rgba(250, 204, 21, 0.30);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 6: Emerald Synapse (Cyber Forest Deep) 🌿
-───────────────────────────────────────────── */
-
-.theme-emerald {
-  --dark-bg:     4 32 24;
-  --dark-card:   8 54 41;
-  --dark-surf:   12 80 61;
-  --dark-border: 16 185 129;
+  --dark-bg:     11 15 25;
+  --dark-card:   30 34 56;
+  --dark-surf:   42 47 76;
+  --dark-border: 139 92 246;
 
   --accent-cyan:   16 185 129;
-  --accent-purple: 132 204 22;
-  --accent-pink:   20 184 166;
-  --accent-gold:   217 249 157;
+  --accent-purple: 139 92 246;
+  --accent-pink:   192 132 252;
+  --accent-gold:   253 224 71;
+  --accent-green:  16 185 129;
+
+  --glow-1: rgba(139, 92, 246, 0.22);
+  --glow-2: rgba(16, 185, 129, 0.16);
+  --glow-3: rgba(192, 132, 252, 0.10);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 3: 🔥 Crimson Solar Flare
+   Rich Obsidian, Sunset Orange & Coral Gold
+───────────────────────────────────────────── */
+.theme-solar-flare {
+  --dark-bg:     15 8 10;
+  --dark-card:   26 18 21;
+  --dark-surf:   38 27 32;
+  --dark-border: 255 94 0;
+
+  --accent-cyan:   255 94 0;
+  --accent-purple: 225 29 72;
+  --accent-pink:   255 183 3;
+  --accent-gold:   245 158 11;
+  --accent-green:  251 146 60;
+
+  --glow-1: rgba(255, 94, 0, 0.22);
+  --glow-2: rgba(255, 183, 3, 0.16);
+  --glow-3: rgba(225, 29, 72, 0.10);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 4: 💎 Neon Frost Glassmorphism
+   Deep Ice Slate, Bright Ice Blue & Neon Lavender
+───────────────────────────────────────────── */
+.theme-neon-frost {
+  --dark-bg:     15 23 42;
+  --dark-card:   30 41 59;
+  --dark-surf:   40 53 77;
+  --dark-border: 56 189 248;
+
+  --accent-cyan:   56 189 248;
+  --accent-purple: 192 132 252;
+  --accent-pink:   244 114 182;
+  --accent-gold:   226 232 240;
   --accent-green:  52 211 153;
 
-  --glow-1: rgba(16, 185, 129, 0.48);
-  --glow-2: rgba(132, 204, 22, 0.38);
-  --glow-3: rgba(20, 184 166, 0.28);
+  --glow-1: rgba(56, 189, 248, 0.22);
+  --glow-2: rgba(192, 132, 252, 0.16);
+  --glow-3: rgba(244, 114, 182, 0.09);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 7: Neon Horizon (Nightshade Velvet) 🏎️
+/* ─────────────────────────────────────────────
+   THEME 5: 🪐 Cyberpunk Plasma Web
+   Dark Cyber Blue, Acid Lime Green & Electric Cobalt
 ───────────────────────────────────────────── */
+.theme-plasma-web {
+  --dark-bg:     9 13 22;
+  --dark-card:   17 24 39;
+  --dark-surf:   31 41 61;
+  --dark-border: 0 255 102;
 
-.theme-neon-horizon {
-  --dark-bg:     23 12 41;
-  --dark-card:   40 21 71;
-  --dark-surf:   60 32 107;
-  --dark-border: 255 0 127;
-
-  --accent-cyan:   255 0 127;
-  --accent-purple: 121 40 202;
-  --accent-pink:   0 223 216;
-  --accent-gold:   255 107 53;
-  --accent-green:  250 204 21;
-
-  --glow-1: rgba(255, 0, 127, 0.50);
-  --glow-2: rgba(0, 223, 216, 0.42);
-  --glow-3: rgba(121, 40, 202, 0.35);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════════════════
-   THEME 8: Cryo Sapphire (Glacial Tech Blue) 🧊
-───────────────────────────────────────────── */
-
-.theme-cryo {
-  --dark-bg:     8 25 43;
-  --dark-card:   14 43 74;
-  --dark-surf:   21 64 110;
-  --dark-border: 0 229 255;
-
-  --accent-cyan:   0 229 255;
+  --accent-cyan:   0 255 102;
   --accent-purple: 37 99 235;
-  --accent-pink:   110 231 183;
-  --accent-gold:   226 232 240;
-  --accent-green:  56 189 248;
+  --accent-pink:   6 182 212;
+  --accent-gold:   234 179 8;
+  --accent-green:  0 255 102;
 
-  --glow-1: rgba(0, 229, 255, 0.48);
-  --glow-2: rgba(37, 99, 235, 0.38);
-  --glow-3: rgba(110, 231, 183, 0.30);
+  --glow-1: rgba(0, 255, 102, 0.22);
+  --glow-2: rgba(37, 99, 235, 0.18);
+  --glow-3: rgba(6, 182, 212, 0.10);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 6: 🌊 Neon Abyssal Trench
+   Midnight Navy, Laser Aqua & Electric Indigo
+───────────────────────────────────────────── */
+.theme-abyssal-trench {
+  --dark-bg:     6 9 19;
+  --dark-card:   15 23 42;
+  --dark-surf:   23 35 61;
+  --dark-border: 6 182 212;
+
+  --accent-cyan:   6 182 212;
+  --accent-purple: 99 102 241;
+  --accent-pink:   139 92 246;
+  --accent-gold:   250 204 21;
+  --accent-green:  34 211 238;
+
+  --glow-1: rgba(6, 182, 212, 0.22);
+  --glow-2: rgba(99, 102, 241, 0.18);
+  --glow-3: rgba(34, 211, 238, 0.10);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 7: 🚀 Quantum Nebula Drift
+   Deep Space Violet, Hot Pink & Electric Violet
+───────────────────────────────────────────── */
+.theme-nebula-drift {
+  --dark-bg:     12 7 20;
+  --dark-card:   24 16 40;
+  --dark-surf:   37 26 61;
+  --dark-border: 236 72 153;
+
+  --accent-cyan:   236 72 153;
+  --accent-purple: 168 85 247;
+  --accent-pink:   244 63 94;
+  --accent-gold:   253 224 71;
+  --accent-green:  45 212 191;
+
+  --glow-1: rgba(236, 72, 153, 0.22);
+  --glow-2: rgba(168, 85, 247, 0.18);
+  --glow-3: rgba(244, 63, 94, 0.10);
+}
+
+/* ─────────────────────────────────────────────
+   THEME 8: 🍊 Neon Citrus Arcade
+   Dark Slate Gray, Vibrant Tangerine & Electric Yellow
+───────────────────────────────────────────── */
+.theme-citrus-arcade {
+  --dark-bg:     18 18 18;
+  --dark-card:   30 30 30;
+  --dark-surf:   42 42 42;
+  --dark-border: 255 122 0;
+
+  --accent-cyan:   255 122 0;
+  --accent-purple: 255 214 0;
+  --accent-pink:   255 51 102;
+  --accent-gold:   255 214 0;
+  --accent-green:  163 230 53;
+
+  --glow-1: rgba(255, 122, 0, 0.22);
+  --glow-2: rgba(255, 214, 0, 0.18);
+  --glow-3: rgba(255, 51, 102, 0.10);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════════════════

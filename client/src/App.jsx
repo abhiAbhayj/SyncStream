@@ -42,21 +42,23 @@ function AppContent() {
 
   React.useEffect(() => {
     const ALL_THEMES = [
-      'theme-cyberpunk',
-      'theme-monolith',
-      'theme-solar',
-      'theme-emerald',
-      'theme-neon-horizon',
-      'theme-stargate',
-      'theme-imperial'
+      'theme-synthwave',
+      'theme-aurora',
+      'theme-solar-flare',
+      'theme-neon-frost',
+      'theme-plasma-web',
+      'theme-abyssal-trench',
+      'theme-nebula-drift',
+      'theme-citrus-arcade'
     ];
-    const savedTheme = localStorage.getItem('syncstream_theme') || 'quantum';
-    // Remove all theme classes first
-    ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
-    // Apply the saved theme
-    if (savedTheme !== 'quantum') {
-      document.body.classList.add(`theme-${savedTheme}`);
+    let savedTheme = localStorage.getItem('syncstream_theme') || 'synthwave';
+    const validThemes = ['synthwave', 'aurora', 'solar-flare', 'neon-frost', 'plasma-web', 'abyssal-trench', 'nebula-drift', 'citrus-arcade'];
+    if (!validThemes.includes(savedTheme)) {
+      savedTheme = 'synthwave';
+      localStorage.setItem('syncstream_theme', 'synthwave');
     }
+    ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
+    document.body.classList.add(`theme-${savedTheme}`);
   }, []);
 
   return (
