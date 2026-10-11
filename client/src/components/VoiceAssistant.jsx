@@ -28,6 +28,17 @@ const WORD_TO_NUM = {
   twentieth: 20, '20th': 20, twenty: 20
 };
 
+const cleanSpokenTranscript = (text) => {
+  if (!text) return '';
+  // 1. Collapse multiple spaces
+  let s = text.trim().replace(/\s+/g, ' ');
+  // 2. Remove consecutive duplicate words: e.g. "search search search" -> "search"
+  s = s.replace(/\b(\w+)(?:\s+\1\b)+/gi, '$1');
+  // 3. Remove repeated 2-word phrases: e.g. "search movie search movie" -> "search movie"
+  s = s.replace(/\b(\w+\s+\w+)(?:\s+\1\b)+/gi, '$1');
+  return s.trim();
+};
+
 function parseEpisodeQuery(rawCommand) {
   let text = (rawCommand || '').toLowerCase().trim();
 
@@ -133,7 +144,7 @@ export default function VoiceAssistant() {
   }, []);
 
   const handleCommandExecution = useCallback((rawText) => {
-    const text = (rawText || '').trim();
+    const text = cleanSpokenTranscript(rawText || '').trim();
     if (!text || hasProcessedRef.current) return;
     hasProcessedRef.current = true;
     if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
@@ -169,33 +180,37 @@ export default function VoiceAssistant() {
     };
 
     recognition.onresult = (event) => {
-      let fullTranscript = '';
+      let finalTranscript = '';
+      let interimTranscript = '';
       let isFinal = false;
 
       for (let i = 0; i < event.results.length; i++) {
-        fullTranscript += event.results[i][0].transcript + ' ';
-        if (event.results[i].isFinal) {
+        const item = event.results[i];
+        if (item.isFinal) {
+          finalTranscript += item[0].transcript + ' ';
           isFinal = true;
+        } else {
+          interimTranscript += item[0].transcript + ' ';
         }
       }
 
-      const trimmed = fullTranscript.trim();
-      if (trimmed) {
-        latestTranscriptRef.current = trimmed;
-        setTranscript(trimmed);
+      const combined = cleanSpokenTranscript((finalTranscript + interimTranscript).trim());
+      if (combined) {
+        latestTranscriptRef.current = combined;
+        setTranscript(combined);
 
         // Reset silence timer on every spoken phrase
         if (speechSilenceTimerRef.current) clearTimeout(speechSilenceTimerRef.current);
 
-        // If marked final or after natural 1.3s pause, auto-execute command
+        // If marked final or after natural pause, auto-execute command
         if (isFinal) {
           speechSilenceTimerRef.current = setTimeout(() => {
             handleCommandExecution(latestTranscriptRef.current);
-          }, 600);
+          }, 500);
         } else {
           speechSilenceTimerRef.current = setTimeout(() => {
             handleCommandExecution(latestTranscriptRef.current);
-          }, 1400);
+          }, 1300);
         }
       }
     };
@@ -314,7 +329,8 @@ export default function VoiceAssistant() {
     }
   };
 
-  const processCommand = async (command) => {
+  const processCommand = async (rawCommand) => {
+    let command = cleanSpokenTranscript(rawCommand || '').toLowerCase().trim();
     setStatusText('Processing...');
     
     // ════════════════════════════════════════════════════════════════════════
@@ -333,8 +349,8 @@ export default function VoiceAssistant() {
       (command.startsWith('search ') && (command.includes('music') || command.includes('song') || window.location.pathname === '/music'))
     ) {
       let musicQuery = command
-        .replace(/^(search for|search|find|lookup)\s+(music|song|songs|track|audio)?\s*/i, '')
-        .replace(/\s+(song|music|audio|track)$/i, '')
+        .replace(/^(?:search\s+for|search|find|lookup)\s+(?:music|song|songs|track|audio)?\s*/gi, '')
+        .replace(/\s+(?:song|music|audio|track)$/gi, '')
         .trim();
 
       if (musicQuery) {
@@ -501,19 +517,44 @@ export default function VoiceAssistant() {
     }
 
     // 5. SEARCH INTENTS (General Movies / Series / Anime / Manga)
-    if (command.startsWith('search for ') || command.startsWith('search ')) {
-      let query = command.replace('search for ', '').replace('search ', '').trim();
-      let searchType = 'movie';
-      
-      // Auto-detect media type from query
-      if (query.includes('anime')) { searchType = 'anime'; query = query.replace('anime', '').trim(); }
-      else if (query.includes('tv') || query.includes('series')) { searchType = 'tv'; query = query.replace('tv', '').replace('series', '').trim(); }
-      else if (query.includes('manga')) { searchType = 'manga'; query = query.replace('manga', '').trim(); }
-      else if (query.includes('movie')) { searchType = 'movie'; query = query.replace('movie', '').trim(); }
+    if (
+      command.startsWith('search') ||
+      command.startsWith('find ') ||
+      command.startsWith('lookup ') ||
+      command.startsWith('look up ')
+    ) {
+      // Strip leading search action tokens
+      let rawQuery = command
+        .replace(/^(?:search\s+for|search|find|lookup|look\s+up)\s+/gi, '')
+        .replace(/^(?:search\s+for|search|find|lookup|look\s+up)\s+/gi, '') // handles any residual repetition
+        .trim();
 
-      if (query) {
-        setStatusText(`Searching ${searchType}s: ${query}`);
-        const searchUrl = `/search?q=${encodeURIComponent(query)}&type=${searchType}`;
+      let searchType = 'movie'; // default fallback
+
+      // Auto-detect media type and remove it from query so only clean title remains
+      if (/\b(anime)\b/i.test(rawQuery)) {
+        searchType = 'anime';
+        rawQuery = rawQuery.replace(/\banime\b/gi, '').trim();
+      } else if (/\b(tv\s+series|tv\s+show|tv|series|show|shows)\b/i.test(rawQuery)) {
+        searchType = 'tv';
+        rawQuery = rawQuery.replace(/\b(tv\s+series|tv\s+show|tv|series|show|shows)\b/gi, '').trim();
+      } else if (/\b(manga)\b/i.test(rawQuery)) {
+        searchType = 'manga';
+        rawQuery = rawQuery.replace(/\bmanga\b/gi, '').trim();
+      } else if (/\b(movie|movies|film|films)\b/i.test(rawQuery)) {
+        searchType = 'movie';
+        rawQuery = rawQuery.replace(/\b(movie|movies|film|films)\b/gi, '').trim();
+      }
+
+      // Clean up common filler words like "the", "for"
+      const cleanQuery = rawQuery
+        .replace(/^(?:for|about|the)\s+/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleanQuery) {
+        setStatusText(`Searching ${searchType}s: "${cleanQuery}"`);
+        const searchUrl = `/search?q=${encodeURIComponent(cleanQuery)}&type=${searchType}`;
         // If already on the search page, force a hard reload so the new params take effect immediately
         if (window.location.pathname === '/search') {
           window.location.href = searchUrl;

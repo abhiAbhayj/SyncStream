@@ -66,12 +66,11 @@ export default function Navbar() {
                   if (window.history.state && window.history.state.idx > 0) navigate(-1);
                   else navigate('/');
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-accentCyan/60 bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-extrabold text-xs uppercase tracking-wider shadow-[0_0_12px_rgba(var(--accent-cyan),0.35)] transition-all duration-200 active:scale-95 cursor-pointer group"
+                className="p-1.5 sm:p-2 rounded-xl border border-accentCyan/60 bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_12px_rgba(var(--accent-cyan),0.35)] transition-all duration-200 active:scale-95 cursor-pointer group flex items-center justify-center shrink-0"
                 title="Go Back"
                 aria-label="Go Back"
               >
-                <ArrowLeft className="w-4 h-4 text-accentCyan group-hover:text-black transition-colors" strokeWidth={2.5} />
-                <span className="font-black text-xs">Back</span>
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-accentCyan group-hover:text-black transition-colors" strokeWidth={2.5} />
               </button>
             )}
 

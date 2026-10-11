@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, User, Phone, Lock, UserPlus, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Tv, User, Phone, Lock, UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function Register() {
   const { register, user } = useAuth();
@@ -51,19 +51,6 @@ export default function Register() {
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-8 max-w-md mx-auto space-y-4">
-      {/* Back Button */}
-      <div className="w-full flex justify-start">
-        <button
-          onClick={() => navigate('/')}
-          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-        >
-          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-          </span>
-          <span className="font-extrabold tracking-wider">Back</span>
-        </button>
-      </div>
-
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-accentPurple/5 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="w-full glass-panel border border-darkBorder rounded-3xl p-8 shadow-2xl relative space-y-6 animate-fade-in">
