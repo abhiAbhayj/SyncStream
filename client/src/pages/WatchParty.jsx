@@ -285,12 +285,20 @@ export default function WatchParty() {
         : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: mediaDetail?.episodes_count || 12 }])
     : [];
 
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
+
   const relatedEntries = (() => {
-    if (!mediaDetail || !isEpisodic) return [];
+    if (!mediaDetail) return [];
     const list = [];
     
-    // 1. All seasons from mediaDetail.seasons
-    if (mediaDetail.seasons && mediaDetail.seasons.length > 0) {
+    // 1. All seasons from mediaDetail.seasons (only for TV & Anime)
+    if (isEpisodic && mediaDetail.seasons && mediaDetail.seasons.length > 0) {
       mediaDetail.seasons.forEach((s) => {
         let badge = `SEASON ${s.season_number}`;
         if (s.season_number === 0) badge = 'SPECIAL';
@@ -315,17 +323,36 @@ export default function WatchParty() {
 
     // 2. Any related franchise movies/series from mediaDetail.related_franchise
     if (mediaDetail.related_franchise && mediaDetail.related_franchise.length > 0) {
+      const hasCurrent = mediaDetail.related_franchise.some(rf => String(rf.id) === String(mediaDetail.id));
+
+      if (!isEpisodic && !hasCurrent) {
+        list.push({
+          id: mediaDetail.id,
+          title: mediaDetail.title,
+          badge: 'NOW PLAYING',
+          badgeColor: 'bg-[#10b981] text-black border-[#10b981]',
+          type: 'movie',
+          release_date: mediaDetail.release_date ? mediaDetail.release_date.split('-')[0] : '',
+          poster_path: mediaDetail.poster_path,
+          isSeason: false,
+          isActive: true
+        });
+      }
+
       mediaDetail.related_franchise.forEach((rf) => {
+        const isCurrentActive = String(rf.id) === String(mediaDetail.id);
         list.push({
           id: rf.id,
           title: rf.title,
-          badge: rf.badge || (rf.type === 'movie' ? 'MOVIE' : 'TV'),
-          badgeColor: rf.type === 'movie' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40',
-          type: rf.type,
+          badge: isCurrentActive ? 'NOW PLAYING' : (rf.badge || (rf.type === 'movie' ? 'MOVIE' : 'TV')),
+          badgeColor: isCurrentActive 
+            ? 'bg-[#10b981] text-black border-[#10b981]' 
+            : (rf.type === 'movie' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'),
+          type: rf.type || 'movie',
           release_date: rf.release_date ? rf.release_date.split('-')[0] : '',
           poster_path: rf.poster_path || mediaDetail.poster_path,
           isSeason: false,
-          isActive: false
+          isActive: isCurrentActive
         });
       });
     }
@@ -359,9 +386,9 @@ export default function WatchParty() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           <button
-            onClick={() => navigate('/')}
+            onClick={handleBack}
             className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-            title="Return to Home"
+            title="Go Back"
           >
             <span className="p-0.5 sm:p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
               <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
@@ -705,8 +732,8 @@ export default function WatchParty() {
             </div>
           )}
 
-          {/* ── RELATED SEASONS & SERIES in WatchParty - ONLY FOR TV/ANIME ── */}
-          {isEpisodic && relatedEntries.length > 0 && (
+          {/* ── RELATED SEASONS & SERIES / MOVIES in WatchParty ── */}
+          {relatedEntries.length > 0 && (
             <div className="glass-panel border border-darkBorder p-4 sm:p-5 rounded-2xl shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-darkBorder/60 pb-3">
                 <div className="flex items-center gap-2">
@@ -714,7 +741,7 @@ export default function WatchParty() {
                     <Layers className="w-4 h-4 stroke-[2.5]" />
                   </span>
                   <h3 className="font-black text-sm uppercase tracking-wider text-white font-outfit">
-                    Related Seasons & Series
+                    {room.media_type === 'movie' ? 'Related Movies & Franchise' : 'Related Seasons & Series'}
                   </h3>
                 </div>
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider font-mono">

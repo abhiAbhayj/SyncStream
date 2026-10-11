@@ -860,43 +860,87 @@ export const getMediaDetail = async (req, res) => {
           }));
 
           let relatedFranchise = [];
-          if (type === 'tv' || type === 'anime') {
-            try {
-              const rawTitle = d.title || d.name || '';
-              const baseTitle = rawTitle.split(':')[0].split('-')[0].trim();
-              if (baseTitle && baseTitle.length >= 3) {
-                const [tvSearch, movieSearch] = await Promise.all([
-                  axios.get(`${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(baseTitle)}`),
-                  axios.get(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(baseTitle)}`)
-                ]);
-                const matchedTv = (tvSearch.data.results || [])
-                  .filter(r => r.id.toString() !== d.id.toString())
-                  .slice(0, 4)
-                  .map(r => ({
-                    id: r.id.toString(),
-                    title: r.name,
-                    badge: 'TV',
-                    type: 'tv',
-                    release_date: r.first_air_date || '',
-                    poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-                    overview: r.overview || ''
-                  }));
-                const matchedMovies = (movieSearch.data.results || [])
-                  .slice(0, 4)
-                  .map(r => ({
-                    id: r.id.toString(),
-                    title: r.title,
-                    badge: 'MOVIE',
-                    type: 'movie',
-                    release_date: r.release_date || '',
-                    poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-                    overview: r.overview || ''
-                  }));
-                relatedFranchise = [...matchedTv, ...matchedMovies];
+          try {
+            const rawTitle = d.title || d.name || '';
+            const baseTitle = rawTitle.split(':')[0].split('-')[0].trim();
+
+            // A. If movie belongs to an official TMDB collection (e.g. Spider-Man, Avengers, Batman, etc.)
+            if (d.belongs_to_collection && d.belongs_to_collection.id) {
+              try {
+                const colRes = await axios.get(`${TMDB_BASE_URL}/collection/${d.belongs_to_collection.id}?api_key=${TMDB_API_KEY}`);
+                const parts = (colRes.data?.parts || []).map(p => ({
+                  id: p.id.toString(),
+                  title: p.title || p.name,
+                  badge: 'MOVIE',
+                  type: 'movie',
+                  release_date: p.release_date ? p.release_date.split('-')[0] : '',
+                  poster_path: p.poster_path ? `https://image.tmdb.org/t/p/w500${p.poster_path}` : null,
+                  overview: p.overview || ''
+                }));
+                parts.sort((a, b) => (a.release_date || '').localeCompare(b.release_date || ''));
+                relatedFranchise.push(...parts);
+              } catch (colErr) {
+                console.warn('Collection fetch error:', colErr.message);
               }
-            } catch (relErr) {
-              console.warn('Franchise search error:', relErr.message);
             }
+
+            // B. Search by base title for franchise movies and series
+            if (baseTitle && baseTitle.length >= 3) {
+              const [tvSearch, movieSearch] = await Promise.all([
+                axios.get(`${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(baseTitle)}`).catch(() => ({ data: {} })),
+                axios.get(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(baseTitle)}`).catch(() => ({ data: {} }))
+              ]);
+
+              const existingIds = new Set(relatedFranchise.map(rf => rf.id.toString()));
+
+              const matchedMovies = (movieSearch.data?.results || [])
+                .filter(r => !existingIds.has(r.id.toString()) && r.id.toString() !== d.id.toString())
+                .slice(0, 8)
+                .map(r => ({
+                  id: r.id.toString(),
+                  title: r.title,
+                  badge: 'MOVIE',
+                  type: 'movie',
+                  release_date: r.release_date ? r.release_date.split('-')[0] : '',
+                  poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
+                  overview: r.overview || ''
+                }));
+
+              const matchedTv = (tvSearch.data?.results || [])
+                .filter(r => !existingIds.has(r.id.toString()) && r.id.toString() !== d.id.toString())
+                .slice(0, 4)
+                .map(r => ({
+                  id: r.id.toString(),
+                  title: r.name,
+                  badge: 'TV',
+                  type: 'tv',
+                  release_date: r.first_air_date ? r.first_air_date.split('-')[0] : '',
+                  poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
+                  overview: r.overview || ''
+                }));
+
+              if (type === 'movie') {
+                relatedFranchise.push(...matchedMovies, ...matchedTv);
+              } else {
+                relatedFranchise.push(...matchedTv, ...matchedMovies);
+              }
+            }
+
+            // C. Fallback to recommendations if franchise list is still empty
+            if (relatedFranchise.length === 0 && d.recommendations?.results && d.recommendations.results.length > 0) {
+              const recs = d.recommendations.results.slice(0, 6).map(r => ({
+                id: r.id.toString(),
+                title: r.title || r.name,
+                badge: r.media_type === 'tv' ? 'TV' : 'MOVIE',
+                type: r.media_type || (type === 'tv' ? 'tv' : 'movie'),
+                release_date: (r.release_date || r.first_air_date || '').split('-')[0],
+                poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
+                overview: r.overview || ''
+              }));
+              relatedFranchise.push(...recs);
+            }
+          } catch (relErr) {
+            console.warn('Franchise search error:', relErr.message);
           }
 
           details = {

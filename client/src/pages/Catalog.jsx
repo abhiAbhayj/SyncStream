@@ -158,7 +158,7 @@ export default function Catalog() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-darkBorder pb-5 sm:pb-6">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
             className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
           >
             <span className="p-0.5 sm:p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
