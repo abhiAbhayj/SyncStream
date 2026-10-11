@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v2';
+const CACHE_NAME = 'syncstream-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -9,11 +9,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.map((key) => caches.delete(key))
       );
     }).then(() => self.clients.claim())
   );
@@ -24,8 +20,10 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/api/') || event.request.url.includes('/socket.io/')) {
     return;
   }
-  // Network first, fallback to cache
+  // Network first: always attempt to fetch fresh network assets first
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request)
+      .then((response) => response)
+      .catch(() => caches.match(event.request))
   );
 });
