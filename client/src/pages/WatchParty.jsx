@@ -331,70 +331,70 @@ export default function WatchParty() {
   })();
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 md:px-8 space-y-6 relative">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 md:px-8 space-y-5 sm:space-y-6 relative">
       
       {/* ── Floating Room Join/Leave Toast Notifications ── */}
       {partyNotifications.length > 0 && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] flex flex-col gap-2 pointer-events-none items-center">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] flex flex-col gap-2 pointer-events-none items-center px-4 w-full max-w-md">
           {partyNotifications.map((notif) => (
             <div
               key={notif.id}
-              className={`px-4 py-2.5 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center gap-2.5 text-xs font-bold animate-fade-in pointer-events-auto ${
+              className={`px-3.5 py-2 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center gap-2.5 text-xs font-bold animate-fade-in pointer-events-auto ${
                 notif.type === 'join'
                   ? 'bg-darkCard/95 border-emerald-500/40 text-emerald-400 shadow-[0_0_25px_rgba(50,240,160,0.35)]'
                   : 'bg-darkCard/95 border-amber-500/40 text-amber-400 shadow-[0_0_25px_rgba(255,200,0,0.25)]'
               }`}
             >
               <Sparkles className="w-4 h-4 text-accentCyan shrink-0" />
-              <span>{notif.text}</span>
+              <span className="truncate">{notif.text}</span>
             </div>
           ))}
         </div>
       )}
 
       {/* Top Controls Header Info */}
-      <div className="flex flex-wrap items-center justify-between gap-4 glass-panel border border-darkBorder p-4 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           <button
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
             title="Return to Home"
           >
-            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
-              <ArrowLeft className="w-4 h-4 stroke-[3]" />
+            <span className="p-0.5 sm:p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
             </span>
             <span className="font-extrabold tracking-wider">Back</span>
           </button>
           
-          <div className="space-y-1">
-            <h1 className="font-extrabold text-lg md:text-xl text-white font-outfit line-clamp-1">
+          <div className="space-y-0.5 min-w-0 flex-1">
+            <h1 className="font-extrabold text-base sm:text-lg md:text-xl text-white font-outfit truncate">
               Watch Party: {mediaDetail.title}
             </h1>
-            <p className="text-xs text-gray-400 flex items-center gap-1">
-              Host: <span className="text-accentCyan font-semibold">{room.host_username}</span>
+            <p className="text-[11px] sm:text-xs text-gray-400 flex items-center gap-1 truncate">
+              Host: <span className="text-accentCyan font-semibold truncate">{room.host_username}</span>
             </p>
           </div>
         </div>
 
         {/* Action Widgets */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10 shrink-0">
           {/* Active Participants count */}
-          <div className="flex items-center gap-2 bg-darkBg border border-darkBorder px-3 py-2 rounded-xl text-xs text-gray-400 font-semibold">
-            <Users className="w-4 h-4 text-accentPurple" />
-            {participantsCount} in Room
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-darkBg border border-darkBorder px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs text-gray-400 font-semibold shrink-0">
+            <Users className="w-3.5 h-3.5 text-accentPurple shrink-0" />
+            <span>{participantsCount} in Room</span>
           </div>
 
           {/* Share Room Code Button */}
           <button
             onClick={handleCopyCode}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition border cursor-pointer shrink-0 ${
               copied
                 ? 'border-green-500/30 text-green-400 bg-green-500/10'
                 : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5'
             }`}
           >
-            <Copy className="w-3.5 h-3.5" />
-            {copied ? 'Code Copied!' : `Share Code: ${code}`}
+            <Copy className="w-3.5 h-3.5 shrink-0" />
+            <span>{copied ? 'Code Copied!' : `Share Code: ${code}`}</span>
           </button>
         </div>
       </div>
@@ -480,13 +480,13 @@ export default function WatchParty() {
         <div className="lg:col-span-2 space-y-4 text-left">
           
           {/* Playback Mode tabs for host / Indicators for participants */}
-          <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-4">
-            <div className="flex items-center gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-darkBorder pb-3 gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold overflow-x-auto max-w-full">
               {mediaDetail.youtube_trailer && (
                 <button
                   disabled={!isHost}
                   onClick={() => handlePlaybackModeChange('trailer')}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
+                  className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                     playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
@@ -496,7 +496,7 @@ export default function WatchParty() {
               <button
                 disabled={!isHost}
                 onClick={() => handlePlaybackModeChange('solo-embed')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
+                className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                   playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
@@ -505,7 +505,7 @@ export default function WatchParty() {
               <button
                 disabled={!isHost}
                 onClick={() => handlePlaybackModeChange('solo-html5')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
+                className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                   playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
@@ -514,7 +514,7 @@ export default function WatchParty() {
             </div>
             
             {!isHost && (
-              <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">
+              <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider self-start sm:self-auto shrink-0">
                 Sync Mode: Active
               </span>
             )}
@@ -522,26 +522,26 @@ export default function WatchParty() {
 
           {/* Streaming Server Selector (only for Standard Embed) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-2 border border-darkBorder bg-black/30 p-4 rounded-2xl">
+            <div className="space-y-2 border border-darkBorder bg-black/30 p-3 sm:p-4 rounded-2xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accentCyan" />
-                  <span className="text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan shrink-0" />
+                  <span className="text-[11px] sm:text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
                 </div>
                 {!isHost ? (
-                  <span className="text-[11px] text-gray-400">Host controls active streaming server</span>
+                  <span className="text-[10px] sm:text-[11px] text-gray-400">Host controls active streaming server</span>
                 ) : (
-                  <span className="text-[11px] text-gray-400">Switch server if stream buffers</span>
+                  <span className="text-[10px] sm:text-[11px] text-gray-400">Switch server if stream buffers</span>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap pt-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-1">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
                     disabled={!isHost}
                     onClick={() => handleServerChange(server.key)}
-                    className={`group relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 ${
+                    className={`group relative px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 sm:gap-2 ${
                       embedServer === server.key
                         ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
                         : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -549,7 +549,7 @@ export default function WatchParty() {
                   >
                     <span>{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${
+                      <span className={`text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 rounded-md border font-semibold ${
                         embedServer === server.key
                           ? 'border-accentCyan/30 bg-accentCyan/20 text-accentCyan'
                           : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
@@ -719,7 +719,7 @@ export default function WatchParty() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
                 {relatedEntries.map((item) => (
                   <button
                     key={item.id}
@@ -729,7 +729,7 @@ export default function WatchParty() {
                         handleSeasonChange(item.season_number);
                       }
                     }}
-                    className={`relative overflow-hidden rounded-xl p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[90px] ${
+                    className={`relative overflow-hidden rounded-xl p-2.5 sm:p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[85px] sm:min-h-[90px] ${
                       isHost ? 'cursor-pointer active:scale-95' : 'cursor-default'
                     } ${
                       item.isActive
@@ -745,22 +745,22 @@ export default function WatchParty() {
                     )}
                     
                     <div className="relative z-10 space-y-1">
-                      <span className={`inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded-md border tracking-wider ${
+                      <span className={`inline-block text-[8px] sm:text-[9px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-md border tracking-wider ${
                         item.isActive
                           ? 'bg-[#10b981] text-black border-[#10b981]'
                           : item.badgeColor
                       }`}>
                         {item.badge}
                       </span>
-                      <h4 className="text-xs font-bold line-clamp-2 text-white group-hover:text-accentCyan transition">
+                      <h4 className="text-[11px] sm:text-xs font-bold line-clamp-2 text-white group-hover:text-accentCyan transition">
                         {item.title}
                       </h4>
                     </div>
 
-                    <div className="relative z-10 pt-2 flex items-center justify-between text-[10px] text-gray-400 font-semibold uppercase">
+                    <div className="relative z-10 pt-2 flex items-center justify-between text-[9px] sm:text-[10px] text-gray-400 font-semibold uppercase">
                       <span>{item.type} {item.release_date ? `• ${item.release_date}` : ''}</span>
                       {item.isActive && (
-                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#10b981] animate-ping" />
                       )}
                     </div>
                   </button>

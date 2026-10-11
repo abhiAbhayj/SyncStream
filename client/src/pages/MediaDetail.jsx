@@ -320,34 +320,34 @@ export default function MediaDetail() {
   })();
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 md:px-8 space-y-6 relative">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 md:px-8 space-y-4 sm:space-y-6 relative">
       
       {/* Top Controls Header Info */}
-      <div className="flex flex-wrap items-center justify-between gap-4 glass-panel border border-darkBorder p-4 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           <button
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
             title="Return to Home"
           >
-            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
-              <ArrowLeft className="w-4 h-4 stroke-[3]" />
+            <span className="p-0.5 sm:p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center">
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
             </span>
             <span className="font-extrabold tracking-wider">Back</span>
           </button>
           
-          <div className="space-y-1">
-            <h1 className="font-extrabold text-lg md:text-xl text-white font-outfit line-clamp-1">
+          <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+            <h1 className="font-extrabold text-base sm:text-lg md:text-xl text-white font-outfit truncate">
               Watch: {detail.title}
             </h1>
-            <p className="text-xs text-gray-400 flex items-center gap-2">
+            <p className="text-[11px] sm:text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
               <span className="text-accentCyan font-semibold capitalize">Solo Stream</span>
               <span>•</span>
               <span className="capitalize">{type}</span>
               {detail.release_date && <span>• {detail.release_date}</span>}
               {detail.vote_average && (
                 <span className="flex items-center gap-1 text-yellow-400">
-                  • <Star className="w-3.5 h-3.5 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
+                  • <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
                 </span>
               )}
             </p>
@@ -355,37 +355,35 @@ export default function MediaDetail() {
         </div>
 
         {/* Action Widgets */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Library / Watchlist */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-end w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10">
           <button
             onClick={handleWatchlistToggle}
             disabled={watchlistLoading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
               inWatchlist
                 ? 'border-accentPink text-accentPink bg-accentPink/15 hover:bg-accentPink/25'
                 : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5'
             }`}
           >
             <Heart className={`w-3.5 h-3.5 ${inWatchlist ? 'fill-current' : ''}`} />
-            {inWatchlist ? 'Saved in Library' : 'Add to Library'}
+            <span>{inWatchlist ? 'Saved in Library' : 'Add to Library'}</span>
           </button>
 
-          {/* Watch Party Button */}
           {type !== 'manga' && (
             <button
               onClick={handleCreateWatchParty}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
             >
               <Users className="w-3.5 h-3.5" />
-              Watch Party
+              <span>Watch Party</span>
             </button>
           )}
         </div>
       </div>
 
       {/* ── Media Overview Card AT THE TOP (Requested by User) ── */}
-      <div className="glass-panel border border-darkBorder p-6 sm:p-8 rounded-2xl shadow-xl flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-        <div className="w-[140px] sm:w-[180px] md:w-[220px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto md:mx-0">
+      <div className="glass-panel border border-darkBorder p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
+        <div className="w-[120px] sm:w-[150px] md:w-[200px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto sm:mx-0">
           {activePoster ? (
             <img 
               src={activePoster} 
@@ -395,27 +393,27 @@ export default function MediaDetail() {
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-tr from-gray-800 to-gray-900">
-              <span className="font-bold text-base mb-1 text-white">{detail.title}</span>
-              <span className="text-xs text-gray-400 uppercase tracking-wider">No Poster</span>
+              <span className="font-bold text-sm sm:text-base mb-1 text-white">{detail.title}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider">No Poster</span>
             </div>
           )}
         </div>
 
-        <div className="flex-grow space-y-4 text-left w-full">
-          <div className="space-y-2">
+        <div className="flex-grow space-y-3 sm:space-y-4 text-left w-full min-w-0">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-outfit">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-outfit break-words">
                 {detail.title}
               </h2>
               {(type === 'tv' || type === 'anime') && activeSeason && (
-                <span className="text-xs font-extrabold px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
+                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
                   {activeSeasonName}
                 </span>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-400 font-semibold">
-              <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 font-semibold">
+              <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-bold uppercase tracking-wider">
                 {type}
               </span>
               {currentSeason?.air_date ? (
@@ -425,7 +423,7 @@ export default function MediaDetail() {
               )}
               {detail.vote_average && (
                 <span className="flex items-center gap-1 text-yellow-400">
-                  • <Star className="w-4 h-4 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
+                  • <Star className="w-3.5 h-3.5 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
                 </span>
               )}
             </div>
@@ -438,7 +436,7 @@ export default function MediaDetail() {
                     key={g.id || `${g.name}-${idx}`}
                     type="button"
                     onClick={() => navigate(`/search?type=${type}&genre=${g.id || encodeURIComponent(g.name)}`)}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 hover:bg-accentCyan/20 text-gray-300 hover:text-accentCyan border border-white/10 hover:border-accentCyan/40 transition-all cursor-pointer backdrop-blur-md active:scale-95 shadow-sm"
+                    className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold bg-white/5 hover:bg-accentCyan/20 text-gray-300 hover:text-accentCyan border border-white/10 hover:border-accentCyan/40 transition-all cursor-pointer backdrop-blur-md active:scale-95 shadow-sm"
                   >
                     {g.name}
                   </button>
@@ -448,13 +446,11 @@ export default function MediaDetail() {
           </div>
 
           {/* Synopsis (Displays the active season's synopsis!) */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-200 text-sm uppercase tracking-wider">
-                {activeSeasonName ? `${activeSeasonName} Synopsis` : 'Synopsis'}
-              </h3>
-            </div>
-            <p className="text-gray-300 text-sm leading-relaxed max-w-4xl font-normal">
+          <div className="space-y-1">
+            <h3 className="font-bold text-gray-200 text-xs sm:text-sm uppercase tracking-wider">
+              {activeSeasonName ? `${activeSeasonName} Synopsis` : 'Synopsis'}
+            </h3>
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed max-w-4xl font-normal">
               {activeOverview}
             </p>
           </div>
@@ -465,12 +461,12 @@ export default function MediaDetail() {
       {type !== 'manga' && (
         <div className="space-y-4 text-left">
           {/* Playback Mode tabs */}
-          <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-4">
-            <div className="flex items-center gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold">
+          <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold overflow-x-auto max-w-full scrollbar-none">
               {detail.youtube_trailer && (
                 <button
                   onClick={() => setPlaybackMode('trailer')}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                  className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap shrink-0 ${
                     playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                   }`}
                 >
@@ -479,7 +475,7 @@ export default function MediaDetail() {
               )}
               <button
                 onClick={() => setPlaybackMode('solo-embed')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap shrink-0 ${
                   playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 }`}
               >
@@ -487,7 +483,7 @@ export default function MediaDetail() {
               </button>
               <button
                 onClick={() => setPlaybackMode('solo-html5')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap shrink-0 ${
                   playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
                 }`}
               >
@@ -495,28 +491,28 @@ export default function MediaDetail() {
               </button>
             </div>
             
-            <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">
+            <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider shrink-0">
               Solo Stream: Active
             </span>
           </div>
 
           {/* Streaming Server Selector (only for Standard Embed) */}
           {playbackMode === 'solo-embed' && (
-            <div className="space-y-2 border border-darkBorder bg-black/30 p-4 rounded-2xl">
+            <div className="space-y-2 border border-darkBorder bg-black/30 p-3 sm:p-4 rounded-2xl">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accentCyan" />
-                  <span className="text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan" />
+                  <span className="text-xs sm:text-sm text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
                 </div>
-                <span className="text-[11px] text-gray-400">Switch server if stream buffers</span>
+                <span className="text-[10px] sm:text-[11px] text-gray-400">Switch server if stream buffers</span>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap pt-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-1">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
                     onClick={() => setEmbedServer(server.key)}
-                    className={`group relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer ${
+                    className={`group relative px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 sm:gap-2 cursor-pointer ${
                       embedServer === server.key
                         ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
                         : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20'
@@ -524,7 +520,7 @@ export default function MediaDetail() {
                   >
                     <span>{server.label}</span>
                     {server.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${
+                      <span className={`text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 rounded-md border font-semibold ${
                         embedServer === server.key
                           ? 'border-accentCyan/30 bg-accentCyan/20 text-accentCyan'
                           : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
@@ -540,7 +536,7 @@ export default function MediaDetail() {
 
           {/* Custom Stream Input Box (only for Custom mode) */}
           {playbackMode === 'solo-html5' && (
-            <div className="flex flex-col gap-2 border border-darkBorder bg-black/20 p-4 rounded-2xl">
+            <div className="flex flex-col gap-2 border border-darkBorder bg-black/20 p-3.5 sm:p-4 rounded-2xl">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Paste Direct Video URL (.mp4, .m3u8) or Custom Embed URL:
               </label>
@@ -550,7 +546,7 @@ export default function MediaDetail() {
                   placeholder="e.g. https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
                   value={customUrl}
                   onChange={(e) => setCustomUrl(e.target.value)}
-                  className="flex-grow px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
+                  className="flex-grow px-3 sm:px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs sm:text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
                 />
                 {customUrl && (
                   <button
@@ -618,15 +614,15 @@ export default function MediaDetail() {
 
           {/* Season and Episode selector Directory for TV/Anime */}
           {(type === 'tv' || type === 'anime' || detail.number_of_seasons > 0 || (detail.seasons && detail.seasons.length > 0)) && (
-            <div className="border border-darkBorder bg-black/10 rounded-2xl p-4 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-darkBorder/60 pb-3">
-                <h4 className="font-bold text-sm text-gray-300 flex items-center gap-1.5 font-outfit">
-                  <Play className="w-4 h-4 text-accentCyan fill-current" />
-                  Episodes Directory
+            <div className="border border-darkBorder bg-black/10 rounded-2xl p-3 sm:p-4 space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-b border-darkBorder/60 pb-3">
+                <h4 className="font-bold text-xs sm:text-sm text-gray-300 flex items-center gap-1.5 font-outfit truncate">
+                  <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-current shrink-0" />
+                  <span>Episodes Directory</span>
                 </h4>
 
                 {/* Season selector (TV shows & Anime - ALWAYS VISIBLE!) */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
                   <select
                     value={activeSeason || 1}
@@ -635,7 +631,7 @@ export default function MediaDetail() {
                       setActiveSeason(sNum);
                       setActiveEpisode(1);
                     }}
-                    className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer"
+                    className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer"
                   >
                     {seasonsList.map((s) => (
                       <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg font-medium">
@@ -647,7 +643,7 @@ export default function MediaDetail() {
               </div>
 
               {/* Vertical Scrollbar Episodes Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-accentCyan/50 scrollbar-track-black/40">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 max-h-[300px] overflow-y-auto pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-accentCyan/50 scrollbar-track-black/40">
                 {(() => {
                   const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
                   const epCount = seasonEpisodes.length > 0
@@ -668,7 +664,7 @@ export default function MediaDetail() {
                           setActiveEpisode(epNum);
                           setPlaybackMode('solo-embed');
                         }}
-                        className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group cursor-pointer ${
+                        className={`p-2 sm:p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group cursor-pointer ${
                           isSelected
                             ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-md shadow-accentCyan/10 ring-1 ring-accentCyan/30'
                             : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white hover:border-white/20'
@@ -677,7 +673,7 @@ export default function MediaDetail() {
                         <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
                           Episode {epNum}
                         </span>
-                        <span className="text-[11px] font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                        <span className="text-[11px] sm:text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
                           {epTitle}
                         </span>
                       </button>
@@ -690,22 +686,22 @@ export default function MediaDetail() {
 
           {/* ── RELATED SEASONS & SERIES (Matching Uploaded Screenshot) ── */}
           {(type === 'tv' || type === 'anime') && relatedEntries.length > 0 && (
-            <div className="glass-panel border border-darkBorder p-4 sm:p-5 rounded-2xl shadow-xl space-y-4">
+            <div className="glass-panel border border-darkBorder p-3.5 sm:p-5 rounded-2xl shadow-xl space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between border-b border-darkBorder/60 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-[#10b981]/20 text-[#10b981] flex items-center justify-center">
-                    <Layers className="w-4 h-4 stroke-[2.5]" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="p-1 sm:p-1.5 rounded-lg bg-[#10b981]/20 text-[#10b981] flex items-center justify-center shrink-0">
+                    <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
                   </span>
-                  <h3 className="font-black text-sm uppercase tracking-wider text-white font-outfit">
+                  <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-white font-outfit truncate">
                     Related Seasons & Series
                   </h3>
                 </div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider font-mono">
+                <span className="text-[11px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider font-mono shrink-0">
                   {relatedEntries.length} Entries
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3">
                 {relatedEntries.map((item) => (
                   <button
                     key={item.id}
@@ -718,7 +714,7 @@ export default function MediaDetail() {
                         navigate(`/media/${item.type}/${item.id}`);
                       }
                     }}
-                    className={`relative overflow-hidden rounded-xl p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[95px] cursor-pointer active:scale-95 ${
+                    className={`relative overflow-hidden rounded-xl p-2.5 sm:p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[90px] sm:min-h-[95px] cursor-pointer active:scale-95 ${
                       item.isActive
                         ? 'border-2 border-[#10b981] bg-[#10b981]/15 text-white shadow-[0_0_20px_rgba(16,185,129,0.45)] ring-1 ring-[#10b981]'
                         : 'border border-darkBorder bg-darkCard/70 hover:border-white/30 hover:bg-darkCard text-gray-300'
@@ -732,22 +728,22 @@ export default function MediaDetail() {
                     )}
                     
                     <div className="relative z-10 space-y-1">
-                      <span className={`inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded-md border tracking-wider ${
+                      <span className={`inline-block text-[8px] sm:text-[9px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-md border tracking-wider ${
                         item.isActive
                           ? 'bg-[#10b981] text-black border-[#10b981]'
                           : item.badgeColor
                       }`}>
                         {item.badge}
                       </span>
-                      <h4 className="text-xs font-bold line-clamp-2 text-white group-hover:text-accentCyan transition">
+                      <h4 className="text-[11px] sm:text-xs font-bold line-clamp-2 text-white group-hover:text-accentCyan transition">
                         {item.title}
                       </h4>
                     </div>
 
-                    <div className="relative z-10 pt-2 flex items-center justify-between text-[10px] text-gray-400 font-semibold uppercase">
+                    <div className="relative z-10 pt-2 flex items-center justify-between text-[9px] sm:text-[10px] text-gray-400 font-semibold uppercase">
                       <span>{item.type} {item.release_date ? `• ${item.release_date}` : ''}</span>
                       {item.isActive && (
-                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#10b981] animate-ping" />
                       )}
                     </div>
                   </button>
@@ -761,16 +757,16 @@ export default function MediaDetail() {
       {/* Manga Chapters List (Manga content) */}
       {type === 'manga' && (
         <section className="space-y-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2 font-outfit">
-            <BookOpen className="w-5 h-5 text-accentCyan" />
+          <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2 font-outfit">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-accentCyan" />
             MangaDex Chapters Directory
           </h2>
 
           {activeChapterId ? (
             /* Render Reader inline */
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-darkBorder pb-3">
-                <h3 className="font-semibold text-lg text-accentCyan">
+              <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-2">
+                <h3 className="font-semibold text-base sm:text-lg text-accentCyan truncate">
                   Reading: {activeChapterTitle}
                 </h3>
                 <button
@@ -778,7 +774,7 @@ export default function MediaDetail() {
                     setActiveChapterId(null);
                     setActiveChapterTitle('');
                   }}
-                  className="px-4 py-2 bg-darkCard border border-darkBorder hover:border-white/20 rounded-xl text-xs font-semibold text-gray-200 transition"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-darkCard border border-darkBorder hover:border-white/20 rounded-xl text-xs font-semibold text-gray-200 transition"
                 >
                   Close Reader & View Chapters
                 </button>
@@ -799,7 +795,7 @@ export default function MediaDetail() {
             </div>
           ) : (
             /* Renders grid of chapters */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[420px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 max-h-[420px] overflow-y-auto pr-2">
               {chapters.length === 0 ? (
                 <div className="col-span-full py-8 text-center text-gray-300 border-2 border-dashed border-white/20 rounded-2xl bg-darkCard/80">
                   No English chapters found for this manga.
@@ -812,15 +808,15 @@ export default function MediaDetail() {
                       setActiveChapterId(ch.id);
                       setActiveChapterTitle(`Chapter ${ch.chapter}: ${ch.title}`);
                     }}
-                    className="bg-[#12182f] border-2 border-accentCyan/50 hover:border-accentCyan hover:bg-accentCyan/20 text-left p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
+                    className="bg-[#12182f] border-2 border-accentCyan/50 hover:border-accentCyan hover:bg-accentCyan/20 text-left p-3 sm:p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-black text-accentCyan">Chapter {ch.chapter}</p>
-                      <p className="text-sm font-bold text-white truncate max-w-[180px]">
+                      <p className="text-xs sm:text-sm font-bold text-white truncate max-w-[180px]">
                         {ch.title}
                       </p>
                     </div>
-                    <Play className="w-4 h-4 text-accentCyan group-hover:scale-110 transition-transform fill-current" />
+                    <Play className="w-4 h-4 text-accentCyan group-hover:scale-110 transition-transform fill-current shrink-0" />
                   </button>
                 ))
               )}
@@ -831,7 +827,7 @@ export default function MediaDetail() {
 
       {/* Recommendations */}
       {detail.recommendations && detail.recommendations.length > 0 && (
-        <section className="border-t border-darkBorder/40 pt-12">
+        <section className="border-t border-darkBorder/40 pt-8 sm:pt-12">
           <MediaGrid items={detail.recommendations} title="Suggested Recommendations" />
         </section>
       )}
