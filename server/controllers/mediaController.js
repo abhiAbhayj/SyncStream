@@ -908,15 +908,17 @@ export const getMediaDetail = async (req, res) => {
             release_date: d.release_date || d.first_air_date,
             vote_average: d.vote_average,
             genres,
-            seasons: formattedSeasons.length > 0 ? formattedSeasons : [{
-              id: 1,
-              season_number: 1,
-              name: 'Season 1',
-              overview: d.overview || '',
-              poster_path: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null,
-              air_date: d.first_air_date || d.release_date || '',
-              episode_count: d.number_of_episodes || 12
-            }],
+            seasons: (type === 'movie')
+              ? []
+              : (formattedSeasons.length > 0 ? formattedSeasons : [{
+                  id: 1,
+                  season_number: 1,
+                  name: 'Season 1',
+                  overview: d.overview || '',
+                  poster_path: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null,
+                  air_date: d.first_air_date || d.release_date || '',
+                  episode_count: d.number_of_episodes || 12
+                }]),
             related_franchise: relatedFranchise,
             youtube_trailer: trailer || null,
             cast,

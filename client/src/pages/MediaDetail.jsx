@@ -260,19 +260,22 @@ export default function MediaDetail() {
     );
   }
 
-  const currentSeason = detail?.seasons?.find(s => s.season_number === activeSeason) || detail?.seasons?.[0];
-  const activeOverview = currentSeasonData?.overview || currentSeason?.overview || detail?.overview || 'No synopsis available for this title.';
-  const activePoster = currentSeasonData?.poster_path
+  const isEpisodic = (type === 'tv' || type === 'anime');
+  const currentSeason = isEpisodic ? (detail?.seasons?.find(s => s.season_number === activeSeason) || detail?.seasons?.[0]) : null;
+  const activeOverview = (isEpisodic && (currentSeasonData?.overview || currentSeason?.overview)) ? (currentSeasonData?.overview || currentSeason?.overview) : (detail?.overview || 'No synopsis available for this title.');
+  const activePoster = (isEpisodic && currentSeasonData?.poster_path)
     ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
-    : (currentSeason?.poster_path || detail?.poster_path);
-  const activeSeasonName = currentSeason?.name || `Season ${activeSeason}`;
+    : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : detail?.poster_path);
+  const activeSeasonName = isEpisodic ? (currentSeason?.name || `Season ${activeSeason}`) : '';
 
-  const seasonsList = (detail?.seasons && detail.seasons.length > 0)
-    ? detail.seasons
-    : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail?.episodes_count || 12 }];
+  const seasonsList = isEpisodic
+    ? ((detail?.seasons && detail.seasons.length > 0)
+        ? detail.seasons
+        : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: detail?.episodes_count || 12 }])
+    : [];
 
   const relatedEntries = (() => {
-    if (!detail) return [];
+    if (!detail || !isEpisodic) return [];
     const list = [];
     
     // 1. All seasons from detail.seasons
@@ -612,8 +615,8 @@ export default function MediaDetail() {
             })()}
           </div>
 
-          {/* Season and Episode selector Directory for TV/Anime */}
-          {(type === 'tv' || type === 'anime' || detail.number_of_seasons > 0 || (detail.seasons && detail.seasons.length > 0)) && (
+          {/* Season and Episode selector Directory for TV/Anime ONLY - NEVER FOR MOVIES */}
+          {isEpisodic && (
             <div className="border border-darkBorder bg-black/10 rounded-2xl p-3 sm:p-4 space-y-3 sm:space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-b border-darkBorder/60 pb-3">
                 <h4 className="font-bold text-xs sm:text-sm text-gray-300 flex items-center gap-1.5 font-outfit truncate">

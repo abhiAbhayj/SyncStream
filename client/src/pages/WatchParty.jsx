@@ -271,19 +271,22 @@ export default function WatchParty() {
 
 
 
-  const currentSeason = mediaDetail?.seasons?.find(s => s.season_number === activeSeason) || mediaDetail?.seasons?.[0];
-  const activeOverview = currentSeasonData?.overview || currentSeason?.overview || mediaDetail?.overview || 'No synopsis available for this title.';
-  const activePoster = currentSeasonData?.poster_path
+  const isEpisodic = (room?.media_type === 'tv' || room?.media_type === 'anime');
+  const currentSeason = isEpisodic ? (mediaDetail?.seasons?.find(s => s.season_number === activeSeason) || mediaDetail?.seasons?.[0]) : null;
+  const activeOverview = (isEpisodic && (currentSeasonData?.overview || currentSeason?.overview)) ? (currentSeasonData?.overview || currentSeason?.overview) : (mediaDetail?.overview || 'No synopsis available for this title.');
+  const activePoster = (isEpisodic && currentSeasonData?.poster_path)
     ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
-    : (currentSeason?.poster_path || mediaDetail?.poster_path);
-  const activeSeasonName = currentSeason?.name || `Season ${activeSeason}`;
+    : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : mediaDetail?.poster_path);
+  const activeSeasonName = isEpisodic ? (currentSeason?.name || `Season ${activeSeason}`) : '';
 
-  const seasonsList = (mediaDetail?.seasons && mediaDetail.seasons.length > 0)
-    ? mediaDetail.seasons
-    : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: mediaDetail?.episodes_count || 12 }];
+  const seasonsList = isEpisodic
+    ? ((mediaDetail?.seasons && mediaDetail.seasons.length > 0)
+        ? mediaDetail.seasons
+        : [{ id: 1, season_number: 1, name: 'Season 1', episode_count: mediaDetail?.episodes_count || 12 }])
+    : [];
 
   const relatedEntries = (() => {
-    if (!mediaDetail) return [];
+    if (!mediaDetail || !isEpisodic) return [];
     const list = [];
     
     // 1. All seasons from mediaDetail.seasons
@@ -423,7 +426,7 @@ export default function WatchParty() {
               <h2 className="text-xl sm:text-2xl font-extrabold text-white font-outfit">
                 {mediaDetail.title}
               </h2>
-              {(room.media_type === 'tv' || room.media_type === 'anime') && activeSeason && (
+              {isEpisodic && activeSeason && (
                 <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
                   {activeSeasonName}
                 </span>
@@ -464,7 +467,7 @@ export default function WatchParty() {
           {/* Synopsis (Displays the active season's synopsis!) */}
           <div className="space-y-1">
             <h3 className="font-bold text-gray-200 text-xs uppercase tracking-wider">
-              {activeSeasonName ? `${activeSeasonName} Synopsis` : 'Synopsis'}
+              {isEpisodic && activeSeasonName ? `${activeSeasonName} Synopsis` : 'Synopsis'}
             </h3>
             <p className="text-gray-300 text-xs sm:text-sm leading-relaxed max-w-4xl font-normal">
               {activeOverview}
@@ -634,8 +637,8 @@ export default function WatchParty() {
             })()}
           </div>
 
-          {/* Season and Episode selector Directory for TV/Anime */}
-          {(room.media_type === 'tv' || room.media_type === 'anime') && (
+          {/* Season and Episode selector Directory for TV/Anime ONLY - NEVER FOR MOVIES */}
+          {isEpisodic && (
             <div className="border border-darkBorder bg-black/10 rounded-2xl p-4 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-darkBorder/60 pb-3">
                 <h4 className="font-bold text-sm text-gray-300 flex items-center gap-1.5 font-outfit">
@@ -702,8 +705,8 @@ export default function WatchParty() {
             </div>
           )}
 
-          {/* ── RELATED SEASONS & SERIES in WatchParty ── */}
-          {(room.media_type === 'tv' || room.media_type === 'anime') && relatedEntries.length > 0 && (
+          {/* ── RELATED SEASONS & SERIES in WatchParty - ONLY FOR TV/ANIME ── */}
+          {isEpisodic && relatedEntries.length > 0 && (
             <div className="glass-panel border border-darkBorder p-4 sm:p-5 rounded-2xl shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-darkBorder/60 pb-3">
                 <div className="flex items-center gap-2">
