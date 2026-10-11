@@ -49,43 +49,32 @@ export default function Watchlist() {
     { id: 'manga', label: 'Manga', count: mangas.length, icon: BookOpen, activeBadge: 'bg-accentPink text-white border-accentPink', badge: 'bg-pink-500/20 text-pink-400 border-pink-500/30' },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-36 gap-4">
-        <Loader2 className="w-12 h-12 animate-spin text-accentCyan" />
-        <p className="text-gray-400 font-medium">Loading your watchlist library...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-8 px-3 sm:px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
-      {/* Back Button */}
-      <div>
-        <button
-          onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-        >
-          <span className="p-0.5 sm:p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
-          </span>
-          <span className="font-extrabold tracking-wider">Back</span>
-        </button>
-      </div>
+      {/* ── Top Header Controls: Back Navigation & Library Stats ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <button
+            onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
+            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+            title="Go Back"
+          >
+            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
+              <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
+            </span>
+            <span className="font-extrabold tracking-wider">Back</span>
+          </button>
 
-      {/* Header with Library Stats */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-darkBorder pb-6">
-        <div className="space-y-2 text-left">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-accentPink/15 border border-accentPink/30 text-accentPink shadow-[0_0_15px_rgba(255,85,173,0.3)]">
-              <Heart className="w-6 h-6 sm:w-7 sm:h-7 fill-current" />
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-accentPink/15 border border-accentPink/30 text-accentPink shadow-[0_0_15px_rgba(255,85,173,0.3)] shrink-0">
+              <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-outfit truncate">
                 My Library
               </h1>
-              <p className="text-xs sm:text-sm text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-400 hidden sm:block truncate">
                 Organized bookmarks for Movies, TV Series, Anime, and Manga.
               </p>
             </div>
@@ -93,7 +82,7 @@ export default function Watchlist() {
         </div>
 
         {/* Quick Summary Pill Badges */}
-        <div className="flex items-center gap-2 flex-wrap text-xs font-bold">
+        <div className="flex items-center gap-2 flex-wrap text-xs font-bold shrink-0">
           <span className="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 flex items-center gap-1.5">
             <Film className="w-3.5 h-3.5" /> {movies.length} Movies
           </span>
@@ -135,7 +124,12 @@ export default function Watchlist() {
       </div>
 
       {/* Main Content Area */}
-      {watchlist.length === 0 ? (
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-28 gap-4">
+          <Loader2 className="w-12 h-12 animate-spin text-accentCyan" />
+          <p className="text-gray-300 font-medium">Loading your watchlist library...</p>
+        </div>
+      ) : watchlist.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 max-w-md mx-auto glass-panel border border-darkBorder p-8 rounded-3xl">
           <div className="p-4 bg-accentPink/10 border border-accentPink/20 rounded-full text-accentPink shadow-[0_0_30px_rgba(255,85,173,0.3)]">
             <Heart className="w-10 h-10" />

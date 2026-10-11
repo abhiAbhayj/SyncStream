@@ -276,8 +276,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Tab Selector (Horizontal Swipe on Mobile) ── */}
-      <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+      {/* ── Discovery Feed Live Header Row ── */}
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider font-orbitron">
+            Discovery Feed
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>Live Catalog</span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {lastUpdated && (
+            <span className="text-[11px] font-black text-slate-300 hidden sm:inline-block px-2.5 py-1.5 rounded-xl bg-darkCard/80 border border-white/15">
+              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+
+          <button
+            onClick={() => fetchCatalog(true)}
+            disabled={loading}
+            title="Refresh discovery catalog now"
+            className="flex items-center gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#0f1428] hover:bg-accentCyan hover:text-black text-white border-2 border-accentCyan font-black text-xs sm:text-sm shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+          >
+            <RefreshCw className={`w-4 h-4 text-accentCyan group-hover:text-black ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+            <span className="whitespace-nowrap">Live Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Category Tabs ── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -296,25 +327,6 @@ export default function Home() {
             </button>
           );
         })}
-
-        {/* Live refresh button + last-updated timestamp */}
-        <div className="ml-auto shrink-0 flex items-center gap-2 pl-2">
-          {lastUpdated && (
-            <span className="text-[11px] font-black text-slate-200 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-darkCard/80 border-2 border-white/20 whitespace-nowrap shadow-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-              <span>Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </span>
-          )}
-          <button
-            onClick={() => fetchCatalog(true)}
-            disabled={loading}
-            title="Refresh catalog now"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-darkCard/90 hover:bg-accentCyan hover:text-black text-accentCyan border-2 border-accentCyan font-black text-xs shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition active:scale-95 disabled:opacity-40 cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-        </div>
       </div>
 
       {/* Dashboard Grid Content */}

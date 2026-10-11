@@ -334,49 +334,49 @@ export default function Search() {
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
-      {/* Back Button */}
-      <div>
+      {/* ── Top Header Controls: Back Navigation & Live Refresh ── */}
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
         <button
           onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
+          title="Go Back"
         >
-          <span className="p-0.5 sm:p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
+          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
+            <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
           </span>
           <span className="font-extrabold tracking-wider">Back</span>
         </button>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>Live Feed</span>
+          </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
+            }}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black border-2 border-accentCyan bg-[#0f1428] hover:bg-accentCyan hover:text-black text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 shrink-0 cursor-pointer"
+            title="Refresh current live feed"
+          >
+            <RefreshCw className={`w-4 h-4 text-accentCyan group-hover:text-black ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+            <span className="whitespace-nowrap">Live Refresh</span>
+          </button>
+        </div>
       </div>
 
-      {/* Title with Live Indicator and Refresh Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-3xl font-extrabold tracking-tight text-white font-outfit">
-              Federated Discovery Engine
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/25 border-2 border-emerald-400 text-emerald-300 font-mono shadow-[0_0_12px_rgba(16,185,129,0.4)]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Live
-            </span>
-          </div>
-          <p className="text-sm text-slate-200">
-            Query multiple global and regional catalogs simultaneously to stream movies, series, anime, manga, and music.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setPage(1);
-            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
-          }}
-          disabled={loading}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border-2 border-accentCyan bg-accentCyan/20 hover:bg-accentCyan hover:text-black text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 shrink-0 self-center sm:self-auto cursor-pointer"
-          title="Refresh current live feed"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Live Refresh</span>
-        </button>
+      {/* Title & Description */}
+      <div className="space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit">
+          Federated Discovery Engine
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-300">
+          Query multiple global and regional catalogs simultaneously across movies, TV series, anime, manga, and music.
+        </p>
       </div>
 
       {/* Search and Filters Console (with integrated category tabs) */}

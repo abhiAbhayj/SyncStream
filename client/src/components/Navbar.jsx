@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Search, Music, Heart, User, Users, LogOut, X, Zap, ChevronDown } from 'lucide-react';
+import { Tv, Search, Music, Heart, User, Users, LogOut, X, Zap, ChevronDown, ArrowLeft } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -58,20 +58,37 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
 
-          {/* ── Logo ── */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <img
-                src="/logo.png"
-                alt="SyncStream"
-                className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <span className="font-orbitron font-extrabold text-base sm:text-xl tracking-widest text-gradient-aurora uppercase">
-              SyncStream
-            </span>
-          </Link>
+          {/* ── Brand Logo & Back Navigation ── */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {location.pathname !== '/' && (
+              <button
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) navigate(-1);
+                  else navigate('/');
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-accentCyan/60 bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-extrabold text-xs uppercase tracking-wider shadow-[0_0_12px_rgba(var(--accent-cyan),0.35)] transition-all duration-200 active:scale-95 cursor-pointer group"
+                title="Go Back"
+                aria-label="Go Back"
+              >
+                <ArrowLeft className="w-4 h-4 text-accentCyan group-hover:text-black transition-colors" strokeWidth={2.5} />
+                <span className="font-black text-xs">Back</span>
+              </button>
+            )}
+
+            <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                <img
+                  src="/logo.png"
+                  alt="SyncStream"
+                  className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <span className="font-orbitron font-extrabold text-base sm:text-xl tracking-widest text-gradient-aurora uppercase">
+                SyncStream
+              </span>
+            </Link>
+          </div>
 
           {/* ── Desktop Nav ── */}
           <div className="hidden md:flex items-center gap-1">
