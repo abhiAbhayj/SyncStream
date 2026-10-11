@@ -270,7 +270,7 @@ export const MusicProvider = ({ children }) => {
   }, [playTrack]);
 
   // Next Track
-  const nextTrack = useCallback(() => {
+  const nextTrack = useCallback((manualSkip = false) => {
     if (queue.length === 0) return;
 
     let nextIndex = queueIndex + 1;
@@ -281,7 +281,7 @@ export const MusicProvider = ({ children }) => {
       }
       nextIndex = rand;
     } else if (nextIndex >= queue.length) {
-      if (isLooping === 'queue') {
+      if (isLooping === 'queue' || manualSkip) {
         nextIndex = 0;
       } else {
         setIsPlaying(false);
@@ -299,8 +299,8 @@ export const MusicProvider = ({ children }) => {
   nextTrackRef.current = nextTrack;
 
   // Previous Track
-  const prevTrack = useCallback(() => {
-    if (currentTime > 3) {
+  const prevTrack = useCallback((forcePrevious = false) => {
+    if (!forcePrevious && currentTime > 3) {
       seek(0);
       return;
     }
@@ -309,7 +309,7 @@ export const MusicProvider = ({ children }) => {
 
     let prevIndex = queueIndex - 1;
     if (prevIndex < 0) {
-      prevIndex = isLooping === 'queue' ? queue.length - 1 : 0;
+      prevIndex = queue.length - 1;
     }
 
     setQueueIndex(prevIndex);
@@ -317,7 +317,7 @@ export const MusicProvider = ({ children }) => {
     if (prv) {
       playTrack(prv, queue);
     }
-  }, [currentTime, queue, queueIndex, isLooping, seek, playTrack]);
+  }, [currentTime, queue, queueIndex, seek, playTrack]);
 
   // Toggle Play / Pause for dual engine
   const togglePlay = useCallback(() => {

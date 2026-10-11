@@ -104,14 +104,28 @@ function parseEpisodeQuery(rawCommand) {
 export default function VoiceAssistant() {
   const { logout } = useAuth();
   const {
+    currentTrack,
+    queue,
+    queueIndex,
     playTrack,
     togglePlay,
     isPlaying,
     nextTrack,
     prevTrack,
+    toggleShuffle,
+    toggleLoop,
     openLyricsModal,
     openPlayerModal
   } = useMusic();
+
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
+  const queueIndexRef = useRef(queueIndex);
+  queueIndexRef.current = queueIndex;
+  const currentTrackRef = useRef(currentTrack);
+  currentTrackRef.current = currentTrack;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
 
   const [isListening, setIsListening] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(30);
@@ -334,55 +348,214 @@ export default function VoiceAssistant() {
     setStatusText('Processing...');
     
     // ════════════════════════════════════════════════════════════════════════
-    // 0. MUSIC & SONG VOICE COMMANDS (High-Priority Voice Integration)
+    // 0. PLAYLIST & MUSIC PLAYBACK CONTROLS (Next, Previous, Pause, Resume, Shuffle, Loop)
     // ════════════════════════════════════════════════════════════════════════
 
-    // 0A. Direct Music Search (e.g. "search music monica", "search song monica", "find music ...", "find song ...")
+    // 0A. Next Song / Skip Song in Playlist or Queue
+    const isNextSong =
+      /^(play\s+)?(the\s+)?(next|skip)\s*(song|track|audio|music)?(\s+in\s+(my\s+)?playlist)?$/i.test(command) ||
+      /^skip(\s+to\s+next)?(\s+song|\s+track|\s+music)?$/i.test(command) ||
+      /^skip\s+this(\s+song|\s+track|\s+music)?$/i.test(command) ||
+      /^(play\s+)?next\s+in\s+(my\s+)?playlist$/i.test(command) ||
+      ((command === 'next' || command === 'skip') && (isPlayingRef.current || currentTrackRef.current));
+
+    if (isNextSong) {
+      const activeQueue = queueRef.current || [];
+      const activeIdx = queueIndexRef.current || 0;
+      if (activeQueue.length > 0) {
+        const nextIdx = (activeIdx + 1) % activeQueue.length;
+        const nextSong = activeQueue[nextIdx];
+        nextTrack(true);
+        setStatusText(nextSong?.title ? `Next Song: "${nextSong.title}"` : 'Skipping to next song...');
+      } else if (currentTrackRef.current) {
+        nextTrack(true);
+        setStatusText('Skipping to next song...');
+      } else {
+        setStatusText('No active music playlist.');
+      }
+      return;
+    }
+
+    // 0B. Previous Song in Playlist or Queue
+    const isPrevSong =
+      /^(play\s+)?(the\s+)?(prev|previous|last|back)\s*(song|track|audio|music)?(\s+in\s+(my\s+)?playlist)?$/i.test(command) ||
+      /^(go\s+back\s+(to\s+)?(prev|previous|last)\s*(song|track)?)$/i.test(command) ||
+      /^(play\s+)?previous\s+in\s+(my\s+)?playlist$/i.test(command) ||
+      (command === 'previous' && (isPlayingRef.current || currentTrackRef.current));
+
+    if (isPrevSong) {
+      const activeQueue = queueRef.current || [];
+      const activeIdx = queueIndexRef.current || 0;
+      if (activeQueue.length > 0) {
+        const prevIdx = activeIdx - 1 < 0 ? activeQueue.length - 1 : activeIdx - 1;
+        const prevSong = activeQueue[prevIdx];
+        prevTrack(true);
+        setStatusText(prevSong?.title ? `Previous Song: "${prevSong.title}"` : 'Playing previous song...');
+      } else if (currentTrackRef.current) {
+        prevTrack(true);
+        setStatusText('Playing previous song...');
+      } else {
+        setStatusText('No active music playlist.');
+      }
+      return;
+    }
+
+    // 0C. Pause & Stop Music
     if (
-      command.startsWith('search music ') ||
-      command.startsWith('search song ') ||
-      command.startsWith('search songs ') ||
-      command.startsWith('search for music ') ||
-      command.startsWith('search for song ') ||
-      command.startsWith('find music ') ||
-      command.startsWith('find song ') ||
-      (command.startsWith('search ') && (command.includes('music') || command.includes('song') || window.location.pathname === '/music'))
+      command === 'pause' ||
+      command === 'pause music' ||
+      command === 'pause song' ||
+      command === 'stop music' ||
+      command === 'stop song'
     ) {
-      let musicQuery = command
-        .replace(/^(?:search\s+for|search|find|lookup)\s+(?:music|song|songs|track|audio)?\s*/gi, '')
-        .replace(/\s+(?:song|music|audio|track)$/gi, '')
+      if (isPlayingRef.current) {
+        togglePlay();
+        setStatusText('Music Paused.');
+      } else {
+        setStatusText('Music is already paused.');
+      }
+      return;
+    }
+
+    // 0D. Resume & Play Current Music
+    if (
+      command === 'resume' ||
+      command === 'resume music' ||
+      command === 'resume song' ||
+      command === 'unpause' ||
+      command === 'play music' ||
+      command === 'continue music'
+    ) {
+      if (!isPlayingRef.current && currentTrackRef.current) {
+        togglePlay();
+        setStatusText('Music Resumed.');
+        return;
+      } else if (isPlayingRef.current) {
+        setStatusText('Music is already playing.');
+        return;
+      }
+    }
+
+    // 0E. Shuffle & Repeat Controls
+    if (/^(toggle\s+|turn\s+on\s+|turn\s+off\s+)?shuffle(\s+music|\s+songs)?$/i.test(command)) {
+      toggleShuffle();
+      setStatusText('Toggled Playlist Shuffle.');
+      return;
+    }
+    if (/^(toggle\s+|turn\s+on\s+|turn\s+off\s+)?(loop|repeat)(\s+music|\s+song|\s+track)?$/i.test(command)) {
+      toggleLoop();
+      setStatusText('Toggled Repeat Mode.');
+      return;
+    }
+
+    // 0F. Synced Lyrics & Music Studio
+    if (command.includes('show lyrics') || command.includes('open lyrics') || command.includes('synced lyrics')) {
+      openLyricsModal();
+      setStatusText('Opening Synced Lyrics...');
+      return;
+    }
+    if (command === 'open music' || command === 'go to music' || command === 'music' || command === 'music player' || command === 'music studio') {
+      navigate('/music');
+      setStatusText('Opening Music Studio...');
+      return;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 1. UNIFIED DISCOVERY & SEARCH (Across EVERY Page: Movie, Anime, Series, Manga, Music)
+    // ════════════════════════════════════════════════════════════════════════
+    if (
+      command.startsWith('search') ||
+      command.startsWith('find ') ||
+      command.startsWith('lookup ') ||
+      command.startsWith('look up ')
+    ) {
+      let rawQuery = command
+        .replace(/^(?:search\s+for|search|find|lookup|look\s+up)\s+/gi, '')
+        .replace(/^(?:search\s+for|search|find|lookup|look\s+up)\s+/gi, '')
         .trim();
 
-      if (musicQuery) {
-        setStatusText(`Searching Music: "${musicQuery}"`);
-        const targetUrl = `/music?q=${encodeURIComponent(musicQuery)}`;
-        if (window.location.pathname === '/music') {
-          navigate(targetUrl, { replace: true });
+      // Check if user specifically requested music/song
+      const isMusicKeyword = /\b(music|song|songs|track|audio)\b/i.test(rawQuery);
+      const isExplicitMusic =
+        /^(?:music|song|songs|track|audio)\s+/i.test(rawQuery) ||
+        /\s+(?:music|song|songs|track|audio)$/i.test(rawQuery);
+
+      if (isExplicitMusic || (isMusicKeyword && !/\b(anime|movie|tv|series|show|manga)\b/i.test(rawQuery))) {
+        let cleanMusicQuery = rawQuery
+          .replace(/^(?:music|song|songs|track|audio)\s+/gi, '')
+          .replace(/\s+(?:music|song|songs|track|audio)$/gi, '')
+          .replace(/\b(music|song|songs|track|audio)\b/gi, '')
+          .replace(/^(?:for|about|the)\s+/i, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanMusicQuery) {
+          setStatusText(`Searching Music: "${cleanMusicQuery}"`);
+          const targetUrl = `/music?q=${encodeURIComponent(cleanMusicQuery)}`;
+          if (window.location.pathname === '/music') {
+            navigate(targetUrl, { replace: true });
+          } else {
+            navigate(targetUrl);
+          }
+          return;
+        }
+      }
+
+      // Check Media Types: Anime, TV / Series, Manga, Movie
+      let searchType = 'movie'; // default fallback
+
+      if (/\b(anime)\b/i.test(rawQuery)) {
+        searchType = 'anime';
+        rawQuery = rawQuery.replace(/\banime\b/gi, '').trim();
+      } else if (/\b(tv\s+series|tv\s+show|tv|series|shows|show)\b/i.test(rawQuery)) {
+        searchType = 'tv';
+        rawQuery = rawQuery.replace(/\b(tv\s+series|tv\s+show|tv|series|shows|show)\b/gi, '').trim();
+      } else if (/\b(manga)\b/i.test(rawQuery)) {
+        searchType = 'manga';
+        rawQuery = rawQuery.replace(/\bmanga\b/gi, '').trim();
+      } else if (/\b(movie|movies|film|films)\b/i.test(rawQuery)) {
+        searchType = 'movie';
+        rawQuery = rawQuery.replace(/\b(movie|movies|film|films)\b/gi, '').trim();
+      }
+
+      // Clean up filler words like "the", "for", "about"
+      const cleanTitle = rawQuery
+        .replace(/^(?:for|about|the)\s+/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleanTitle) {
+        const typeLabels = { movie: 'Movies', tv: 'TV Shows', anime: 'Anime', manga: 'Manga' };
+        setStatusText(`Searching ${typeLabels[searchType] || searchType}: "${cleanTitle}"`);
+        const searchUrl = `/search?q=${encodeURIComponent(cleanTitle)}&type=${searchType}`;
+        if (window.location.pathname === '/search') {
+          navigate(searchUrl, { replace: true });
         } else {
-          navigate(targetUrl);
+          navigate(searchUrl);
         }
         return;
       }
     }
 
-    // 0B. Music Play Intent (e.g. "play music monica", "play song monica", "play monica song", "play track ...")
-    if (
-      command.startsWith('play music ') ||
-      command.startsWith('play song ') ||
-      command.startsWith('play track ') ||
-      command.startsWith('play audio ') ||
-      ((command.startsWith('play ') || command.startsWith('play the song ')) && (command.includes('song') || command.includes('music') || window.location.pathname === '/music'))
-    ) {
-      let musicQuery = command
-        .replace(/^(play the song|play music|play song|play track|play audio|play)\s*/i, '')
-        .replace(/\s+(song|music|audio|track)$/i, '')
+    // ════════════════════════════════════════════════════════════════════════
+    // 2. DIRECT MUSIC PLAY INTENT (e.g. "play song monica", "play music believer")
+    // ════════════════════════════════════════════════════════════════════════
+    const isDirectSongPlay =
+      /^(?:play|start)\s+(?:the\s+)?(?:music|song|track|audio)\s+(.+)$/i.test(command) ||
+      /^(?:play|start)\s+(.+)\s+(?:song|music|track)$/i.test(command);
+
+    if (isDirectSongPlay) {
+      let songQuery = command
+        .replace(/^(?:play|start)\s+(?:the\s+)?(?:music|song|track|audio)\s+/i, '')
+        .replace(/\s+(?:song|music|track)$/i, '')
+        .replace(/^(?:play|start)\s+/i, '')
         .trim();
 
-      if (musicQuery) {
-        setStatusText(`Finding song: "${musicQuery}"...`);
+      if (songQuery && !/^(next|previous|prev|last|pause|resume|stop|it)$/i.test(songQuery)) {
+        setStatusText(`Finding song: "${songQuery}"...`);
         try {
           const res = await axios.get('/api/music/search', {
-            params: { query: musicQuery, category: 'all', page: 1, limit: 10 }
+            params: { query: songQuery, category: 'all', page: 1, limit: 10 }
           });
           const trackList = res.data.songs || [];
           if (trackList.length > 0) {
@@ -391,63 +564,141 @@ export default function VoiceAssistant() {
             setStatusText(`Playing "${first.title}"!`);
             return;
           } else {
-            setStatusText(`Searching Music for "${musicQuery}"...`);
-            navigate(`/music?q=${encodeURIComponent(musicQuery)}`);
+            setStatusText(`Searching Music: "${songQuery}"...`);
+            navigate(`/music?q=${encodeURIComponent(songQuery)}`);
             return;
           }
         } catch (e) {
-          navigate(`/music?q=${encodeURIComponent(musicQuery)}`);
+          navigate(`/music?q=${encodeURIComponent(songQuery)}`);
           return;
         }
       }
     }
 
-    // 0C. Music Controls (Pause / Resume / Next / Prev / Lyrics / Open Music)
-    if (command === 'pause music' || command === 'pause song' || command === 'stop music' || (command === 'pause' && isPlaying)) {
-      if (isPlaying) {
-        togglePlay();
-        setStatusText('Music Paused.');
-      } else {
-        setStatusText('No active music track.');
+    // ════════════════════════════════════════════════════════════════════════
+    // 3. EPISODE HOPPING & TV / ANIME EPISODE PLAY INTENTS
+    // ════════════════════════════════════════════════════════════════════════
+    // 3A. Relative episode hop on detail page
+    if (window.location.pathname.startsWith('/media/')) {
+      if (/^(next\s+episode|skip\s+episode|forward\s+episode)$/i.test(command)) {
+        window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { delta: 1 } }));
+        setStatusText('Playing Next Episode...');
+        return;
+      }
+      if (/^(prev(ious)?\s+episode|last\s+episode|back\s+episode)$/i.test(command)) {
+        window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { delta: -1 } }));
+        setStatusText('Playing Previous Episode...');
+        return;
+      }
+    }
+
+    // 3B. Episode & Anime / TV parse (e.g. "play the first episode of anime solo leveling")
+    const epQuery = parseEpisodeQuery(command);
+    if (epQuery) {
+      const { isNext, isPrev, season, episode, mediaType, cleanTitle } = epQuery;
+      if (cleanTitle) {
+        const epNum = typeof episode === 'number' ? episode : 1;
+        setStatusText(`Finding "${cleanTitle}"...`);
+        try {
+          let res = await axios.get('/api/media/search', {
+            params: { query: cleanTitle, type: mediaType, page: 1 }
+          });
+          let results = res.data || [];
+          if (results.length === 0 && mediaType === 'anime') {
+            res = await axios.get('/api/media/search', { params: { query: cleanTitle, type: 'tv', page: 1 } });
+            results = res.data || [];
+          }
+          if (results.length === 0) {
+            res = await axios.get('/api/media/search', { params: { query: cleanTitle, type: 'movie', page: 1 } });
+            results = res.data || [];
+          }
+
+          if (results.length > 0) {
+            const firstResult = results[0];
+            const targetType = firstResult.media_type || mediaType || 'anime';
+            setStatusText(`Playing ${firstResult.title} S${season} Ep ${epNum}!`);
+            navigate(`/media/${targetType}/${firstResult.id}?season=${season}&episode=${epNum}&play=true`);
+            return;
+          } else {
+            setStatusText(`Couldn't find show "${cleanTitle}".`);
+            return;
+          }
+        } catch (err) {
+          setStatusText(`Error searching for "${cleanTitle}".`);
+          return;
+        }
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 4. DIRECT MEDIA PLAY INTENTS: Movies / TV / Anime
+    // ════════════════════════════════════════════════════════════════════════
+    if (command.startsWith('play ') || command.startsWith('watch ')) {
+      let query = command.replace(/^(play|watch)\s+/i, '').trim();
+
+      // Guard against empty / generic play commands
+      if (!query || query === 'movie' || query === 'video' || query === 'it' || query === 'show') {
+        setStatusText('External players must be clicked to play.');
+        return;
+      }
+
+      let detectedType = 'movie';
+      if (/\banime\b/i.test(query)) {
+        detectedType = 'anime';
+        query = query.replace(/\banime\b/gi, '').trim();
+      } else if (/\b(series|show|shows|tv)\b/i.test(query)) {
+        detectedType = 'tv';
+        query = query.replace(/\b(series|show|shows|tv)\b/gi, '').trim();
+      } else if (/\bmovie(s)?\b/i.test(query)) {
+        detectedType = 'movie';
+        query = query.replace(/\bmovie(s)?\b/gi, '').trim();
+      }
+
+      setStatusText(`Finding: "${query}"...`);
+      try {
+        let res = await axios.get('/api/media/search', {
+          params: { query, type: detectedType, page: 1 }
+        });
+        let results = res.data || [];
+
+        // Fallback across types
+        if (results.length === 0 && detectedType !== 'anime') {
+          res = await axios.get('/api/media/search', { params: { query, type: 'anime', page: 1 } });
+          results = res.data || [];
+        }
+        if (results.length === 0 && detectedType !== 'tv') {
+          res = await axios.get('/api/media/search', { params: { query, type: 'tv', page: 1 } });
+          results = res.data || [];
+        }
+        if (results.length === 0 && detectedType !== 'movie') {
+          res = await axios.get('/api/media/search', { params: { query, type: 'movie', page: 1 } });
+          results = res.data || [];
+        }
+
+        if (results.length > 0) {
+          const firstResult = results[0];
+          const finalType = firstResult.media_type || detectedType || 'movie';
+          setStatusText(`Found ${firstResult.title}!`);
+          setTimeout(() => {
+            navigate(`/media/${finalType}/${firstResult.id}?play=true`);
+          }, 600);
+        } else {
+          setStatusText(`Couldn't find "${query}".`);
+        }
+      } catch (err) {
+        setStatusText('Failed to search.');
       }
       return;
     }
 
-    if (command === 'resume music' || command === 'play music' || command === 'resume song' || command === 'unpause') {
-      if (!isPlaying) {
-        togglePlay();
-        setStatusText('Music Resumed.');
-      } else {
-        setStatusText('Music is already playing.');
-      }
+    if (command.includes('pause') || command.includes('stop')) {
+      setStatusText('Cannot pause external iframe players.');
       return;
     }
 
-    if (command === 'next song' || command === 'next track' || command === 'skip song' || command === 'skip track') {
-      nextTrack();
-      setStatusText('Skipping to next track...');
-      return;
-    }
-
-    if (command === 'previous song' || command === 'prev song' || command === 'previous track' || command === 'prev track') {
-      prevTrack();
-      setStatusText('Playing previous track...');
-      return;
-    }
-
-    if (command.includes('show lyrics') || command.includes('open lyrics') || command.includes('synced lyrics')) {
-      openLyricsModal();
-      setStatusText('Opening Synced Lyrics...');
-      return;
-    }
-
-    if (command === 'open music' || command === 'go to music' || command === 'music' || command === 'music player') {
-      navigate('/music');
-      setStatusText('Opening Music Studio...');
-      return;
-    }
-
-    // 1. CATALOG / DISCOVERY INTENTS
+    // ════════════════════════════════════════════════════════════════════════
+    // 5. CATALOG / DISCOVERY CATEGORY INTENTS
+    // ════════════════════════════════════════════════════════════════════════
     if (command.includes('trending') || command.includes('popular') || command.includes('top rated')) {
       let type = 'movie';
       if (command.includes('anime')) type = 'anime';
@@ -463,7 +714,9 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // 2. PROFILE / AUTH INTENTS
+    // ════════════════════════════════════════════════════════════════════════
+    // 6. PROFILE / AUTH INTENTS
+    // ════════════════════════════════════════════════════════════════════════
     if (command.includes('edit profile') || command.includes('change avatar') || command.includes('my profile')) {
       navigate('/profile');
       setStatusText('Opening Profile...');
@@ -475,7 +728,9 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // 3. MEDIA DETAILS / SCHEDULE INTENTS (e.g. "What is the schedule of Kantara")
+    // ════════════════════════════════════════════════════════════════════════
+    // 7. MEDIA DETAILS / SCHEDULE INTENTS (e.g. "What is the schedule of Kantara")
+    // ════════════════════════════════════════════════════════════════════════
     if (command.includes('schedule of') || command.includes('schedule for') || command.includes('tell me about') || command.includes('details of')) {
       let query = command
         .replace('what is the schedule of', '')
@@ -486,7 +741,6 @@ export default function VoiceAssistant() {
       
       setStatusText(`Looking up ${query}...`);
       try {
-        // We guess type based on text, default to anime if they asked about anime
         const searchType = command.includes('anime') ? 'anime' : (command.includes('tv') ? 'tv' : 'movie');
         query = query.replace('the anime', '').replace('this anime', '').trim();
 
@@ -509,200 +763,18 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // 4. WATCH ROOM INTENTS
+    // ════════════════════════════════════════════════════════════════════════
+    // 8. WATCH ROOM INTENTS
+    // ════════════════════════════════════════════════════════════════════════
     if (command.includes('leave room') || command.includes('exit room') || command.includes('leave watch party')) {
       navigate('/');
       setStatusText('Leaving room...');
       return;
     }
 
-    // 5. SEARCH INTENTS (General Movies / Series / Anime / Manga)
-    if (
-      command.startsWith('search') ||
-      command.startsWith('find ') ||
-      command.startsWith('lookup ') ||
-      command.startsWith('look up ')
-    ) {
-      // Strip leading search action tokens
-      let rawQuery = command
-        .replace(/^(?:search\s+for|search|find|lookup|look\s+up)\s+/gi, '')
-        .replace(/^(?:search\s+for|search|find|lookup|look\s+up)\s+/gi, '') // handles any residual repetition
-        .trim();
-
-      let searchType = 'movie'; // default fallback
-
-      // Auto-detect media type and remove it from query so only clean title remains
-      if (/\b(anime)\b/i.test(rawQuery)) {
-        searchType = 'anime';
-        rawQuery = rawQuery.replace(/\banime\b/gi, '').trim();
-      } else if (/\b(tv\s+series|tv\s+show|tv|series|show|shows)\b/i.test(rawQuery)) {
-        searchType = 'tv';
-        rawQuery = rawQuery.replace(/\b(tv\s+series|tv\s+show|tv|series|show|shows)\b/gi, '').trim();
-      } else if (/\b(manga)\b/i.test(rawQuery)) {
-        searchType = 'manga';
-        rawQuery = rawQuery.replace(/\bmanga\b/gi, '').trim();
-      } else if (/\b(movie|movies|film|films)\b/i.test(rawQuery)) {
-        searchType = 'movie';
-        rawQuery = rawQuery.replace(/\b(movie|movies|film|films)\b/gi, '').trim();
-      }
-
-      // Clean up common filler words like "the", "for"
-      const cleanQuery = rawQuery
-        .replace(/^(?:for|about|the)\s+/i, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (cleanQuery) {
-        setStatusText(`Searching ${searchType}s: "${cleanQuery}"`);
-        const searchUrl = `/search?q=${encodeURIComponent(cleanQuery)}&type=${searchType}`;
-        // If already on the search page, force a hard reload so the new params take effect immediately
-        if (window.location.pathname === '/search') {
-          window.location.href = searchUrl;
-        } else {
-          navigate(searchUrl);
-        }
-        return;
-      }
-    }
-
-    // 5.5. EPISODE & ANIME / TV PLAY INTENTS (e.g. "play the first episode of anime solo leveling", "next episode")
-    const epQuery = parseEpisodeQuery(command);
-    if (epQuery) {
-      const { isNext, isPrev, season, episode, mediaType, cleanTitle } = epQuery;
-
-      // Case A: User is on a Media Detail page and requested relative or numeric episode jump
-      if (window.location.pathname.startsWith('/media/')) {
-        if (isNext || episode === 'next') {
-          window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { delta: 1 } }));
-          setStatusText('Playing Next Episode...');
-          return;
-        }
-        if (isPrev || episode === 'prev') {
-          window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { delta: -1 } }));
-          setStatusText('Playing Previous Episode...');
-          return;
-        }
-        if (!cleanTitle && typeof episode === 'number') {
-          window.dispatchEvent(new CustomEvent('syncstream:change-episode', { detail: { episode, season } }));
-          setStatusText(`Playing Episode ${episode}...`);
-          return;
-        }
-      }
-
-      // Case B: Cross-Catalog Search & Direct Play for Episode (e.g. "play the first episode of anime solo leveling")
-      if (cleanTitle) {
-        const epNum = typeof episode === 'number' ? episode : 1;
-        setStatusText(`Finding "${cleanTitle}"...`);
-        try {
-          // 1. Search anime / TV
-          let res = await axios.get('/api/media/search', {
-            params: { query: cleanTitle, type: mediaType, page: 1 }
-          });
-          let results = res.data || [];
-
-          // 2. Fallback to TV if anime gave 0 results
-          if (results.length === 0 && mediaType === 'anime') {
-            res = await axios.get('/api/media/search', {
-              params: { query: cleanTitle, type: 'tv', page: 1 }
-            });
-            results = res.data || [];
-          }
-
-          // 3. Fallback to Movie if still 0 results
-          if (results.length === 0) {
-            res = await axios.get('/api/media/search', {
-              params: { query: cleanTitle, type: 'movie', page: 1 }
-            });
-            results = res.data || [];
-          }
-
-          if (results.length > 0) {
-            const firstResult = results[0];
-            const targetType = firstResult.media_type || mediaType || 'anime';
-            setStatusText(`Playing ${firstResult.title} S${season} Ep ${epNum}!`);
-            const targetUrl = `/media/${targetType}/${firstResult.id}?season=${season}&episode=${epNum}&play=true`;
-            navigate(targetUrl);
-            return;
-          } else {
-            setStatusText(`Couldn't find show "${cleanTitle}".`);
-            return;
-          }
-        } catch (err) {
-          console.error("Episode voice search error:", err);
-          setStatusText(`Error searching for "${cleanTitle}".`);
-          return;
-        }
-      }
-    }
-
-    // 6. PLAY INTENTS (Movies / TV / Anime)
-    if (command.startsWith('play ') || command.startsWith('watch ')) {
-      let query = command.replace(/^(play|watch)\s+/i, '').trim();
-      
-      // General play/resume command (if in watch room)
-      if (query === '' || query === 'movie' || query === 'video' || query === 'it') {
-        setStatusText('External players must be clicked to play.');
-        return;
-      }
-
-      let detectedType = 'movie';
-      if (query.includes('anime')) {
-        detectedType = 'anime';
-        query = query.replace('anime', '').trim();
-      } else if (query.includes('series') || query.includes('show') || query.includes('tv')) {
-        detectedType = 'tv';
-        query = query.replace(/(series|show|tv)/i, '').trim();
-      }
-
-      setStatusText(`Finding: ${query}...`);
-      try {
-        let res = await axios.get('/api/media/search', {
-          params: { query: query, type: detectedType, page: 1 }
-        });
-        let results = res.data || [];
-        
-        // Fallback across types if 0 results
-        if (results.length === 0 && detectedType !== 'anime') {
-          res = await axios.get('/api/media/search', { params: { query: query, type: 'anime', page: 1 } });
-          results = res.data || [];
-        }
-        if (results.length === 0 && detectedType !== 'tv') {
-          res = await axios.get('/api/media/search', { params: { query: query, type: 'tv', page: 1 } });
-          results = res.data || [];
-        }
-        if (results.length === 0 && detectedType !== 'movie') {
-          res = await axios.get('/api/media/search', { params: { query: query, type: 'movie', page: 1 } });
-          results = res.data || [];
-        }
-
-        if (results.length > 0) {
-          const firstResult = results[0];
-          const finalType = firstResult.media_type || detectedType || 'movie';
-          setStatusText(`Found ${firstResult.title}!`);
-          setTimeout(() => {
-            navigate(`/media/${finalType}/${firstResult.id}?play=true`);
-          }, 800);
-        } else {
-          setStatusText(`Couldn't find ${query}.`);
-        }
-      } catch (err) {
-        setStatusText('Failed to search.');
-      }
-      return;
-    }
-
-    if (command.includes('pause') || command.includes('stop')) {
-      setStatusText('Cannot pause external iframe players.');
-      return;
-    }
-
-    // SPEED INTENTS
-    if (command.includes('speed') || command.includes('fast forward') || command.includes('slow down')) {
-      setStatusText('Speed control disabled for external players.');
-      return;
-    }
-
-    // 7. THEME INTENTS
+    // ════════════════════════════════════════════════════════════════════════
+    // 9. THEME INTENTS
+    // ════════════════════════════════════════════════════════════════════════
     if (command.includes('theme') || command.includes('synthwave') || command.includes('aurora') || command.includes('solar flare') || command.includes('crimson') || command.includes('frost') || command.includes('glass') || command.includes('plasma') || command.includes('abyssal') || command.includes('trench') || command.includes('nebula') || command.includes('citrus') || command.includes('arcade')) {
       const ALL_THEMES = [
         'theme-synthwave',
@@ -741,7 +813,9 @@ export default function VoiceAssistant() {
       return;
     }
 
-    // 8. GENERAL NAVIGATION INTENTS
+    // ════════════════════════════════════════════════════════════════════════
+    // 10. GENERAL NAVIGATION INTENTS
+    // ════════════════════════════════════════════════════════════════════════
     if (command.includes('go home') || command === 'home') {
       navigate('/');
       setStatusText('Navigating Home...');
