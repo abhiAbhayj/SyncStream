@@ -849,6 +849,93 @@ export const getMediaDetail = async (req, res) => {
 
           const genres = [...tmdbGenres, ...extraGenres];
 
+          // ── Build Related Seasons & Series Entries ──
+          let related_seasons = [];
+          if (type === 'tv' || type === 'anime') {
+            // 1. Map existing seasons with distinct names, synopses, posters & badges
+            if (d.seasons && d.seasons.length > 0) {
+              related_seasons = d.seasons.map(s => {
+                let badge = `SEASON ${s.season_number}`;
+                if (s.season_number === 0) {
+                  badge = 'SPECIAL';
+                } else if (s.name && !s.name.toLowerCase().startsWith('season ') && s.name.toLowerCase() !== (d.title || d.name).toLowerCase()) {
+                  const cleaned = s.name.replace(new RegExp(`^${(d.title || d.name)}`, 'i'), '').trim().toUpperCase();
+                  badge = cleaned.slice(0, 14) || `SEASON ${s.season_number}`;
+                }
+
+                return {
+                  id: d.id.toString(),
+                  season_number: s.season_number,
+                  title: s.name || `${d.title || d.name} Season ${s.season_number}`,
+                  overview: s.overview || d.overview,
+                  poster_path: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : (d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null),
+                  release_date: s.air_date || d.first_air_date,
+                  year: (s.air_date || d.first_air_date || '').split('-')[0] || '',
+                  episode_count: s.episode_count,
+                  media_type: type,
+                  format: s.season_number === 0 ? 'SPECIAL' : 'TV',
+                  badge
+                };
+              });
+            }
+
+            // 2. Discover related franchise titles on TMDB (e.g. sequels, spin-offs, movies)
+            try {
+              const rootTitle = (d.title || d.name || '')
+                .replace(/(\s*[-:—–]?\s*season\s*\d+.*|\s*[-:—–]?\s*\d+(st|nd|rd|th)\s*season.*)/i, '')
+                .replace(/(\s*[-:—–]?\s*(part|cour)\s*\d+.*)/i, '')
+                .replace(/(\s*[-:—–]\s*.*)$/, '')
+                .trim();
+
+              if (rootTitle && rootTitle.length > 2) {
+                const searchRes = await axios.get(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(rootTitle)}`);
+                const multiResults = searchRes.data.results || [];
+                
+                for (const r of multiResults) {
+                  if (r.id.toString() === d.id.toString()) continue;
+                  if (r.media_type !== 'tv' && r.media_type !== 'movie') continue;
+                  
+                  const rTitle = r.title || r.name || '';
+                  if (!rTitle.toLowerCase().includes(rootTitle.toLowerCase())) continue;
+
+                  let badge = 'RELATED';
+                  if (r.media_type === 'movie') badge = 'MOVIE';
+                  else if (/season\s*2/i.test(rTitle)) badge = 'SEASON 2';
+                  else if (/season\s*3/i.test(rTitle)) badge = 'SEASON 3';
+                  else if (/season\s*4/i.test(rTitle)) badge = 'SEASON 4';
+                  else if (/ova/i.test(rTitle)) badge = 'OVA';
+                  else if (/special/i.test(rTitle)) badge = 'SPECIAL';
+                  else badge = 'TV';
+
+                  related_seasons.push({
+                    id: r.id.toString(),
+                    season_number: 1,
+                    title: rTitle,
+                    overview: r.overview || '',
+                    poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
+                    release_date: r.release_date || r.first_air_date || '',
+                    year: (r.release_date || r.first_air_date || '').split('-')[0] || '',
+                    episode_count: 12,
+                    media_type: (type === 'anime' && isAnimeItem(r)) ? 'anime' : r.media_type,
+                    format: r.media_type === 'movie' ? 'MOVIE' : 'TV',
+                    badge
+                  });
+                }
+              }
+            } catch (franchiseErr) {
+              // Non-blocking
+            }
+
+            // Deduplicate related seasons
+            const seenKeys = new Set();
+            related_seasons = related_seasons.filter(item => {
+              const key = `${item.id}-${item.season_number}`;
+              if (seenKeys.has(key)) return false;
+              seenKeys.add(key);
+              return true;
+            });
+          }
+
           details = {
             id: d.id.toString(),
             title: d.title || d.name,
@@ -859,6 +946,7 @@ export const getMediaDetail = async (req, res) => {
             vote_average: d.vote_average,
             genres,
             seasons: d.seasons || null, // Map TMDB TV seasons structure
+            related_seasons,
             youtube_trailer: trailer || null,
             cast,
             recommendations,
