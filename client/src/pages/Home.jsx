@@ -298,11 +298,11 @@ export default function Home() {
           <button
             onClick={() => fetchCatalog(true)}
             disabled={loading}
-            title="Refresh discovery catalog now"
-            className="flex items-center gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#0f1428] hover:bg-accentCyan hover:text-black text-white border-2 border-accentCyan font-black text-xs sm:text-sm shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+            title="Live Refresh"
+            aria-label="Live Refresh"
+            className="p-2 sm:p-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
           >
-            <RefreshCw className={`w-4 h-4 text-accentCyan group-hover:text-black ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
-            <span className="whitespace-nowrap">Live Refresh</span>
+            <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
           </button>
         </div>
       </div>

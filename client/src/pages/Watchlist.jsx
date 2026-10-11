@@ -52,32 +52,19 @@ export default function Watchlist() {
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-8 px-3 sm:px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
-      {/* ── Top Header Controls: Back Navigation & Library Stats ── */}
+      {/* ── Header with Library Stats ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          <button
-            onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-            title="Go Back"
-          >
-            <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-              <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-            </span>
-            <span className="font-extrabold tracking-wider">Back</span>
-          </button>
-
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-            <div className="p-2 sm:p-2.5 rounded-xl bg-accentPink/15 border border-accentPink/30 text-accentPink shadow-[0_0_15px_rgba(255,85,173,0.3)] shrink-0">
-              <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-outfit truncate">
-                My Library
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-400 hidden sm:block truncate">
-                Organized bookmarks for Movies, TV Series, Anime, and Manga.
-              </p>
-            </div>
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-accentPink/15 border border-accentPink/30 text-accentPink shadow-[0_0_15px_rgba(255,85,173,0.3)] shrink-0">
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-outfit truncate">
+              My Library
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-400 hidden sm:block truncate">
+              Organized bookmarks for Movies, TV Series, Anime, and Manga.
+            </p>
           </div>
         </div>
 

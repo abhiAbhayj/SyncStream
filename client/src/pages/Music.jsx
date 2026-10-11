@@ -519,44 +519,28 @@ export default function Music() {
         <div className="absolute bottom-20 left-1/3 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-pink-500/15 blur-[100px]" />
       </div>
 
-      {/* ── Top Header Controls: Back Navigation & Live Refresh ── */}
-      <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/10">
-        <button
-          onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-          title="Go Back"
-        >
-          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-          </span>
-          <span className="font-extrabold tracking-wider">Back</span>
-        </button>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Live Hits</span>
-          </span>
-
-          <button
-            type="button"
-            onClick={handleRefreshAll}
-            disabled={isRefreshing || loading}
-            className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#0f1428] hover:bg-accentCyan hover:text-black text-white border-2 border-accentCyan font-black text-xs sm:text-sm shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
-            title="Refresh live music hits & charts"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-accentCyan group-hover:text-black ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
-            <span>Live Refresh</span>
-          </button>
-        </div>
-      </div>
-      
       {/* ── Top Header Banner & Navigation Tabs ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-3 border-b border-white/20">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
-            <Radio className="w-3.5 h-3.5 animate-pulse text-accentCyan" />
-            <span>Dual-Engine: YouTube Music + Studio Masters 320kbps &bull; Live Updated</span>
+        <div className="space-y-1.5 flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
+              <Radio className="w-3.5 h-3.5 animate-pulse text-accentCyan" />
+              <span>Dual-Engine: YouTube Music + Studio Masters 320kbps</span>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-mono text-[11px] font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              Live Hits
+            </span>
+            <button
+              type="button"
+              onClick={handleRefreshAll}
+              disabled={isRefreshing || loading}
+              className="p-1.5 sm:p-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+              title="Live Refresh Hits & Charts"
+              aria-label="Live Refresh"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+            </button>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white font-outfit tracking-tight drop-shadow-md">
             SyncStream Music &amp; Playlists

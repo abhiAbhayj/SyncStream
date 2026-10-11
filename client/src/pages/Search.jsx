@@ -334,49 +334,37 @@ export default function Search() {
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
-      {/* ── Top Header Controls: Back Navigation & Live Refresh ── */}
+      {/* ── Title, Live Status & Live Refresh Icon (Only Icon) ── */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
-        <button
-          onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate('/'); }}
-          className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-white hover:bg-accentCyan hover:text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan/40 transition-all duration-200 active:scale-95 cursor-pointer z-30 group"
-          title="Go Back"
-        >
-          <span className="p-1 rounded-lg bg-accentCyan text-black group-hover:bg-black group-hover:text-accentCyan transition-colors flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
-          </span>
-          <span className="font-extrabold tracking-wider">Back</span>
-        </button>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Live Feed</span>
-          </span>
-
-          <button
-            type="button"
-            onClick={() => {
-              setPage(1);
-              executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
-            }}
-            disabled={loading}
-            className="flex items-center justify-center gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black border-2 border-accentCyan bg-[#0f1428] hover:bg-accentCyan hover:text-black text-white shadow-[0_0_18px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 shrink-0 cursor-pointer"
-            title="Refresh current live feed"
-          >
-            <RefreshCw className={`w-4 h-4 text-accentCyan group-hover:text-black ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
-            <span className="whitespace-nowrap">Live Refresh</span>
-          </button>
+        <div className="space-y-1 min-w-0">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-outfit">
+              Federated Discovery Engine
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/25 border border-emerald-400 text-emerald-300 font-mono shadow-[0_0_12px_rgba(16,185,129,0.4)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              Live
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-300 hidden sm:block">
+            Query multiple global and regional catalogs simultaneously across movies, TV series, anime, manga, and music.
+          </p>
         </div>
-      </div>
 
-      {/* Title & Description */}
-      <div className="space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit">
-          Federated Discovery Engine
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-300">
-          Query multiple global and regional catalogs simultaneously across movies, TV series, anime, manga, and music.
-        </p>
+        {/* Live Refresh Icon Button (Only Icon) */}
+        <button
+          type="button"
+          onClick={() => {
+            setPage(1);
+            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
+          }}
+          disabled={loading}
+          className="p-2 sm:p-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+          title="Live Refresh"
+          aria-label="Live Refresh"
+        >
+          <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+        </button>
       </div>
 
       {/* Search and Filters Console (with integrated category tabs) */}
