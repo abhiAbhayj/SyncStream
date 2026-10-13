@@ -21,6 +21,7 @@ import {
   X,
   Loader2,
   Music2,
+  Music,
   Disc3,
   Image as ImageIcon,
   Sparkles,
@@ -593,7 +594,13 @@ export default function MusicModal() {
                           : 'text-gray-400/80 hover:text-white hover:bg-white/5 text-sm sm:text-base md:text-lg font-semibold'
                       }`}
                     >
-                      <p className="leading-snug">{line?.text || '♪'}</p>
+                      <p className="leading-snug flex items-center justify-center sm:justify-start gap-1.5">
+                        {line?.text ? (
+                          line.text
+                        ) : (
+                          <Music className="w-4 h-4 inline-block opacity-60" />
+                        )}
+                      </p>
                     </div>
                   );
                 })}
@@ -620,8 +627,9 @@ export default function MusicModal() {
                 <div className="space-y-1 max-w-sm">
                   <h3 className="text-sm sm:text-base font-bold text-white font-outfit">{cleanText(currentTrack.title)}</h3>
                   <p className="text-xs text-gray-400">{cleanText(currentTrack.artist)}</p>
-                  <p className="text-xs text-accentCyan/90 font-mono pt-1">
-                    ♪ Synchronized lyrics are not available for this track yet.
+                  <p className="text-xs text-accentCyan/90 font-mono pt-1 flex items-center justify-center gap-1.5">
+                    <Music className="w-3.5 h-3.5 text-accentCyan shrink-0" />
+                    <span>Synchronized lyrics are not available for this track yet.</span>
                   </p>
                 </div>
                 <button

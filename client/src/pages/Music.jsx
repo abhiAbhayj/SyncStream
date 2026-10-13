@@ -31,7 +31,14 @@ import {
   Tv,
   User,
   Check,
-  RefreshCw
+  RefreshCw,
+  Globe,
+  Mic2,
+  Headphones,
+  Zap,
+  Compass,
+  Layers,
+  Languages
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -51,20 +58,20 @@ const SEARCH_CATEGORIES = [
 ];
 
 const LANGUAGES = [
-  { id: 'all', label: 'All Hits', flag: '🔥' },
-  { id: 'blues_rap', label: 'Blues Rap', flag: '🎷' },
-  { id: 'rap', label: 'Rap & Hip-Hop', flag: '🎤' },
-  { id: 'rock', label: 'Rock', flag: '🎸' },
-  { id: 'kpop', label: 'K-Pop', flag: '🇰🇷' },
-  { id: 'korean', label: 'Korean', flag: '🇰🇷' },
-  { id: 'hindi', label: 'Hindi', flag: '🇮🇳' },
-  { id: 'anime', label: 'Anime', flag: '🌸' },
-  { id: 'english', label: 'English', flag: '🌍' },
-  { id: 'kannada', label: 'Kannada', flag: '🦁' },
-  { id: 'malayalam', label: 'Malayalam', flag: '🌿' },
-  { id: 'telugu', label: 'Telugu', flag: '🎬' },
-  { id: 'tamil', label: 'Tamil', flag: '⚡' },
-  { id: 'marathi', label: 'Marathi', flag: '🚩' }
+  { id: 'all', label: 'All Hits', icon: Flame },
+  { id: 'blues_rap', label: 'Blues Rap', icon: Music2 },
+  { id: 'rap', label: 'Rap & Hip-Hop', icon: Mic2 },
+  { id: 'rock', label: 'Rock', icon: Radio },
+  { id: 'kpop', label: 'K-Pop', icon: Headphones },
+  { id: 'korean', label: 'Korean', icon: Compass },
+  { id: 'hindi', label: 'Hindi', icon: Disc3 },
+  { id: 'anime', label: 'Anime', icon: Sparkles },
+  { id: 'english', label: 'English', icon: Globe },
+  { id: 'kannada', label: 'Kannada', icon: Volume2 },
+  { id: 'malayalam', label: 'Malayalam', icon: Layers },
+  { id: 'telugu', label: 'Telugu', icon: Film },
+  { id: 'tamil', label: 'Tamil', icon: Zap },
+  { id: 'marathi', label: 'Marathi', icon: Languages }
 ];
 
 const SUGGESTIONS_BY_CATEGORY = {
@@ -89,6 +96,26 @@ const SUGGESTIONS_BY_CATEGORY = {
 };
 
 const FALLBACK_COVER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
+
+const getChartIcon = (id) => {
+  switch (id) {
+    case 'trending_global': return <Flame className="w-4 h-4 text-orange-400" />;
+    case 'blues_rap': return <Mic2 className="w-4 h-4 text-amber-400" />;
+    case 'rap': return <Headphones className="w-4 h-4 text-purple-400" />;
+    case 'rock': return <Zap className="w-4 h-4 text-rose-400" />;
+    case 'kpop':
+    case 'korean': return <Sparkles className="w-4 h-4 text-pink-400" />;
+    case 'bollywood': return <Film className="w-4 h-4 text-amber-400" />;
+    case 'anime': return <Sparkles className="w-4 h-4 text-pink-400" />;
+    case 'global_pop': return <Globe className="w-4 h-4 text-sky-400" />;
+    case 'kannada':
+    case 'malayalam':
+    case 'telugu':
+    case 'tamil':
+    case 'marathi': return <Music2 className="w-4 h-4 text-accentCyan" />;
+    default: return <Disc3 className="w-4 h-4 text-accentCyan" />;
+  }
+};
 
 export default function Music() {
   const navigate = useNavigate();
@@ -693,6 +720,7 @@ export default function Music() {
 
               {LANGUAGES.map((lang) => {
                 const isSelected = selectedLang === lang.id;
+                const IconComponent = lang.icon;
                 return (
                   <button
                     key={lang.id}
@@ -710,7 +738,7 @@ export default function Music() {
                         : 'bg-[#1a2244] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/60 hover:bg-[#26325e] shadow-sm'
                     }`}
                   >
-                    <span>{lang.flag}</span>
+                    {IconComponent && <IconComponent className="w-3.5 h-3.5 shrink-0 text-accentCyan" />}
                     <span>{lang.label}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5 shrink-0" title="Live Regularly Updated" />
                   </button>
@@ -1039,6 +1067,7 @@ export default function Music() {
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
+                              {getChartIcon(chart.id)}
                               <h4 className="text-sm sm:text-base font-black text-white font-outfit">{chart.title}</h4>
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
                                 <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
@@ -1145,8 +1174,10 @@ export default function Music() {
             <div className="text-center py-20 rounded-3xl border-2 border-white/25 p-8 space-y-3 bg-[#18203c]/95 shadow-2xl">
               <Heart className="w-12 h-12 text-slate-400 mx-auto stroke-1" />
               <h3 className="text-lg font-black text-white">No liked songs yet</h3>
-              <p className="text-xs text-slate-300 max-w-sm mx-auto font-medium">
-                Tap the heart icon ❤️ on any song card while exploring to add it to your permanent Favorite Library.
+              <p className="text-xs text-slate-300 max-w-sm mx-auto font-medium flex items-center justify-center gap-1 flex-wrap">
+                <span>Tap the heart icon</span>
+                <Heart className="w-3.5 h-3.5 inline text-red-500 fill-red-500" />
+                <span>on any song card while exploring to add it to your permanent Favorite Library.</span>
               </p>
               <button
                 type="button"
@@ -1742,8 +1773,9 @@ export default function Music() {
             </div>
 
             {playlistAddedSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/30 border-2 border-emerald-500/60 text-emerald-200 text-xs font-black text-center animate-scale-in shadow-md">
-                ✨ {playlistAddedSuccess}
+              <div className="p-3 rounded-xl bg-emerald-500/30 border-2 border-emerald-500/60 text-emerald-200 text-xs font-black text-center animate-scale-in shadow-md flex items-center justify-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{playlistAddedSuccess}</span>
               </div>
             )}
 

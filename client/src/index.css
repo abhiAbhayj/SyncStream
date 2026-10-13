@@ -6,7 +6,7 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   THEME 1 (Default): ⚡ Dark Storm Thunderbolt
+   THEME 1 (Default): Dark Storm Thunderbolt
    Void Thunderhead, Stormcloud Obsidian, Pure Ion Core, Electric Arc Cyan & Ozone Violet
 ───────────────────────────────────────────── */
 :root,
@@ -29,7 +29,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 2: 🧊 Glacial Cryo-Vault
+   THEME 2: Glacial Cryo-Vault
    Sub-Zero Abyss, Permafrost Slate, Cryo Cyan, Glacial Frost & Thermal Alert
 ───────────────────────────────────────────── */
 .theme-cryo-vault {
@@ -50,7 +50,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 3: 🔥 Crimson Solar Flare
+   THEME 3: Crimson Solar Flare
    Rich Obsidian, Sunset Orange & Coral Gold
 ───────────────────────────────────────────── */
 .theme-solar-flare {
@@ -71,7 +71,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 4: 🌌 Cosmic Singularity (Black Hole)
+   THEME 4: Cosmic Singularity (Black Hole)
    Event Horizon Black, Accretion Disk Purple, Gravitational Amber & Hawking Radiation
 ───────────────────────────────────────────── */
 .theme-cosmic-singularity {
@@ -92,7 +92,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 5: 🪐 Cyberpunk Plasma Web
+   THEME 5: Cyberpunk Plasma Web
    Dark Cyber Blue, Acid Lime Green & Electric Cobalt
 ───────────────────────────────────────────── */
 .theme-plasma-web {
@@ -113,7 +113,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 6: ⚡ Cyber-Industrial Foundry
+   THEME 6: Cyber-Industrial Foundry
    Cast Iron Dark, Machined Carbon, High-Voltage Yellow & Blast Furnace Orange
 ───────────────────────────────────────────── */
 .theme-cyber-foundry {
@@ -134,7 +134,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 7: 🪸 Bioluminescent Deep Trench
+   THEME 7: Bioluminescent Deep Trench
    Mariana Trench Pitch, Hydro-Thermal Blue, Neon Coral Green & Jellyfish Pink
 ───────────────────────────────────────────── */
 .theme-bioluminescent-trench {
@@ -155,7 +155,7 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 8: 🌸 Windy Sakura Leaf Falling
+   THEME 8: Windy Sakura Leaf Falling
    Sumi Midnight Pitch, Nocturnal Zen Slate, Moonlit Silk White, Radiant Sakura Petal & Spring Sprout Emerald
 ───────────────────────────────────────────── */
 .theme-windy-sakura,

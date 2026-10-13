@@ -878,101 +878,101 @@ export const getMusicCharts = async (req, res) => {
   const CHART_CATEGORIES = [
     {
       id: 'trending_global',
-      title: '🔥 Trending Globally 2026',
+      title: 'Trending Globally 2026',
       subtitle: 'Top viral songs across all languages & platforms',
       ytQuery: 'Top Hits Global Official MV',
       saavnQuery: 'Trending Songs 2026'
     },
     {
       id: 'blues_rap',
-      title: '🎷 Blues Rap Anthems',
+      title: 'Blues Rap Anthems',
       subtitle: 'Lee Richardson, blues riffs & heavy swagger beats',
       ytQuery: 'Blues Rap Hits Official MV',
       saavnQuery: 'Best of Blues Rap'
     },
     {
       id: 'rap',
-      title: '🎤 Rap & Hip-Hop',
+      title: 'Rap & Hip-Hop',
       subtitle: 'Heavy basslines, bars and global rap chart toppers',
       ytQuery: 'Top Hip Hop Hits 2026',
       saavnQuery: 'Trending Rap Songs'
     },
     {
       id: 'rock',
-      title: '🎸 Rock & Themes',
+      title: 'Rock & Themes',
       subtitle: 'Greatest rock anthems, cinematic themes & guitar riffs',
       ytQuery: 'Trending Rock Hits Official MV',
       saavnQuery: 'Best Rock Songs 2026'
     },
     {
       id: 'kpop',
-      title: '🇰🇷 K-Pop Worldwide',
+      title: 'K-Pop Worldwide',
       subtitle: 'Global K-Pop chart toppers & viral choreography',
       ytQuery: 'Top K-Pop Hits 2026 Official MV',
       saavnQuery: 'Trending K-Pop'
     },
     {
       id: 'korean',
-      title: '🇰🇷 Korean Drama & OSTs',
+      title: 'Korean Drama & OSTs',
       subtitle: 'Iconic Korean film & K-Drama soundtracks',
       ytQuery: 'Best Korean OST 2026',
       saavnQuery: 'Trending K-Drama Songs'
     },
     {
       id: 'bollywood',
-      title: '🇮🇳 Hindi Bollywood 2026',
+      title: 'Hindi Bollywood 2026',
       subtitle: "Hindi cinema's biggest fresh tracks & mass anthems",
       ytQuery: 'Latest Hindi Hits Official Video',
       saavnQuery: 'Top Hindi Songs'
     },
     {
       id: 'anime',
-      title: '🌸 Anime & J-Pop',
+      title: 'Anime & J-Pop',
       subtitle: 'Viral anime openings, battle themes & J-Rock',
       ytQuery: 'Trending Anime Openings',
       saavnQuery: 'Best Anime OST'
     },
     {
       id: 'global_pop',
-      title: '🌍 Global English Pop',
+      title: 'Global English Pop',
       subtitle: 'International English hits & Billboard toppers',
       ytQuery: 'Trending Global Pop Official Video',
       saavnQuery: 'Top English Hits'
     },
     {
       id: 'kannada',
-      title: '🦁 Kannada Sandalwood',
+      title: 'Kannada Sandalwood',
       subtitle: 'Hottest Kannada movie songs & BGM scores',
       ytQuery: 'Latest Kannada Hits Official Video',
       saavnQuery: 'Trending Kannada Songs'
     },
     {
       id: 'malayalam',
-      title: '🌿 Malayalam Mollywood',
+      title: 'Malayalam Mollywood',
       subtitle: 'Soulful Malayalam tracks & viral Mollywood hits',
       ytQuery: 'Trending Malayalam Songs 2026',
       saavnQuery: 'Top Malayalam Hits'
     },
     {
       id: 'telugu',
-      title: '🎬 Telugu Tollywood',
+      title: 'Telugu Tollywood',
       subtitle: 'Trending Telugu cinema songs & mass themes',
       ytQuery: 'Latest Telugu Hits Official Video',
       saavnQuery: 'Top Telugu Songs'
     },
     {
       id: 'tamil',
-      title: '⚡ Tamil Kollywood',
+      title: 'Tamil Kollywood',
       subtitle: 'Chart-toppers from Tamil cinema & Sai Abhyankkar themes',
       ytQuery: 'Trending Tamil Hits Official',
       saavnQuery: 'Top Tamil Songs'
     },
     {
       id: 'marathi',
-      title: '🚩 Marathi Cinema',
+      title: 'Marathi Cinema',
       subtitle: 'Energetic & soulful Marathi theatrical tracks',
       ytQuery: 'Latest Marathi Hits Official Video',
-      saavnQuery: 'Trending Marathi Songs'
+      saavnQuery: 'Top Marathi Songs'
     }
   ];
 

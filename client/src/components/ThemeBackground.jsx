@@ -3,14 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
  * 8 Completely Distinct Geometric Visualizers:
- * 1. storm-thunder         — ⚡ Dark Storm Thunderbolt: Branching procedural Tesla lightning & ionized plasma sparks
- * 2. cryo-vault            — 🧊 Glacial Cryo-Vault: Liquid nitrogen vapor drift & sharp frost needle shards
- * 3. solar-flare           — 🔥 Crimson Solar Flare: Molten coronal base, magnetic prominence loops & lazy warm embers
- * 4. cosmic-singularity    — 🌌 Cosmic Singularity: Gravitational lensing spacetime grid & swirling accretion disk
- * 5. plasma-web            — 🪐 Cyberpunk Plasma Web: Circuit vector mesh, triangular polygon fills & electric data sparks
- * 6. cyber-foundry         — ⚡ Cyber-Industrial Foundry: Chasing laser dash conduits & gravity welding sparks
- * 7. bioluminescent-trench — 🪸 Bioluminescent Deep Trench: Radial pulse wave echolocation & undulating deep-sea organisms
- * 8. windy-sakura          — 🌸 Windy Sakura Leaf Falling: 3D tumbling pink sakura petals, emerald leaves & wind gust vortex
+ * 1. storm-thunder         — Dark Storm Thunderbolt: Branching procedural Tesla lightning & ionized plasma sparks
+ * 2. cryo-vault            — Glacial Cryo-Vault: Liquid nitrogen vapor drift & sharp frost needle shards
+ * 3. solar-flare           — Crimson Solar Flare: Molten coronal base, magnetic prominence loops & lazy warm embers
+ * 4. cosmic-singularity    — Cosmic Singularity: Gravitational lensing spacetime grid & swirling accretion disk
+ * 5. plasma-web            — Cyberpunk Plasma Web: Circuit vector mesh, triangular polygon fills & electric data sparks
+ * 6. cyber-foundry         — Cyber-Industrial Foundry: Chasing laser dash conduits & gravity welding sparks
+ * 7. bioluminescent-trench — Bioluminescent Deep Trench: Radial pulse wave echolocation & undulating deep-sea organisms
+ * 8. windy-sakura          — Windy Sakura Leaf Falling: 3D tumbling pink sakura petals, emerald leaves & wind gust vortex
  */
 
 const VALID_THEMES = [
@@ -126,7 +126,7 @@ export default function ThemeBackground() {
       const isMobile = width < 768;
 
       if (theme === 'storm-thunder' || theme === 'synthwave') {
-        // 1. ⚡ Dark Storm Thunderbolt (Branching Tesla Discharge & Ionized Plasma Sparks)
+        // 1. Dark Storm Thunderbolt (Branching Tesla Discharge & Ionized Plasma Sparks)
         const sparkCount = isMobile ? 18 : 32;
         const ionizedSparks = [];
         for (let i = 0; i < sparkCount; i++) {
@@ -150,7 +150,7 @@ export default function ThemeBackground() {
           lastBoltX: width * 0.5
         };
       } else if (theme === 'cryo-vault') {
-        // 2. 🧊 Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Sharp Frost Shards)
+        // 2. Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Sharp Frost Shards)
         // A. Heavy drifting liquid nitrogen vapor puffs
         const puffCount = isMobile ? 8 : 15;
         const vaporPuffs = [];
@@ -201,7 +201,7 @@ export default function ThemeBackground() {
 
         state = { vaporPuffs, frostShards, alertMotes };
       } else if (theme === 'solar-flare') {
-        // 3. 🔥 Crimson Solar Flare (Coronal Prominence Arches & Lazy Warm Embers)
+        // 3. Crimson Solar Flare (Coronal Prominence Arches & Lazy Warm Embers)
         const loopCount = isMobile ? 4 : 6;
         const loops = [];
         for (let i = 0; i < loopCount; i++) {
@@ -235,7 +235,7 @@ export default function ThemeBackground() {
         }
         state = { loops, motes };
       } else if (theme === 'cosmic-singularity') {
-        // 4. 🌌 Cosmic Singularity (Black Hole: Gravitational Lensing Parallax & Accretion Disk)
+        // 4. Cosmic Singularity (Black Hole: Gravitational Lensing Parallax & Accretion Disk)
         // Singularity event horizon core
         const coreRadius = isMobile ? 32 : 48;
 
@@ -268,7 +268,7 @@ export default function ThemeBackground() {
 
         state = { coreRadius, diskParticles, hawkingParticles };
       } else if (theme === 'plasma-web') {
-        // 5. 🪐 Cyberpunk Plasma Web (Circuit Vector Mesh & Electric Data Packets)
+        // 5. Cyberpunk Plasma Web (Circuit Vector Mesh & Electric Data Packets)
         const nodeCount = isMobile ? 18 : 34;
         const nodes = [];
         for (let i = 0; i < nodeCount; i++) {
@@ -298,7 +298,7 @@ export default function ThemeBackground() {
 
         state = { nodes, packets, maxDistance };
       } else if (theme === 'cyber-foundry') {
-        // 6. ⚡ Cyber-Industrial Foundry (Chasing Dash-Array Spark Flux & Gravity Sparks)
+        // 6. Cyber-Industrial Foundry (Chasing Dash-Array Spark Flux & Gravity Sparks)
         // A. High-voltage conduit tracks
         const gridStep = isMobile ? 80 : 110;
         const cols = Math.floor(width / gridStep);
@@ -350,7 +350,7 @@ export default function ThemeBackground() {
 
         state = { gridStep, conduits, laserDashes, sparkPool, lastSparkTime: 0 };
       } else if (theme === 'bioluminescent-trench') {
-        // 7. 🪸 Bioluminescent Deep Trench (Pulse Wave Echolocation & Floating Organisms)
+        // 7. Bioluminescent Deep Trench (Pulse Wave Echolocation & Floating Organisms)
         // A. Expanding sonar echolocation pulse rings
         const sonarOriginX = width * 0.5;
         const sonarOriginY = height * 0.52;
@@ -397,7 +397,7 @@ export default function ThemeBackground() {
 
         state = { sonarOriginX, sonarOriginY, maxSonarRadius, sonarWaves, organisms, marineSnow };
       } else if (theme === 'windy-sakura' || theme === 'yokohama-night') {
-        // 8. 🌸 Windy Sakura Leaf Falling (3D Tumbling Petals & Wind Gust Vortex)
+        // 8. Windy Sakura Leaf Falling (3D Tumbling Petals & Wind Gust Vortex)
         const particleCount = isMobile ? 22 : 42;
         const petals = [];
         for (let i = 0; i < particleCount; i++) {
@@ -461,7 +461,7 @@ export default function ThemeBackground() {
       mouseY += (targetMouseY - mouseY) * 0.05;
 
       if (activeTheme === 'storm-thunder' || activeTheme === 'synthwave') {
-        // 1. ⚡ Dark Storm Thunderbolt (Branching Tesla Discharge & Ionized Plasma Sparks)
+        // 1. Dark Storm Thunderbolt (Branching Tesla Discharge & Ionized Plasma Sparks)
         ctx.save();
 
         // Check if time to trigger a lightning discharge
@@ -648,7 +648,7 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'cryo-vault') {
-        // 2. 🧊 Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Frost Needle Shards)
+        // 2. Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Frost Needle Shards)
         ctx.save();
 
         // 1. Heavy drifting nitrogen vapor puffs (sinking slowly)
@@ -728,7 +728,7 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'solar-flare') {
-        // 3. 🔥 Crimson Solar Flare (Coronal Prominence Arches & Lazy Warm Embers)
+        // 3. Crimson Solar Flare (Coronal Prominence Arches & Lazy Warm Embers)
         const coronaGrad = ctx.createLinearGradient(0, height - 120, 0, height);
         coronaGrad.addColorStop(0, 'rgba(15, 8, 10, 0)');
         coronaGrad.addColorStop(0.5, 'rgba(255, 94, 0, 0.08)');
@@ -783,7 +783,7 @@ export default function ThemeBackground() {
           ctx.restore();
         });
       } else if (activeTheme === 'cosmic-singularity') {
-        // 4. 🌌 Cosmic Singularity (Black Hole: Gravitational Lensing Parallax & Accretion Disk)
+        // 4. Cosmic Singularity (Black Hole: Gravitational Lensing Parallax & Accretion Disk)
         ctx.save();
         const singX = mouseX;
         const singY = mouseY;
@@ -877,7 +877,7 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'plasma-web') {
-        // 5. 🪐 Cyberpunk Plasma Web
+        // 5. Cyberpunk Plasma Web
         const nodes = state.nodes || [];
         const maxDist = state.maxDistance || 120;
 
@@ -973,7 +973,7 @@ export default function ThemeBackground() {
           ctx.restore();
         });
       } else if (activeTheme === 'cyber-foundry') {
-        // 6. ⚡ Cyber-Industrial Foundry (Chasing Dash-Array Spark Flux & Gravity Sparks)
+        // 6. Cyber-Industrial Foundry (Chasing Dash-Array Spark Flux & Gravity Sparks)
         ctx.save();
 
         // 1. Ambient Blast Furnace Heat Glow along bottom
@@ -1061,7 +1061,7 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'bioluminescent-trench') {
-        // 7. 🪸 Bioluminescent Deep Trench (Pulse Wave Echolocation & Floating Organisms)
+        // 7. Bioluminescent Deep Trench (Pulse Wave Echolocation & Floating Organisms)
         ctx.save();
 
         // 1. Hydro-Thermal Ambient Glow
@@ -1175,7 +1175,7 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'windy-sakura' || activeTheme === 'yokohama-night') {
-        // 8. 🌸 Windy Sakura Leaf Falling (3D Tumbling Petals & Wind Gust Vortex)
+        // 8. Windy Sakura Leaf Falling (3D Tumbling Petals & Wind Gust Vortex)
         ctx.save();
 
         // Wind gust timer & acceleration

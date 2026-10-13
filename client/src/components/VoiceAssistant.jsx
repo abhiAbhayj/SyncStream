@@ -804,14 +804,14 @@ export default function VoiceAssistant() {
       document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        'storm-thunder': '⚡ Dark Storm Thunderbolt',
-        'cryo-vault': '🧊 Glacial Cryo-Vault',
-        'solar-flare': '🔥 Crimson Solar Flare',
-        'cosmic-singularity': '🌌 Cosmic Singularity (Black Hole)',
-        'plasma-web': '🪐 Cyberpunk Plasma Web',
-        'cyber-foundry': '⚡ Cyber-Industrial Foundry',
-        'bioluminescent-trench': '🪸 Bioluminescent Deep Trench',
-        'windy-sakura': '🌸 Windy Sakura Leaf Falling'
+        'storm-thunder': 'Dark Storm Thunderbolt',
+        'cryo-vault': 'Glacial Cryo-Vault',
+        'solar-flare': 'Crimson Solar Flare',
+        'cosmic-singularity': 'Cosmic Singularity (Black Hole)',
+        'plasma-web': 'Cyberpunk Plasma Web',
+        'cyber-foundry': 'Cyber-Industrial Foundry',
+        'bioluminescent-trench': 'Bioluminescent Deep Trench',
+        'windy-sakura': 'Windy Sakura Leaf Falling'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;

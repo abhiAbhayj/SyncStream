@@ -153,8 +153,9 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                     </div>
                   </div>
 
-                  <div className="badge badge-anime absolute bottom-2 left-2 text-[9px] px-2 py-0.5 backdrop-blur-md">
-                    🎵 Music
+                  <div className="badge badge-anime absolute bottom-2 left-2 text-[9px] px-2 py-0.5 backdrop-blur-md flex items-center gap-1">
+                    <Music className="w-2.5 h-2.5 text-accentPink" />
+                    <span>Music</span>
                   </div>
 
                   {/* Add to playlist button overlay */}

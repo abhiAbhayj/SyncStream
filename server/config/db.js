@@ -176,7 +176,7 @@ export async function initDB() {
     );
     if (emailCols.length > 0) {
       await pool.query('ALTER TABLE users CHANGE COLUMN email phone_number VARCHAR(20) UNIQUE NOT NULL');
-      console.log('[DB] Migration: Renamed email → phone_number ✓');
+      console.log('[DB] Migration: Renamed email → phone_number [OK]');
     }
 
     // 2. Add 'phone_number' if it doesn't exist at all (fresh install edge case)
@@ -186,7 +186,7 @@ export async function initDB() {
     );
     if (phoneCols.length === 0) {
       await pool.query('ALTER TABLE users ADD COLUMN phone_number VARCHAR(20) UNIQUE NOT NULL DEFAULT ""');
-      console.log('[DB] Migration: Added phone_number column ✓');
+      console.log('[DB] Migration: Added phone_number column [OK]');
     }
 
     // 3. Add reset_otp if missing
@@ -196,7 +196,7 @@ export async function initDB() {
     );
     if (otpCols.length === 0) {
       await pool.query('ALTER TABLE users ADD COLUMN reset_otp VARCHAR(255) DEFAULT NULL');
-      console.log('[DB] Migration: Added reset_otp column ✓');
+      console.log('[DB] Migration: Added reset_otp column [OK]');
     }
 
     // 4. Add reset_otp_expiry if missing
@@ -206,7 +206,7 @@ export async function initDB() {
     );
     if (expiryCols.length === 0) {
       await pool.query('ALTER TABLE users ADD COLUMN reset_otp_expiry DATETIME DEFAULT NULL');
-      console.log('[DB] Migration: Added reset_otp_expiry column ✓');
+      console.log('[DB] Migration: Added reset_otp_expiry column [OK]');
     }
 
     // 5. Upgrade avatar_url to MEDIUMTEXT so custom high-res photo uploads are saved without truncation
@@ -217,7 +217,7 @@ export async function initDB() {
       );
       if (avatarCols.length > 0 && avatarCols[0].DATA_TYPE !== 'mediumtext' && avatarCols[0].DATA_TYPE !== 'longtext' && avatarCols[0].DATA_TYPE !== 'text') {
         await pool.query('ALTER TABLE users MODIFY COLUMN avatar_url MEDIUMTEXT');
-        console.log('[DB] Migration: Altered avatar_url to MEDIUMTEXT ✓');
+        console.log('[DB] Migration: Altered avatar_url to MEDIUMTEXT [OK]');
       }
     } catch (avatarErr) {
       console.warn('[DB] Avatar migration notice:', avatarErr.message);

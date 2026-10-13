@@ -18,7 +18,16 @@ import {
   Plus,
   Trash2,
   Edit3,
-  RotateCcw
+  RotateCcw,
+  Zap,
+  Snowflake,
+  Flame,
+  Disc,
+  Share2,
+  Hammer,
+  Waves,
+  Wind,
+  Rocket
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,56 +47,64 @@ const ALL_THEME_CLASSES = [
 const THEME_OPTIONS = [
   {
     id: 'storm-thunder',
-    name: '⚡ Dark Storm Thunderbolt',
+    name: 'Dark Storm Thunderbolt',
+    icon: Zap,
     desc: 'Ominous stormcloud skies torn open by jagged branching Tesla lightning discharges, ionized sparks and thunderhead aura',
     animation: 'Branching Tesla Discharge & Ionized Sparks',
     swatch: ['#06070b', '#00f0ff', '#a855f7', '#10131f', '#ffffff'],
   },
   {
     id: 'cryo-vault',
-    name: '🧊 Glacial Cryo-Vault',
+    name: 'Glacial Cryo-Vault',
+    icon: Snowflake,
     desc: 'Ultra-sleek freezing industrial aesthetic with liquid nitrogen vapor drift and sharp frost shards',
     animation: 'Liquid Nitrogen Vapor Drift & Frost Shards',
     swatch: ['#050b14', '#00d2ff', '#a5f3fc', '#0f1e36', '#ff3366'],
   },
   {
     id: 'solar-flare',
-    name: '🔥 Crimson Solar Flare',
+    name: 'Crimson Solar Flare',
+    icon: Flame,
     desc: 'Coronal magnetic prominence loops rising with very sparse, warm ember dust motes drifting lazily',
     animation: 'Coronal Prominence Loops & Ember Dust',
     swatch: ['#0f080a', '#ff5e00', '#ffb703', '#1a1215', '#fffbeb'],
   },
   {
     id: 'cosmic-singularity',
-    name: '🌌 Cosmic Singularity (Black Hole)',
+    name: 'Cosmic Singularity (Black Hole)',
+    icon: Disc,
     desc: 'Gravitationally warped deep space phenomenon with swirling accretion disk, lensing grid and Hawking radiation',
     animation: 'Gravitational Lensing & Swirling Accretion Disk',
     swatch: ['#020205', '#ff7a00', '#7b2cbf', '#130f26', '#ffffff'],
   },
   {
     id: 'plasma-web',
-    name: '🪐 Cyberpunk Plasma Web',
+    name: 'Cyberpunk Plasma Web',
+    icon: Share2,
     desc: 'Ultra-thin, low-opacity connecting vector nodes with circuit mesh and traveling electric data sparks',
     animation: 'Circuit Vector Mesh & Electric Data Sparks',
     swatch: ['#090d16', '#00ff66', '#2563eb', '#111827', '#ffffff'],
   },
   {
     id: 'cyber-foundry',
-    name: '⚡ Cyber-Industrial Foundry',
+    name: 'Cyber-Industrial Foundry',
+    icon: Hammer,
     desc: 'Raw heavy-machinery manufacturing theme with high-voltage hazard conduit spark flux and blast furnace heat',
     animation: 'Chasing Dash-Array Spark Flux & Gravity Sparks',
     swatch: ['#111215', '#ffb700', '#ff4f00', '#22252c', '#94a3b8'],
   },
   {
     id: 'bioluminescent-trench',
-    name: '🪸 Bioluminescent Deep Trench',
+    name: 'Bioluminescent Deep Trench',
+    icon: Waves,
     desc: 'Alien oceanic abyss with rhythmic pulse wave echolocation sonar and floating bioluminescent nodes',
     animation: 'Pulse Wave Echolocation & Floating Organisms',
     swatch: ['#010409', '#39ff14', '#e100ff', '#0a192f', '#8ea8c3'],
   },
   {
     id: 'windy-sakura',
-    name: '🌸 Windy Sakura Leaf Falling',
+    name: 'Windy Sakura Leaf Falling',
+    icon: Wind,
     desc: 'Moonlit midnight garden swept by wind currents carrying 3D tumbling pink sakura petals and fresh emerald leaves',
     animation: '3D Tumbling Petals & Wind Gust Vortex',
     swatch: ['#07050a', '#ff3385', '#34d399', '#140e1d', '#fff7fa'],
@@ -157,11 +174,11 @@ const MAX_AVATARS_PER_CATEGORY = 16;
 const MIN_AVATARS_PER_CATEGORY = 1;
 
 const AI_STYLE_PRESETS = [
-  { id: 'bots', label: '🤖 Cyber Bot', suffix: 'cyberpunk mecha robot bot avatar, futuristic neon lighting, crisp vector icon style, dark background' },
-  { id: 'anime', label: '🌸 Anime Persona', suffix: 'vibrant anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
-  { id: 'pixel', label: '👾 Retro Pixel', suffix: '16-bit retro pixel art character avatar, clean pixelated sprite, arcade game style' },
-  { id: 'emojis', label: '✨ 3D Emoji', suffix: 'cute 3D cartoon character avatar, Pixar 3D render, glossy studio lighting, fun expression' },
-  { id: 'scifi', label: '🚀 Sci-Fi Hero', suffix: 'futuristic space hero profile avatar, glowing visor, cinematic concept art, octane render' }
+  { id: 'bots', label: 'Cyber Bot', icon: Bot, suffix: 'cyberpunk mecha robot bot avatar, futuristic neon lighting, crisp vector icon style, dark background' },
+  { id: 'anime', label: 'Anime Persona', icon: Sparkles, suffix: 'vibrant anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
+  { id: 'pixel', label: 'Retro Pixel', icon: Gamepad2, suffix: '16-bit retro pixel art character avatar, clean pixelated sprite, arcade game style' },
+  { id: 'emojis', label: '3D Character', icon: Smile, suffix: 'cute 3D cartoon character avatar, Pixar 3D render, glossy studio lighting, fun expression' },
+  { id: 'scifi', label: 'Sci-Fi Hero', icon: Rocket, suffix: 'futuristic space hero profile avatar, glowing visor, cinematic concept art, octane render' }
 ];
 
 const PROMPT_SUGGESTIONS = [
@@ -594,8 +611,18 @@ export default function Profile() {
 
           <div className="space-y-0.5 sm:space-y-1">
             <h3 className="font-bold text-base sm:text-lg text-white truncate">{user?.username}</h3>
-            <p className="text-[11px] sm:text-xs text-gray-400 font-medium">
-              {isCustomUploaded ? '✨ Custom / AI Avatar' : '🎨 Preset Identity'}
+            <p className="text-[11px] sm:text-xs text-gray-400 font-medium flex items-center justify-center gap-1.5">
+              {isCustomUploaded ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 text-accentGold" />
+                  <span>Custom / AI Avatar</span>
+                </>
+              ) : (
+                <>
+                  <Palette className="w-3.5 h-3.5 text-accentCyan" />
+                  <span>Preset Identity</span>
+                </>
+              )}
             </p>
             {user?.created_at && (
               <p className="text-[10px] text-gray-500">Joined {new Date(user.created_at).toLocaleDateString()}</p>
@@ -651,8 +678,9 @@ export default function Profile() {
         >
           {/* Notifications */}
           {success && (
-            <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold p-3 sm:p-4 rounded-xl text-center shadow-lg animate-fade-in">
-              ✨ Profile settings &amp; custom avatars saved successfully!
+            <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold p-3 sm:p-4 rounded-xl text-center shadow-lg animate-fade-in flex items-center justify-center gap-2">
+              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Profile settings &amp; custom avatars saved successfully!</span>
             </div>
           )}
           {error && (
@@ -833,7 +861,8 @@ export default function Profile() {
                         />
                       ))}
                     </div>
-                    <p className="font-bold text-sm text-white flex items-center justify-between">
+                    <p className="font-bold text-sm text-white flex items-center gap-1.5">
+                      {t.icon && <t.icon className="w-3.5 h-3.5 text-accentCyan shrink-0" />}
                       <span>{t.name}</span>
                     </p>
                     <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">{t.desc}</p>
@@ -926,8 +955,18 @@ export default function Profile() {
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono flex items-center justify-between">
                   <span>AI Synthesis Engine</span>
-                  <span className="text-[10px] text-accentCyan font-normal">
-                    {aiEngineMode === 'instant' ? '⚡ Ultra Fast (0.1s)' : '🎨 Turbo Diffusion (2s)'}
+                  <span className="text-[10px] text-accentCyan font-normal flex items-center gap-1">
+                    {aiEngineMode === 'instant' ? (
+                      <>
+                        <Zap className="w-3 h-3 text-accentGold" />
+                        <span>Ultra Fast (0.1s)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-3 h-3 text-accentPink" />
+                        <span>Turbo Diffusion (2s)</span>
+                      </>
+                    )}
                   </span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -940,7 +979,8 @@ export default function Profile() {
                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                     }`}
                   >
-                    <span>⚡ Instant AI (0.1s)</span>
+                    <Zap className="w-3.5 h-3.5 text-accentGold shrink-0" />
+                    <span>Instant AI (0.1s)</span>
                   </button>
 
                   <button
@@ -952,7 +992,8 @@ export default function Profile() {
                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                     }`}
                   >
-                    <span>🎨 Turbo Diffusion (2s)</span>
+                    <Wand2 className="w-3.5 h-3.5 text-accentPink shrink-0" />
+                    <span>Turbo Diffusion (2s)</span>
                   </button>
                 </div>
               </div>

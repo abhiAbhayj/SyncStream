@@ -1,24 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
-import { Search as SearchIcon, Film, Tv, Sparkles, BookOpen, Music, Loader2, Globe, Filter, RefreshCw, ArrowLeft } from 'lucide-react';
+import {
+  Search as SearchIcon,
+  Film,
+  Tv,
+  Sparkles,
+  BookOpen,
+  Music,
+  Loader2,
+  Globe,
+  Filter,
+  RefreshCw,
+  ArrowLeft,
+  Mic2,
+  Radio,
+  Headphones,
+  Compass,
+  Disc3,
+  Volume2,
+  Layers,
+  Zap,
+  Languages,
+  Flame,
+  Calendar,
+  Rocket,
+  Star
+} from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
 
 const MUSIC_LANGUAGES = [
-  { key: 'blues_rap', label: 'Blues Rap', flag: '🎷' },
-  { key: 'rap', label: 'Rap & Hip-Hop', flag: '🎤' },
-  { key: 'rock', label: 'Rock', flag: '🎸' },
-  { key: 'kpop', label: 'K-Pop', flag: '🇰🇷' },
-  { key: 'korean', label: 'Korean', flag: '🇰🇷' },
-  { key: 'hindi', label: 'Hindi', flag: '🇮🇳' },
-  { key: 'anime', label: 'Anime', flag: '🌸' },
-  { key: 'english', label: 'English', flag: '🌍' },
-  { key: 'kannada', label: 'Kannada', flag: '🦁' },
-  { key: 'malayalam', label: 'Malayalam', flag: '🌿' },
-  { key: 'telugu', label: 'Telugu', flag: '🎬' },
-  { key: 'tamil', label: 'Tamil', flag: '⚡' },
-  { key: 'marathi', label: 'Marathi', flag: '🚩' }
+  { key: 'blues_rap', label: 'Blues Rap', icon: Music },
+  { key: 'rap', label: 'Rap & Hip-Hop', icon: Mic2 },
+  { key: 'rock', label: 'Rock', icon: Radio },
+  { key: 'kpop', label: 'K-Pop', icon: Headphones },
+  { key: 'korean', label: 'Korean', icon: Compass },
+  { key: 'hindi', label: 'Hindi', icon: Disc3 },
+  { key: 'anime', label: 'Anime', icon: Sparkles },
+  { key: 'english', label: 'English', icon: Globe },
+  { key: 'kannada', label: 'Kannada', icon: Volume2 },
+  { key: 'malayalam', label: 'Malayalam', icon: Layers },
+  { key: 'telugu', label: 'Telugu', icon: Film },
+  { key: 'tamil', label: 'Tamil', icon: Zap },
+  { key: 'marathi', label: 'Marathi', icon: Languages }
 ];
 
 const MOVIE_GENRES = [
@@ -427,30 +452,34 @@ export default function Search() {
         {type === 'music' && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
             {[
-              { id: 'all', label: 'All Music' },
-              { id: 'artist', label: '🎤 Artists' },
-              { id: 'movie', label: '🎬 Movie OSTs' },
-              { id: 'series', label: '📺 TV Series' },
-              { id: 'anime', label: '🌸 Anime OSTs' },
-              { id: 'song', label: '🎶 Songs' }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  setMusicCategory(cat.id);
-                  setPage(1);
-                  executeSearch(query, type, genre, language, country, 1, sort, cat.id);
-                }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
-                  musicCategory === cat.id
-                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
-                    : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+              { id: 'all', label: 'All Music', icon: Music },
+              { id: 'artist', label: 'Artists', icon: Mic2 },
+              { id: 'movie', label: 'Movie OSTs', icon: Film },
+              { id: 'series', label: 'TV Series', icon: Tv },
+              { id: 'anime', label: 'Anime OSTs', icon: Sparkles },
+              { id: 'song', label: 'Songs', icon: Disc3 }
+            ].map(cat => {
+              const CatIcon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setMusicCategory(cat.id);
+                    setPage(1);
+                    executeSearch(query, type, genre, language, country, 1, sort, cat.id);
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
+                    musicCategory === cat.id
+                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
+                      : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
+                  }`}
+                >
+                  {CatIcon && <CatIcon className="w-3.5 h-3.5 shrink-0" />}
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -459,25 +488,29 @@ export default function Search() {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
             <span className="text-accentCyan font-black uppercase tracking-wider shrink-0 mr-1 text-[11px]">Feed:</span>
             {[
-              { key: 'trending', label: '🔥 Trending Hits' },
-              { key: 'ongoing', label: type === 'anime' ? '⚡ Ongoing Anime' : type === 'tv' ? '⚡ Ongoing TV Shows' : type === 'manga' ? '⚡ Ongoing Manga' : '⚡ Now In Theaters' },
-              { key: 'latest', label: type === 'anime' ? '📅 Latest Episode' : type === 'manga' ? '📅 Latest Chapter' : type === 'tv' ? '📅 Latest Aired' : '📅 Latest Release' },
-              { key: 'upcoming', label: '🚀 Upcoming Releases' },
-              { key: 'top_rated', label: '⭐ Top Rated' },
-            ].map(s => (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => handleSortChange(s.key)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
-                  sort === s.key
-                    ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
-                    : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+              { key: 'trending', label: 'Trending Hits', icon: Flame },
+              { key: 'ongoing', label: type === 'anime' ? 'Ongoing Anime' : type === 'tv' ? 'Ongoing TV Shows' : type === 'manga' ? 'Ongoing Manga' : 'Now In Theaters', icon: Zap },
+              { key: 'latest', label: type === 'anime' ? 'Latest Episode' : type === 'manga' ? 'Latest Chapter' : type === 'tv' ? 'Latest Aired' : 'Latest Release', icon: Calendar },
+              { key: 'upcoming', label: 'Upcoming Releases', icon: Rocket },
+              { key: 'top_rated', label: 'Top Rated', icon: Star },
+            ].map(s => {
+              const SortIcon = s.icon;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => handleSortChange(s.key)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
+                    sort === s.key
+                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
+                      : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
+                  }`}
+                >
+                  {SortIcon && <SortIcon className="w-3.5 h-3.5 shrink-0" />}
+                  <span>{s.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -499,7 +532,7 @@ export default function Search() {
                 <option value="">All Hits</option>
                 {MUSIC_LANGUAGES.map(lang => (
                   <option key={lang.key} value={lang.key} className="bg-darkBg text-white">
-                    {lang.flag} {lang.label}
+                    {lang.label}
                   </option>
                 ))}
               </select>
@@ -594,6 +627,7 @@ export default function Search() {
         {type === 'music' ? (
           MUSIC_LANGUAGES.map((item) => {
             const isSelected = language === item.key;
+            const ItemIcon = item.icon;
             return (
               <button
                 key={item.key}
@@ -605,7 +639,7 @@ export default function Search() {
                     : 'border-darkBorder bg-darkCard/40 text-gray-300 hover:text-white hover:border-accentCyan/40 hover:bg-accentCyan/5'
                 }`}
               >
-                <span>{item.flag}</span>
+                {ItemIcon && <ItemIcon className="w-3.5 h-3.5 shrink-0" />}
                 <span>{item.label}</span>
               </button>
             );

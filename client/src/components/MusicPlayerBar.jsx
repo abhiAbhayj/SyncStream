@@ -251,7 +251,7 @@ export default function MusicPlayerBar() {
                   type="button"
                   onClick={openLyricsModal}
                   className="p-1 text-slate-300 hover:text-accentCyan hover:bg-white/10 rounded-md transition active:scale-90"
-                  title="Lyrics (📄)"
+                  title="Lyrics"
                 >
                   <FileText className="w-3.5 h-3.5" />
                 </button>
@@ -260,7 +260,7 @@ export default function MusicPlayerBar() {
                   type="button"
                   onClick={closePlayer}
                   className="p-1 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded-md transition active:scale-90"
-                  title="Close / Dismiss (✕)"
+                  title="Close / Dismiss"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -301,7 +301,7 @@ export default function MusicPlayerBar() {
                   type="button"
                   onClick={prevTrack}
                   className="p-1 text-slate-300 hover:text-white rounded-lg transition active:scale-90"
-                  title="Previous Track (⏮)"
+                  title="Previous Track"
                 >
                   <SkipBack className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
                 </button>
@@ -310,7 +310,7 @@ export default function MusicPlayerBar() {
                   type="button"
                   onClick={() => skipBackward(10)}
                   className="group relative p-1 text-slate-300 hover:text-accentCyan rounded-lg transition active:scale-90 flex items-center justify-center"
-                  title="Rewind 10 Seconds (↺10)"
+                  title="Rewind 10 Seconds"
                 >
                   <RotateCcw className="w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform group-hover:-rotate-45" />
                   <span className="absolute text-[6px] font-black text-accentCyan font-mono pointer-events-none">
@@ -338,7 +338,7 @@ export default function MusicPlayerBar() {
                   type="button"
                   onClick={() => skipForward(10)}
                   className="group relative p-1 text-slate-300 hover:text-accentCyan rounded-lg transition active:scale-90 flex items-center justify-center"
-                  title="Forward 10 Seconds (↻10)"
+                  title="Forward 10 Seconds"
                 >
                   <RotateCw className="w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform group-hover:rotate-45" />
                   <span className="absolute text-[6px] font-black text-accentCyan font-mono pointer-events-none">
@@ -350,7 +350,7 @@ export default function MusicPlayerBar() {
                   type="button"
                   onClick={nextTrack}
                   className="p-1 text-slate-300 hover:text-white rounded-lg transition active:scale-90"
-                  title="Next Track (⏭)"
+                  title="Next Track"
                 >
                   <SkipForward className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
                 </button>
@@ -463,7 +463,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={prevTrack}
                 className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition active:scale-90"
-                title="Previous Track (⏮)"
+                title="Previous Track"
               >
                 <SkipBack className="w-4 h-4 md:w-4.5 md:h-4.5" />
               </button>
@@ -472,7 +472,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={() => skipBackward(10)}
                 className="group relative p-1.5 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition active:scale-90 flex items-center justify-center"
-                title="Rewind 10 Seconds (↺10)"
+                title="Rewind 10 Seconds"
               >
                 <RotateCcw className="w-4 h-4 md:w-4.5 md:h-4.5 transition-transform group-hover:-rotate-45" />
                 <span className="absolute text-[7px] font-black text-accentCyan font-mono pointer-events-none">
@@ -500,7 +500,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={() => skipForward(10)}
                 className="group relative p-1.5 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition active:scale-90 flex items-center justify-center"
-                title="Forward 10 Seconds (↻10)"
+                title="Forward 10 Seconds"
               >
                 <RotateCw className="w-4 h-4 md:w-4.5 md:h-4.5 transition-transform group-hover:rotate-45" />
                 <span className="absolute text-[7px] font-black text-accentCyan font-mono pointer-events-none">
@@ -512,7 +512,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={nextTrack}
                 className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition active:scale-90"
-                title="Next Track (⏭)"
+                title="Next Track"
               >
                 <SkipForward className="w-4 h-4 md:w-4.5 md:h-4.5" />
               </button>
@@ -530,7 +530,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={openLyricsModal}
                 className="p-1.5 md:p-2 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition active:scale-90"
-                title="Lyrics (📄)"
+                title="Lyrics"
               >
                 <FileText className="w-4 h-4 md:w-4.5 md:h-4.5" />
               </button>
@@ -570,7 +570,7 @@ export default function MusicPlayerBar() {
                 type="button"
                 onClick={closePlayer}
                 className="p-1.5 md:p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/15 rounded-lg transition active:scale-90"
-                title="Close / Dismiss (✕)"
+                title="Close / Dismiss"
               >
                 <X className="w-4 h-4 md:w-4.5 md:h-4.5" />
               </button>

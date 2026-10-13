@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Check } from 'lucide-react';
 
 /**
  * ServerWakeup — shows a soft "waking up" notice when Render backend is cold.
@@ -55,7 +55,7 @@ export default function ServerWakeup() {
       bg-darkCard/95 border-accentCyan/30 text-gray-200 animate-fade-in">
       
       {ready ? (
-        <span className="text-accentCyan text-lg">✓</span>
+        <Check className="w-4 h-4 shrink-0 text-accentCyan" />
       ) : (
         <Loader2 className="w-4 h-4 shrink-0 text-accentCyan animate-spin" />
       )}

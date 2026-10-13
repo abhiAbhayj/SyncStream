@@ -7,8 +7,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
-import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star, Clock } from 'lucide-react';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb } from 'lucide-react';
 
 const formatDuration = (mins, mediaType, episodesCount) => {
   const m = parseInt(mins, 10);
@@ -172,14 +171,14 @@ export default function WatchParty() {
     socket.on('user_joined', ({ username }) => {
       setParticipantsCount(prev => prev + 1);
       if (username !== user.username) {
-        addNotification(`👋 ${username} joined the watch party!`, 'join');
+        addNotification(`${username} joined the watch party!`, 'join');
       }
     });
 
     socket.on('user_left', ({ username }) => {
       setParticipantsCount(prev => Math.max(prev - 1, 1));
       if (username !== user.username) {
-        addNotification(`🚪 ${username} left the room`, 'leave');
+        addNotification(`${username} left the room`, 'leave');
       }
     });
 
@@ -439,7 +438,11 @@ export default function WatchParty() {
                   : 'bg-darkCard/95 border-amber-500/40 text-amber-400 shadow-[0_0_25px_rgba(255,200,0,0.25)]'
               }`}
             >
-              <Sparkles className="w-4 h-4 text-accentCyan shrink-0" />
+              {notif.type === 'join' ? (
+                <UserPlus className="w-4 h-4 text-emerald-400 shrink-0" />
+              ) : (
+                <LogOut className="w-4 h-4 text-amber-400 shrink-0" />
+              )}
               <span className="truncate">{notif.text}</span>
             </div>
           ))}
@@ -864,11 +867,12 @@ export default function WatchParty() {
           )}
 
           {/* Sync status footer */}
-          <div className="bg-black/20 border border-darkBorder/40 p-4 rounded-xl space-y-1">
+          <div className="bg-black/20 border border-darkBorder/40 p-4 rounded-xl flex items-start gap-2.5">
+            <Lightbulb className="w-4 h-4 text-accentGold shrink-0 mt-0.5" />
             <p className="text-xs text-gray-400 leading-relaxed font-medium">
               {isHost 
-                ? "💡 You are the room host. Switching players, streaming servers, seasons, episodes, or pasting custom links will synchronize participants automatically."
-                : "💡 Live synchronized session active. Standard players, seasons, episodes, and stream wraps are synchronized. Enjoy the show!"}
+                ? "You are the room host. Switching players, streaming servers, seasons, episodes, or pasting custom links will synchronize participants automatically."
+                : "Live synchronized session active. Standard players, seasons, episodes, and stream wraps are synchronized. Enjoy the show!"}
             </p>
           </div>
         </div>
