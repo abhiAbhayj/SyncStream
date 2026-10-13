@@ -28,24 +28,24 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 2: 🌌 Electric Twilight Aurora
-   Deep Indigo Night, Vivid Violet & Emerald Mint
+   THEME 2: 🧊 Glacial Cryo-Vault
+   Sub-Zero Abyss, Permafrost Slate, Cryo Cyan, Glacial Frost & Thermal Alert
 ───────────────────────────────────────────── */
-.theme-aurora {
-  --dark-bg:     11 15 25;
-  --dark-card:   30 34 56;
-  --dark-surf:   42 47 76;
-  --dark-border: 139 92 246;
+.theme-cryo-vault {
+  --dark-bg:     5 11 20;
+  --dark-card:   15 30 54;
+  --dark-surf:   22 40 70;
+  --dark-border: 0 210 255;
 
-  --accent-cyan:   16 185 129;
-  --accent-purple: 139 92 246;
-  --accent-pink:   192 132 252;
-  --accent-gold:   253 224 71;
-  --accent-green:  16 185 129;
+  --accent-cyan:   0 210 255;
+  --accent-purple: 165 243 252;
+  --accent-pink:   255 51 102;
+  --accent-gold:   165 243 252;
+  --accent-green:  0 210 255;
 
-  --glow-1: rgba(139, 92, 246, 0.22);
-  --glow-2: rgba(16, 185, 129, 0.16);
-  --glow-3: rgba(192, 132, 252, 0.10);
+  --glow-1: rgba(0, 210, 255, 0.25);
+  --glow-2: rgba(165, 243, 252, 0.18);
+  --glow-3: rgba(255, 51, 102, 0.12);
 }
 
 /* ─────────────────────────────────────────────
@@ -70,24 +70,24 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 4: 💎 Neon Frost Glassmorphism
-   Deep Ice Slate, Bright Ice Blue & Neon Lavender
+   THEME 4: 🌌 Cosmic Singularity (Black Hole)
+   Event Horizon Black, Accretion Disk Purple, Gravitational Amber & Hawking Radiation
 ───────────────────────────────────────────── */
-.theme-neon-frost {
-  --dark-bg:     15 23 42;
-  --dark-card:   30 41 59;
-  --dark-surf:   40 53 77;
-  --dark-border: 56 189 248;
+.theme-cosmic-singularity {
+  --dark-bg:     2 2 5;
+  --dark-card:   19 15 38;
+  --dark-surf:   29 23 59;
+  --dark-border: 255 122 0;
 
-  --accent-cyan:   56 189 248;
-  --accent-purple: 192 132 252;
-  --accent-pink:   244 114 182;
-  --accent-gold:   226 232 240;
-  --accent-green:  52 211 153;
+  --accent-cyan:   255 122 0;
+  --accent-purple: 123 44 191;
+  --accent-pink:   255 255 255;
+  --accent-gold:   255 122 0;
+  --accent-green:  123 44 191;
 
-  --glow-1: rgba(56, 189, 248, 0.22);
-  --glow-2: rgba(192, 132, 252, 0.16);
-  --glow-3: rgba(244, 114, 182, 0.09);
+  --glow-1: rgba(255, 122, 0, 0.25);
+  --glow-2: rgba(123, 44, 191, 0.20);
+  --glow-3: rgba(255, 255, 255, 0.12);
 }
 
 /* ─────────────────────────────────────────────
@@ -112,66 +112,66 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 6: 🌊 Neon Abyssal Trench
-   Midnight Navy, Laser Aqua & Electric Indigo
+   THEME 6: ⚡ Cyber-Industrial Foundry
+   Cast Iron Dark, Machined Carbon, High-Voltage Yellow & Blast Furnace Orange
 ───────────────────────────────────────────── */
-.theme-abyssal-trench {
-  --dark-bg:     6 9 19;
-  --dark-card:   15 23 42;
-  --dark-surf:   23 35 61;
-  --dark-border: 6 182 212;
+.theme-cyber-foundry {
+  --dark-bg:     17 18 21;
+  --dark-card:   34 37 44;
+  --dark-surf:   46 51 61;
+  --dark-border: 255 183 0;
 
-  --accent-cyan:   6 182 212;
-  --accent-purple: 99 102 241;
-  --accent-pink:   139 92 246;
-  --accent-gold:   250 204 21;
-  --accent-green:  34 211 238;
+  --accent-cyan:   255 183 0;
+  --accent-purple: 255 79 0;
+  --accent-pink:   255 79 0;
+  --accent-gold:   255 183 0;
+  --accent-green:  148 163 184;
 
-  --glow-1: rgba(6, 182, 212, 0.22);
-  --glow-2: rgba(99, 102, 241, 0.18);
-  --glow-3: rgba(34, 211, 238, 0.10);
+  --glow-1: rgba(255, 183, 0, 0.25);
+  --glow-2: rgba(255, 79, 0, 0.20);
+  --glow-3: rgba(148, 163, 184, 0.12);
 }
 
 /* ─────────────────────────────────────────────
-   THEME 7: 🚀 Quantum Nebula Drift
-   Deep Space Violet, Hot Pink & Electric Violet
+   THEME 7: 🪸 Bioluminescent Deep Trench
+   Mariana Trench Pitch, Hydro-Thermal Blue, Neon Coral Green & Jellyfish Pink
 ───────────────────────────────────────────── */
-.theme-nebula-drift {
-  --dark-bg:     12 7 20;
-  --dark-card:   24 16 40;
-  --dark-surf:   37 26 61;
-  --dark-border: 236 72 153;
+.theme-bioluminescent-trench {
+  --dark-bg:     1 4 9;
+  --dark-card:   10 25 47;
+  --dark-surf:   17 42 77;
+  --dark-border: 57 255 20;
 
-  --accent-cyan:   236 72 153;
-  --accent-purple: 168 85 247;
-  --accent-pink:   244 63 94;
-  --accent-gold:   253 224 71;
-  --accent-green:  45 212 191;
+  --accent-cyan:   57 255 20;
+  --accent-purple: 225 0 255;
+  --accent-pink:   225 0 255;
+  --accent-gold:   57 255 20;
+  --accent-green:  57 255 20;
 
-  --glow-1: rgba(236, 72, 153, 0.22);
-  --glow-2: rgba(168, 85, 247, 0.18);
-  --glow-3: rgba(244, 63, 94, 0.10);
+  --glow-1: rgba(57, 255, 20, 0.25);
+  --glow-2: rgba(225, 0, 255, 0.20);
+  --glow-3: rgba(142, 168, 195, 0.12);
 }
 
 /* ─────────────────────────────────────────────
-   THEME 8: 🍊 Neon Citrus Arcade
-   Dark Slate Gray, Vibrant Tangerine & Electric Yellow
+   THEME 8: 🏮 Neo-Yokohama Night Alley
+   Wet Asphalt Black, Shadow Alley Purple, Neon Sign Crimson & Vapor Electric Teal
 ───────────────────────────────────────────── */
-.theme-citrus-arcade {
-  --dark-bg:     18 18 18;
-  --dark-card:   30 30 30;
-  --dark-surf:   42 42 42;
-  --dark-border: 255 122 0;
+.theme-yokohama-night {
+  --dark-bg:     8 7 12;
+  --dark-card:   26 22 37;
+  --dark-surf:   38 32 54;
+  --dark-border: 255 0 85;
 
-  --accent-cyan:   255 122 0;
-  --accent-purple: 255 214 0;
-  --accent-pink:   255 51 102;
-  --accent-gold:   255 214 0;
-  --accent-green:  163 230 53;
+  --accent-cyan:   0 255 204;
+  --accent-purple: 255 0 85;
+  --accent-pink:   255 0 85;
+  --accent-gold:   255 240 102;
+  --accent-green:  0 255 204;
 
-  --glow-1: rgba(255, 122, 0, 0.22);
-  --glow-2: rgba(255, 214, 0, 0.18);
-  --glow-3: rgba(255, 51, 102, 0.10);
+  --glow-1: rgba(255, 0, 85, 0.25);
+  --glow-2: rgba(0, 255, 204, 0.20);
+  --glow-3: rgba(255, 240, 102, 0.12);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════════════════

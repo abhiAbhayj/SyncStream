@@ -43,17 +43,36 @@ function AppContent() {
   React.useEffect(() => {
     const ALL_THEMES = [
       'theme-synthwave',
-      'theme-aurora',
+      'theme-cryo-vault',
       'theme-solar-flare',
-      'theme-neon-frost',
+      'theme-cosmic-singularity',
       'theme-plasma-web',
-      'theme-abyssal-trench',
-      'theme-nebula-drift',
-      'theme-citrus-arcade'
+      'theme-cyber-foundry',
+      'theme-bioluminescent-trench',
+      'theme-yokohama-night'
+    ];
+    const validThemes = [
+      'synthwave',
+      'cryo-vault',
+      'solar-flare',
+      'cosmic-singularity',
+      'plasma-web',
+      'cyber-foundry',
+      'bioluminescent-trench',
+      'yokohama-night'
     ];
     let savedTheme = localStorage.getItem('syncstream_theme') || 'synthwave';
-    const validThemes = ['synthwave', 'aurora', 'solar-flare', 'neon-frost', 'plasma-web', 'abyssal-trench', 'nebula-drift', 'citrus-arcade'];
-    if (!validThemes.includes(savedTheme)) {
+    const legacyMap = {
+      aurora: 'cryo-vault',
+      'neon-frost': 'cosmic-singularity',
+      'abyssal-trench': 'bioluminescent-trench',
+      'nebula-drift': 'cosmic-singularity',
+      'citrus-arcade': 'cyber-foundry'
+    };
+    if (legacyMap[savedTheme]) {
+      savedTheme = legacyMap[savedTheme];
+      localStorage.setItem('syncstream_theme', savedTheme);
+    } else if (!validThemes.includes(savedTheme)) {
       savedTheme = 'synthwave';
       localStorage.setItem('syncstream_theme', 'synthwave');
     }

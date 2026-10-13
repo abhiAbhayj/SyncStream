@@ -3,44 +3,41 @@ import React, { useEffect, useRef, useState } from 'react';
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
  * 8 Completely Distinct Geometric Visualizers:
- * 1. synthwave      — ⚡ Vibrant Synthwave Horizon: 3D perspective floor grid, distant horizon fog & glowing nodes
- * 2. aurora         — 🌌 Electric Twilight Aurora: Sweeping vertical curtain gradient ribbons morphing in deep space
- * 3. solar-flare    — 🔥 Crimson Solar Flare: Molten coronal base, magnetic prominence flare loops & lazy warm embers
- * 4. neon-frost     — 💎 Neon Frost Glassmorphism: Beveled prismatic glass facets, angular refraction planes & corner caustics
- * 5. plasma-web     — 🪐 Cyberpunk Plasma Web: Circuit vector mesh, triangular polygon fills & traveling electric data sparks
- * 6. abyssal-trench — 🌊 Neon Abyssal Trench: Volumetric oceanic caustic ribbons, underwater light shafts & deep sonar sweep
- * 7. nebula-drift   — 🚀 Quantum Nebula Drift: Volumetric gas dust clouds & exactly 10-12 brilliant diamond-cross diffraction stars
- * 8. citrus-arcade  — 🍊 Neon Citrus Arcade: 8-bit tetromino pixel art sprites, CRT scanline raster & digital static
+ * 1. synthwave             — ⚡ Vibrant Synthwave Horizon: 3D perspective floor grid, horizon fog & ambient nodes
+ * 2. cryo-vault            — 🧊 Glacial Cryo-Vault: Liquid nitrogen vapor drift & sharp frost needle shards
+ * 3. solar-flare           — 🔥 Crimson Solar Flare: Molten coronal base, magnetic prominence loops & lazy warm embers
+ * 4. cosmic-singularity    — 🌌 Cosmic Singularity: Gravitational lensing spacetime grid & swirling accretion disk
+ * 5. plasma-web            — 🪐 Cyberpunk Plasma Web: Circuit vector mesh, triangular polygon fills & electric data sparks
+ * 6. cyber-foundry         — ⚡ Cyber-Industrial Foundry: Chasing laser dash conduits & gravity welding sparks
+ * 7. bioluminescent-trench — 🪸 Bioluminescent Deep Trench: Radial pulse wave echolocation & undulating deep-sea organisms
+ * 8. yokohama-night        — 🏮 Neo-Yokohama Night Alley: Chromatic rain streaks, puddle ripples & wet asphalt neon reflections
  */
 
 const VALID_THEMES = [
   'synthwave',
-  'aurora',
+  'cryo-vault',
   'solar-flare',
-  'neon-frost',
+  'cosmic-singularity',
   'plasma-web',
-  'abyssal-trench',
-  'nebula-drift',
-  'citrus-arcade'
+  'cyber-foundry',
+  'bioluminescent-trench',
+  'yokohama-night'
 ];
 
-// Tetromino 8-bit shapes for Citrus Arcade
-const ARCADE_SHAPES = [
-  [[1, 1, 1, 1]], // I-bar
-  [[1, 1], [1, 1]], // O-square
-  [[0, 1, 0], [1, 1, 1]], // T-block
-  [[1, 0, 0], [1, 1, 1]], // L-block
-  [[0, 0, 1], [1, 1, 1]], // J-block
-  [[0, 1, 1], [1, 1, 0]], // S-block
-  [[1, 1, 0], [0, 1, 1]], // Z-block
-  [[1]] // micro pixel
-];
+const LEGACY_THEME_MAP = {
+  aurora: 'cryo-vault',
+  'neon-frost': 'cosmic-singularity',
+  'abyssal-trench': 'bioluminescent-trench',
+  'nebula-drift': 'cosmic-singularity',
+  'citrus-arcade': 'cyber-foundry'
+};
 
 export default function ThemeBackground() {
   const canvasRef = useRef(null);
   const [activeTheme, setActiveTheme] = useState(() => {
     const saved = localStorage.getItem('syncstream_theme');
     if (saved && VALID_THEMES.includes(saved)) return saved;
+    if (saved && LEGACY_THEME_MAP[saved]) return LEGACY_THEME_MAP[saved];
     return 'synthwave';
   });
 
@@ -51,8 +48,12 @@ export default function ThemeBackground() {
       for (const t of VALID_THEMES) {
         if (classList.contains(`theme-${t}`)) return t;
       }
+      for (const [oldKey, newKey] of Object.entries(LEGACY_THEME_MAP)) {
+        if (classList.contains(`theme-${oldKey}`)) return newKey;
+      }
       const saved = localStorage.getItem('syncstream_theme');
       if (saved && VALID_THEMES.includes(saved)) return saved;
+      if (saved && LEGACY_THEME_MAP[saved]) return LEGACY_THEME_MAP[saved];
       return 'synthwave';
     };
 
@@ -69,6 +70,8 @@ export default function ThemeBackground() {
         const val = e.newValue;
         if (val && VALID_THEMES.includes(val)) {
           setActiveTheme(val);
+        } else if (val && LEGACY_THEME_MAP[val]) {
+          setActiveTheme(LEGACY_THEME_MAP[val]);
         } else {
           setActiveTheme('synthwave');
         }
@@ -92,6 +95,18 @@ export default function ThemeBackground() {
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
+    // Mouse coordinates for Cosmic Singularity gravitational lens parallax
+    let mouseX = width * 0.5;
+    let mouseY = height * 0.44;
+    let targetMouseX = mouseX;
+    let targetMouseY = mouseY;
+
+    const handlePointerMove = (e) => {
+      targetMouseX = e.clientX;
+      targetMouseY = e.clientY;
+    };
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+
     const handleResize = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
@@ -109,8 +124,7 @@ export default function ThemeBackground() {
       const isMobile = width < 768;
 
       if (theme === 'synthwave') {
-        // 1. ⚡ Vibrant Synthwave Horizon
-        // Slow-gliding perspective grid floor + distant foggy horizon + pulsing ambient nodes
+        // 1. ⚡ Vibrant Synthwave Horizon (Perspective grid floor + horizon fog + pulsing nodes)
         const horizonY = height * 0.58;
         const nodesCount = isMobile ? 3 : 5;
         const glowNodes = [];
@@ -124,26 +138,59 @@ export default function ThemeBackground() {
           });
         }
         state = { horizonY, glowNodes, gridSpeed: 0.003 };
-      } else if (theme === 'aurora') {
-        // 2. 🌌 Electric Twilight Aurora
-        // Soft, ultra-slow morphing gradient wash / northern lights ribbons
-        const ribbonCount = isMobile ? 3 : 4;
-        const ribbons = [];
-        for (let i = 0; i < ribbonCount; i++) {
-          ribbons.push({
-            baseY: height * (0.18 + i * 0.16),
-            amplitude: isMobile ? 35 : 55,
-            wavelength: isMobile ? 350 : 550,
-            phase: i * 1.5,
-            speed: 0.0025 + i * 0.0008,
-            color: i % 2 === 0 ? 'rgba(139, 92, 246, ' : 'rgba(16, 185, 129, ',
-            baseAlpha: 0.14 - i * 0.02
+      } else if (theme === 'cryo-vault') {
+        // 2. 🧊 Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Sharp Frost Shards)
+        // A. Heavy drifting liquid nitrogen vapor puffs
+        const puffCount = isMobile ? 8 : 15;
+        const vaporPuffs = [];
+        for (let i = 0; i < puffCount; i++) {
+          vaporPuffs.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: (isMobile ? 100 : 180) + Math.random() * (isMobile ? 60 : 120),
+            vy: 0.22 + Math.random() * 0.32,
+            swayAmp: 0.8 + Math.random() * 1.4,
+            swaySpeed: 0.008 + Math.random() * 0.008,
+            phase: Math.random() * Math.PI * 2,
+            color: i % 2 === 0 ? 'rgba(0, 210, 255, ' : 'rgba(165, 243, 252, ',
+            baseAlpha: 0.035 + Math.random() * 0.03
           });
         }
-        state = { ribbons };
+
+        // B. Sharp faceted frost crystal needle shards
+        const shardCount = isMobile ? 18 : 32;
+        const frostShards = [];
+        for (let i = 0; i < shardCount; i++) {
+          frostShards.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: (isMobile ? 6 : 10) + Math.random() * (isMobile ? 8 : 14),
+            vy: 0.18 + Math.random() * 0.3,
+            rot: Math.random() * Math.PI * 2,
+            vRot: (Math.random() - 0.5) * 0.015,
+            aspect: 2.2 + Math.random() * 1.8, // elongated frost needle
+            color: i % 3 === 0 ? '#00d2ff' : (i % 3 === 1 ? '#a5f3fc' : '#ffffff'),
+            alpha: 0.15 + Math.random() * 0.25,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+
+        // C. Occasional thermal overload alert spark motes
+        const alertMotes = [];
+        for (let i = 0; i < 4; i++) {
+          alertMotes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 2,
+            color: '#ff3366',
+            blinkRate: 0.03 + Math.random() * 0.02,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+
+        state = { vaporPuffs, frostShards, alertMotes };
       } else if (theme === 'solar-flare') {
-        // 3. 🔥 Crimson Solar Flare (Completely Unique: Coronal Prominence Arches & Molten Base)
-        // Dynamic magnetic loops rising from the bottom edge + warm ember motes
+        // 3. 🔥 Crimson Solar Flare (Coronal Prominence Arches & Lazy Warm Embers)
         const loopCount = isMobile ? 4 : 6;
         const loops = [];
         for (let i = 0; i < loopCount; i++) {
@@ -160,7 +207,6 @@ export default function ThemeBackground() {
           });
         }
 
-        // Warm lazy embers rising out of the coronal field
         const moteCount = isMobile ? 16 : 28;
         const motes = [];
         for (let i = 0; i < moteCount; i++) {
@@ -177,41 +223,41 @@ export default function ThemeBackground() {
           });
         }
         state = { loops, motes };
-      } else if (theme === 'neon-frost') {
-        // 4. 💎 Neon Frost Glassmorphism (Completely Unique: Prismatic Beveled Glass Facets & Caustic Shears)
-        // Angular geometric frosted facet polygons in corner + sweeping chromatic dispersion light beams
-        const facetCount = isMobile ? 5 : 8;
-        const facets = [];
-        const cornerOriginX = width * 0.15;
-        const cornerOriginY = height * 0.18;
+      } else if (theme === 'cosmic-singularity') {
+        // 4. 🌌 Cosmic Singularity (Black Hole: Gravitational Lensing Parallax & Accretion Disk)
+        // Singularity event horizon core
+        const coreRadius = isMobile ? 32 : 48;
 
-        for (let i = 0; i < facetCount; i++) {
-          const angle = (i / facetCount) * Math.PI * 0.75 + 0.1;
-          const dist = (isMobile ? 80 : 140) + i * (isMobile ? 40 : 65);
-          const size = (isMobile ? 45 : 75) + Math.random() * 25;
-          const cx = cornerOriginX + Math.cos(angle) * dist;
-          const cy = cornerOriginY + Math.sin(angle) * dist;
-
-          facets.push({
-            cx,
-            cy,
-            size,
-            rot: angle + Math.PI / 4,
-            phase: i * 0.9,
-            speed: 0.006 + i * 0.002,
-            colorType: i % 2 === 0 ? 'cyan' : 'lavender'
+        // Swirling relativistic accretion disk particles
+        const particleCount = isMobile ? 45 : 75;
+        const diskParticles = [];
+        for (let i = 0; i < particleCount; i++) {
+          const orbitR = coreRadius * 1.25 + Math.random() * (isMobile ? 120 : 210);
+          diskParticles.push({
+            r: orbitR,
+            angle: Math.random() * Math.PI * 2,
+            speed: (0.015 + (1 / Math.sqrt(Math.max(orbitR, 10))) * 0.28) * (Math.random() > 0.08 ? 1 : 1),
+            size: Math.random() * 2 + 1,
+            color: Math.random() > 0.55 ? '#ff7a00' : (Math.random() > 0.35 ? '#7b2cbf' : '#ffffff'),
+            alpha: 0.35 + Math.random() * 0.55
           });
         }
 
-        state = {
-          facets,
-          cornerOriginX,
-          cornerOriginY,
-          cycleDurationMs: 22000
-        };
+        // Hawking radiation jets / relativistic emissions
+        const hawkingParticles = [];
+        for (let i = 0; i < (isMobile ? 12 : 20); i++) {
+          hawkingParticles.push({
+            dist: Math.random() * (isMobile ? 160 : 300),
+            angle: Math.random() * Math.PI * 2,
+            vDist: 0.8 + Math.random() * 1.4,
+            size: Math.random() * 1.8 + 0.8,
+            color: Math.random() > 0.5 ? '#7b2cbf' : '#ff7a00'
+          });
+        }
+
+        state = { coreRadius, diskParticles, hawkingParticles };
       } else if (theme === 'plasma-web') {
-        // 5. 🪐 Cyberpunk Plasma Web (Completely Unique: Circuit Vector Mesh with Traveling Electric Data Sparks)
-        // Vector nodes + semi-transparent triangle mesh polygons + active electric data packets firing along lines
+        // 5. 🪐 Cyberpunk Plasma Web (Circuit Vector Mesh & Electric Data Packets)
         const nodeCount = isMobile ? 18 : 34;
         const nodes = [];
         for (let i = 0; i < nodeCount; i++) {
@@ -227,8 +273,6 @@ export default function ThemeBackground() {
         }
 
         const maxDistance = isMobile ? 100 : 145;
-
-        // Traveling electric data packets
         const packetCount = isMobile ? 8 : 14;
         const packets = [];
         for (let i = 0; i < packetCount; i++) {
@@ -242,77 +286,144 @@ export default function ThemeBackground() {
         }
 
         state = { nodes, packets, maxDistance };
-      } else if (theme === 'abyssal-trench') {
-        // 6. 🌊 Neon Abyssal Trench (Completely Unique: Volumetric Oceanic Caustic Ribbons & Sonar Sweep)
-        // Translucent flowing water wave ribbons with depth gradient fills + sweeping horizontal sonar beam
-        const ribbonCount = isMobile ? 4 : 5;
-        const ribbons = [];
-        for (let i = 0; i < ribbonCount; i++) {
-          ribbons.push({
-            baseY: height * (0.2 + (i * 0.6) / ribbonCount),
-            thickness: (isMobile ? 35 : 55) + i * 12,
-            amplitude: (isMobile ? 18 : 32) + i * 4,
-            wavelength: (isMobile ? 380 : 580) + i * 40,
-            speed: 0.005 + i * 0.0015,
-            phase: i * 1.6,
-            color: i % 2 === 0 ? 'rgba(6, 182, 212, ' : 'rgba(99, 102, 241, ',
-            alpha: 0.08 - i * 0.01
-          });
+      } else if (theme === 'cyber-foundry') {
+        // 6. ⚡ Cyber-Industrial Foundry (Chasing Dash-Array Spark Flux & Gravity Sparks)
+        // A. High-voltage conduit tracks
+        const gridStep = isMobile ? 80 : 110;
+        const cols = Math.floor(width / gridStep);
+        const rows = Math.floor(height / gridStep);
+        const conduits = [];
+
+        // Generate horizontal and vertical conduit segments
+        for (let r = 1; r < rows; r++) {
+          conduits.push({ x1: 0, y1: r * gridStep, x2: width, y2: r * gridStep, dir: 'h' });
         }
-        state = { ribbons, sonarY: 0, sonarSpeed: isMobile ? 0.4 : 0.6 };
-      } else if (theme === 'nebula-drift') {
-        // 7. 🚀 Quantum Nebula Drift (Completely Unique: Deep Space Gas Clouds & 10-12 Diamond Cross Stars)
-        // Volumetric astronomical dust clouds + STRICTLY 10-12 major stars with 4-point & 8-point diffraction spikes
-        const cloudCount = isMobile ? 3 : 5;
-        const clouds = [];
-        for (let i = 0; i < cloudCount; i++) {
-          clouds.push({
-            x: width * (0.15 + (i / cloudCount) * 0.7),
-            y: height * (0.2 + ((i * 1.7) % 1) * 0.6),
-            rx: (isMobile ? 160 : 320) + Math.random() * 80,
-            ry: (isMobile ? 120 : 220) + Math.random() * 60,
-            color: i % 2 === 0 ? 'rgba(236, 72, 153, ' : 'rgba(168, 85, 247, ',
-            alpha: 0.055,
-            phase: i * 1.4,
-            speed: 0.003
+        for (let c = 1; c < cols; c++) {
+          conduits.push({ x1: c * gridStep, y1: 0, x2: c * gridStep, y2: height, dir: 'v' });
+        }
+
+        // B. Chasing laser dashes racing through the conduits
+        const dashCount = isMobile ? 10 : 18;
+        const laserDashes = [];
+        for (let i = 0; i < dashCount; i++) {
+          const isHoriz = Math.random() > 0.5;
+          const trackIndex = isHoriz
+            ? Math.floor(Math.random() * Math.max(rows - 1, 1)) + 1
+            : Math.floor(Math.random() * Math.max(cols - 1, 1)) + 1;
+          const pos = Math.random() * (isHoriz ? width : height);
+          laserDashes.push({
+            isHoriz,
+            coord: trackIndex * gridStep,
+            pos,
+            length: (isMobile ? 24 : 45) + Math.random() * 20,
+            speed: (3.2 + Math.random() * 3.8) * (Math.random() > 0.5 ? 1 : -1),
+            color: i % 2 === 0 ? '#ffb700' : '#ff4f00'
           });
         }
 
-        // STRICTLY 10-12 distinct diamond-cross diffraction stars on screen
-        const starCount = isMobile ? 10 : 12;
-        const stars = [];
-        for (let i = 0; i < starCount; i++) {
-          stars.push({
-            x: width * (0.06 + ((i * 0.082) % 0.88)),
-            y: height * (0.08 + (((i * 7) % starCount) / starCount) * 0.84),
-            coreRadius: Math.random() * 1.2 + 1.2,
-            twinkleSpeed: 0.006 + Math.random() * 0.006,
-            phase: Math.random() * Math.PI * 2,
-            color: i % 3 === 0 ? '#ec4899' : (i % 3 === 1 ? '#a855f7' : '#ffffff'),
-            isSuperStar: i % 3 === 0, // 8-point diffraction spike
-            spikeLen: (isMobile ? 12 : 20) + Math.random() * 10
+        // C. Gravity-simulated welding/grinding sparks falling from conduit junctions
+        const sparkPool = [];
+        const maxSparks = isMobile ? 30 : 50;
+        for (let i = 0; i < maxSparks; i++) {
+          sparkPool.push({
+            active: false,
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            life: 0,
+            maxLife: 60,
+            color: '#ffb700'
           });
         }
-        state = { clouds, stars };
-      } else if (theme === 'citrus-arcade') {
-        // 8. 🍊 Neon Citrus Arcade (Completely Unique: 8-Bit Tetromino Sprites & CRT Scanline)
-        // Recognizable retro arcade geometric blocks (I, O, T, L, Z) falling in tangerine & yellow
-        const spriteCount = isMobile ? 14 : 24;
-        const sprites = [];
-        for (let i = 0; i < spriteCount; i++) {
-          const shape = ARCADE_SHAPES[i % ARCADE_SHAPES.length];
-          sprites.push({
-            shape,
+
+        state = { gridStep, conduits, laserDashes, sparkPool, lastSparkTime: 0 };
+      } else if (theme === 'bioluminescent-trench') {
+        // 7. 🪸 Bioluminescent Deep Trench (Pulse Wave Echolocation & Floating Organisms)
+        // A. Expanding sonar echolocation pulse rings
+        const sonarOriginX = width * 0.5;
+        const sonarOriginY = height * 0.52;
+        const maxSonarRadius = Math.max(width, height) * 0.75;
+        const sonarWaves = [
+          { radius: 0, speed: isMobile ? 1.4 : 2.0, color: '#39ff14', alpha: 0.28 },
+          { radius: maxSonarRadius * 0.33, speed: isMobile ? 1.4 : 2.0, color: '#e100ff', alpha: 0.24 },
+          { radius: maxSonarRadius * 0.66, speed: isMobile ? 1.4 : 2.0, color: '#39ff14', alpha: 0.20 }
+        ];
+
+        // B. Floating deep-sea bioluminescent medusa/jellyfish organisms
+        const organismCount = isMobile ? 4 : 7;
+        const organisms = [];
+        for (let i = 0; i < organismCount; i++) {
+          organisms.push({
+            x: width * (0.1 + (i / organismCount) * 0.8 + (Math.random() - 0.5) * 0.1),
+            y: height * (0.2 + (i % 3) * 0.26 + Math.random() * 0.1),
+            bellRadius: (isMobile ? 16 : 26) + Math.random() * (isMobile ? 8 : 14),
+            swimPhase: i * 1.4,
+            swimSpeed: 0.024 + Math.random() * 0.012,
+            vy: -(0.2 + Math.random() * 0.25),
+            driftAmp: 0.6 + Math.random() * 0.8,
+            color: i % 2 === 0 ? '#39ff14' : '#e100ff',
+            tentacleCount: isMobile ? 4 : 5
+          });
+        }
+
+        // C. Marine snow motes drifting with water currents
+        const snowCount = isMobile ? 22 : 40;
+        const marineSnow = [];
+        for (let i = 0; i < snowCount; i++) {
+          marineSnow.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            blockSize: isMobile ? 5 : 7,
-            vy: 0.38 + Math.random() * 0.35,
-            color: Math.random() > 0.45 ? '#ff7a00' : '#ffd600',
-            alpha: 0.16 + Math.random() * 0.14,
-            pulsePhase: Math.random() * Math.PI * 2
+            radius: Math.random() * 1.5 + 0.8,
+            vy: 0.15 + Math.random() * 0.2,
+            swayAmp: 0.5 + Math.random() * 0.5,
+            swaySpeed: 0.01 + Math.random() * 0.01,
+            phase: Math.random() * Math.PI * 2,
+            color: i % 3 === 0 ? '#39ff14' : (i % 3 === 1 ? '#e100ff' : '#8ea8c3'),
+            alpha: 0.18 + Math.random() * 0.24
           });
         }
-        state = { sprites, scanlineY: 0, scanlineSpeed: 0.55 };
+
+        state = { sonarOriginX, sonarOriginY, maxSonarRadius, sonarWaves, organisms, marineSnow };
+      } else if (theme === 'yokohama-night') {
+        // 8. 🏮 Neo-Yokohama Night Alley (Chromatic Rain & Wet Neon Puddle Reflections)
+        // A. Angled cyber rain streaks
+        const rainCount = isMobile ? 35 : 65;
+        const rainDrops = [];
+        for (let i = 0; i < rainCount; i++) {
+          rainDrops.push({
+            x: Math.random() * (width + 200) - 100,
+            y: Math.random() * height,
+            len: (isMobile ? 18 : 32) + Math.random() * 18,
+            vx: -2.2, // angled wind shear
+            vy: (isMobile ? 12 : 18) + Math.random() * 8,
+            alpha: 0.12 + Math.random() * 0.18
+          });
+        }
+
+        // B. Concentric water drop impact ripples on the wet asphalt floor
+        const rippleCount = isMobile ? 8 : 14;
+        const ripples = [];
+        for (let i = 0; i < rippleCount; i++) {
+          ripples.push({
+            x: Math.random() * width,
+            y: height * (0.55 + Math.random() * 0.42), // in puddle zone
+            radius: Math.random() * 25,
+            maxRadius: (isMobile ? 28 : 45) + Math.random() * 20,
+            speed: 0.5 + Math.random() * 0.4,
+            color: Math.random() > 0.5 ? '#ff0055' : '#00ffcc',
+            alpha: 0.35
+          });
+        }
+
+        // C. Shifting chromatic puddle light leaks (Wet asphalt reflections)
+        const puddleLeaks = [
+          { x: width * 0.22, y: height * 0.78, rx: width * 0.28, ry: 75, color: '#ff0055', phase: 0 },
+          { x: width * 0.52, y: height * 0.85, rx: width * 0.32, ry: 90, color: '#00ffcc', phase: 2.1 },
+          { x: width * 0.78, y: height * 0.74, rx: width * 0.26, ry: 70, color: '#fff066', phase: 4.2 }
+        ];
+
+        state = { rainDrops, ripples, puddleLeaks };
       }
     }
 
@@ -321,6 +432,10 @@ export default function ThemeBackground() {
     function render(timestamp) {
       frame++;
       ctx.clearRect(0, 0, width, height);
+
+      // Smooth mouse follow with inertia for parallax
+      mouseX += (targetMouseX - mouseX) * 0.05;
+      mouseY += (targetMouseY - mouseY) * 0.05;
 
       if (activeTheme === 'synthwave') {
         // 1. ⚡ Vibrant Synthwave Horizon
@@ -337,7 +452,7 @@ export default function ThemeBackground() {
         ctx.fillStyle = horizonGrad;
         ctx.fillRect(0, horizonY - 90, width, 180);
 
-        // Faint, slow-pulsing ambient glow nodes along the horizon
+        // Faint, slow-pulsing ambient glow nodes
         (state.glowNodes || []).forEach((node) => {
           const pulse = Math.sin(frame * 0.02 + node.pulsePhase);
           const r = node.baseRadius * (0.85 + pulse * 0.25);
@@ -383,44 +498,88 @@ export default function ThemeBackground() {
         fog.addColorStop(1, 'rgba(10, 10, 12, 0)');
         ctx.fillStyle = fog;
         ctx.fillRect(0, horizonY - 4, width, 24);
-      } else if (activeTheme === 'aurora') {
-        // 2. 🌌 Electric Twilight Aurora
-        // Soft, ultra-slow morphing gradient wash
+      } else if (activeTheme === 'cryo-vault') {
+        // 2. 🧊 Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Frost Needle Shards)
         ctx.save();
-        ctx.globalCompositeOperation = 'screen';
 
-        (state.ribbons || []).forEach((r) => {
-          const phaseOffset = frame * r.speed + r.phase;
-          const alpha = r.baseAlpha + Math.sin(phaseOffset * 0.6) * 0.04;
-
-          ctx.beginPath();
-          ctx.moveTo(0, r.baseY);
-
-          const step = width < 768 ? 40 : 25;
-          for (let x = 0; x <= width + step; x += step) {
-            const waveY =
-              r.baseY +
-              Math.sin((x / r.wavelength) * Math.PI * 2 + phaseOffset) * r.amplitude +
-              Math.cos((x / (r.wavelength * 0.6)) * Math.PI * 2 + phaseOffset * 0.8) * (r.amplitude * 0.4);
-            ctx.lineTo(x, waveY);
+        // 1. Heavy drifting nitrogen vapor puffs (sinking slowly)
+        (state.vaporPuffs || []).forEach((p) => {
+          p.y += p.vy;
+          p.x += Math.sin(frame * p.swaySpeed + p.phase) * p.swayAmp;
+          if (p.y > height + p.radius) {
+            p.y = -p.radius;
+            p.x = Math.random() * width;
           }
-          ctx.lineTo(width, r.baseY + 120);
-          ctx.lineTo(0, r.baseY + 120);
-          ctx.closePath();
 
-          const grad = ctx.createLinearGradient(0, r.baseY - r.amplitude, 0, r.baseY + 120);
-          grad.addColorStop(0, `${r.color}0)`);
-          grad.addColorStop(0.4, `${r.color}${alpha.toFixed(3)})`);
-          grad.addColorStop(1, `${r.color}0)`);
+          const pulse = (Math.sin(frame * 0.015 + p.phase) + 1) * 0.5;
+          const currentAlpha = p.baseAlpha + pulse * 0.02;
+
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+          grad.addColorStop(0, `${p.color}${currentAlpha.toFixed(3)})`);
+          grad.addColorStop(0.5, `${p.color}${(currentAlpha * 0.4).toFixed(3)})`);
+          grad.addColorStop(1, `${p.color}0)`);
 
           ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.fill();
+        });
+
+        // 2. Faceted crystalline frost shards
+        (state.frostShards || []).forEach((s) => {
+          s.y += s.vy;
+          s.rot += s.vRot;
+          if (s.y > height + 20) {
+            s.y = -20;
+            s.x = Math.random() * width;
+          }
+
+          const shimmer = (Math.sin(frame * 0.03 + s.phase) + 1) * 0.5;
+          const currentAlpha = s.alpha * (0.7 + shimmer * 0.3);
+
+          ctx.save();
+          ctx.translate(s.x, s.y);
+          ctx.rotate(s.rot);
+
+          // Sharp needle crystal diamond geometry
+          const halfW = s.size * 0.45;
+          const halfH = s.size * (s.aspect * 0.5);
+
+          ctx.beginPath();
+          ctx.moveTo(0, -halfH);
+          ctx.lineTo(halfW, 0);
+          ctx.lineTo(0, halfH);
+          ctx.lineTo(-halfW, 0);
+          ctx.closePath();
+
+          ctx.fillStyle = s.color === '#00d2ff' ? 'rgba(0, 210, 255, 0.15)' : 'rgba(165, 243, 252, 0.2)';
+          ctx.fill();
+
+          ctx.strokeStyle = s.color === '#ffffff' ? `rgba(255, 255, 255, ${currentAlpha})` : `rgba(0, 210, 255, ${currentAlpha})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.restore();
+        });
+
+        // 3. Thermal Overload Alert needle pulses
+        (state.alertMotes || []).forEach((m) => {
+          const blink = (Math.sin(frame * m.blinkRate + m.phase) + 1) * 0.5;
+          if (blink > 0.75) {
+            ctx.save();
+            ctx.fillStyle = '#ff3366';
+            ctx.shadowColor = '#ff3366';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, m.size * blink, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
         });
 
         ctx.restore();
       } else if (activeTheme === 'solar-flare') {
-        // 3. 🔥 Crimson Solar Flare (Unique: Coronal Prominence Arches & Molten Bottom Base)
-        // 1. Molten Sun Corona Glow along the bottom
+        // 3. 🔥 Crimson Solar Flare (Coronal Prominence Arches & Lazy Warm Embers)
         const coronaGrad = ctx.createLinearGradient(0, height - 120, 0, height);
         coronaGrad.addColorStop(0, 'rgba(15, 8, 10, 0)');
         coronaGrad.addColorStop(0.5, 'rgba(255, 94, 0, 0.08)');
@@ -428,7 +587,6 @@ export default function ThemeBackground() {
         ctx.fillStyle = coronaGrad;
         ctx.fillRect(0, height - 120, width, 120);
 
-        // 2. Coronal Magnetic Prominence Loops (Curved Arches)
         (state.loops || []).forEach((loop) => {
           const sway = Math.sin(frame * loop.swaySpeed + loop.swayPhase);
           const currentHeight = loop.maxHeight * (0.86 + sway * 0.14);
@@ -436,7 +594,6 @@ export default function ThemeBackground() {
           const midX = (loop.x1 + loop.x2) / 2 + sway * 30;
 
           ctx.save();
-          // Outer halo of loop
           ctx.strokeStyle = loop.color === '#ff5e00' ? 'rgba(255, 94, 0, 0.12)' : 'rgba(255, 183, 3, 0.12)';
           ctx.lineWidth = loop.lineWidth * 2.8;
           ctx.beginPath();
@@ -445,7 +602,6 @@ export default function ThemeBackground() {
           ctx.bezierCurveTo(midX, peakY, loop.x2, peakY, loop.x2, height);
           ctx.stroke();
 
-          // Inner intense magnetic filament
           ctx.strokeStyle = loop.color === '#ff5e00' ? 'rgba(255, 94, 0, 0.35)' : 'rgba(255, 183, 3, 0.32)';
           ctx.lineWidth = loop.lineWidth;
           ctx.beginPath();
@@ -456,12 +612,9 @@ export default function ThemeBackground() {
           ctx.restore();
         });
 
-        // 3. Lazy rising ember motes drifting up out of the corona
         (state.motes || []).forEach((m) => {
           m.y += m.vy;
           m.x += Math.sin(frame * m.swaySpeed + m.phase) * m.swayAmp;
-
-          // Wrap around top to bottom
           if (m.y < -10) {
             m.y = height + 10;
             m.x = Math.random() * width;
@@ -480,71 +633,105 @@ export default function ThemeBackground() {
           ctx.fill();
           ctx.restore();
         });
-      } else if (activeTheme === 'neon-frost') {
-        // 4. 💎 Neon Frost Glassmorphism (Unique: Prismatic Frosted Glass Facets & Caustic Shears)
-        const now = timestamp || performance.now();
-        const cycleProgress = (now % (state.cycleDurationMs || 22000)) / (state.cycleDurationMs || 22000);
-        const leakX = width * (0.2 + Math.sin(cycleProgress * Math.PI * 2) * 0.28);
-        const leakY = height * (0.16 + Math.cos(cycleProgress * Math.PI * 2) * 0.12);
-        const leakRadius = Math.max(width, height) * 0.52;
-
+      } else if (activeTheme === 'cosmic-singularity') {
+        // 4. 🌌 Cosmic Singularity (Black Hole: Gravitational Lensing Parallax & Accretion Disk)
         ctx.save();
-        ctx.globalCompositeOperation = 'screen';
+        const singX = mouseX;
+        const singY = mouseY;
+        const coreR = state.coreRadius || 42;
 
-        // 1. Diagonal Prismatic Caustic Leak (Cyan & Lavender)
-        const gradCyan = ctx.createRadialGradient(leakX, leakY, 0, leakX, leakY, leakRadius);
-        gradCyan.addColorStop(0, 'rgba(56, 189, 248, 0.14)');
-        gradCyan.addColorStop(0.4, 'rgba(56, 189, 248, 0.04)');
-        gradCyan.addColorStop(1, 'rgba(15, 23, 42, 0)');
-        ctx.fillStyle = gradCyan;
-        ctx.fillRect(0, 0, width, height);
+        // 1. Spacetime Coordinate Grid warped towards Singularity
+        const step = width < 768 ? 75 : 60;
+        ctx.strokeStyle = 'rgba(123, 44, 191, 0.08)';
+        ctx.lineWidth = 0.8;
 
-        const gradLav = ctx.createRadialGradient(leakX + 80, leakY - 40, 0, leakX + 80, leakY - 40, leakRadius * 0.65);
-        gradLav.addColorStop(0, 'rgba(192, 132, 252, 0.12)');
-        gradLav.addColorStop(0.5, 'rgba(192, 132, 252, 0.03)');
-        gradLav.addColorStop(1, 'rgba(15, 23, 42, 0)');
-        ctx.fillStyle = gradLav;
-        ctx.fillRect(0, 0, width, height);
+        // Warped Horizontal Grid Lines
+        for (let gy = 0; gy <= height; gy += step) {
+          ctx.beginPath();
+          for (let gx = 0; gx <= width; gx += 25) {
+            const dx = singX - gx;
+            const dy = singY - gy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            // Hyperbolic gravitational lensing displacement
+            const warpFactor = (coreR * 85) / (dist + 65);
+            const wx = gx + (dx / (dist + 0.1)) * warpFactor;
+            const wy = gy + (dy / (dist + 0.1)) * warpFactor;
+            if (gx === 0) ctx.moveTo(wx, wy);
+            else ctx.lineTo(wx, wy);
+          }
+          ctx.stroke();
+        }
 
-        // 2. Beveled Geometric Frosted Glass Facets
-        (state.facets || []).forEach((facet) => {
-          const shimmer = (Math.sin(frame * facet.speed + facet.phase) + 1) * 0.5;
-          const facetAlpha = 0.06 + shimmer * 0.14;
-          const s = facet.size * (0.95 + shimmer * 0.1);
+        // 2. Accretion Disk Ambient Corona Glow
+        const haloGrad = ctx.createRadialGradient(singX, singY, coreR * 0.8, singX, singY, coreR * 5);
+        haloGrad.addColorStop(0, 'rgba(255, 122, 0, 0.35)');
+        haloGrad.addColorStop(0.3, 'rgba(123, 44, 191, 0.22)');
+        haloGrad.addColorStop(0.7, 'rgba(19, 15, 38, 0.12)');
+        haloGrad.addColorStop(1, 'rgba(2, 2, 5, 0)');
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(singX, singY, coreR * 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. Swirling Relativistic Accretion Disk Particles
+        (state.diskParticles || []).forEach((p) => {
+          p.angle += p.speed;
+          // Tilted elliptical Keplerian orbit around singularity
+          const tiltFactor = 0.35; // orbital perspective inclination
+          const px = singX + Math.cos(p.angle) * p.r;
+          const py = singY + Math.sin(p.angle) * (p.r * tiltFactor);
 
           ctx.save();
-          ctx.translate(facet.cx, facet.cy);
-          ctx.rotate(facet.rot + shimmer * 0.05);
-
-          // Facet fill: Frosted Glass Tint
-          ctx.fillStyle = facet.colorType === 'cyan'
-            ? `rgba(56, 189, 248, ${(facetAlpha * 0.45).toFixed(3)})`
-            : `rgba(192, 132, 252, ${(facetAlpha * 0.45).toFixed(3)})`;
-
-          // Rhombus / Diamond Glass Facet geometry
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.alpha;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 4;
           ctx.beginPath();
-          ctx.moveTo(0, -s * 0.6);
-          ctx.lineTo(s * 0.8, 0);
-          ctx.lineTo(0, s * 0.6);
-          ctx.lineTo(-s * 0.8, 0);
-          ctx.closePath();
+          ctx.arc(px, py, p.size, 0, Math.PI * 2);
           ctx.fill();
-
-          // Beveled cut glass edge highlight
-          ctx.strokeStyle = `rgba(255, 255, 255, ${(facetAlpha * 0.8).toFixed(3)})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
-
           ctx.restore();
         });
 
+        // 4. Hawking Radiation Quantum Sparks
+        (state.hawkingParticles || []).forEach((h) => {
+          h.dist += h.vDist;
+          if (h.dist > (width < 768 ? 180 : 320)) {
+            h.dist = coreR;
+            h.angle = Math.random() * Math.PI * 2;
+          }
+          const hx = singX + Math.cos(h.angle) * h.dist;
+          const hy = singY + Math.sin(h.angle) * h.dist;
+
+          ctx.save();
+          ctx.fillStyle = h.color;
+          ctx.globalAlpha = Math.max(0, 0.6 - h.dist / (width < 768 ? 200 : 340));
+          ctx.beginPath();
+          ctx.arc(hx, hy, h.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // 5. Razor-thin Photon Sphere & Absolute Event Horizon Core
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = '#ff7a00';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(singX, singY, coreR * 1.08, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Pure pitch black event horizon
+        ctx.fillStyle = '#020205';
+        ctx.beginPath();
+        ctx.arc(singX, singY, coreR, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.restore();
       } else if (activeTheme === 'plasma-web') {
-        // 5. 🪐 Cyberpunk Plasma Web (Unique: Circuit Vector Mesh, Triangular Facets & Electric Data Packets)
+        // 5. 🪐 Cyberpunk Plasma Web
         const nodes = state.nodes || [];
         const maxDist = state.maxDistance || 120;
 
-        // 1. Update node physics
         nodes.forEach((n) => {
           n.x += n.vx;
           n.y += n.vy;
@@ -552,7 +739,6 @@ export default function ThemeBackground() {
           if (n.y < 0 || n.y > height) n.vy *= -1;
         });
 
-        // 2. Triangular Cyber Mesh Facets (Connect triplets with low-opacity fill)
         ctx.save();
         for (let i = 0; i < Math.min(nodes.length, 14); i++) {
           for (let j = i + 1; j < Math.min(nodes.length, 18); j++) {
@@ -563,7 +749,6 @@ export default function ThemeBackground() {
                 const dx2 = nodes[j].x - nodes[k].x;
                 const dy2 = nodes[j].y - nodes[k].y;
                 if (dx2 * dx2 + dy2 * dy2 < maxDist * maxDist) {
-                  // Render subtle cyber mesh triangle
                   ctx.fillStyle = i % 2 === 0 ? 'rgba(0, 255, 102, 0.022)' : 'rgba(37, 99, 235, 0.025)';
                   ctx.beginPath();
                   ctx.moveTo(nodes[i].x, nodes[i].y);
@@ -579,7 +764,6 @@ export default function ThemeBackground() {
         }
         ctx.restore();
 
-        // 3. Vector Connection Lines
         ctx.lineWidth = 0.7;
         for (let i = 0; i < nodes.length; i++) {
           for (let j = i + 1; j < nodes.length; j++) {
@@ -598,7 +782,6 @@ export default function ThemeBackground() {
           }
         }
 
-        // 4. Electric Data Packets (High-speed sparks traveling along lines)
         (state.packets || []).forEach((pkt) => {
           pkt.progress += pkt.speed;
           if (pkt.progress >= 1) {
@@ -624,19 +807,15 @@ export default function ThemeBackground() {
           }
         });
 
-        // 5. Nodes with concentric cyber halos
         nodes.forEach((n) => {
           const pulse = (Math.sin(frame * 0.03 + n.pulsePhase) + 1) * 0.5;
-
           ctx.save();
-          // Outer pulse ring
           ctx.strokeStyle = n.color === '#00ff66' ? 'rgba(0, 255, 102, 0.22)' : 'rgba(37, 99, 235, 0.22)';
           ctx.lineWidth = 0.8;
           ctx.beginPath();
           ctx.arc(n.x, n.y, n.radius + 3 + pulse * 4, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Center core
           ctx.fillStyle = n.color;
           ctx.globalAlpha = 0.6 + pulse * 0.35;
           ctx.beginPath();
@@ -644,183 +823,274 @@ export default function ThemeBackground() {
           ctx.fill();
           ctx.restore();
         });
-      } else if (activeTheme === 'abyssal-trench') {
-        // 6. 🌊 Neon Abyssal Trench (Unique: Volumetric Oceanic Caustic Ribbons & Sonar Sweep)
-        // 1. Horizontal Sonar Line Reflection
-        state.sonarY = ((state.sonarY || 0) + (state.sonarSpeed || 0.5)) % height;
-        const sonarGrad = ctx.createLinearGradient(0, state.sonarY - 12, 0, state.sonarY + 12);
-        sonarGrad.addColorStop(0, 'rgba(6, 182, 212, 0)');
-        sonarGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.08)');
-        sonarGrad.addColorStop(1, 'rgba(6, 182, 212, 0)');
-        ctx.fillStyle = sonarGrad;
-        ctx.fillRect(0, state.sonarY - 12, width, 24);
-
-        // 2. Volumetric Caustic Ribbons (Filled gradient bands between paired wave limits)
-        (state.ribbons || []).forEach((w) => {
-          const phaseOffset = frame * w.speed + w.phase;
-          const step = width < 768 ? 35 : 20;
-
-          ctx.save();
-          ctx.beginPath();
-          // Upper crest
-          ctx.moveTo(0, w.baseY + Math.sin(phaseOffset) * w.amplitude);
-          for (let x = 0; x <= width + step; x += step) {
-            const yTop =
-              w.baseY +
-              Math.sin((x / w.wavelength) * Math.PI * 2 + phaseOffset) * w.amplitude +
-              Math.cos((x / (w.wavelength * 0.5)) * Math.PI * 2 + phaseOffset * 0.7) * (w.amplitude * 0.3);
-            ctx.lineTo(x, yTop);
-          }
-          // Lower trough (reverse path to form closed ribbon)
-          for (let x = width; x >= -step; x -= step) {
-            const yBottom =
-              w.baseY +
-              w.thickness +
-              Math.sin((x / w.wavelength) * Math.PI * 2 + phaseOffset + 0.5) * w.amplitude +
-              Math.cos((x / (w.wavelength * 0.5)) * Math.PI * 2 + phaseOffset * 0.7) * (w.amplitude * 0.3);
-            ctx.lineTo(x, yBottom);
-          }
-          ctx.closePath();
-
-          // Fill with rich deep-sea laser aqua / electric indigo gradient
-          const ribbonGrad = ctx.createLinearGradient(0, w.baseY - w.amplitude, 0, w.baseY + w.thickness + w.amplitude);
-          ribbonGrad.addColorStop(0, `${w.color}0)`);
-          ribbonGrad.addColorStop(0.5, `${w.color}${w.alpha.toFixed(3)})`);
-          ribbonGrad.addColorStop(1, `${w.color}0)`);
-          ctx.fillStyle = ribbonGrad;
-          ctx.fill();
-
-          // Thin sharp caustics crest
-          ctx.strokeStyle = `${w.color}${(w.alpha * 1.5).toFixed(3)})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
-
-          ctx.restore();
-        });
-      } else if (activeTheme === 'nebula-drift') {
-        // 7. 🚀 Quantum Nebula Drift (Unique: Volumetric Gas Clouds & 10-12 Diamond Cross Stars)
+      } else if (activeTheme === 'cyber-foundry') {
+        // 6. ⚡ Cyber-Industrial Foundry (Chasing Dash-Array Spark Flux & Gravity Sparks)
         ctx.save();
-        ctx.globalCompositeOperation = 'screen';
 
-        // 1. Organic Interstellar Dust Clouds
-        (state.clouds || []).forEach((c) => {
-          const sway = Math.sin(frame * c.speed + c.phase);
-          const rx = c.rx * (0.95 + sway * 0.08);
-          const ry = c.ry * (0.95 - sway * 0.08);
+        // 1. Ambient Blast Furnace Heat Glow along bottom
+        const furnaceGrad = ctx.createLinearGradient(0, height - 140, 0, height);
+        furnaceGrad.addColorStop(0, 'rgba(17, 18, 21, 0)');
+        furnaceGrad.addColorStop(0.5, 'rgba(255, 79, 0, 0.07)');
+        furnaceGrad.addColorStop(1, 'rgba(255, 183, 0, 0.14)');
+        ctx.fillStyle = furnaceGrad;
+        ctx.fillRect(0, height - 140, width, 140);
 
-          const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, Math.max(rx, ry));
-          grad.addColorStop(0, `${c.color}${c.alpha})`);
-          grad.addColorStop(0.6, `${c.color}${(c.alpha * 0.35).toFixed(3)})`);
-          grad.addColorStop(1, `${c.color}0)`);
-
-          ctx.fillStyle = grad;
+        // 2. High-voltage industrial conduit lines
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)'; // Galvanized steel
+        (state.conduits || []).forEach((c) => {
           ctx.beginPath();
-          ctx.ellipse(c.x, c.y, rx, ry, sway * 0.2, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.moveTo(c.x1, c.y1);
+          ctx.lineTo(c.x2, c.y2);
+          ctx.stroke();
         });
 
-        // 2. STRICTLY 10-12 Diamond Cross Diffraction Stars
-        (state.stars || []).forEach((s) => {
-          const twinkle = (Math.sin(frame * s.twinkleSpeed + s.phase) + 1) * 0.5;
-          const alpha = 0.2 + twinkle * 0.8;
-          const currentSpike = s.spikeLen * (0.6 + twinkle * 0.7);
+        // 3. High-velocity Chasing Laser Dashes along conduits
+        (state.laserDashes || []).forEach((d) => {
+          d.pos += d.speed;
+          const limit = d.isHoriz ? width : height;
+          if (d.pos > limit + d.length) d.pos = -d.length;
+          else if (d.pos < -d.length) d.pos = limit + d.length;
 
           ctx.save();
-          ctx.globalAlpha = alpha;
-
-          // Primary Horizontal & Vertical Diamond Cross-Diffraction Spikes
-          ctx.fillStyle = s.color;
-          // Horizontal diamond ray
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 2.2;
+          ctx.shadowColor = d.color;
+          ctx.shadowBlur = 8;
           ctx.beginPath();
-          ctx.moveTo(s.x - currentSpike, s.y);
-          ctx.lineTo(s.x, s.y - 1.2);
-          ctx.lineTo(s.x + currentSpike, s.y);
-          ctx.lineTo(s.x, s.y + 1.2);
-          ctx.closePath();
-          ctx.fill();
+          if (d.isHoriz) {
+            ctx.moveTo(d.pos, d.coord);
+            ctx.lineTo(d.pos + (d.speed > 0 ? d.length : -d.length), d.coord);
+          } else {
+            ctx.moveTo(d.coord, d.pos);
+            ctx.lineTo(d.coord, d.pos + (d.speed > 0 ? d.length : -d.length));
+          }
+          ctx.stroke();
+          ctx.restore();
 
-          // Vertical diamond ray
-          ctx.beginPath();
-          ctx.moveTo(s.x, s.y - currentSpike);
-          ctx.lineTo(s.x + 1.2, s.y);
-          ctx.lineTo(s.x, s.y + currentSpike);
-          ctx.lineTo(s.x - 1.2, s.y);
-          ctx.closePath();
-          ctx.fill();
+          // Spawn welding spark periodically at conduit junctions
+          if (Math.random() < 0.04) {
+            const inactive = (state.sparkPool || []).find((s) => !s.active);
+            if (inactive) {
+              inactive.active = true;
+              inactive.x = d.isHoriz ? d.pos : d.coord;
+              inactive.y = d.isHoriz ? d.coord : d.pos;
+              inactive.vx = (Math.random() - 0.5) * 3.5;
+              inactive.vy = -(1.2 + Math.random() * 3.2); // initial upward burst
+              inactive.life = 0;
+              inactive.maxLife = 35 + Math.random() * 25;
+              inactive.color = Math.random() > 0.4 ? '#ffb700' : '#ff4f00';
+            }
+          }
+        });
 
-          // 8-point secondary 45-degree spikes for major stars
-          if (s.isSuperStar && twinkle > 0.4) {
-            const diagSpike = currentSpike * 0.55;
-            ctx.save();
-            ctx.translate(s.x, s.y);
-            ctx.rotate(Math.PI / 4);
-            ctx.beginPath();
-            ctx.moveTo(-diagSpike, 0);
-            ctx.lineTo(0, -1);
-            ctx.lineTo(diagSpike, 0);
-            ctx.lineTo(0, 1);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
+        // 4. Gravity-simulated welding/grinding sparks
+        (state.sparkPool || []).forEach((sp) => {
+          if (!sp.active) return;
+          sp.life++;
+          sp.vy += 0.14; // gravity acceleration
+          sp.vx *= 0.98; // air drag
+          sp.x += sp.vx;
+          sp.y += sp.vy;
+
+          if (sp.life >= sp.maxLife || sp.y > height) {
+            sp.active = false;
+            return;
           }
 
-          // Pure white star core
-          ctx.fillStyle = '#ffffff';
+          const alpha = 1 - sp.life / sp.maxLife;
+          ctx.save();
+          ctx.strokeStyle = sp.color;
+          ctx.lineWidth = 1.4;
+          ctx.globalAlpha = alpha;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, s.coreRadius * (0.8 + twinkle * 0.4), 0, Math.PI * 2);
-          ctx.fill();
-
+          ctx.moveTo(sp.x - sp.vx * 2, sp.y - sp.vy * 2);
+          ctx.lineTo(sp.x, sp.y);
+          ctx.stroke();
           ctx.restore();
         });
 
         ctx.restore();
-      } else if (activeTheme === 'citrus-arcade') {
-        // 8. 🍊 Neon Citrus Arcade (Unique: 8-Bit Tetromino Sprites, Scanline & Static Grid)
-        // 1. CRT Raster Scanline sweep
-        state.scanlineY = ((state.scanlineY || 0) + (state.scanlineSpeed || 0.55)) % height;
-        const crtGrad = ctx.createLinearGradient(0, state.scanlineY - 14, 0, state.scanlineY + 14);
-        crtGrad.addColorStop(0, 'rgba(255, 122, 0, 0)');
-        crtGrad.addColorStop(0.5, 'rgba(255, 214, 0, 0.08)');
-        crtGrad.addColorStop(1, 'rgba(255, 122, 0, 0)');
-        ctx.fillStyle = crtGrad;
-        ctx.fillRect(0, state.scanlineY - 14, width, 28);
+      } else if (activeTheme === 'bioluminescent-trench') {
+        // 7. 🪸 Bioluminescent Deep Trench (Pulse Wave Echolocation & Floating Organisms)
+        ctx.save();
 
-        // 2. Cascading 8-bit Tetromino Pixel Art Sprites
-        (state.sprites || []).forEach((spr) => {
-          spr.y += spr.vy;
-          if (spr.y > height + 40) {
-            spr.y = -40;
-            spr.x = Math.random() * width;
+        // 1. Hydro-Thermal Ambient Glow
+        const abyssGrad = ctx.createRadialGradient(
+          state.sonarOriginX || width * 0.5,
+          state.sonarOriginY || height * 0.52,
+          0,
+          state.sonarOriginX || width * 0.5,
+          state.sonarOriginY || height * 0.52,
+          Math.max(width, height) * 0.65
+        );
+        abyssGrad.addColorStop(0, 'rgba(10, 25, 47, 0.45)');
+        abyssGrad.addColorStop(0.6, 'rgba(1, 4, 9, 0.2)');
+        abyssGrad.addColorStop(1, 'rgba(1, 4, 9, 0)');
+        ctx.fillStyle = abyssGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // 2. Expanding Sonar Echolocation Wavefront Rings
+        (state.sonarWaves || []).forEach((w) => {
+          w.radius += w.speed;
+          if (w.radius > (state.maxSonarRadius || 800)) {
+            w.radius = 0;
           }
-
-          const pulse = (Math.sin(frame * 0.025 + spr.pulsePhase) + 1) * 0.5;
-          const alpha = spr.alpha + pulse * 0.08;
+          const progress = w.radius / (state.maxSonarRadius || 800);
+          const currentAlpha = Math.max(0, w.alpha * (1 - progress));
 
           ctx.save();
-          ctx.fillStyle = spr.color;
-          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = w.color;
+          ctx.lineWidth = 1.8 * (1 - progress * 0.5);
+          ctx.globalAlpha = currentAlpha;
+          ctx.shadowColor = w.color;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(state.sonarOriginX, state.sonarOriginY, w.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        });
 
-          // Render exact 8-bit block matrix
-          const rows = spr.shape.length;
-          const cols = spr.shape[0].length;
-          const b = spr.blockSize;
+        // 3. Floating Bioluminescent Organisms (Jellyfish / Medusa)
+        (state.organisms || []).forEach((org) => {
+          org.y += org.vy;
+          org.x += Math.sin(frame * org.swimSpeed + org.swimPhase) * org.driftAmp;
+          if (org.y < -org.bellRadius * 2) {
+            org.y = height + org.bellRadius * 2;
+            org.x = Math.random() * width;
+          }
 
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-              if (spr.shape[r][c] === 1) {
-                // Crisp retro arcade pixel block with 1px grid separator
-                ctx.fillRect(
-                  Math.round(spr.x + c * b),
-                  Math.round(spr.y + r * b),
-                  b - 1,
-                  b - 1
-                );
-              }
-            }
+          // Swimming pulsation cycle
+          const pulse = (Math.sin(frame * org.swimSpeed * 2 + org.swimPhase) + 1) * 0.5;
+          const currentRadius = org.bellRadius * (0.88 + pulse * 0.24);
+
+          ctx.save();
+          ctx.translate(org.x, org.y);
+
+          // Translucent umbrella bell dome
+          ctx.fillStyle = org.color === '#39ff14' ? 'rgba(57, 255, 20, 0.08)' : 'rgba(225, 0, 255, 0.08)';
+          ctx.strokeStyle = org.color === '#39ff14' ? 'rgba(57, 255, 20, 0.45)' : 'rgba(225, 0, 255, 0.45)';
+          ctx.lineWidth = 1.2;
+          ctx.shadowColor = org.color;
+          ctx.shadowBlur = 10;
+
+          ctx.beginPath();
+          ctx.arc(0, 0, currentRadius, Math.PI, 0, false);
+          ctx.quadraticCurveTo(0, currentRadius * 0.25, -currentRadius, 0);
+          ctx.fill();
+          ctx.stroke();
+
+          // Bioluminescent nucleus photophore core
+          ctx.fillStyle = org.color;
+          ctx.globalAlpha = 0.6 + pulse * 0.35;
+          ctx.beginPath();
+          ctx.arc(0, -currentRadius * 0.35, currentRadius * 0.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Trailing fluid wavy tentacles
+          ctx.lineWidth = 0.9;
+          ctx.strokeStyle = org.color === '#39ff14' ? 'rgba(57, 255, 20, 0.25)' : 'rgba(225, 0, 255, 0.25)';
+          const span = (currentRadius * 1.6) / Math.max(org.tentacleCount - 1, 1);
+          for (let t = 0; t < org.tentacleCount; t++) {
+            const tx = -currentRadius * 0.8 + t * span;
+            const tLen = currentRadius * (1.8 + (t % 2) * 0.6);
+            const sway = Math.sin(frame * 0.04 + org.swimPhase + t * 0.8) * 8;
+
+            ctx.beginPath();
+            ctx.moveTo(tx, 0);
+            ctx.bezierCurveTo(tx + sway * 0.5, tLen * 0.5, tx - sway, tLen * 0.8, tx + sway, tLen);
+            ctx.stroke();
           }
 
           ctx.restore();
         });
+
+        // 4. Drifting Marine Snow Motes
+        (state.marineSnow || []).forEach((sn) => {
+          sn.y += sn.vy;
+          sn.x += Math.sin(frame * sn.swaySpeed + sn.phase) * sn.swayAmp;
+          if (sn.y > height + 10) {
+            sn.y = -10;
+            sn.x = Math.random() * width;
+          }
+
+          const shimmer = (Math.sin(frame * 0.025 + sn.phase) + 1) * 0.5;
+          ctx.save();
+          ctx.fillStyle = sn.color;
+          ctx.globalAlpha = sn.alpha * (0.6 + shimmer * 0.4);
+          ctx.beginPath();
+          ctx.arc(sn.x, sn.y, sn.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        ctx.restore();
+      } else if (activeTheme === 'yokohama-night') {
+        // 8. 🏮 Neo-Yokohama Night Alley (Chromatic Rain & Wet Neon Puddle Reflections)
+        ctx.save();
+
+        // 1. Wet Asphalt Ground Chromatic Puddle Light Leaks (Shifted chromatic reflection)
+        (state.puddleLeaks || []).forEach((leak) => {
+          const breathe = Math.sin(frame * 0.015 + leak.phase);
+          const rx = leak.rx * (0.95 + breathe * 0.08);
+          const ry = leak.ry * (0.95 - breathe * 0.08);
+
+          // Chromatic aberration split (Red shifted left, Teal shifted right)
+          // Primary puddle body
+          const grad = ctx.createRadialGradient(leak.x, leak.y, 0, leak.x, leak.y, rx);
+          grad.addColorStop(0, leak.color === '#ff0055' ? 'rgba(255, 0, 85, 0.16)' : (leak.color === '#00ffcc' ? 'rgba(0, 255, 204, 0.14)' : 'rgba(255, 240, 102, 0.14)'));
+          grad.addColorStop(0.5, leak.color === '#ff0055' ? 'rgba(255, 0, 85, 0.04)' : (leak.color === '#00ffcc' ? 'rgba(0, 255, 204, 0.03)' : 'rgba(255, 240, 102, 0.03)'));
+          grad.addColorStop(1, 'rgba(8, 7, 12, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.ellipse(leak.x, leak.y, rx, ry, 0, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // 2. Concentric Raindrop Impact Ripples in Puddles
+        (state.ripples || []).forEach((rp) => {
+          rp.radius += rp.speed;
+          if (rp.radius > rp.maxRadius) {
+            rp.radius = 0;
+            rp.x = Math.random() * width;
+            rp.y = height * (0.55 + Math.random() * 0.42);
+          }
+
+          const progress = rp.radius / rp.maxRadius;
+          const currentAlpha = Math.max(0, rp.alpha * (1 - progress));
+
+          ctx.save();
+          ctx.strokeStyle = rp.color;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = currentAlpha;
+          ctx.beginPath();
+          // Perspective ellipse for ground plane
+          ctx.ellipse(rp.x, rp.y, rp.radius, rp.radius * 0.36, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        });
+
+        // 3. Fast Angled Cyber Rain Streaks
+        ctx.lineWidth = 1;
+        (state.rainDrops || []).forEach((rd) => {
+          rd.x += rd.vx;
+          rd.y += rd.vy;
+          if (rd.y > height + 20 || rd.x < -100) {
+            rd.y = -rd.len;
+            rd.x = Math.random() * (width + 200);
+          }
+
+          ctx.save();
+          ctx.strokeStyle = `rgba(0, 255, 204, ${rd.alpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.moveTo(rd.x, rd.y);
+          ctx.lineTo(rd.x - rd.vx * 1.5, rd.y - rd.len);
+          ctx.stroke();
+          ctx.restore();
+        });
+
+        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -831,6 +1101,7 @@ export default function ThemeBackground() {
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('pointermove', handlePointerMove);
     };
   }, [activeTheme]);
 

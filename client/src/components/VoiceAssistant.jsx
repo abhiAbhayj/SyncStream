@@ -775,25 +775,25 @@ export default function VoiceAssistant() {
     // ════════════════════════════════════════════════════════════════════════
     // 9. THEME INTENTS
     // ════════════════════════════════════════════════════════════════════════
-    if (command.includes('theme') || command.includes('synthwave') || command.includes('aurora') || command.includes('solar flare') || command.includes('crimson') || command.includes('frost') || command.includes('glass') || command.includes('plasma') || command.includes('abyssal') || command.includes('trench') || command.includes('nebula') || command.includes('citrus') || command.includes('arcade')) {
+    if (command.includes('theme') || command.includes('synthwave') || command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('solar flare') || command.includes('crimson') || command.includes('plasma') || command.includes('foundry') || command.includes('industrial') || command.includes('trench') || command.includes('bioluminescent') || command.includes('yokohama') || command.includes('alley') || command.includes('rain')) {
       const ALL_THEMES = [
         'theme-synthwave',
-        'theme-aurora',
+        'theme-cryo-vault',
         'theme-solar-flare',
-        'theme-neon-frost',
+        'theme-cosmic-singularity',
         'theme-plasma-web',
-        'theme-abyssal-trench',
-        'theme-nebula-drift',
-        'theme-citrus-arcade'
+        'theme-cyber-foundry',
+        'theme-bioluminescent-trench',
+        'theme-yokohama-night'
       ];
       let newTheme = 'synthwave';
-      if (command.includes('aurora') || command.includes('twilight')) newTheme = 'aurora';
+      if (command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('nitrogen') || command.includes('frost')) newTheme = 'cryo-vault';
+      else if (command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('gravity')) newTheme = 'cosmic-singularity';
+      else if (command.includes('foundry') || command.includes('industrial') || command.includes('machinery') || command.includes('hazard') || command.includes('voltage')) newTheme = 'cyber-foundry';
+      else if (command.includes('trench') || command.includes('bioluminescent') || command.includes('abyss') || command.includes('jellyfish') || command.includes('echolocation')) newTheme = 'bioluminescent-trench';
+      else if (command.includes('yokohama') || command.includes('alley') || command.includes('rain') || command.includes('lantern') || command.includes('puddle')) newTheme = 'yokohama-night';
       else if (command.includes('solar') || command.includes('flare') || command.includes('crimson') || command.includes('ember')) newTheme = 'solar-flare';
-      else if (command.includes('frost') || command.includes('glass') || command.includes('ice')) newTheme = 'neon-frost';
       else if (command.includes('plasma') || command.includes('web') || command.includes('cyber')) newTheme = 'plasma-web';
-      else if (command.includes('abyssal') || command.includes('trench') || command.includes('ocean') || command.includes('wave')) newTheme = 'abyssal-trench';
-      else if (command.includes('nebula') || command.includes('drift') || command.includes('quantum') || command.includes('star')) newTheme = 'nebula-drift';
-      else if (command.includes('citrus') || command.includes('arcade') || command.includes('tangerine') || command.includes('pixel')) newTheme = 'citrus-arcade';
       else if (command.includes('synthwave') || command.includes('horizon') || command.includes('grid') || command.includes('default') || command.includes('reset')) newTheme = 'synthwave';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
@@ -801,13 +801,13 @@ export default function VoiceAssistant() {
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
         synthwave: '⚡ Vibrant Synthwave Horizon',
-        aurora: '🌌 Electric Twilight Aurora',
+        'cryo-vault': '🧊 Glacial Cryo-Vault',
         'solar-flare': '🔥 Crimson Solar Flare',
-        'neon-frost': '💎 Neon Frost Glassmorphism',
+        'cosmic-singularity': '🌌 Cosmic Singularity (Black Hole)',
         'plasma-web': '🪐 Cyberpunk Plasma Web',
-        'abyssal-trench': '🌊 Neon Abyssal Trench',
-        'nebula-drift': '🚀 Quantum Nebula Drift',
-        'citrus-arcade': '🍊 Neon Citrus Arcade'
+        'cyber-foundry': '⚡ Cyber-Industrial Foundry',
+        'bioluminescent-trench': '🪸 Bioluminescent Deep Trench',
+        'yokohama-night': '🏮 Neo-Yokohama Night Alley'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;
