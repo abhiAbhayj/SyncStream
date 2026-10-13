@@ -23,6 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
+  'theme-storm-thunder',
   'theme-synthwave',
   'theme-cryo-vault',
   'theme-solar-flare',
@@ -30,16 +31,17 @@ const ALL_THEME_CLASSES = [
   'theme-plasma-web',
   'theme-cyber-foundry',
   'theme-bioluminescent-trench',
+  'theme-windy-sakura',
   'theme-yokohama-night'
 ];
 
 const THEME_OPTIONS = [
   {
-    id: 'synthwave',
-    name: '⚡ Vibrant Synthwave Horizon',
-    desc: 'A slow-gliding, low-frequency grid floor fading into a distant foggy horizon with ambient glow nodes',
-    animation: 'Gliding Grid Floor & Foggy Horizon',
-    swatch: ['#0a0a0c', '#ff007f', '#00f0ff', '#14141b', '#ffffff'],
+    id: 'storm-thunder',
+    name: '⚡ Dark Storm Thunderbolt',
+    desc: 'Ominous stormcloud skies torn open by jagged branching Tesla lightning discharges, ionized sparks and thunderhead aura',
+    animation: 'Branching Tesla Discharge & Ionized Sparks',
+    swatch: ['#06070b', '#00f0ff', '#a855f7', '#10131f', '#ffffff'],
   },
   {
     id: 'cryo-vault',
@@ -84,11 +86,11 @@ const THEME_OPTIONS = [
     swatch: ['#010409', '#39ff14', '#e100ff', '#0a192f', '#8ea8c3'],
   },
   {
-    id: 'yokohama-night',
-    name: '🏮 Neo-Yokohama Night Alley',
-    desc: 'Rainy atmospheric wet asphalt with neon sign crimson, vapor teal reflections and chromatic ripples',
-    animation: 'Chromatic Rain & Wet Neon Puddle Reflections',
-    swatch: ['#08070c', '#ff0055', '#00ffcc', '#1a1625', '#fff066'],
+    id: 'windy-sakura',
+    name: '🌸 Windy Sakura Leaf Falling',
+    desc: 'Moonlit midnight garden swept by wind currents carrying 3D tumbling pink sakura petals and fresh emerald leaves',
+    animation: '3D Tumbling Petals & Wind Gust Vortex',
+    swatch: ['#07050a', '#ff3385', '#34d399', '#140e1d', '#fff7fa'],
   },
 ];
 
@@ -185,9 +187,11 @@ export default function Profile() {
   });
 
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('syncstream_theme');
+    let saved = localStorage.getItem('syncstream_theme');
+    if (saved === 'synthwave') saved = 'storm-thunder';
+    if (saved === 'yokohama-night') saved = 'windy-sakura';
     if (saved && THEME_OPTIONS.some(t => t.id === saved)) return saved;
-    return 'synthwave';
+    return 'storm-thunder';
   });
 
   const [loading, setLoading] = useState(false);
@@ -240,9 +244,11 @@ export default function Profile() {
 
   React.useEffect(() => {
     return () => {
-      let currentPersisted = localStorage.getItem('syncstream_theme') || 'synthwave';
+      let currentPersisted = localStorage.getItem('syncstream_theme') || 'storm-thunder';
+      if (currentPersisted === 'synthwave') currentPersisted = 'storm-thunder';
+      if (currentPersisted === 'yokohama-night') currentPersisted = 'windy-sakura';
       if (!THEME_OPTIONS.some(t => t.id === currentPersisted)) {
-        currentPersisted = 'synthwave';
+        currentPersisted = 'storm-thunder';
       }
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
       document.body.classList.add(`theme-${currentPersisted}`);

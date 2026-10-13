@@ -3,28 +3,30 @@ import React, { useEffect, useRef, useState } from 'react';
 /**
  * ThemeBackground — High-Performance Cinematic Background Visualizer
  * 8 Completely Distinct Geometric Visualizers:
- * 1. synthwave             — ⚡ Vibrant Synthwave Horizon: 3D perspective floor grid, horizon fog & ambient nodes
+ * 1. storm-thunder         — ⚡ Dark Storm Thunderbolt: Branching procedural Tesla lightning & ionized plasma sparks
  * 2. cryo-vault            — 🧊 Glacial Cryo-Vault: Liquid nitrogen vapor drift & sharp frost needle shards
  * 3. solar-flare           — 🔥 Crimson Solar Flare: Molten coronal base, magnetic prominence loops & lazy warm embers
  * 4. cosmic-singularity    — 🌌 Cosmic Singularity: Gravitational lensing spacetime grid & swirling accretion disk
  * 5. plasma-web            — 🪐 Cyberpunk Plasma Web: Circuit vector mesh, triangular polygon fills & electric data sparks
  * 6. cyber-foundry         — ⚡ Cyber-Industrial Foundry: Chasing laser dash conduits & gravity welding sparks
  * 7. bioluminescent-trench — 🪸 Bioluminescent Deep Trench: Radial pulse wave echolocation & undulating deep-sea organisms
- * 8. yokohama-night        — 🏮 Neo-Yokohama Night Alley: Chromatic rain streaks, puddle ripples & wet asphalt neon reflections
+ * 8. windy-sakura          — 🌸 Windy Sakura Leaf Falling: 3D tumbling pink sakura petals, emerald leaves & wind gust vortex
  */
 
 const VALID_THEMES = [
-  'synthwave',
+  'storm-thunder',
   'cryo-vault',
   'solar-flare',
   'cosmic-singularity',
   'plasma-web',
   'cyber-foundry',
   'bioluminescent-trench',
-  'yokohama-night'
+  'windy-sakura'
 ];
 
 const LEGACY_THEME_MAP = {
+  synthwave: 'storm-thunder',
+  'yokohama-night': 'windy-sakura',
   aurora: 'cryo-vault',
   'neon-frost': 'cosmic-singularity',
   'abyssal-trench': 'bioluminescent-trench',
@@ -38,7 +40,7 @@ export default function ThemeBackground() {
     const saved = localStorage.getItem('syncstream_theme');
     if (saved && VALID_THEMES.includes(saved)) return saved;
     if (saved && LEGACY_THEME_MAP[saved]) return LEGACY_THEME_MAP[saved];
-    return 'synthwave';
+    return 'storm-thunder';
   });
 
   // Track body class changes to switch simulation mode instantly
@@ -54,7 +56,7 @@ export default function ThemeBackground() {
       const saved = localStorage.getItem('syncstream_theme');
       if (saved && VALID_THEMES.includes(saved)) return saved;
       if (saved && LEGACY_THEME_MAP[saved]) return LEGACY_THEME_MAP[saved];
-      return 'synthwave';
+      return 'storm-thunder';
     };
 
     setActiveTheme(detectTheme());
@@ -73,7 +75,7 @@ export default function ThemeBackground() {
         } else if (val && LEGACY_THEME_MAP[val]) {
           setActiveTheme(LEGACY_THEME_MAP[val]);
         } else {
-          setActiveTheme('synthwave');
+          setActiveTheme('storm-thunder');
         }
       }
     };
@@ -123,21 +125,30 @@ export default function ThemeBackground() {
       frame = 0;
       const isMobile = width < 768;
 
-      if (theme === 'synthwave') {
-        // 1. ⚡ Vibrant Synthwave Horizon (Perspective grid floor + horizon fog + pulsing nodes)
-        const horizonY = height * 0.58;
-        const nodesCount = isMobile ? 3 : 5;
-        const glowNodes = [];
-        for (let i = 0; i < nodesCount; i++) {
-          glowNodes.push({
-            x: width * (0.15 + (0.7 / Math.max(nodesCount - 1, 1)) * i),
-            y: horizonY + (Math.random() - 0.5) * 8,
-            baseRadius: isMobile ? 18 : 28,
-            color: i % 2 === 0 ? '#ff007f' : '#00f0ff',
-            pulsePhase: (i * Math.PI) / 2
+      if (theme === 'storm-thunder' || theme === 'synthwave') {
+        // 1. ⚡ Dark Storm Thunderbolt (Branching Tesla Discharge & Ionized Plasma Sparks)
+        const sparkCount = isMobile ? 18 : 32;
+        const ionizedSparks = [];
+        for (let i = 0; i < sparkCount; i++) {
+          ionizedSparks.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.45,
+            vy: (Math.random() - 0.5) * 0.45,
+            radius: Math.random() * 1.6 + 0.8,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.03 + Math.random() * 0.03,
+            color: Math.random() > 0.45 ? '#00f0ff' : (Math.random() > 0.35 ? '#a855f7' : '#ffffff')
           });
         }
-        state = { horizonY, glowNodes, gridSpeed: 0.003 };
+
+        state = {
+          ionizedSparks,
+          activeBolts: [],
+          flashIntensity: 0,
+          nextStrikeTimer: Math.floor(60 + Math.random() * 70),
+          lastBoltX: width * 0.5
+        };
       } else if (theme === 'cryo-vault') {
         // 2. 🧊 Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Sharp Frost Shards)
         // A. Heavy drifting liquid nitrogen vapor puffs
@@ -385,45 +396,57 @@ export default function ThemeBackground() {
         }
 
         state = { sonarOriginX, sonarOriginY, maxSonarRadius, sonarWaves, organisms, marineSnow };
-      } else if (theme === 'yokohama-night') {
-        // 8. 🏮 Neo-Yokohama Night Alley (Chromatic Rain & Wet Neon Puddle Reflections)
-        // A. Angled cyber rain streaks
-        const rainCount = isMobile ? 35 : 65;
-        const rainDrops = [];
-        for (let i = 0; i < rainCount; i++) {
-          rainDrops.push({
-            x: Math.random() * (width + 200) - 100,
+      } else if (theme === 'windy-sakura' || theme === 'yokohama-night') {
+        // 8. 🌸 Windy Sakura Leaf Falling (3D Tumbling Petals & Wind Gust Vortex)
+        const particleCount = isMobile ? 22 : 42;
+        const petals = [];
+        for (let i = 0; i < particleCount; i++) {
+          const isLeaf = Math.random() < 0.22;
+          const z = 0.5 + Math.random() * 0.8;
+          petals.push({
+            x: Math.random() * (width + 120) - 60,
             y: Math.random() * height,
-            len: (isMobile ? 18 : 32) + Math.random() * 18,
-            vx: -2.2, // angled wind shear
-            vy: (isMobile ? 12 : 18) + Math.random() * 8,
-            alpha: 0.12 + Math.random() * 0.18
+            z,
+            size: (isMobile ? 7 : 11) * z,
+            isLeaf,
+            rotation: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.025,
+            pitch: Math.random() * Math.PI * 2,
+            pitchSpeed: 0.02 + Math.random() * 0.03,
+            yaw: Math.random() * Math.PI * 2,
+            yawSpeed: 0.02 + Math.random() * 0.025,
+            vx: (1.2 + Math.random() * 1.4) * z,
+            vy: (0.6 + Math.random() * 1.0) * z,
+            swayPhase: Math.random() * Math.PI * 2,
+            swayAmp: 0.8 + Math.random() * 1.2,
+            colorFace: isLeaf
+              ? (Math.random() > 0.5 ? '#34d399' : '#10b981')
+              : (Math.random() > 0.6 ? '#ff66a3' : (Math.random() > 0.3 ? '#ff3385' : '#ffa3c7')),
+            colorBack: isLeaf ? '#059669' : '#e11d48'
           });
         }
 
-        // B. Concentric water drop impact ripples on the wet asphalt floor
-        const rippleCount = isMobile ? 8 : 14;
-        const ripples = [];
-        for (let i = 0; i < rippleCount; i++) {
-          ripples.push({
+        const shimmerCount = isMobile ? 12 : 22;
+        const shimmers = [];
+        for (let i = 0; i < shimmerCount; i++) {
+          shimmers.push({
             x: Math.random() * width,
-            y: height * (0.55 + Math.random() * 0.42), // in puddle zone
-            radius: Math.random() * 25,
-            maxRadius: (isMobile ? 28 : 45) + Math.random() * 20,
-            speed: 0.5 + Math.random() * 0.4,
-            color: Math.random() > 0.5 ? '#ff0055' : '#00ffcc',
-            alpha: 0.35
+            y: Math.random() * height,
+            radius: Math.random() * 1.4 + 0.6,
+            vx: 0.5 + Math.random() * 0.8,
+            vy: 0.3 + Math.random() * 0.5,
+            pulse: Math.random() * Math.PI * 2,
+            color: Math.random() > 0.5 ? '#fff7fa' : '#e879f9',
+            baseAlpha: 0.15 + Math.random() * 0.25
           });
         }
 
-        // C. Shifting chromatic puddle light leaks (Wet asphalt reflections)
-        const puddleLeaks = [
-          { x: width * 0.22, y: height * 0.78, rx: width * 0.28, ry: 75, color: '#ff0055', phase: 0 },
-          { x: width * 0.52, y: height * 0.85, rx: width * 0.32, ry: 90, color: '#00ffcc', phase: 2.1 },
-          { x: width * 0.78, y: height * 0.74, rx: width * 0.26, ry: 70, color: '#fff066', phase: 4.2 }
-        ];
-
-        state = { rainDrops, ripples, puddleLeaks };
+        state = {
+          petals,
+          shimmers,
+          gustIntensity: 0,
+          gustTimer: Math.floor(180 + Math.random() * 120)
+        };
       }
     }
 
@@ -437,67 +460,193 @@ export default function ThemeBackground() {
       mouseX += (targetMouseX - mouseX) * 0.05;
       mouseY += (targetMouseY - mouseY) * 0.05;
 
-      if (activeTheme === 'synthwave') {
-        // 1. ⚡ Vibrant Synthwave Horizon
-        const horizonY = state.horizonY || height * 0.58;
-        const gridFloorHeight = height - horizonY;
-        const offset = (frame * (state.gridSpeed || 0.003)) % 1;
+      if (activeTheme === 'storm-thunder' || activeTheme === 'synthwave') {
+        // 1. ⚡ Dark Storm Thunderbolt (Branching Tesla Discharge & Ionized Plasma Sparks)
+        ctx.save();
 
-        // Distant horizon glow wash
-        const horizonGrad = ctx.createLinearGradient(0, horizonY - 90, 0, horizonY + 90);
-        horizonGrad.addColorStop(0, 'rgba(10, 10, 12, 0)');
-        horizonGrad.addColorStop(0.5, 'rgba(255, 0, 127, 0.14)');
-        horizonGrad.addColorStop(0.52, 'rgba(0, 240, 255, 0.10)');
-        horizonGrad.addColorStop(1, 'rgba(10, 10, 12, 0)');
-        ctx.fillStyle = horizonGrad;
-        ctx.fillRect(0, horizonY - 90, width, 180);
+        // Check if time to trigger a lightning discharge
+        state.nextStrikeTimer = (state.nextStrikeTimer || 0) - 1;
+        if (state.nextStrikeTimer <= 0) {
+          const startX = width * (0.15 + Math.random() * 0.7);
+          const endX = startX + (Math.random() - 0.5) * (width * 0.38);
+          const endY = height * (0.45 + Math.random() * 0.45);
+          state.lastBoltX = startX;
 
-        // Faint, slow-pulsing ambient glow nodes
-        (state.glowNodes || []).forEach((node) => {
-          const pulse = Math.sin(frame * 0.02 + node.pulsePhase);
-          const r = node.baseRadius * (0.85 + pulse * 0.25);
-          const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, r);
-          grad.addColorStop(0, node.color === '#ff007f' ? 'rgba(255, 0, 127, 0.35)' : 'rgba(0, 240, 255, 0.30)');
-          grad.addColorStop(0.5, node.color === '#ff007f' ? 'rgba(255, 0, 127, 0.08)' : 'rgba(0, 240, 255, 0.06)');
-          grad.addColorStop(1, 'rgba(10, 10, 12, 0)');
-          ctx.fillStyle = grad;
+          // Generate branching procedural lightning bolt
+          const segments = [];
+          let cx = startX;
+          let cy = 0;
+          const steps = 14 + Math.floor(Math.random() * 7);
+          const dx = (endX - startX) / steps;
+          const dy = endY / steps;
+          const branches = [];
+
+          for (let s = 0; s < steps; s++) {
+            const jitterX = (Math.random() - 0.5) * 38;
+            const jitterY = (Math.random() - 0.5) * 16;
+            const nx = cx + dx + jitterX;
+            const ny = cy + dy + jitterY;
+            segments.push({ x1: cx, y1: cy, x2: nx, y2: ny });
+
+            // Branching fork
+            if (s > 2 && s < steps - 2 && Math.random() < 0.32) {
+              const bAngle = (Math.random() > 0.5 ? 1 : -1) * (0.45 + Math.random() * 0.45);
+              const bLen = 35 + Math.random() * 60;
+              let bx = nx;
+              let by = ny;
+              const bSegs = [];
+              for (let bs = 0; bs < 4; bs++) {
+                const nbx = bx + Math.cos(bAngle) * (bLen / 4) + (Math.random() - 0.5) * 16;
+                const nby = by + Math.sin(bAngle) * (bLen / 4) + Math.random() * 14;
+                bSegs.push({ x1: bx, y1: by, x2: nbx, y2: nby });
+                bx = nbx;
+                by = nby;
+              }
+              branches.push(bSegs);
+            }
+
+            cx = nx;
+            cy = ny;
+          }
+
+          if (!state.activeBolts) state.activeBolts = [];
+          state.activeBolts.push({
+            segments,
+            branches,
+            life: 1.0,
+            decay: 0.05 + Math.random() * 0.025
+          });
+
+          // Atmospheric thunderhead flash illumination
+          state.flashIntensity = 0.22;
+
+          // Next strike timer (approx 2.5 - 4.5 seconds at 60fps)
+          state.nextStrikeTimer = Math.floor(150 + Math.random() * 120);
+        }
+
+        // 1. Ambient Thunderhead Sky Glow Flash
+        if (state.flashIntensity > 0) {
+          const flashGrad = ctx.createRadialGradient(
+            state.lastBoltX || width * 0.5,
+            0,
+            0,
+            state.lastBoltX || width * 0.5,
+            height * 0.5,
+            width * 0.8
+          );
+          flashGrad.addColorStop(0, `rgba(0, 240, 255, ${(state.flashIntensity * 0.32).toFixed(3)})`);
+          flashGrad.addColorStop(0.35, `rgba(168, 85, 247, ${(state.flashIntensity * 0.20).toFixed(3)})`);
+          flashGrad.addColorStop(1, 'rgba(6, 7, 11, 0)');
+          ctx.fillStyle = flashGrad;
+          ctx.fillRect(0, 0, width, height);
+          state.flashIntensity = Math.max(0, state.flashIntensity - 0.012);
+        }
+
+        // 2. Ionized Atmospheric Plasma Sparks
+        const sparks = state.ionizedSparks || [];
+        for (let i = 0; i < sparks.length; i++) {
+          const sp = sparks[i];
+          sp.x += sp.vx;
+          sp.y += sp.vy;
+          if (sp.x < 0) sp.x = width;
+          else if (sp.x > width) sp.x = 0;
+          if (sp.y < 0) sp.y = height;
+          else if (sp.y > height) sp.y = 0;
+
+          // Gentle mouse attraction
+          const mdx = mouseX - sp.x;
+          const mdy = mouseY - sp.y;
+          const mdist = Math.hypot(mdx, mdy);
+          if (mdist < 140 && mdist > 1) {
+            sp.x += (mdx / mdist) * 0.6;
+            sp.y += (mdy / mdist) * 0.6;
+          }
+
+          // Micro-arc tethers between close sparks
+          for (let j = i + 1; j < sparks.length; j++) {
+            const sp2 = sparks[j];
+            const dist = Math.hypot(sp.x - sp2.x, sp.y - sp2.y);
+            if (dist < 60) {
+              const arcAlpha = (1 - dist / 60) * 0.22;
+              ctx.strokeStyle = `rgba(0, 240, 255, ${arcAlpha.toFixed(3)})`;
+              ctx.lineWidth = 0.8;
+              ctx.beginPath();
+              ctx.moveTo(sp.x, sp.y);
+              ctx.lineTo(sp2.x, sp2.y);
+              ctx.stroke();
+            }
+          }
+
+          // Spark core
+          const pulse = (Math.sin(frame * sp.pulseSpeed + sp.pulse) + 1) * 0.5;
+          ctx.fillStyle = sp.color;
+          ctx.globalAlpha = 0.35 + pulse * 0.45;
           ctx.beginPath();
-          ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+          ctx.arc(sp.x, sp.y, sp.radius * (0.8 + pulse * 0.4), 0, Math.PI * 2);
           ctx.fill();
-        });
-
-        // 3D Perspective Grid: Horizontal Cross-lines moving towards camera
-        ctx.lineWidth = 1;
-        const totalLines = 14;
-        for (let i = 0; i < totalLines; i++) {
-          const progress = (i + offset) / totalLines;
-          const y = horizonY + gridFloorHeight * Math.pow(progress, 2.6);
-          const lineAlpha = Math.min(0.24, progress * 0.26);
-          ctx.strokeStyle = `rgba(0, 240, 255, ${lineAlpha})`;
-          ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(width, y);
-          ctx.stroke();
         }
 
-        // 3D Perspective Grid: Vertical vanishing lines
-        const vanishingX = width / 2;
-        const colCount = width < 768 ? 12 : 22;
-        ctx.strokeStyle = 'rgba(255, 0, 127, 0.14)';
-        for (let i = -colCount / 2; i <= colCount / 2; i++) {
-          const bottomX = vanishingX + i * (width / (colCount * 0.45));
-          ctx.beginPath();
-          ctx.moveTo(vanishingX, horizonY);
-          ctx.lineTo(bottomX, height);
-          ctx.stroke();
+        // 3. Active Branching Lightning Bolts
+        if (state.activeBolts && state.activeBolts.length > 0) {
+          state.activeBolts.forEach((bolt) => {
+            const alpha = Math.max(0, bolt.life * (0.85 + Math.random() * 0.15));
+
+            // Layer 1: Outer Cyan Glow (thick, soft)
+            ctx.strokeStyle = `rgba(0, 240, 255, ${(alpha * 0.4).toFixed(3)})`;
+            ctx.lineWidth = 5.5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            bolt.segments.forEach((seg) => {
+              ctx.moveTo(seg.x1, seg.y1);
+              ctx.lineTo(seg.x2, seg.y2);
+            });
+            bolt.branches.forEach((branch) => {
+              branch.forEach((seg) => {
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+              });
+            });
+            ctx.stroke();
+
+            // Layer 2: Inner Violet Corona (medium)
+            ctx.strokeStyle = `rgba(168, 85, 247, ${(alpha * 0.7).toFixed(3)})`;
+            ctx.lineWidth = 2.8;
+            ctx.beginPath();
+            bolt.segments.forEach((seg) => {
+              ctx.moveTo(seg.x1, seg.y1);
+              ctx.lineTo(seg.x2, seg.y2);
+            });
+            bolt.branches.forEach((branch) => {
+              branch.forEach((seg) => {
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+              });
+            });
+            ctx.stroke();
+
+            // Layer 3: Central Pure White Core Channel (sharp, luminous)
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            bolt.segments.forEach((seg) => {
+              ctx.moveTo(seg.x1, seg.y1);
+              ctx.lineTo(seg.x2, seg.y2);
+            });
+            bolt.branches.forEach((branch) => {
+              branch.forEach((seg) => {
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+              });
+            });
+            ctx.stroke();
+
+            bolt.life -= bolt.decay;
+          });
+
+          state.activeBolts = state.activeBolts.filter((b) => b.life > 0);
         }
 
-        // Horizon fog line fade
-        const fog = ctx.createLinearGradient(0, horizonY - 4, 0, horizonY + 20);
-        fog.addColorStop(0, 'rgba(10, 10, 12, 0.95)');
-        fog.addColorStop(1, 'rgba(10, 10, 12, 0)');
-        ctx.fillStyle = fog;
-        ctx.fillRect(0, horizonY - 4, width, 24);
+        ctx.restore();
       } else if (activeTheme === 'cryo-vault') {
         // 2. 🧊 Glacial Cryo-Vault (Liquid Nitrogen Vapor Drift & Frost Needle Shards)
         ctx.save();
@@ -1025,68 +1174,115 @@ export default function ThemeBackground() {
         });
 
         ctx.restore();
-      } else if (activeTheme === 'yokohama-night') {
-        // 8. 🏮 Neo-Yokohama Night Alley (Chromatic Rain & Wet Neon Puddle Reflections)
+      } else if (activeTheme === 'windy-sakura' || activeTheme === 'yokohama-night') {
+        // 8. 🌸 Windy Sakura Leaf Falling (3D Tumbling Petals & Wind Gust Vortex)
         ctx.save();
 
-        // 1. Wet Asphalt Ground Chromatic Puddle Light Leaks (Shifted chromatic reflection)
-        (state.puddleLeaks || []).forEach((leak) => {
-          const breathe = Math.sin(frame * 0.015 + leak.phase);
-          const rx = leak.rx * (0.95 + breathe * 0.08);
-          const ry = leak.ry * (0.95 - breathe * 0.08);
+        // Wind gust timer & acceleration
+        state.gustTimer = (state.gustTimer || 0) - 1;
+        if (state.gustTimer <= 0) {
+          state.gustIntensity = 1.0;
+          state.gustTimer = Math.floor(200 + Math.random() * 160);
+        }
+        if (state.gustIntensity > 0) {
+          state.gustIntensity = Math.max(0, state.gustIntensity - 0.008);
+        }
+        const currentWind = 1.0 + Math.sin(frame * 0.015) * 0.35 + (state.gustIntensity || 0) * 1.5;
 
-          // Chromatic aberration split (Red shifted left, Teal shifted right)
-          // Primary puddle body
-          const grad = ctx.createRadialGradient(leak.x, leak.y, 0, leak.x, leak.y, rx);
-          grad.addColorStop(0, leak.color === '#ff0055' ? 'rgba(255, 0, 85, 0.16)' : (leak.color === '#00ffcc' ? 'rgba(0, 255, 204, 0.14)' : 'rgba(255, 240, 102, 0.14)'));
-          grad.addColorStop(0.5, leak.color === '#ff0055' ? 'rgba(255, 0, 85, 0.04)' : (leak.color === '#00ffcc' ? 'rgba(0, 255, 204, 0.03)' : 'rgba(255, 240, 102, 0.03)'));
-          grad.addColorStop(1, 'rgba(8, 7, 12, 0)');
+        // 1. Soft Moonlit Midnight Atmosphere Glow
+        const moonGrad = ctx.createRadialGradient(width * 0.8, height * 0.15, 0, width * 0.8, height * 0.15, width * 0.5);
+        moonGrad.addColorStop(0, 'rgba(232, 121, 249, 0.08)');
+        moonGrad.addColorStop(0.4, 'rgba(255, 51, 133, 0.04)');
+        moonGrad.addColorStop(1, 'rgba(7, 5, 10, 0)');
+        ctx.fillStyle = moonGrad;
+        ctx.fillRect(0, 0, width, height);
 
-          ctx.fillStyle = grad;
+        // 2. Drifting Moonlit Pollen Shimmer Motes
+        (state.shimmers || []).forEach((sh) => {
+          sh.x += sh.vx * currentWind;
+          sh.y += sh.vy;
+          if (sh.x > width + 10) sh.x = -10;
+          if (sh.y > height + 10) sh.y = -10;
+
+          const shimmer = (Math.sin(frame * 0.03 + sh.pulse) + 1) * 0.5;
+          ctx.fillStyle = sh.color;
+          ctx.globalAlpha = sh.baseAlpha * (0.6 + shimmer * 0.4);
           ctx.beginPath();
-          ctx.ellipse(leak.x, leak.y, rx, ry, 0, 0, Math.PI * 2);
+          ctx.arc(sh.x, sh.y, sh.radius, 0, Math.PI * 2);
           ctx.fill();
         });
 
-        // 2. Concentric Raindrop Impact Ripples in Puddles
-        (state.ripples || []).forEach((rp) => {
-          rp.radius += rp.speed;
-          if (rp.radius > rp.maxRadius) {
-            rp.radius = 0;
-            rp.x = Math.random() * width;
-            rp.y = height * (0.55 + Math.random() * 0.42);
+        // 3. 3D Tumbling Sakura Petals & Emerald Leaves
+        (state.petals || []).forEach((p) => {
+          p.x += p.vx * currentWind;
+          p.y += p.vy + Math.sin(frame * 0.025 + p.swayPhase) * p.swayAmp;
+
+          p.rotation += p.rotSpeed;
+          p.pitch += p.pitchSpeed;
+          p.yaw += p.yawSpeed;
+
+          // Mouse Wind Turbulence Vortex
+          const dx = p.x - mouseX;
+          const dy = p.y - mouseY;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 130 && dist > 1) {
+            const force = (1 - dist / 130) * 3.0;
+            p.x += (dx / dist) * force;
+            p.y += (dy / dist) * force;
+            p.pitch += 0.06;
           }
 
-          const progress = rp.radius / rp.maxRadius;
-          const currentAlpha = Math.max(0, rp.alpha * (1 - progress));
-
-          ctx.save();
-          ctx.strokeStyle = rp.color;
-          ctx.lineWidth = 1;
-          ctx.globalAlpha = currentAlpha;
-          ctx.beginPath();
-          // Perspective ellipse for ground plane
-          ctx.ellipse(rp.x, rp.y, rp.radius, rp.radius * 0.36, 0, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
-        });
-
-        // 3. Fast Angled Cyber Rain Streaks
-        ctx.lineWidth = 1;
-        (state.rainDrops || []).forEach((rd) => {
-          rd.x += rd.vx;
-          rd.y += rd.vy;
-          if (rd.y > height + 20 || rd.x < -100) {
-            rd.y = -rd.len;
-            rd.x = Math.random() * (width + 200);
+          // Screen Wrap-Around
+          if (p.x > width + 40) {
+            p.x = -40;
+            p.y = Math.random() * height;
+          }
+          if (p.y > height + 40) {
+            p.y = -40;
+            p.x = Math.random() * width;
           }
 
+          // 3D Perspective Scaling
+          const scaleX = Math.cos(p.pitch);
+          const scaleY = Math.cos(p.yaw);
+          const isFront = scaleX >= 0;
+          const fillColor = isFront ? p.colorFace : p.colorBack;
+
           ctx.save();
-          ctx.strokeStyle = `rgba(0, 255, 204, ${rd.alpha.toFixed(3)})`;
-          ctx.beginPath();
-          ctx.moveTo(rd.x, rd.y);
-          ctx.lineTo(rd.x - rd.vx * 1.5, rd.y - rd.len);
-          ctx.stroke();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
+          ctx.scale(Math.abs(scaleX) * (isFront ? 1 : -1), Math.max(0.18, Math.abs(scaleY)));
+          ctx.fillStyle = fillColor;
+          ctx.globalAlpha = 0.45 + p.z * 0.4;
+
+          if (p.isLeaf) {
+            // Emerald Leaf Shape with center vein
+            ctx.beginPath();
+            ctx.moveTo(0, -p.size * 1.3);
+            ctx.quadraticCurveTo(p.size * 0.65, 0, 0, p.size * 1.3);
+            ctx.quadraticCurveTo(-p.size * 0.65, 0, 0, -p.size * 1.3);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(0, -p.size * 1.1);
+            ctx.lineTo(0, p.size * 1.1);
+            ctx.stroke();
+          } else {
+            // Sakura Blossom Petal Shape with subtle cleft/notch
+            ctx.beginPath();
+            ctx.moveTo(0, -p.size);
+            ctx.bezierCurveTo(p.size * 0.75, -p.size * 0.6, p.size * 0.75, p.size * 0.65, 0, p.size);
+            ctx.bezierCurveTo(-p.size * 0.75, p.size * 0.65, -p.size * 0.75, -p.size * 0.6, 0, -p.size);
+            ctx.fill();
+
+            // Moonlit specular rim highlight
+            ctx.strokeStyle = 'rgba(255, 247, 250, 0.4)';
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+
           ctx.restore();
         });
 

@@ -775,8 +775,9 @@ export default function VoiceAssistant() {
     // ════════════════════════════════════════════════════════════════════════
     // 9. THEME INTENTS
     // ════════════════════════════════════════════════════════════════════════
-    if (command.includes('theme') || command.includes('synthwave') || command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('solar flare') || command.includes('crimson') || command.includes('plasma') || command.includes('foundry') || command.includes('industrial') || command.includes('trench') || command.includes('bioluminescent') || command.includes('yokohama') || command.includes('alley') || command.includes('rain')) {
+    if (command.includes('theme') || command.includes('storm') || command.includes('thunder') || command.includes('lightning') || command.includes('bolt') || command.includes('sakura') || command.includes('blossom') || command.includes('windy') || command.includes('leaf') || command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('solar flare') || command.includes('crimson') || command.includes('plasma') || command.includes('foundry') || command.includes('industrial') || command.includes('trench') || command.includes('bioluminescent') || command.includes('synthwave') || command.includes('yokohama')) {
       const ALL_THEMES = [
+        'theme-storm-thunder',
         'theme-synthwave',
         'theme-cryo-vault',
         'theme-solar-flare',
@@ -784,30 +785,33 @@ export default function VoiceAssistant() {
         'theme-plasma-web',
         'theme-cyber-foundry',
         'theme-bioluminescent-trench',
+        'theme-windy-sakura',
         'theme-yokohama-night'
       ];
-      let newTheme = 'synthwave';
-      if (command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('nitrogen') || command.includes('frost')) newTheme = 'cryo-vault';
+      let newTheme = 'storm-thunder';
+      if (command.includes('storm') || command.includes('thunder') || command.includes('lightning') || command.includes('bolt')) newTheme = 'storm-thunder';
+      else if (command.includes('sakura') || command.includes('blossom') || command.includes('windy') || command.includes('leaf') || command.includes('cherry')) newTheme = 'windy-sakura';
+      else if (command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('nitrogen') || command.includes('frost')) newTheme = 'cryo-vault';
       else if (command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('gravity')) newTheme = 'cosmic-singularity';
       else if (command.includes('foundry') || command.includes('industrial') || command.includes('machinery') || command.includes('hazard') || command.includes('voltage')) newTheme = 'cyber-foundry';
       else if (command.includes('trench') || command.includes('bioluminescent') || command.includes('abyss') || command.includes('jellyfish') || command.includes('echolocation')) newTheme = 'bioluminescent-trench';
-      else if (command.includes('yokohama') || command.includes('alley') || command.includes('rain') || command.includes('lantern') || command.includes('puddle')) newTheme = 'yokohama-night';
+      else if (command.includes('yokohama') || command.includes('alley') || command.includes('rain')) newTheme = 'windy-sakura';
       else if (command.includes('solar') || command.includes('flare') || command.includes('crimson') || command.includes('ember')) newTheme = 'solar-flare';
       else if (command.includes('plasma') || command.includes('web') || command.includes('cyber')) newTheme = 'plasma-web';
-      else if (command.includes('synthwave') || command.includes('horizon') || command.includes('grid') || command.includes('default') || command.includes('reset')) newTheme = 'synthwave';
+      else if (command.includes('synthwave') || command.includes('horizon') || command.includes('grid') || command.includes('default') || command.includes('reset')) newTheme = 'storm-thunder';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
       document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        synthwave: '⚡ Vibrant Synthwave Horizon',
+        'storm-thunder': '⚡ Dark Storm Thunderbolt',
         'cryo-vault': '🧊 Glacial Cryo-Vault',
         'solar-flare': '🔥 Crimson Solar Flare',
         'cosmic-singularity': '🌌 Cosmic Singularity (Black Hole)',
         'plasma-web': '🪐 Cyberpunk Plasma Web',
         'cyber-foundry': '⚡ Cyber-Industrial Foundry',
         'bioluminescent-trench': '🪸 Bioluminescent Deep Trench',
-        'yokohama-night': '🏮 Neo-Yokohama Night Alley'
+        'windy-sakura': '🌸 Windy Sakura Leaf Falling'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;

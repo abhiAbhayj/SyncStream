@@ -42,6 +42,7 @@ function AppContent() {
 
   React.useEffect(() => {
     const ALL_THEMES = [
+      'theme-storm-thunder',
       'theme-synthwave',
       'theme-cryo-vault',
       'theme-solar-flare',
@@ -49,20 +50,23 @@ function AppContent() {
       'theme-plasma-web',
       'theme-cyber-foundry',
       'theme-bioluminescent-trench',
+      'theme-windy-sakura',
       'theme-yokohama-night'
     ];
     const validThemes = [
-      'synthwave',
+      'storm-thunder',
       'cryo-vault',
       'solar-flare',
       'cosmic-singularity',
       'plasma-web',
       'cyber-foundry',
       'bioluminescent-trench',
-      'yokohama-night'
+      'windy-sakura'
     ];
-    let savedTheme = localStorage.getItem('syncstream_theme') || 'synthwave';
+    let savedTheme = localStorage.getItem('syncstream_theme') || 'storm-thunder';
     const legacyMap = {
+      synthwave: 'storm-thunder',
+      'yokohama-night': 'windy-sakura',
       aurora: 'cryo-vault',
       'neon-frost': 'cosmic-singularity',
       'abyssal-trench': 'bioluminescent-trench',
@@ -73,8 +77,8 @@ function AppContent() {
       savedTheme = legacyMap[savedTheme];
       localStorage.setItem('syncstream_theme', savedTheme);
     } else if (!validThemes.includes(savedTheme)) {
-      savedTheme = 'synthwave';
-      localStorage.setItem('syncstream_theme', 'synthwave');
+      savedTheme = 'storm-thunder';
+      localStorage.setItem('syncstream_theme', 'storm-thunder');
     }
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
     document.body.classList.add(`theme-${savedTheme}`);
