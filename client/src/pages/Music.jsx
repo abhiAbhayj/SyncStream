@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
@@ -20,7 +20,6 @@ import {
   ArrowRight,
   ArrowLeft,
   ChevronDown,
-  ChevronUp,
   FolderPlus,
   Trash2,
   Edit3,
@@ -42,7 +41,8 @@ import {
   Languages,
   LayoutGrid,
   List,
-  ArrowUpDown
+  ArrowUpDown,
+  GripVertical
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -264,19 +264,100 @@ export default function Music() {
     return list;
   }, [playlistSongs, playlistSearch, playlistSort]);
 
-  // Manual reordering for playlist songs (Move Up / Down)
-  const handleMovePlaylistSong = (songId, direction) => {
+  // Manual drag & drop sorting state for playlist songs
+  const [draggedSongIndex, setDraggedSongIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const touchDragRef = useRef({ fromIndex: null, targetIndex: null });
+
+  const handleReorderPlaylistSongs = (fromIndex, toIndex) => {
+    if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
     setPlaylistSongs(prev => {
-      const index = prev.findIndex(s => s.id === songId);
-      if (index === -1) return prev;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
-      const next = [...prev];
-      const temp = next[index];
-      next[index] = next[targetIndex];
-      next[targetIndex] = temp;
-      return next;
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+
+      // Save custom order to localStorage for persistence
+      if (selectedPlaylistDetails?.id) {
+        try {
+          localStorage.setItem(
+            `syncstream_playlist_order_${selectedPlaylistDetails.id}`,
+            JSON.stringify(updated.map(s => s.id))
+          );
+        } catch (e) {}
+      }
+      return updated;
     });
+  };
+
+  const handleDragStart = (idx, e) => {
+    if (playlistSort !== 'default' || playlistSearch) return;
+    setDraggedSongIndex(idx);
+    e.dataTransfer.effectAllowed = 'move';
+    try {
+      e.dataTransfer.setData('text/plain', idx.toString());
+    } catch {}
+  };
+
+  const handleDragOver = (idx, e) => {
+    if (playlistSort !== 'default' || playlistSearch) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== idx) {
+      setDragOverIndex(idx);
+    }
+  };
+
+  const handleDragLeave = (idx) => {
+    if (dragOverIndex === idx) {
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleDrop = (toIndex, e) => {
+    e.preventDefault();
+    if (playlistSort !== 'default' || playlistSearch) return;
+    const fromIndex = draggedSongIndex;
+    if (fromIndex !== null && fromIndex !== toIndex) {
+      handleReorderPlaylistSongs(fromIndex, toIndex);
+    }
+    setDraggedSongIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedSongIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Touch Drag Support for Mobile devices
+  const handleTouchStart = (idx) => {
+    if (playlistSort !== 'default' || playlistSearch) return;
+    touchDragRef.current = { fromIndex: idx, targetIndex: idx };
+    setDraggedSongIndex(idx);
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchDragRef.current.fromIndex === null) return;
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    const songCard = element?.closest('[data-song-index]');
+    if (songCard) {
+      const overIdx = parseInt(songCard.getAttribute('data-song-index'), 10);
+      if (!isNaN(overIdx) && overIdx !== touchDragRef.current.targetIndex) {
+        touchDragRef.current.targetIndex = overIdx;
+        setDragOverIndex(overIdx);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    const { fromIndex, targetIndex } = touchDragRef.current;
+    if (fromIndex !== null && targetIndex !== null && fromIndex !== targetIndex) {
+      handleReorderPlaylistSongs(fromIndex, targetIndex);
+    }
+    touchDragRef.current = { fromIndex: null, targetIndex: null };
+    setDraggedSongIndex(null);
+    setDragOverIndex(null);
   };
 
   // Fetch trending songs by language with pagination (Dual-Engine live updated)
@@ -455,13 +536,33 @@ export default function Music() {
     setPlaylistSongsLoading(true);
     try {
       const token = localStorage.getItem('token');
+      let fetchedSongs = [];
       if (token && typeof playlist.id === 'number') {
         const res = await axios.get(`/api/music/playlists/${playlist.id}/songs`);
-        setPlaylistSongs(res.data.songs || []);
+        fetchedSongs = res.data.songs || [];
       } else {
         // Guest fallback or cached
-        setPlaylistSongs(playlist.songs || []);
+        fetchedSongs = playlist.songs || [];
       }
+
+      // Restore custom user manual drag-and-drop order if saved
+      try {
+        const savedOrderStr = localStorage.getItem(`syncstream_playlist_order_${playlist.id}`);
+        if (savedOrderStr) {
+          const orderIds = JSON.parse(savedOrderStr);
+          if (Array.isArray(orderIds) && orderIds.length > 0) {
+            const orderMap = new Map();
+            orderIds.forEach((id, idx) => orderMap.set(String(id), idx));
+            fetchedSongs.sort((a, b) => {
+              const idxA = orderMap.has(String(a.id)) ? orderMap.get(String(a.id)) : 999999;
+              const idxB = orderMap.has(String(b.id)) ? orderMap.get(String(b.id)) : 999999;
+              return idxA - idxB;
+            });
+          }
+        }
+      } catch (e) {}
+
+      setPlaylistSongs(fetchedSongs);
     } catch (err) {
       console.error('Error fetching playlist songs:', err);
       setPlaylistSongs([]);
@@ -1072,13 +1173,12 @@ export default function Music() {
                             <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
                               {song.artist}
                             </p>
-                            <div className="flex items-center justify-between pt-1">
-                              <span className="text-[9px] sm:text-[10px] font-mono font-black text-slate-300 flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-slate-400" />
+                            <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
+                              <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">
                                 {formatTime(song.duration)}
                               </span>
                               
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                                 {/* Always Visible Heart Icon */}
                                 <button
                                   type="button"
@@ -1086,7 +1186,7 @@ export default function Music() {
                                     e.stopPropagation();
                                     toggleFavorite(song);
                                   }}
-                                  className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                                  className={`p-1 sm:p-1.5 rounded-lg border transition active:scale-90 shrink-0 ${
                                     isFav
                                       ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.35)]'
                                       : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15'
@@ -1094,7 +1194,7 @@ export default function Music() {
                                   title={isFav ? 'Liked' : 'Add to Favorites'}
                                   aria-label="Add to Favorites"
                                 >
-                                  <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-red-400' : ''}`} />
+                                  <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isFav ? 'fill-current text-red-400' : ''}`} />
                                 </button>
 
                                 {/* Always Visible Folder Icon */}
@@ -1104,11 +1204,11 @@ export default function Music() {
                                     e.stopPropagation();
                                     setSongToAddToPlaylist(song);
                                   }}
-                                  className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                                  className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90 shrink-0"
                                   title="Add to Playlist"
                                   aria-label="Add to Playlist"
                                 >
-                                  <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                                  <FolderPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
                                 </button>
 
                                 {/* Play / Pause Button */}
@@ -1121,7 +1221,7 @@ export default function Music() {
                                       playTrack(song, songs);
                                     }
                                   }}
-                                  className={`p-1.5 rounded-full transition active:scale-90 border ${
+                                  className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                                     isCurrentPlaying
                                       ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
                                       : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
@@ -1129,7 +1229,7 @@ export default function Music() {
                                   title={isCurrentPlaying ? 'Pause' : 'Play'}
                                   aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
                                 >
-                                  {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
+                                  {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />}
                                 </button>
                               </div>
                             </div>
@@ -1407,7 +1507,7 @@ export default function Music() {
                               return (
                                 <div
                                   key={`${s.id}-${idx}`}
-                                  className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-44 p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-lg ${
+                                  className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-44 p-2 sm:p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-lg overflow-hidden ${
                                     isCur ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.4)]' : 'border-white/20 bg-[#18203c]/95 hover:bg-[#202b52] hover:border-accentCyan/60'
                                   }`}
                                 >
@@ -1455,12 +1555,11 @@ export default function Music() {
                                     <p className="text-[10px] text-slate-200 truncate font-semibold" title={s.artist}>{s.artist}</p>
 
                                     {/* Action Row: Clock + Heart + Playlist */}
-                                    <div className="flex items-center justify-between pt-1">
-                                      <span className="text-[9px] font-mono font-black text-slate-300 flex items-center gap-1">
-                                        <Clock className="w-2.5 h-2.5 text-slate-400" />
+                                    <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
+                                      <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">
                                         {formatTime(s.duration)}
                                       </span>
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                                         {/* Single Favorite Heart Icon */}
                                         <button
                                           type="button"
@@ -1468,7 +1567,7 @@ export default function Music() {
                                             e.stopPropagation();
                                             toggleFavorite(s);
                                           }}
-                                          className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                                          className={`p-1 sm:p-1.5 rounded-lg border transition active:scale-90 shrink-0 ${
                                             isFav
                                               ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.35)]'
                                               : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15'
@@ -1476,7 +1575,7 @@ export default function Music() {
                                           title={isFav ? 'Liked (Click to Remove)' : 'Add to Favorites'}
                                           aria-label="Add to Favorites"
                                         >
-                                          <Heart className={`w-3 h-3 ${isFav ? 'fill-current text-red-400' : ''}`} />
+                                          <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isFav ? 'fill-current text-red-400' : ''}`} />
                                         </button>
 
                                         {/* Single Add to Playlist Icon */}
@@ -1486,11 +1585,11 @@ export default function Music() {
                                             e.stopPropagation();
                                             setSongToAddToPlaylist(s);
                                           }}
-                                          className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                                          className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90 shrink-0"
                                           title="Add to Playlist"
                                           aria-label="Add to Playlist"
                                         >
-                                          <FolderPlus className="w-3 h-3 stroke-[2.2]" />
+                                          <FolderPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
                                         </button>
                                       </div>
                                     </div>
@@ -1733,7 +1832,7 @@ export default function Music() {
                 return (
                   <div
                     key={`${song.id}-${idx}`}
-                    className={`group relative rounded-xl sm:rounded-2xl border-2 p-2.5 transition-all duration-300 flex flex-col gap-2 shadow-xl backdrop-blur-md ${
+                    className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-2.5 transition-all duration-300 flex flex-col gap-2 shadow-xl backdrop-blur-md overflow-hidden ${
                       isCurrent
                         ? 'bg-red-500/25 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.45)] ring-2 ring-red-500/60'
                         : 'border-white/20 bg-[#18203c]/95 hover:border-red-500/60 hover:bg-[#221c38] hover:shadow-[0_10px_30px_rgba(239,68,68,0.25)]'
@@ -1780,12 +1879,12 @@ export default function Music() {
                       >
                         {song.title}
                       </h4>
-                      <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
+                      <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold" title={song.artist}>
                         {song.artist}
                       </p>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-[9px] font-mono font-black text-slate-300">{formatTime(song.duration)}</span>
-                        <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
+                        <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">{formatTime(song.duration)}</span>
+                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                           {/* Heart Button */}
                           <button
                             type="button"
@@ -1793,10 +1892,10 @@ export default function Music() {
                               e.stopPropagation();
                               toggleFavorite(song);
                             }}
-                            className="p-1.5 rounded-lg border border-red-500/60 bg-red-500/20 text-red-400 transition active:scale-90"
+                            className="p-1 sm:p-1.5 rounded-lg border border-red-500/60 bg-red-500/20 text-red-400 transition active:scale-90 shrink-0"
                             title="Remove from favorites"
                           >
-                            <Heart className="w-3.5 h-3.5 fill-current" />
+                            <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                           </button>
 
                           {/* Folder Button */}
@@ -1806,10 +1905,10 @@ export default function Music() {
                               e.stopPropagation();
                               setSongToAddToPlaylist(song);
                             }}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                            className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90 shrink-0"
                             title="Add to Playlist"
                           >
-                            <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <FolderPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
                           </button>
 
                           {/* Play / Pause button */}
@@ -1822,14 +1921,14 @@ export default function Music() {
                                 playTrack(song, favorites);
                               }
                             }}
-                            className={`p-1.5 rounded-full transition active:scale-90 border ${
+                            className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                               isCurrentPlaying
                                 ? 'bg-red-500 text-white border-white shadow-[0_0_12px_rgba(239,68,68,0.7)] font-black'
                                 : 'bg-white/20 border-white/25 text-white hover:bg-red-500 hover:border-red-500'
                             }`}
                             title={isCurrentPlaying ? 'Pause' : 'Play'}
                           >
-                            {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
+                            {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />}
                           </button>
                         </div>
                       </div>
@@ -2097,6 +2196,14 @@ export default function Music() {
                 </div>
 
                 <div className="flex items-center gap-2.5 flex-wrap justify-between sm:justify-end">
+                  {/* Drag & drop helper pill when default sort and no search */}
+                  {playlistSort === 'default' && !playlistSearch && playlistSongs.length > 1 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-[11px] font-black text-accentCyan shrink-0 shadow-sm">
+                      <GripVertical className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
+                      <span>Drag songs to reorder</span>
+                    </div>
+                  )}
+
                   {/* Manual Sort Options Dropdown */}
                   <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20">
                     <ArrowUpDown className="w-3.5 h-3.5 text-accentCyan shrink-0" />
@@ -2178,16 +2285,43 @@ export default function Music() {
                     const isCurrent = currentTrack?.id === song.id;
                     const isCurrentPlaying = isCurrent && isPlaying;
                     const isFav = isFavorite(song.id);
+                    const isReorderable = playlistSort === 'default' && !playlistSearch;
+                    const isDragging = draggedSongIndex === idx;
+                    const isDragOver = dragOverIndex === idx && draggedSongIndex !== idx;
 
                     return (
                       <div
                         key={`${song.id}-${idx}`}
-                        className={`group relative rounded-xl sm:rounded-2xl border-2 p-2.5 transition-all duration-300 flex flex-col gap-2 bg-[#18203c]/95 shadow-xl ${
-                          isCurrent
+                        data-song-index={idx}
+                        draggable={isReorderable}
+                        onDragStart={(e) => handleDragStart(idx, e)}
+                        onDragOver={(e) => handleDragOver(idx, e)}
+                        onDragLeave={() => handleDragLeave(idx)}
+                        onDrop={(e) => handleDrop(idx, e)}
+                        onDragEnd={handleDragEnd}
+                        className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-2.5 transition-all duration-300 flex flex-col gap-2 bg-[#18203c]/95 shadow-xl overflow-hidden select-none ${
+                          isDragging
+                            ? 'opacity-30 scale-95 border-dashed border-accentCyan'
+                            : isDragOver
+                            ? 'border-accentCyan shadow-[0_0_25px_rgba(99,210,255,0.7)] ring-2 ring-accentCyan bg-accentCyan/20 scale-[1.02]'
+                            : isCurrent
                             ? 'border-accentPurple shadow-lg shadow-accentPurple/35 ring-2 ring-accentPurple/60'
                             : 'border-white/20 hover:border-accentPurple/70 hover:bg-[#202b52]'
                         }`}
                       >
+                        {/* Drag Handle for Card View when in default sort */}
+                        {isReorderable && (
+                          <div
+                            onTouchStart={() => handleTouchStart(idx)}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            className="absolute top-2 left-2 z-10 p-1 rounded-md bg-black/80 backdrop-blur-md border border-white/20 text-slate-300 hover:text-white cursor-grab active:cursor-grabbing shadow-sm"
+                            title="Touch & drag to reorder"
+                          >
+                            <GripVertical className="w-3 h-3 text-accentCyan" />
+                          </div>
+                        )}
+
                         <div
                           onClick={() => {
                             if (currentTrack?.id === song.id) {
@@ -2229,13 +2363,13 @@ export default function Music() {
                           >
                             {song.title}
                           </h4>
-                          <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
+                          <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold" title={song.artist}>
                             {song.artist}
                           </p>
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[9px] font-mono font-black text-slate-300">{formatTime(song.duration)}</span>
+                          <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
+                            <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">{formatTime(song.duration)}</span>
                             
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                               {/* Always Visible Heart Icon */}
                               <button
                                 type="button"
@@ -2243,14 +2377,15 @@ export default function Music() {
                                   e.stopPropagation();
                                   toggleFavorite(song);
                                 }}
-                                className={`p-1 rounded-lg border transition active:scale-90 ${
+                                className={`p-1 sm:p-1.5 rounded-lg border transition active:scale-90 shrink-0 ${
                                   isFav
                                     ? 'bg-red-500/20 border-red-500/60 text-red-400'
                                     : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15'
                                 }`}
                                 title={isFav ? 'Liked' : 'Add to Favorites'}
+                                aria-label="Add to Favorites"
                               >
-                                <Heart className={`w-3 h-3 ${isFav ? 'fill-current text-red-400' : ''}`} />
+                                <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isFav ? 'fill-current text-red-400' : ''}`} />
                               </button>
 
                               {/* Always Visible Folder Icon */}
@@ -2260,44 +2395,22 @@ export default function Music() {
                                   e.stopPropagation();
                                   setSongToAddToPlaylist(song);
                                 }}
-                                className="p-1 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
-                                title="Add to Playlist"
+                                className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90 shrink-0"
+                                title="Add to Another Playlist"
+                                aria-label="Add to Playlist"
                               >
-                                <FolderPlus className="w-3 h-3 stroke-[2.2]" />
+                                <FolderPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
                               </button>
-
-                              {/* Manual Reorder Up/Down (only when in Default sort) */}
-                              {playlistSort === 'default' && !playlistSearch && (
-                                <div className="flex items-center">
-                                  <button
-                                    type="button"
-                                    disabled={idx === 0}
-                                    onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, -1); }}
-                                    className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
-                                    title="Move Up"
-                                  >
-                                    <ChevronUp className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={idx === displayedPlaylistSongs.length - 1}
-                                    onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, 1); }}
-                                    className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
-                                    title="Move Down"
-                                  >
-                                    <ChevronDown className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              )}
 
                               {/* Remove from playlist button */}
                               <button
                                 type="button"
                                 onClick={(e) => handleRemoveSongFromCurrentPlaylist(song, e)}
-                                className="p-1 rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-400/50 text-slate-300 hover:text-red-400 transition active:scale-90"
+                                className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-400/50 text-slate-300 hover:text-red-400 transition active:scale-90 shrink-0"
                                 title="Remove from playlist"
+                                aria-label="Remove from playlist"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               </button>
 
                               {/* Play / Pause button */}
@@ -2310,14 +2423,15 @@ export default function Music() {
                                     playTrack(song, displayedPlaylistSongs);
                                   }
                                 }}
-                                className={`p-1 rounded-full transition active:scale-90 border ${
+                                className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                                   isCurrentPlaying
                                     ? 'bg-accentCyan text-black border-white shadow-[0_0_10px_rgba(99,210,255,0.7)] font-black'
                                     : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
                                 }`}
                                 title={isCurrentPlaying ? 'Pause' : 'Play'}
+                                aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
                               >
-                                {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 fill-current" /> : <Play className="w-2.5 h-2.5 fill-current ml-0.2" />}
+                                {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />}
                               </button>
                             </div>
                           </div>
@@ -2333,18 +2447,44 @@ export default function Music() {
                     const isCurrent = currentTrack?.id === song.id;
                     const isCurrentPlaying = isCurrent && isPlaying;
                     const isFav = isFavorite(song.id);
+                    const isReorderable = playlistSort === 'default' && !playlistSearch;
+                    const isDragging = draggedSongIndex === idx;
+                    const isDragOver = dragOverIndex === idx && draggedSongIndex !== idx;
 
                     return (
                       <div
                         key={`${song.id}-${idx}`}
-                        className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
-                          isCurrent
+                        data-song-index={idx}
+                        draggable={isReorderable}
+                        onDragStart={(e) => handleDragStart(idx, e)}
+                        onDragOver={(e) => handleDragOver(idx, e)}
+                        onDragLeave={() => handleDragLeave(idx)}
+                        onDrop={(e) => handleDrop(idx, e)}
+                        onDragEnd={handleDragEnd}
+                        className={`group flex items-center justify-between gap-2 sm:gap-4 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 select-none ${
+                          isDragging
+                            ? 'opacity-30 scale-[0.98] border-dashed border-accentCyan'
+                            : isDragOver
+                            ? 'border-accentCyan bg-accentCyan/20 shadow-[0_0_20px_rgba(99,210,255,0.5)] ring-2 ring-accentCyan'
+                            : isCurrent
                             ? 'bg-accentPurple/25 border-accentPurple shadow-[0_0_20px_rgba(168,85,247,0.35)] ring-1 ring-accentPurple/60'
                             : 'bg-[#18203c]/90 border-white/10 hover:border-accentPurple/50 hover:bg-[#202b52] hover:shadow-md'
                         }`}
                       >
-                        {/* Left: Index / Play Button + Thumbnail + Title/Artist */}
-                        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                        {/* Left: Drag Handle + Index / Play Button + Thumbnail + Title/Artist */}
+                        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+                          {isReorderable && (
+                            <div
+                              onTouchStart={() => handleTouchStart(idx)}
+                              onTouchMove={handleTouchMove}
+                              onTouchEnd={handleTouchEnd}
+                              className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 text-slate-400 hover:text-accentCyan transition shrink-0"
+                              title="Touch & drag to reorder"
+                            >
+                              <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan/80 group-hover:text-accentCyan" />
+                            </div>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
@@ -2391,7 +2531,7 @@ export default function Music() {
                           </div>
                         </div>
 
-                        {/* Right: Duration + Actions (Heart, Folder, Move, Remove, Play) */}
+                        {/* Right: Duration + Actions (Heart, Folder, Remove, Play) */}
                         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                           <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
                             {formatTime(song.duration)}
@@ -2428,30 +2568,6 @@ export default function Music() {
                           >
                             <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
                           </button>
-
-                          {/* Manual Reorder Up/Down (only when in Default sort) */}
-                          {playlistSort === 'default' && !playlistSearch && (
-                            <div className="flex items-center bg-white/5 rounded-lg border border-white/10">
-                              <button
-                                type="button"
-                                disabled={idx === 0}
-                                onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, -1); }}
-                                className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
-                                title="Move Up"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={idx === displayedPlaylistSongs.length - 1}
-                                onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, 1); }}
-                                className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
-                                title="Move Down"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          )}
 
                           {/* Remove from playlist button */}
                           <button
