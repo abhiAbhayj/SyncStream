@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
@@ -20,6 +20,7 @@ import {
   ArrowRight,
   ArrowLeft,
   ChevronDown,
+  ChevronUp,
   FolderPlus,
   Trash2,
   Edit3,
@@ -38,7 +39,10 @@ import {
   Zap,
   Compass,
   Layers,
-  Languages
+  Languages,
+  LayoutGrid,
+  List,
+  ArrowUpDown
 } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -181,6 +185,84 @@ export default function Music() {
   // Add to Playlist Modal State
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState(null);
   const [playlistAddedSuccess, setPlaylistAddedSuccess] = useState(null);
+
+  // View mode for songs: 'card' (Card Grid) | 'list' (Compact List View)
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('syncstream_music_view') || 'card';
+    } catch {
+      return 'card';
+    }
+  });
+
+  const handleSetViewMode = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('syncstream_music_view', mode);
+    } catch {}
+  };
+
+  // Playlist internal search & sort state
+  const [playlistSearch, setPlaylistSearch] = useState('');
+  const [playlistSort, setPlaylistSort] = useState('default');
+
+  // Filtered & Sorted playlist songs
+  const displayedPlaylistSongs = useMemo(() => {
+    let list = [...playlistSongs];
+
+    if (playlistSearch.trim()) {
+      const q = playlistSearch.toLowerCase().trim();
+      list = list.filter(song =>
+        (song.title && song.title.toLowerCase().includes(q)) ||
+        (song.artist && song.artist.toLowerCase().includes(q)) ||
+        (song.album && song.album.toLowerCase().includes(q))
+      );
+    }
+
+    switch (playlistSort) {
+      case 'title_asc':
+        list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        break;
+      case 'title_desc':
+        list.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+        break;
+      case 'artist_asc':
+        list.sort((a, b) => (a.artist || '').localeCompare(b.artist || ''));
+        break;
+      case 'duration_asc':
+        list.sort((a, b) => (parseInt(a.duration, 10) || 0) - (parseInt(b.duration, 10) || 0));
+        break;
+      case 'duration_desc':
+        list.sort((a, b) => (parseInt(b.duration, 10) || 0) - (parseInt(a.duration, 10) || 0));
+        break;
+      case 'newest':
+        list.sort((a, b) => {
+          if (a.added_at && b.added_at) return new Date(b.added_at) - new Date(a.added_at);
+          return 0;
+        });
+        break;
+      case 'default':
+      default:
+        break;
+    }
+
+    return list;
+  }, [playlistSongs, playlistSearch, playlistSort]);
+
+  // Manual reordering for playlist songs (Move Up / Down)
+  const handleMovePlaylistSong = (songId, direction) => {
+    setPlaylistSongs(prev => {
+      const index = prev.findIndex(s => s.id === songId);
+      if (index === -1) return prev;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[targetIndex];
+      next[targetIndex] = temp;
+      return next;
+    });
+  };
 
   // Fetch trending songs by language with pagination (Dual-Engine live updated)
   const fetchTrending = async (lang = 'all', pageNum = 1, forceRefresh = false) => {
@@ -353,6 +435,8 @@ export default function Music() {
   // Load songs for a specific playlist
   const handleOpenPlaylistDetails = async (playlist) => {
     setSelectedPlaylistDetails(playlist);
+    setPlaylistSearch('');
+    setPlaylistSort('default');
     setPlaylistSongsLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -856,9 +940,41 @@ export default function Music() {
                 )}
               </div>
 
-              <span className="text-xs font-mono font-black text-white px-3.5 py-1 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
-                {songs.length} Tracks
-              </span>
+              <div className="flex items-center gap-2">
+                {/* View Mode Toggle: Card vs Compact List */}
+                <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
+                  <button
+                    type="button"
+                    onClick={() => handleSetViewMode('card')}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      viewMode === 'card'
+                        ? 'bg-accentCyan text-black font-bold shadow-md'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Card (Grid) View"
+                    aria-label="Card View"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetViewMode('list')}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      viewMode === 'list'
+                        ? 'bg-accentCyan text-black font-bold shadow-md'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Compact List View"
+                    aria-label="Compact List View"
+                  >
+                    <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+                </div>
+
+                <span className="text-xs font-mono font-black text-white px-3.5 py-1.5 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
+                  {songs.length} Tracks
+                </span>
+              </div>
             </div>
 
             {loading ? (
@@ -874,71 +990,25 @@ export default function Music() {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
-                  {songs.map((song, idx) => {
-                    const isCurrent = currentTrack?.id === song.id;
-                    const isCurrentPlaying = isCurrent && isPlaying;
-                    const isFav = isFavorite(song.id);
+                {viewMode === 'card' ? (
+                  /* ── Card (Grid) View ── */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+                    {songs.map((song, idx) => {
+                      const isCurrent = currentTrack?.id === song.id;
+                      const isCurrentPlaying = isCurrent && isPlaying;
+                      const isFav = isFavorite(song.id);
 
-                    return (
-                      <div
-                        key={`${song.id}-${idx}`}
-                        className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden shadow-xl backdrop-blur-md ${
-                          isCurrent
-                            ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_25px_rgba(99,210,255,0.45)] ring-2 ring-accentCyan/60'
-                            : 'border-white/20 bg-[#18203c]/95 hover:border-accentCyan/70 hover:bg-[#202b52] hover:shadow-[0_10px_30px_rgba(0,245,255,0.25)]'
-                        }`}
-                      >
-                        {/* Square Album Cover */}
+                      return (
                         <div
-                          onClick={() => {
-                            if (currentTrack?.id === song.id) {
-                              togglePlay();
-                            } else {
-                              playTrack(song, songs);
-                            }
-                          }}
-                          className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
+                          key={`${song.id}-${idx}`}
+                          className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden shadow-xl backdrop-blur-md ${
+                            isCurrent
+                              ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_25px_rgba(99,210,255,0.45)] ring-2 ring-accentCyan/60'
+                              : 'border-white/20 bg-[#18203c]/95 hover:border-accentCyan/70 hover:bg-[#202b52] hover:shadow-[0_10px_30px_rgba(0,245,255,0.25)]'
+                          }`}
                         >
-                          <img
-                            src={song.image || FALLBACK_COVER}
-                            alt={song.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
-                          />
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            {isCurrentPlaying ? (
-                              <Pause className="w-6 h-6 text-accentCyan fill-current" />
-                            ) : (
-                              <Play className="w-6 h-6 text-white fill-current ml-0.5" />
-                            )}
-                          </div>
-                          {isCurrentPlaying && (
-                            <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
-                          )}
-
-                          {/* Quick Heart on Cover */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(song);
-                            }}
-                            className={`absolute top-1.5 right-1.5 p-1.5 rounded-full backdrop-blur-md transition active:scale-90 ${
-                              isFav
-                                ? 'bg-red-500 text-white shadow-md'
-                                : 'bg-black/70 text-slate-100 hover:text-white opacity-90 sm:opacity-0 sm:group-hover:opacity-100 border border-white/20'
-                            }`}
-                            title={isFav ? 'Liked' : 'Like'}
-                          >
-                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-white' : ''}`} />
-                          </button>
-                        </div>
-
-                        {/* Meta */}
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          <h4
+                          {/* Square Album Cover */}
+                          <div
                             onClick={() => {
                               if (currentTrack?.id === song.id) {
                                 togglePlay();
@@ -946,56 +1016,277 @@ export default function Music() {
                                 playTrack(song, songs);
                               }
                             }}
-                            className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer transition-colors ${
-                              isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                            }`}
-                            title={song.title}
+                            className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                           >
-                            {song.title}
-                          </h4>
-                          <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
-                            {song.artist}
-                          </p>
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[9px] sm:text-[10px] font-mono font-black text-slate-300 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-slate-400" />
-                              {formatTime(song.duration)}
-                            </span>
-                            
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => setSongToAddToPlaylist(song)}
-                                className="p-1 text-slate-200 hover:text-accentPurple hover:bg-white/20 rounded-md transition active:scale-90"
-                                title="Add to Playlist"
-                              >
-                                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (currentTrack?.id === song.id) {
-                                    togglePlay();
-                                  } else {
-                                    playTrack(song, songs);
-                                  }
-                                }}
-                                className={`p-1.5 rounded-full transition active:scale-90 border ${
-                                  isCurrentPlaying
-                                    ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
-                                    : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
-                                }`}
-                                title={isCurrentPlaying ? 'Pause' : 'Play'}
-                              >
-                                {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
-                              </button>
+                            <img
+                              src={song.image || FALLBACK_COVER}
+                              alt={song.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              {isCurrentPlaying ? (
+                                <Pause className="w-6 h-6 text-accentCyan fill-current" />
+                              ) : (
+                                <Play className="w-6 h-6 text-white fill-current ml-0.5" />
+                              )}
+                            </div>
+                            {isCurrentPlaying && (
+                              <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
+                            )}
+
+                            {/* Always-accessible Quick Folder (Add to Playlist) on Cover Top-Left */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSongToAddToPlaylist(song);
+                              }}
+                              className="absolute top-1.5 left-1.5 p-1.5 rounded-full backdrop-blur-md bg-black/75 hover:bg-purple-600/90 text-purple-300 hover:text-white transition active:scale-90 border border-white/20 shadow-sm"
+                              title="Add to Playlist"
+                              aria-label="Add to Playlist"
+                            >
+                              <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                            </button>
+
+                            {/* Always-accessible Quick Heart on Cover Top-Right */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(song);
+                              }}
+                              className={`absolute top-1.5 right-1.5 p-1.5 rounded-full backdrop-blur-md transition active:scale-90 border shadow-sm ${
+                                isFav
+                                  ? 'bg-red-500/90 border-red-400 text-white shadow-red-500/40'
+                                  : 'bg-black/75 border-white/20 text-slate-100 hover:text-white hover:bg-black/90'
+                              }`}
+                              title={isFav ? 'Liked (Click to remove)' : 'Add to Favorites'}
+                              aria-label="Add to Favorites"
+                            >
+                              <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-white' : ''}`} />
+                            </button>
+                          </div>
+
+                          {/* Meta & Action Controls */}
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <h4
+                              onClick={() => {
+                                if (currentTrack?.id === song.id) {
+                                  togglePlay();
+                                } else {
+                                  playTrack(song, songs);
+                                }
+                              }}
+                              className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer transition-colors ${
+                                isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                              }`}
+                              title={song.title}
+                            >
+                              {song.title}
+                            </h4>
+                            <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
+                              {song.artist}
+                            </p>
+                            <div className="flex items-center justify-between pt-1">
+                              <span className="text-[9px] sm:text-[10px] font-mono font-black text-slate-300 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-slate-400" />
+                                {formatTime(song.duration)}
+                              </span>
+                              
+                              <div className="flex items-center gap-1">
+                                {/* Always Visible Heart Icon */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleFavorite(song);
+                                  }}
+                                  className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                                    isFav
+                                      ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.35)]'
+                                      : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15'
+                                  }`}
+                                  title={isFav ? 'Liked' : 'Add to Favorites'}
+                                  aria-label="Add to Favorites"
+                                >
+                                  <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-red-400' : ''}`} />
+                                </button>
+
+                                {/* Always Visible Folder Icon */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSongToAddToPlaylist(song);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                                  title="Add to Playlist"
+                                  aria-label="Add to Playlist"
+                                >
+                                  <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                                </button>
+
+                                {/* Play / Pause Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (currentTrack?.id === song.id) {
+                                      togglePlay();
+                                    } else {
+                                      playTrack(song, songs);
+                                    }
+                                  }}
+                                  className={`p-1.5 rounded-full transition active:scale-90 border ${
+                                    isCurrentPlaying
+                                      ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
+                                      : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
+                                  }`}
+                                  title={isCurrentPlaying ? 'Pause' : 'Play'}
+                                  aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
+                                >
+                                  {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* ── Compact List View ── */
+                  <div className="space-y-1.5">
+                    {songs.map((song, idx) => {
+                      const isCurrent = currentTrack?.id === song.id;
+                      const isCurrentPlaying = isCurrent && isPlaying;
+                      const isFav = isFavorite(song.id);
+
+                      return (
+                        <div
+                          key={`${song.id}-${idx}`}
+                          className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
+                            isCurrent
+                              ? 'bg-accentCyan/20 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.35)] ring-1 ring-accentCyan/60'
+                              : 'bg-[#18203c]/90 border-white/10 hover:border-accentCyan/50 hover:bg-[#202b52] hover:shadow-md'
+                          }`}
+                        >
+                          {/* Left: Index / Play Button + Thumbnail + Title/Artist */}
+                          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                            <button
+                              type="button"
+                              onClick={() => isCurrent ? togglePlay() : playTrack(song, songs)}
+                              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
+                            >
+                              {isCurrentPlaying ? (
+                                <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-accentCyan animate-pulse" />
+                              ) : isCurrent ? (
+                                <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-accentCyan ml-0.5" />
+                              ) : (
+                                <>
+                                  <span className="text-slate-400 group-hover:hidden">{idx + 1}</span>
+                                  <Play className="w-3.5 h-3.5 text-white fill-white hidden group-hover:block ml-0.5" />
+                                </>
+                              )}
+                            </button>
+
+                            <div
+                              onClick={() => isCurrent ? togglePlay() : playTrack(song, songs)}
+                              className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
+                            >
+                              <img
+                                src={song.image || FALLBACK_COVER}
+                                alt={song.title}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                              />
+                            </div>
+
+                            <div className="min-w-0 flex-1 space-y-0.5">
+                              <h4
+                                onClick={() => isCurrent ? togglePlay() : playTrack(song, songs)}
+                                className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                                  isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                }`}
+                                title={song.title}
+                              >
+                                {song.title}
+                              </h4>
+                              <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold">
+                                {song.artist}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Right: Duration + Heart + Folder + Play */}
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
+                              {formatTime(song.duration)}
+                            </span>
+
+                            {/* Always Visible Heart Icon */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(song);
+                              }}
+                              className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                                isFav
+                                  ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.35)]'
+                                  : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15 hover:border-red-400/40'
+                              }`}
+                              title={isFav ? 'Liked (Click to Remove)' : 'Add to Favorites'}
+                              aria-label="Add to Favorites"
+                            >
+                              <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
+                            </button>
+
+                            {/* Always Visible Folder Icon */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSongToAddToPlaylist(song);
+                              }}
+                              className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/25 border border-white/10 hover:border-purple-400/60 text-purple-300 hover:text-purple-200 transition active:scale-90 shadow-sm"
+                              title="Add to Playlist"
+                              aria-label="Add to Playlist"
+                            >
+                              <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
+                            </button>
+
+                            {/* Play / Pause button in list view */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (currentTrack?.id === song.id) {
+                                  togglePlay();
+                                } else {
+                                  playTrack(song, songs);
+                                }
+                              }}
+                              className={`p-1.5 rounded-full transition active:scale-90 border ${
+                                isCurrentPlaying
+                                  ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
+                                  : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
+                              }`}
+                              title={isCurrentPlaying ? 'Pause' : 'Play'}
+                            >
+                              {isCurrentPlaying ? (
+                                <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
+                              ) : (
+                                <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current ml-0.5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Load More Button */}
                 {hasMore && (
@@ -1146,7 +1437,37 @@ export default function Music() {
             </div>
 
             {favorites.length > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* View Mode Toggle: Card vs Compact List */}
+                <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
+                  <button
+                    type="button"
+                    onClick={() => handleSetViewMode('card')}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      viewMode === 'card'
+                        ? 'bg-accentCyan text-black font-bold shadow-md'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Card (Grid) View"
+                    aria-label="Card View"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetViewMode('list')}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      viewMode === 'list'
+                        ? 'bg-accentCyan text-black font-bold shadow-md'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Compact List View"
+                    aria-label="Compact List View"
+                  >
+                    <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => playQueue(favorites, 0)}
@@ -1187,7 +1508,8 @@ export default function Music() {
                 Explore Songs
               </button>
             </div>
-          ) : (
+          ) : viewMode === 'card' ? (
+            /* ── Favorites Card (Grid) View ── */
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {favorites.map((song, idx) => {
                 const isCurrent = currentTrack?.id === song.id;
@@ -1225,6 +1547,22 @@ export default function Music() {
                           <Play className="w-6 h-6 text-white fill-current ml-0.5" />
                         )}
                       </div>
+
+                      {/* Always Visible Folder Icon on Cover Top-Left */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSongToAddToPlaylist(song);
+                        }}
+                        className="absolute top-1.5 left-1.5 p-1.5 rounded-full backdrop-blur-md bg-black/75 hover:bg-purple-600/90 text-purple-300 hover:text-white transition active:scale-90 border border-white/20 shadow-sm"
+                        title="Add to Playlist"
+                        aria-label="Add to Playlist"
+                      >
+                        <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                      </button>
+
+                      {/* Always Visible Heart Icon on Cover Top-Right */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -1233,6 +1571,7 @@ export default function Music() {
                         }}
                         className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-red-500 text-white shadow-md transition active:scale-90 border border-white/25"
                         title="Remove from favorites"
+                        aria-label="Remove from favorites"
                       >
                         <Heart className="w-3.5 h-3.5 fill-current" />
                       </button>
@@ -1259,15 +1598,180 @@ export default function Music() {
                       </p>
                       <div className="flex items-center justify-between pt-1">
                         <span className="text-[9px] font-mono font-black text-slate-300">{formatTime(song.duration)}</span>
-                        <button
-                          type="button"
-                          onClick={() => setSongToAddToPlaylist(song)}
-                          className="p-1 text-slate-200 hover:text-accentPurple hover:bg-white/20 rounded-md transition"
-                          title="Add to Playlist"
-                        >
-                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          {/* Heart Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(song);
+                            }}
+                            className="p-1.5 rounded-lg border border-red-500/60 bg-red-500/20 text-red-400 transition active:scale-90"
+                            title="Remove from favorites"
+                          >
+                            <Heart className="w-3.5 h-3.5 fill-current" />
+                          </button>
+
+                          {/* Folder Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSongToAddToPlaylist(song);
+                            }}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                            title="Add to Playlist"
+                          >
+                            <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                          </button>
+
+                          {/* Play / Pause button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (currentTrack?.id === song.id) {
+                                togglePlay();
+                              } else {
+                                playTrack(song, favorites);
+                              }
+                            }}
+                            className={`p-1.5 rounded-full transition active:scale-90 border ${
+                              isCurrentPlaying
+                                ? 'bg-red-500 text-white border-white shadow-[0_0_12px_rgba(239,68,68,0.7)] font-black'
+                                : 'bg-white/20 border-white/25 text-white hover:bg-red-500 hover:border-red-500'
+                            }`}
+                            title={isCurrentPlaying ? 'Pause' : 'Play'}
+                          >
+                            {isCurrentPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.2" />}
+                          </button>
+                        </div>
                       </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* ── Favorites Compact List View ── */
+            <div className="space-y-1.5">
+              {favorites.map((song, idx) => {
+                const isCurrent = currentTrack?.id === song.id;
+                const isCurrentPlaying = isCurrent && isPlaying;
+
+                return (
+                  <div
+                    key={`${song.id}-${idx}`}
+                    className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
+                      isCurrent
+                        ? 'bg-red-500/20 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.35)] ring-1 ring-red-500/60'
+                        : 'bg-[#18203c]/90 border-white/10 hover:border-red-500/50 hover:bg-[#202b52] hover:shadow-md'
+                    }`}
+                  >
+                    {/* Left: Index / Play Button + Thumbnail + Title/Artist */}
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => isCurrent ? togglePlay() : playTrack(song, favorites)}
+                        className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
+                      >
+                        {isCurrentPlaying ? (
+                          <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 fill-red-400 animate-pulse" />
+                        ) : isCurrent ? (
+                          <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 fill-red-400 ml-0.5" />
+                        ) : (
+                          <>
+                            <span className="text-slate-400 group-hover:hidden">{idx + 1}</span>
+                            <Play className="w-3.5 h-3.5 text-white fill-white hidden group-hover:block ml-0.5" />
+                          </>
+                        )}
+                      </button>
+
+                      <div
+                        onClick={() => isCurrent ? togglePlay() : playTrack(song, favorites)}
+                        className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
+                      >
+                        <img
+                          src={song.image || FALLBACK_COVER}
+                          alt={song.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <h4
+                          onClick={() => isCurrent ? togglePlay() : playTrack(song, favorites)}
+                          className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                            isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
+                          }`}
+                          title={song.title}
+                        >
+                          {song.title}
+                        </h4>
+                        <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold">
+                          {song.artist}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right: Duration + Heart + Folder + Play */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
+                        {formatTime(song.duration)}
+                      </span>
+
+                      {/* Always Visible Heart Icon */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(song);
+                        }}
+                        className="p-1.5 rounded-lg border border-red-500/60 bg-red-500/20 text-red-400 transition active:scale-90 shadow-[0_0_8px_rgba(239,68,68,0.35)]"
+                        title="Remove from favorites"
+                        aria-label="Remove from favorites"
+                      >
+                        <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-red-500 text-red-500" />
+                      </button>
+
+                      {/* Always Visible Folder Icon */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSongToAddToPlaylist(song);
+                        }}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/25 border border-white/10 hover:border-purple-400/60 text-purple-300 hover:text-purple-200 transition active:scale-90 shadow-sm"
+                        title="Add to Playlist"
+                        aria-label="Add to Playlist"
+                      >
+                        <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
+                      </button>
+
+                      {/* Play / Pause button in list view */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (currentTrack?.id === song.id) {
+                            togglePlay();
+                          } else {
+                            playTrack(song, favorites);
+                          }
+                        }}
+                        className={`p-1.5 rounded-full transition active:scale-90 border ${
+                          isCurrentPlaying
+                            ? 'bg-red-500 text-white border-white shadow-[0_0_12px_rgba(239,68,68,0.7)] font-black'
+                            : 'bg-white/15 border-white/20 text-white hover:bg-red-500 hover:text-white hover:border-red-500'
+                        }`}
+                        title={isCurrentPlaying ? 'Pause' : 'Play'}
+                      >
+                        {isCurrentPlaying ? (
+                          <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
+                        ) : (
+                          <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current ml-0.5" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 );
@@ -1320,11 +1824,11 @@ export default function Music() {
                   {playlistSongs.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => playQueue(playlistSongs, 0)}
+                      onClick={() => playQueue(displayedPlaylistSongs, 0)}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Play All ({playlistSongs.length})</span>
+                      <span>Play All ({displayedPlaylistSongs.length})</span>
                     </button>
                   )}
 
@@ -1369,9 +1873,92 @@ export default function Music() {
                     <p className="text-xs text-slate-400 italic mt-0.5">No description added.</p>
                   )}
                 </div>
-                <span className="text-xs font-mono font-black text-accentCyan self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-accentCyan/25 border-2 border-accentCyan/50 shadow-md">
-                  {playlistSongs.length} Tracks
-                </span>
+                <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                  {playlistSearch && (
+                    <span className="text-xs font-mono font-bold text-slate-300 px-3 py-1 rounded-full bg-white/10 border border-white/20">
+                      Found {displayedPlaylistSongs.length} of {playlistSongs.length}
+                    </span>
+                  )}
+                  <span className="text-xs font-mono font-black text-accentCyan px-3.5 py-1.5 rounded-full bg-accentCyan/25 border-2 border-accentCyan/50 shadow-md">
+                    {playlistSongs.length} Tracks
+                  </span>
+                </div>
+              </div>
+
+              {/* Playlist Controls Toolbar: Search Songs, Sort Options, View Mode */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-[#18203c]/90 border border-white/15 shadow-xl">
+                {/* Search Inside Playlist */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-accentCyan pointer-events-none" />
+                  <input
+                    type="text"
+                    value={playlistSearch}
+                    onChange={(e) => setPlaylistSearch(e.target.value)}
+                    placeholder="Search songs in this playlist..."
+                    className="w-full bg-[#12182f] border border-white/20 focus:border-accentCyan rounded-xl pl-10 pr-9 py-2 text-xs sm:text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-accentCyan transition font-semibold"
+                  />
+                  {playlistSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setPlaylistSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 transition cursor-pointer"
+                      title="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2.5 flex-wrap justify-between sm:justify-end">
+                  {/* Manual Sort Options Dropdown */}
+                  <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20">
+                    <ArrowUpDown className="w-3.5 h-3.5 text-accentCyan shrink-0" />
+                    <span className="text-xs font-bold text-slate-300 hidden md:inline">Sort:</span>
+                    <select
+                      value={playlistSort}
+                      onChange={(e) => setPlaylistSort(e.target.value)}
+                      className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer"
+                    >
+                      <option value="default" className="bg-[#18203c] text-white">Default (Custom)</option>
+                      <option value="title_asc" className="bg-[#18203c] text-white">Title (A &rarr; Z)</option>
+                      <option value="title_desc" className="bg-[#18203c] text-white">Title (Z &rarr; A)</option>
+                      <option value="artist_asc" className="bg-[#18203c] text-white">Artist (A &rarr; Z)</option>
+                      <option value="duration_asc" className="bg-[#18203c] text-white">Duration (Shortest)</option>
+                      <option value="duration_desc" className="bg-[#18203c] text-white">Duration (Longest)</option>
+                      <option value="newest" className="bg-[#18203c] text-white">Recently Added</option>
+                    </select>
+                  </div>
+
+                  {/* View Mode Toggle: Card vs Compact List */}
+                  <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
+                    <button
+                      type="button"
+                      onClick={() => handleSetViewMode('card')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        viewMode === 'card'
+                          ? 'bg-accentCyan text-black font-bold shadow-md'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                      title="Card View"
+                      aria-label="Card View"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetViewMode('list')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        viewMode === 'list'
+                          ? 'bg-accentCyan text-black font-bold shadow-md'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                      title="Compact List View"
+                      aria-label="Compact List View"
+                    >
+                      <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {playlistSongsLoading ? (
@@ -1382,13 +1969,28 @@ export default function Music() {
                 <div className="text-center py-16 rounded-3xl border-2 border-white/25 bg-[#18203c]/95 p-6 space-y-2 shadow-2xl">
                   <Music2 className="w-10 h-10 text-slate-400 mx-auto" />
                   <h4 className="text-base font-black text-white">Playlist is empty</h4>
-                  <p className="text-xs text-slate-300 font-medium">Add songs to this playlist by clicking the "+" button on any track!</p>
+                  <p className="text-xs text-slate-300 font-medium">Add songs to this playlist by clicking the folder icon on any track!</p>
                 </div>
-              ) : (
+              ) : displayedPlaylistSongs.length === 0 ? (
+                <div className="text-center py-12 rounded-3xl border border-white/20 bg-[#18203c]/95 p-6 space-y-3 shadow-xl">
+                  <Search className="w-8 h-8 text-slate-400 mx-auto" />
+                  <h4 className="text-base font-black text-white">No songs match "{playlistSearch}"</h4>
+                  <p className="text-xs text-slate-300 font-medium">Try searching with a different keyword or title.</p>
+                  <button
+                    type="button"
+                    onClick={() => setPlaylistSearch('')}
+                    className="px-4 py-1.5 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow"
+                  >
+                    Clear Search Filter
+                  </button>
+                </div>
+              ) : viewMode === 'card' ? (
+                /* ── Playlist Card (Grid) View ── */
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                  {playlistSongs.map((song, idx) => {
+                  {displayedPlaylistSongs.map((song, idx) => {
                     const isCurrent = currentTrack?.id === song.id;
                     const isCurrentPlaying = isCurrent && isPlaying;
+                    const isFav = isFavorite(song.id);
 
                     return (
                       <div
@@ -1404,7 +2006,7 @@ export default function Music() {
                             if (currentTrack?.id === song.id) {
                               togglePlay();
                             } else {
-                              playTrack(song, playlistSongs);
+                              playTrack(song, displayedPlaylistSongs);
                             }
                           }}
                           className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
@@ -1423,14 +2025,36 @@ export default function Music() {
                             )}
                           </div>
 
-                          {/* Remove from playlist button (with confirmation) */}
+                          {/* Quick Folder Icon on Cover Top-Left */}
                           <button
                             type="button"
-                            onClick={(e) => handleRemoveSongFromCurrentPlaylist(song, e)}
-                            className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/80 hover:bg-red-500 text-slate-100 hover:text-white transition active:scale-90 shadow border border-white/20"
-                            title="Remove from playlist"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSongToAddToPlaylist(song);
+                            }}
+                            className="absolute top-1.5 left-1.5 p-1.5 rounded-full backdrop-blur-md bg-black/75 hover:bg-purple-600/90 text-purple-300 hover:text-white transition active:scale-90 border border-white/20 shadow-sm"
+                            title="Add to Another Playlist"
+                            aria-label="Add to Another Playlist"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                          </button>
+
+                          {/* Quick Heart Icon on Cover Top-Right */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(song);
+                            }}
+                            className={`absolute top-1.5 right-1.5 p-1.5 rounded-full backdrop-blur-md transition active:scale-90 border shadow-sm ${
+                              isFav
+                                ? 'bg-red-500/90 border-red-400 text-white shadow-red-500/40'
+                                : 'bg-black/75 border-white/20 text-slate-100 hover:text-white hover:bg-black/90'
+                            }`}
+                            title={isFav ? 'Liked' : 'Like'}
+                            aria-label="Add to Favorites"
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-white' : ''}`} />
                           </button>
                         </div>
 
@@ -1440,7 +2064,7 @@ export default function Music() {
                               if (currentTrack?.id === song.id) {
                                 togglePlay();
                               } else {
-                                playTrack(song, playlistSongs);
+                                playTrack(song, displayedPlaylistSongs);
                               }
                             }}
                             className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
@@ -1455,7 +2079,258 @@ export default function Music() {
                           </p>
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[9px] font-mono font-black text-slate-300">{formatTime(song.duration)}</span>
+                            
+                            <div className="flex items-center gap-1">
+                              {/* Always Visible Heart Icon */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(song);
+                                }}
+                                className={`p-1 rounded-lg border transition active:scale-90 ${
+                                  isFav
+                                    ? 'bg-red-500/20 border-red-500/60 text-red-400'
+                                    : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15'
+                                }`}
+                                title={isFav ? 'Liked' : 'Add to Favorites'}
+                              >
+                                <Heart className={`w-3 h-3 ${isFav ? 'fill-current text-red-400' : ''}`} />
+                              </button>
+
+                              {/* Always Visible Folder Icon */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSongToAddToPlaylist(song);
+                                }}
+                                className="p-1 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                                title="Add to Playlist"
+                              >
+                                <FolderPlus className="w-3 h-3 stroke-[2.2]" />
+                              </button>
+
+                              {/* Manual Reorder Up/Down (only when in Default sort) */}
+                              {playlistSort === 'default' && !playlistSearch && (
+                                <div className="flex items-center">
+                                  <button
+                                    type="button"
+                                    disabled={idx === 0}
+                                    onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, -1); }}
+                                    className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
+                                    title="Move Up"
+                                  >
+                                    <ChevronUp className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={idx === displayedPlaylistSongs.length - 1}
+                                    onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, 1); }}
+                                    className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
+                                    title="Move Down"
+                                  >
+                                    <ChevronDown className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Remove from playlist button */}
+                              <button
+                                type="button"
+                                onClick={(e) => handleRemoveSongFromCurrentPlaylist(song, e)}
+                                className="p-1 rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-400/50 text-slate-300 hover:text-red-400 transition active:scale-90"
+                                title="Remove from playlist"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+
+                              {/* Play / Pause button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (currentTrack?.id === song.id) {
+                                    togglePlay();
+                                  } else {
+                                    playTrack(song, displayedPlaylistSongs);
+                                  }
+                                }}
+                                className={`p-1 rounded-full transition active:scale-90 border ${
+                                  isCurrentPlaying
+                                    ? 'bg-accentCyan text-black border-white shadow-[0_0_10px_rgba(99,210,255,0.7)] font-black'
+                                    : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
+                                }`}
+                                title={isCurrentPlaying ? 'Pause' : 'Play'}
+                              >
+                                {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 fill-current" /> : <Play className="w-2.5 h-2.5 fill-current ml-0.2" />}
+                              </button>
+                            </div>
                           </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* ── Playlist Compact List View ── */
+                <div className="space-y-1.5">
+                  {displayedPlaylistSongs.map((song, idx) => {
+                    const isCurrent = currentTrack?.id === song.id;
+                    const isCurrentPlaying = isCurrent && isPlaying;
+                    const isFav = isFavorite(song.id);
+
+                    return (
+                      <div
+                        key={`${song.id}-${idx}`}
+                        className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
+                          isCurrent
+                            ? 'bg-accentPurple/25 border-accentPurple shadow-[0_0_20px_rgba(168,85,247,0.35)] ring-1 ring-accentPurple/60'
+                            : 'bg-[#18203c]/90 border-white/10 hover:border-accentPurple/50 hover:bg-[#202b52] hover:shadow-md'
+                        }`}
+                      >
+                        {/* Left: Index / Play Button + Thumbnail + Title/Artist */}
+                        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                          <button
+                            type="button"
+                            onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
+                            className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
+                          >
+                            {isCurrentPlaying ? (
+                              <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-accentCyan animate-pulse" />
+                            ) : isCurrent ? (
+                              <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-accentCyan ml-0.5" />
+                            ) : (
+                              <>
+                                <span className="text-slate-400 group-hover:hidden">{idx + 1}</span>
+                                <Play className="w-3.5 h-3.5 text-white fill-white hidden group-hover:block ml-0.5" />
+                              </>
+                            )}
+                          </button>
+
+                          <div
+                            onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
+                            className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
+                          >
+                            <img
+                              src={song.image || FALLBACK_COVER}
+                              alt={song.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                            />
+                          </div>
+
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <h4
+                              onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
+                              className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                                isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                              }`}
+                              title={song.title}
+                            >
+                              {song.title}
+                            </h4>
+                            <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold">
+                              {song.artist}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right: Duration + Actions (Heart, Folder, Move, Remove, Play) */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
+                            {formatTime(song.duration)}
+                          </span>
+
+                          {/* Always Visible Heart Icon */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(song);
+                            }}
+                            className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                              isFav
+                                ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.35)]'
+                                : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15 hover:border-red-400/40'
+                            }`}
+                            title={isFav ? 'Liked (Click to Remove)' : 'Add to Favorites'}
+                            aria-label="Add to Favorites"
+                          >
+                            <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
+                          </button>
+
+                          {/* Always Visible Folder Icon */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSongToAddToPlaylist(song);
+                            }}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/25 border border-white/10 hover:border-purple-400/60 text-purple-300 hover:text-purple-200 transition active:scale-90 shadow-sm"
+                            title="Add to Another Playlist"
+                            aria-label="Add to Playlist"
+                          >
+                            <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
+                          </button>
+
+                          {/* Manual Reorder Up/Down (only when in Default sort) */}
+                          {playlistSort === 'default' && !playlistSearch && (
+                            <div className="flex items-center bg-white/5 rounded-lg border border-white/10">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, -1); }}
+                                className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
+                                title="Move Up"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === displayedPlaylistSongs.length - 1}
+                                onClick={(e) => { e.stopPropagation(); handleMovePlaylistSong(song.id, 1); }}
+                                className="p-1 text-slate-300 hover:text-accentCyan disabled:opacity-20 disabled:pointer-events-none transition"
+                                title="Move Down"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Remove from playlist button */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleRemoveSongFromCurrentPlaylist(song, e)}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/25 border border-white/10 hover:border-red-400/50 text-slate-300 hover:text-red-400 transition active:scale-90"
+                            title="Remove from playlist"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </button>
+
+                          {/* Play / Pause button in list view */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (currentTrack?.id === song.id) {
+                                togglePlay();
+                              } else {
+                                playTrack(song, displayedPlaylistSongs);
+                              }
+                            }}
+                            className={`p-1.5 rounded-full transition active:scale-90 border ${
+                              isCurrentPlaying
+                                ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
+                                : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
+                            }`}
+                            title={isCurrentPlaying ? 'Pause' : 'Play'}
+                          >
+                            {isCurrentPlaying ? (
+                              <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
+                            ) : (
+                              <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current ml-0.5" />
+                            )}
+                          </button>
                         </div>
                       </div>
                     );
