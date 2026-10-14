@@ -696,7 +696,7 @@ export default function Music() {
                         : 'bg-[#1c2548] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/70 hover:bg-[#283564] shadow-md'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-black fill-black' : cat.color || ''}`} />
+                    <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-black stroke-[2.5]' : cat.color || ''}`} />
                     <span>{cat.label}</span>
                   </button>
                 );

@@ -25,7 +25,8 @@ import {
   Flame,
   Calendar,
   Rocket,
-  Star
+  Star,
+  X
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
@@ -316,6 +317,17 @@ export default function Search() {
     executeSearch(query, type, genre, language, country, 1, sort, musicCategory, newYear);
   };
 
+  const handleClearQuery = () => {
+    setQuery('');
+    setPage(1);
+    if (searchParams.get('q')) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('q');
+      setSearchParams(newParams);
+      executeSearch('', type, genre, language, country, 1, sort, musicCategory, year);
+    }
+  };
+
   const handleResetFilters = () => {
     setGenre('');
     setLanguage('');
@@ -420,7 +432,7 @@ export default function Search() {
                       : 'text-white border-2 border-accentCyan/50 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isSelected ? 'text-black fill-black' : tab.color || ''}`} />
+                  <Icon className={`w-4 h-4 ${isSelected ? 'text-black stroke-[2.5]' : tab.color || ''}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -431,14 +443,25 @@ export default function Search() {
         {/* Search Input Row */}
         <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3">
           <div className="relative flex-grow">
-            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accentCyan w-4 sm:w-5 h-4 sm:h-5" />
+            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accentCyan w-4 sm:w-5 h-4 sm:h-5 pointer-events-none" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'Artist, Movie, Series, Anime, or Song name' : 'manga entries'}...`}
-              className="w-full bg-darkBg/90 border-2 border-white/20 focus:border-accentCyan rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-400 font-semibold"
+              className="w-full bg-darkBg/90 border-2 border-white/20 focus:border-accentCyan rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-11 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-400 font-semibold"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={handleClearQuery}
+                className="absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer shadow-sm"
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            )}
           </div>
           <button
             type="submit"
@@ -476,7 +499,7 @@ export default function Search() {
                       : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
                   }`}
                 >
-                  {CatIcon && <CatIcon className={`w-3.5 h-3.5 shrink-0 ${isCatSelected ? 'text-black fill-black' : cat.color || ''}`} />}
+                  {CatIcon && <CatIcon className={`w-3.5 h-3.5 shrink-0 ${isCatSelected ? 'text-black stroke-[2.5]' : cat.color || ''}`} />}
                   <span>{cat.label}</span>
                 </button>
               );
@@ -508,7 +531,7 @@ export default function Search() {
                       : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
                   }`}
                 >
-                  {SortIcon && <SortIcon className={`w-3.5 h-3.5 shrink-0 ${isSortSelected ? 'text-black fill-black' : s.color || ''}`} />}
+                  {SortIcon && <SortIcon className={`w-3.5 h-3.5 shrink-0 ${isSortSelected ? 'text-black stroke-[2.5]' : s.color || ''}`} />}
                   <span>{s.label}</span>
                 </button>
               );
