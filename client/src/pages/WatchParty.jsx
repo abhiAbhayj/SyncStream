@@ -439,9 +439,9 @@ export default function WatchParty() {
               }`}
             >
               {notif.type === 'join' ? (
-                <UserPlus className="w-4 h-4 text-emerald-400 shrink-0" />
+                <UserPlus className="w-4 h-4 text-emerald-400 fill-emerald-400/30 shrink-0" />
               ) : (
-                <LogOut className="w-4 h-4 text-amber-400 shrink-0" />
+                <LogOut className="w-4 h-4 text-amber-400 fill-amber-400/30 shrink-0" />
               )}
               <span className="truncate">{notif.text}</span>
             </div>
@@ -538,7 +538,7 @@ export default function WatchParty() {
               )}
               {mediaDetail.vote_average && (
                 <span className="flex items-center gap-1 text-yellow-400">
-                  • <Star className="w-3.5 h-3.5 fill-current" /> {parseFloat(mediaDetail.vote_average).toFixed(1)}
+                  • <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" /> {parseFloat(mediaDetail.vote_average).toFixed(1)}
                 </span>
               )}
             </div>
@@ -868,7 +868,7 @@ export default function WatchParty() {
 
           {/* Sync status footer */}
           <div className="bg-black/20 border border-darkBorder/40 p-4 rounded-xl flex items-start gap-2.5">
-            <Lightbulb className="w-4 h-4 text-accentGold shrink-0 mt-0.5" />
+            <Lightbulb className="w-4 h-4 text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)] shrink-0 mt-0.5" />
             <p className="text-xs text-gray-400 leading-relaxed font-medium">
               {isHost 
                 ? "You are the room host. Switching players, streaming servers, seasons, episodes, or pasting custom links will synchronize participants automatically."

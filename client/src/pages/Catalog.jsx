@@ -39,14 +39,14 @@ export default function Catalog() {
     }
   };
 
-  const getCategoryIcon = (cat) => {
+  const getCategoryConfig = (cat) => {
     switch (cat) {
-      case 'trending': return Flame;
-      case 'ongoing': return Activity;
-      case 'schedule': return Calendar;
-      case 'upcoming': return CalendarDays;
-      case 'latest': return Sparkles;
-      default: return Film;
+      case 'trending': return { icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' };
+      case 'ongoing': return { icon: Activity, color: 'text-emerald-400 fill-emerald-400/35 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]' };
+      case 'schedule': return { icon: Calendar, color: 'text-cyan-400 fill-cyan-400/35 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]' };
+      case 'upcoming': return { icon: CalendarDays, color: 'text-fuchsia-400 fill-fuchsia-400/35 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]' };
+      case 'latest': return { icon: Sparkles, color: 'text-pink-400 fill-pink-400/35 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]' };
+      default: return { icon: Film, color: 'text-amber-400 fill-amber-400/35 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' };
     }
   };
 
@@ -149,7 +149,8 @@ export default function Catalog() {
     }
   };
 
-  const IconComponent = getCategoryIcon(category);
+  const categoryConfig = getCategoryConfig(category);
+  const IconComponent = categoryConfig.icon;
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
@@ -159,7 +160,7 @@ export default function Catalog() {
         <div className="flex items-center gap-3 min-w-0">
           <div className="space-y-0.5 sm:space-y-1 min-w-0">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-              <IconComponent className="w-3.5 h-3.5 text-accentCyan shrink-0" />
+              <IconComponent className={`w-3.5 h-3.5 shrink-0 ${categoryConfig.color}`} />
               <span className="truncate">{getCategoryLabel(category)}</span>
               {/* Live indicator */}
               <span className="flex items-center gap-1 text-emerald-400 shrink-0">

@@ -49,6 +49,8 @@ const THEME_OPTIONS = [
     id: 'storm-thunder',
     name: 'Dark Storm Thunderbolt',
     icon: Zap,
+    iconColor: 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]',
+    iconBg: 'bg-yellow-400/10 border-yellow-400/30',
     desc: 'Ominous stormcloud skies torn open by jagged branching Tesla lightning discharges, ionized sparks and thunderhead aura',
     animation: 'Branching Tesla Discharge & Ionized Sparks',
     swatch: ['#06070b', '#00f0ff', '#a855f7', '#10131f', '#ffffff'],
@@ -57,6 +59,8 @@ const THEME_OPTIONS = [
     id: 'cryo-vault',
     name: 'Glacial Cryo-Vault',
     icon: Snowflake,
+    iconColor: 'text-cyan-300 fill-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]',
+    iconBg: 'bg-cyan-400/10 border-cyan-400/30',
     desc: 'Ultra-sleek freezing industrial aesthetic with liquid nitrogen vapor drift and sharp frost shards',
     animation: 'Liquid Nitrogen Vapor Drift & Frost Shards',
     swatch: ['#050b14', '#00d2ff', '#a5f3fc', '#0f1e36', '#ff3366'],
@@ -65,6 +69,8 @@ const THEME_OPTIONS = [
     id: 'solar-flare',
     name: 'Crimson Solar Flare',
     icon: Flame,
+    iconColor: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.7)]',
+    iconBg: 'bg-orange-500/10 border-orange-500/30',
     desc: 'Coronal magnetic prominence loops rising with very sparse, warm ember dust motes drifting lazily',
     animation: 'Coronal Prominence Loops & Ember Dust',
     swatch: ['#0f080a', '#ff5e00', '#ffb703', '#1a1215', '#fffbeb'],
@@ -73,6 +79,8 @@ const THEME_OPTIONS = [
     id: 'cosmic-singularity',
     name: 'Cosmic Singularity (Black Hole)',
     icon: Disc,
+    iconColor: 'text-purple-400 fill-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.7)]',
+    iconBg: 'bg-purple-500/10 border-purple-500/30',
     desc: 'Gravitationally warped deep space phenomenon with swirling accretion disk, lensing grid and Hawking radiation',
     animation: 'Gravitational Lensing & Swirling Accretion Disk',
     swatch: ['#020205', '#ff7a00', '#7b2cbf', '#130f26', '#ffffff'],
@@ -81,6 +89,8 @@ const THEME_OPTIONS = [
     id: 'plasma-web',
     name: 'Cyberpunk Plasma Web',
     icon: Share2,
+    iconColor: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]',
+    iconBg: 'bg-emerald-500/10 border-emerald-500/30',
     desc: 'Ultra-thin, low-opacity connecting vector nodes with circuit mesh and traveling electric data sparks',
     animation: 'Circuit Vector Mesh & Electric Data Sparks',
     swatch: ['#090d16', '#00ff66', '#2563eb', '#111827', '#ffffff'],
@@ -89,6 +99,8 @@ const THEME_OPTIONS = [
     id: 'cyber-foundry',
     name: 'Cyber-Industrial Foundry',
     icon: Hammer,
+    iconColor: 'text-amber-500 fill-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]',
+    iconBg: 'bg-amber-500/10 border-amber-500/30',
     desc: 'Raw heavy-machinery manufacturing theme with high-voltage hazard conduit spark flux and blast furnace heat',
     animation: 'Chasing Dash-Array Spark Flux & Gravity Sparks',
     swatch: ['#111215', '#ffb700', '#ff4f00', '#22252c', '#94a3b8'],
@@ -97,6 +109,8 @@ const THEME_OPTIONS = [
     id: 'bioluminescent-trench',
     name: 'Bioluminescent Deep Trench',
     icon: Waves,
+    iconColor: 'text-teal-400 fill-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.7)]',
+    iconBg: 'bg-teal-500/10 border-teal-500/30',
     desc: 'Alien oceanic abyss with rhythmic pulse wave echolocation sonar and floating bioluminescent nodes',
     animation: 'Pulse Wave Echolocation & Floating Organisms',
     swatch: ['#010409', '#39ff14', '#e100ff', '#0a192f', '#8ea8c3'],
@@ -105,6 +119,8 @@ const THEME_OPTIONS = [
     id: 'windy-sakura',
     name: 'Windy Sakura Leaf Falling',
     icon: Wind,
+    iconColor: 'text-pink-400 fill-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.7)]',
+    iconBg: 'bg-pink-500/10 border-pink-500/30',
     desc: 'Moonlit midnight garden swept by wind currents carrying 3D tumbling pink sakura petals and fresh emerald leaves',
     animation: '3D Tumbling Petals & Wind Gust Vortex',
     swatch: ['#07050a', '#ff3385', '#34d399', '#140e1d', '#fff7fa'],
@@ -115,6 +131,7 @@ const DEFAULT_AVATAR_COLLECTIONS = {
   bots: {
     label: 'Cyber Bots',
     icon: Bot,
+    iconColor: 'text-cyan-400 fill-cyan-400/30',
     items: [
       { id: 'bot-optimus', name: 'Optimus', prompt: 'Cyberpunk mecha robot Optimus with neon cyan optics', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus' },
       { id: 'bot-shadow', name: 'Shadow', prompt: 'Stealth black ninja bot with violet visor', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Shadow' },
@@ -129,6 +146,7 @@ const DEFAULT_AVATAR_COLLECTIONS = {
   anime: {
     label: 'Anime Personas',
     icon: Wand2,
+    iconColor: 'text-pink-400 fill-pink-400/30',
     items: [
       { id: 'ani-aoi', name: 'Aoi', prompt: 'Anime hero with electric blue hair and glowing katana', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aoi' },
       { id: 'ani-ren', name: 'Ren', prompt: 'Cool anime rogue with dark crimson cloak', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ren' },
@@ -143,6 +161,7 @@ const DEFAULT_AVATAR_COLLECTIONS = {
   pixel: {
     label: 'Retro Pixel',
     icon: Gamepad2,
+    iconColor: 'text-emerald-400 fill-emerald-400/40',
     items: [
       { id: 'pix-hero', name: 'Pixel Hero', prompt: '16-bit retro arcade hero with blue sword', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelHero' },
       { id: 'pix-arcade', name: 'Arcade84', prompt: 'Classic 80s arcade pilot with helmet', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Arcade84' },
@@ -155,8 +174,9 @@ const DEFAULT_AVATAR_COLLECTIONS = {
     ]
   },
   emojis: {
-    label: '3D Emojis',
+    label: '3D Avatars',
     icon: Smile,
+    iconColor: 'text-amber-400 fill-amber-400/40',
     items: [
       { id: 'emo-sparky', name: 'Sparky', prompt: 'Cute 3D cartoon emoji smiling with star eyes', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Sparky' },
       { id: 'emo-cosmo', name: 'Cosmo', prompt: 'Cute 3D astronaut emoji with bubble helmet', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Cosmo' },
@@ -174,11 +194,11 @@ const MAX_AVATARS_PER_CATEGORY = 16;
 const MIN_AVATARS_PER_CATEGORY = 1;
 
 const AI_STYLE_PRESETS = [
-  { id: 'bots', label: 'Cyber Bot', icon: Bot, suffix: 'cyberpunk mecha robot bot avatar, futuristic neon lighting, crisp vector icon style, dark background' },
-  { id: 'anime', label: 'Anime Persona', icon: Sparkles, suffix: 'vibrant anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
-  { id: 'pixel', label: 'Retro Pixel', icon: Gamepad2, suffix: '16-bit retro pixel art character avatar, clean pixelated sprite, arcade game style' },
-  { id: 'emojis', label: '3D Character', icon: Smile, suffix: 'cute 3D cartoon character avatar, Pixar 3D render, glossy studio lighting, fun expression' },
-  { id: 'scifi', label: 'Sci-Fi Hero', icon: Rocket, suffix: 'futuristic space hero profile avatar, glowing visor, cinematic concept art, octane render' }
+  { id: 'bots', label: 'Cyber Bot', icon: Bot, iconColor: 'text-cyan-400 fill-cyan-400/40', suffix: 'cyberpunk mecha robot bot avatar, futuristic neon lighting, crisp vector icon style, dark background' },
+  { id: 'anime', label: 'Anime Persona', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'vibrant anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
+  { id: 'pixel', label: 'Retro Pixel', icon: Gamepad2, iconColor: 'text-emerald-400 fill-emerald-400/40', suffix: '16-bit retro pixel art character avatar, clean pixelated sprite, arcade game style' },
+  { id: 'emojis', label: '3D Character', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'cute 3D cartoon character avatar, Pixar 3D render, glossy studio lighting, fun expression' },
+  { id: 'scifi', label: 'Sci-Fi Hero', icon: Rocket, iconColor: 'text-purple-400 fill-purple-400', suffix: 'futuristic space hero profile avatar, glowing visor, cinematic concept art, octane render' }
 ];
 
 const PROMPT_SUGGESTIONS = [
@@ -747,7 +767,7 @@ export default function Profile() {
                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 text-accentCyan" />
+                    <Icon className={`w-3.5 h-3.5 ${col.iconColor || 'text-accentCyan'}`} />
                     <span>{col.label} ({col.items.length})</span>
                   </button>
                 );
@@ -861,10 +881,12 @@ export default function Profile() {
                         />
                       ))}
                     </div>
-                    <p className="font-bold text-sm text-white flex items-center gap-1.5">
-                      {t.icon && <t.icon className="w-3.5 h-3.5 text-accentCyan shrink-0" />}
-                      <span>{t.name}</span>
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
+                        {t.icon && <t.icon className={`w-4 h-4 ${t.iconColor || 'text-accentCyan'} shrink-0`} />}
+                      </span>
+                      <span className="font-bold text-sm text-white">{t.name}</span>
+                    </div>
                     <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">{t.desc}</p>
                     <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-accentCyan">
                       <Sparkles className="w-2.5 h-2.5 animate-pulse text-accentCyan" />
@@ -931,23 +953,27 @@ export default function Profile() {
                   Save Target Style &amp; Category
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  {Object.entries(avatarCollections).map(([key, col]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setAiTargetCategory(key);
-                        setAiStyle(key);
-                      }}
-                      className={`py-2 px-2.5 rounded-xl text-xs font-bold transition text-center border active:scale-95 ${
-                        aiTargetCategory === key
-                          ? 'bg-gradient-to-r from-accentPurple/30 to-accentCyan/30 border-accentCyan text-white shadow-md'
-                          : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
-                      }`}
-                    >
-                      {col.label}
-                    </button>
-                  ))}
+                  {Object.entries(avatarCollections).map(([key, col]) => {
+                    const ColIcon = col.icon;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setAiTargetCategory(key);
+                          setAiStyle(key);
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border active:scale-95 ${
+                          aiTargetCategory === key
+                            ? 'bg-gradient-to-r from-accentPurple/30 to-accentCyan/30 border-accentCyan text-white shadow-md'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
+                        }`}
+                      >
+                        {ColIcon && <ColIcon className={`w-3.5 h-3.5 ${col.iconColor || ''}`} />}
+                        <span>{col.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -958,12 +984,12 @@ export default function Profile() {
                   <span className="text-[10px] text-accentCyan font-normal flex items-center gap-1">
                     {aiEngineMode === 'instant' ? (
                       <>
-                        <Zap className="w-3 h-3 text-accentGold" />
+                        <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                         <span>Ultra Fast (0.1s)</span>
                       </>
                     ) : (
                       <>
-                        <Wand2 className="w-3 h-3 text-accentPink" />
+                        <Wand2 className="w-3 h-3 text-pink-400 fill-pink-400/40" />
                         <span>Turbo Diffusion (2s)</span>
                       </>
                     )}
@@ -979,7 +1005,7 @@ export default function Profile() {
                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                     }`}
                   >
-                    <Zap className="w-3.5 h-3.5 text-accentGold shrink-0" />
+                    <Zap className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 shrink-0" />
                     <span>Instant AI (0.1s)</span>
                   </button>
 
@@ -992,7 +1018,7 @@ export default function Profile() {
                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                     }`}
                   >
-                    <Wand2 className="w-3.5 h-3.5 text-accentPink shrink-0" />
+                    <Wand2 className="w-3.5 h-3.5 text-pink-400 fill-pink-400/40 shrink-0" />
                     <span>Turbo Diffusion (2s)</span>
                   </button>
                 </div>

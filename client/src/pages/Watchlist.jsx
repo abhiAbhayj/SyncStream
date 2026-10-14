@@ -42,11 +42,11 @@ export default function Watchlist() {
   const others = watchlist.filter(item => !['movie', 'tv', 'anime', 'manga'].includes(item.media_type));
 
   const tabs = [
-    { id: 'all', label: 'All Saved', count: watchlist.length, icon: Layers, activeColor: 'border-accentCyan bg-[#151c38] text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.35)]' },
-    { id: 'movie', label: 'Movies', count: movies.length, icon: Film, activeColor: 'border-cyan-400 bg-cyan-950/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.35)]' },
-    { id: 'tv', label: 'TV Series', count: tvSeries.length, icon: Tv, activeColor: 'border-emerald-400 bg-emerald-950/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]' },
-    { id: 'anime', label: 'Anime', count: animes.length, icon: Sparkles, activeColor: 'border-purple-400 bg-purple-950/40 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.35)]' },
-    { id: 'manga', label: 'Manga', count: mangas.length, icon: BookOpen, activeColor: 'border-pink-400 bg-pink-950/40 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.35)]' },
+    { id: 'all', label: 'All Saved', count: watchlist.length, icon: Layers, activeColor: 'border-accentCyan bg-[#151c38] text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.35)]', iconColor: 'text-cyan-400 fill-cyan-400/40' },
+    { id: 'movie', label: 'Movies', count: movies.length, icon: Film, activeColor: 'border-cyan-400 bg-cyan-950/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.35)]', iconColor: 'text-amber-400 fill-amber-400/40' },
+    { id: 'tv', label: 'TV Series', count: tvSeries.length, icon: Tv, activeColor: 'border-emerald-400 bg-emerald-950/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)]', iconColor: 'text-sky-400 fill-sky-400/40' },
+    { id: 'anime', label: 'Anime', count: animes.length, icon: Sparkles, activeColor: 'border-purple-400 bg-purple-950/40 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.35)]', iconColor: 'text-pink-400 fill-pink-400/40' },
+    { id: 'manga', label: 'Manga', count: mangas.length, icon: BookOpen, activeColor: 'border-pink-400 bg-pink-950/40 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.35)]', iconColor: 'text-emerald-400 fill-emerald-400/40' },
   ];
 
   const sections = [
@@ -168,7 +168,7 @@ export default function Watchlist() {
                   : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20'
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className={`w-4 h-4 shrink-0 transition-transform ${tab.iconColor}`} />
               <span>{tab.label}</span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${
                 isActive ? 'bg-white/20 border-white/30 text-white' : 'bg-white/5 border-white/10 text-gray-400'

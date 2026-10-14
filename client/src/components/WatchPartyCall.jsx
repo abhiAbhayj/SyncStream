@@ -737,7 +737,7 @@ export default function WatchPartyCall({ roomCode }) {
         {!inCall && (
           <div className="p-3 text-center bg-black/10">
             <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5">
-              <Mic className="w-3.5 h-3.5 text-accentCyan shrink-0" />
+              <Mic className="w-3.5 h-3.5 text-accentCyan fill-accentCyan/30 shrink-0" />
               <span>Connect your microphone and camera to talk with watch party members live!</span>
             </p>
           </div>

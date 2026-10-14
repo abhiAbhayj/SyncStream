@@ -341,11 +341,11 @@ export default function Search() {
   };
 
   const filterTabs = [
-    { key: 'movie', label: 'Movies', icon: Film },
-    { key: 'tv', label: 'TV Shows', icon: Tv },
-    { key: 'anime', label: 'Anime', icon: Sparkles },
-    { key: 'manga', label: 'Manga', icon: BookOpen },
-    { key: 'music', label: 'Music', icon: Music }
+    { key: 'movie', label: 'Movies', icon: Film, color: 'text-amber-400 fill-amber-400/40 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]' },
+    { key: 'tv', label: 'TV Shows', icon: Tv, color: 'text-sky-400 fill-sky-400/40 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]' },
+    { key: 'anime', label: 'Anime', icon: Sparkles, color: 'text-pink-400 fill-pink-400 drop-shadow-[0_0_6px_rgba(244,114,182,0.6)]' },
+    { key: 'manga', label: 'Manga', icon: BookOpen, color: 'text-emerald-400 fill-emerald-400/40 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]' },
+    { key: 'music', label: 'Music', icon: Music, color: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_6px_rgba(192,132,252,0.6)]' }
   ];
 
   const currentGenres = type === 'movie' 
@@ -420,7 +420,7 @@ export default function Search() {
                       : 'text-white border-2 border-accentCyan/50 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className={`w-4 h-4 ${isSelected ? 'text-black fill-black' : tab.color || ''}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -452,14 +452,15 @@ export default function Search() {
         {type === 'music' && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
             {[
-              { id: 'all', label: 'All Music', icon: Music },
-              { id: 'artist', label: 'Artists', icon: Mic2 },
-              { id: 'movie', label: 'Movie OSTs', icon: Film },
-              { id: 'series', label: 'TV Series', icon: Tv },
-              { id: 'anime', label: 'Anime OSTs', icon: Sparkles },
-              { id: 'song', label: 'Songs', icon: Disc3 }
+              { id: 'all', label: 'All Music', icon: Music, color: 'text-cyan-400 fill-cyan-400/40' },
+              { id: 'artist', label: 'Artists', icon: Mic2, color: 'text-purple-400 fill-purple-400/40' },
+              { id: 'movie', label: 'Movie OSTs', icon: Film, color: 'text-amber-400 fill-amber-400/40' },
+              { id: 'series', label: 'TV Series', icon: Tv, color: 'text-sky-400 fill-sky-400/40' },
+              { id: 'anime', label: 'Anime OSTs', icon: Sparkles, color: 'text-pink-400 fill-pink-400' },
+              { id: 'song', label: 'Songs', icon: Disc3, color: 'text-emerald-400 fill-emerald-400/40' }
             ].map(cat => {
               const CatIcon = cat.icon;
+              const isCatSelected = musicCategory === cat.id;
               return (
                 <button
                   key={cat.id}
@@ -470,12 +471,12 @@ export default function Search() {
                     executeSearch(query, type, genre, language, country, 1, sort, cat.id);
                   }}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
-                    musicCategory === cat.id
+                    isCatSelected
                       ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
                       : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
                   }`}
                 >
-                  {CatIcon && <CatIcon className="w-3.5 h-3.5 shrink-0" />}
+                  {CatIcon && <CatIcon className={`w-3.5 h-3.5 shrink-0 ${isCatSelected ? 'text-black fill-black' : cat.color || ''}`} />}
                   <span>{cat.label}</span>
                 </button>
               );
@@ -488,25 +489,26 @@ export default function Search() {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
             <span className="text-accentCyan font-black uppercase tracking-wider shrink-0 mr-1 text-[11px]">Feed:</span>
             {[
-              { key: 'trending', label: 'Trending Hits', icon: Flame },
-              { key: 'ongoing', label: type === 'anime' ? 'Ongoing Anime' : type === 'tv' ? 'Ongoing TV Shows' : type === 'manga' ? 'Ongoing Manga' : 'Now In Theaters', icon: Zap },
-              { key: 'latest', label: type === 'anime' ? 'Latest Episode' : type === 'manga' ? 'Latest Chapter' : type === 'tv' ? 'Latest Aired' : 'Latest Release', icon: Calendar },
-              { key: 'upcoming', label: 'Upcoming Releases', icon: Rocket },
-              { key: 'top_rated', label: 'Top Rated', icon: Star },
+              { key: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' },
+              { key: 'ongoing', label: type === 'anime' ? 'Ongoing Anime' : type === 'tv' ? 'Ongoing TV Shows' : type === 'manga' ? 'Ongoing Manga' : 'Now In Theaters', icon: Zap, color: 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]' },
+              { key: 'latest', label: type === 'anime' ? 'Latest Episode' : type === 'manga' ? 'Latest Chapter' : type === 'tv' ? 'Latest Aired' : 'Latest Release', icon: Calendar, color: 'text-cyan-400 fill-cyan-400/40 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]' },
+              { key: 'upcoming', label: 'Upcoming Releases', icon: Rocket, color: 'text-fuchsia-400 fill-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]' },
+              { key: 'top_rated', label: 'Top Rated', icon: Star, color: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]' },
             ].map(s => {
               const SortIcon = s.icon;
+              const isSortSelected = sort === s.key;
               return (
                 <button
                   key={s.key}
                   type="button"
                   onClick={() => handleSortChange(s.key)}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
-                    sort === s.key
+                    isSortSelected
                       ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
                       : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
                   }`}
                 >
-                  {SortIcon && <SortIcon className="w-3.5 h-3.5 shrink-0" />}
+                  {SortIcon && <SortIcon className={`w-3.5 h-3.5 shrink-0 ${isSortSelected ? 'text-black fill-black' : s.color || ''}`} />}
                   <span>{s.label}</span>
                 </button>
               );

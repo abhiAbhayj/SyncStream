@@ -874,7 +874,7 @@ export default function VoiceAssistant() {
         }`}
         title="Voice Assistant"
       >
-        {isListening ? <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" /> : <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />}
+        {isListening ? <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] fill-white" /> : <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />}
       </button>
     </div>
   );

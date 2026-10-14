@@ -49,29 +49,29 @@ const formatTime = (seconds) => {
 };
 
 const SEARCH_CATEGORIES = [
-  { id: 'all', label: 'All Music', icon: Music2 },
-  { id: 'artist', label: 'Artists', icon: User },
-  { id: 'movie', label: 'Movie OSTs', icon: Film },
-  { id: 'series', label: 'TV Series', icon: Tv },
-  { id: 'anime', label: 'Anime OSTs', icon: Sparkles },
-  { id: 'song', label: 'Songs', icon: Disc3 }
+  { id: 'all', label: 'All Music', icon: Music2, color: 'text-cyan-400 fill-cyan-400/40' },
+  { id: 'artist', label: 'Artists', icon: User, color: 'text-purple-400 fill-purple-400/40' },
+  { id: 'movie', label: 'Movie OSTs', icon: Film, color: 'text-amber-400 fill-amber-400/40' },
+  { id: 'series', label: 'TV Series', icon: Tv, color: 'text-sky-400 fill-sky-400/40' },
+  { id: 'anime', label: 'Anime OSTs', icon: Sparkles, color: 'text-pink-400 fill-pink-400' },
+  { id: 'song', label: 'Songs', icon: Disc3, color: 'text-emerald-400 fill-emerald-400/40' }
 ];
 
 const LANGUAGES = [
-  { id: 'all', label: 'All Hits', icon: Flame },
-  { id: 'blues_rap', label: 'Blues Rap', icon: Music2 },
-  { id: 'rap', label: 'Rap & Hip-Hop', icon: Mic2 },
-  { id: 'rock', label: 'Rock', icon: Radio },
-  { id: 'kpop', label: 'K-Pop', icon: Headphones },
-  { id: 'korean', label: 'Korean', icon: Compass },
-  { id: 'hindi', label: 'Hindi', icon: Disc3 },
-  { id: 'anime', label: 'Anime', icon: Sparkles },
-  { id: 'english', label: 'English', icon: Globe },
-  { id: 'kannada', label: 'Kannada', icon: Volume2 },
-  { id: 'malayalam', label: 'Malayalam', icon: Layers },
-  { id: 'telugu', label: 'Telugu', icon: Film },
-  { id: 'tamil', label: 'Tamil', icon: Zap },
-  { id: 'marathi', label: 'Marathi', icon: Languages }
+  { id: 'all', label: 'All Hits', icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' },
+  { id: 'blues_rap', label: 'Blues Rap', icon: Music2, color: 'text-indigo-400 fill-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]' },
+  { id: 'rap', label: 'Rap & Hip-Hop', icon: Mic2, color: 'text-purple-400 fill-purple-400/40 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]' },
+  { id: 'rock', label: 'Rock', icon: Zap, color: 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]' },
+  { id: 'kpop', label: 'K-Pop', icon: Headphones, color: 'text-pink-400 fill-pink-400/40 drop-shadow-[0_0_8px_rgba(244,114,182,0.5)]' },
+  { id: 'korean', label: 'Korean', icon: Compass, color: 'text-teal-400 fill-teal-400/40 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]' },
+  { id: 'hindi', label: 'Hindi', icon: Disc3, color: 'text-amber-400 fill-amber-400/40 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]' },
+  { id: 'anime', label: 'Anime', icon: Sparkles, color: 'text-rose-400 fill-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]' },
+  { id: 'english', label: 'English', icon: Globe, color: 'text-sky-400 fill-sky-400/40 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]' },
+  { id: 'kannada', label: 'Kannada', icon: Volume2, color: 'text-red-400 fill-red-400/40 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]' },
+  { id: 'malayalam', label: 'Malayalam', icon: Layers, color: 'text-emerald-400 fill-emerald-400/40 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' },
+  { id: 'telugu', label: 'Telugu', icon: Film, color: 'text-orange-400 fill-orange-400/40 drop-shadow-[0_0_8px_rgba(251,146,60,0.5)]' },
+  { id: 'tamil', label: 'Tamil', icon: Zap, color: 'text-yellow-300 fill-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.7)]' },
+  { id: 'marathi', label: 'Marathi', icon: Languages, color: 'text-amber-500 fill-amber-500/40 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' }
 ];
 
 const SUGGESTIONS_BY_CATEGORY = {
@@ -99,21 +99,21 @@ const FALLBACK_COVER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27
 
 const getChartIcon = (id) => {
   switch (id) {
-    case 'trending_global': return <Flame className="w-4 h-4 text-orange-400" />;
-    case 'blues_rap': return <Mic2 className="w-4 h-4 text-amber-400" />;
-    case 'rap': return <Headphones className="w-4 h-4 text-purple-400" />;
-    case 'rock': return <Zap className="w-4 h-4 text-rose-400" />;
+    case 'trending_global': return <Flame className="w-4 h-4 text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />;
+    case 'blues_rap': return <Mic2 className="w-4 h-4 text-amber-400 fill-amber-400/40 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />;
+    case 'rap': return <Headphones className="w-4 h-4 text-purple-400 fill-purple-400/40 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" />;
+    case 'rock': return <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />;
     case 'kpop':
-    case 'korean': return <Sparkles className="w-4 h-4 text-pink-400" />;
-    case 'bollywood': return <Film className="w-4 h-4 text-amber-400" />;
-    case 'anime': return <Sparkles className="w-4 h-4 text-pink-400" />;
-    case 'global_pop': return <Globe className="w-4 h-4 text-sky-400" />;
+    case 'korean': return <Sparkles className="w-4 h-4 text-pink-400 fill-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]" />;
+    case 'bollywood': return <Film className="w-4 h-4 text-amber-400 fill-amber-400/40 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />;
+    case 'anime': return <Sparkles className="w-4 h-4 text-rose-400 fill-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]" />;
+    case 'global_pop': return <Globe className="w-4 h-4 text-sky-400 fill-sky-400/40 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" />;
     case 'kannada':
     case 'malayalam':
     case 'telugu':
     case 'tamil':
-    case 'marathi': return <Music2 className="w-4 h-4 text-accentCyan" />;
-    default: return <Disc3 className="w-4 h-4 text-accentCyan" />;
+    case 'marathi': return <Music2 className="w-4 h-4 text-cyan-400 fill-cyan-400/40 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />;
+    default: return <Disc3 className="w-4 h-4 text-cyan-400 fill-cyan-400/40" />;
   }
 };
 
@@ -696,7 +696,7 @@ export default function Music() {
                         : 'bg-[#1c2548] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/70 hover:bg-[#283564] shadow-md'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-black fill-black' : cat.color || ''}`} />
                     <span>{cat.label}</span>
                   </button>
                 );
@@ -738,7 +738,7 @@ export default function Music() {
                         : 'bg-[#1a2244] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/60 hover:bg-[#26325e] shadow-sm'
                     }`}
                   >
-                    {IconComponent && <IconComponent className="w-3.5 h-3.5 shrink-0 text-accentCyan" />}
+                    {IconComponent && <IconComponent className={`w-3.5 h-3.5 shrink-0 ${lang.color || 'text-accentCyan'}`} />}
                     <span>{lang.label}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5 shrink-0" title="Live Regularly Updated" />
                   </button>

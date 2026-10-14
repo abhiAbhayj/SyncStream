@@ -154,7 +154,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                   </div>
 
                   <div className="badge badge-anime absolute bottom-2 left-2 text-[9px] px-2 py-0.5 backdrop-blur-md flex items-center gap-1">
-                    <Music className="w-2.5 h-2.5 text-accentPink" />
+                    <Music className="w-2.5 h-2.5 text-accentPink fill-accentPink" />
                     <span>Music</span>
                   </div>
 
@@ -254,7 +254,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
                 {/* Rating */}
                 {rating && (
                   <div className="absolute top-2 right-2 rating-pill opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300">
-                    <Star className="w-3 h-3 fill-current" />
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
                     {rating}
                   </div>
                 )}

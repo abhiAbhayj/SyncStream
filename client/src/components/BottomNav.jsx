@@ -10,11 +10,11 @@ export default function BottomNav() {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { path: '/', label: 'Home', icon: Tv },
-    { path: '/search', label: 'Search', icon: Search },
-    { path: '/music', label: 'Music', icon: Music },
-    { path: '/watchlist', label: 'Watchlist', icon: Heart },
-    { path: user ? '/profile' : '/login', label: user ? 'Profile' : 'Sign In', icon: User },
+    { path: '/', label: 'Home', icon: Tv, iconClass: 'text-sky-400 fill-sky-400/35' },
+    { path: '/search', label: 'Search', icon: Search, iconClass: 'text-amber-400 fill-amber-400/35' },
+    { path: '/music', label: 'Music', icon: Music, iconClass: 'text-purple-400 fill-purple-400/35' },
+    { path: '/watchlist', label: 'Watchlist', icon: Heart, iconClass: 'text-rose-400 fill-rose-400/45' },
+    { path: user ? '/profile' : '/login', label: user ? 'Profile' : 'Sign In', icon: User, iconClass: 'text-cyan-400 fill-cyan-400/35' },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default function BottomNav() {
               }`}
             >
               <div className={`p-1 rounded-lg transition-colors ${active ? 'bg-accentCyan/20 shadow-[0_0_10px_rgba(99,210,255,0.4)]' : ''}`}>
-                <Icon className={`w-4 h-4 xs:w-4.5 xs:h-4.5 ${active ? 'fill-current opacity-40 stroke-[2.5] text-accentCyan' : 'stroke-2'}`} />
+                <Icon className={`w-4 h-4 xs:w-4.5 xs:h-4.5 transition-transform duration-200 ${active ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : ''} ${link.iconClass}`} />
               </div>
               <span className={`text-[9px] xs:text-[10px] font-semibold tracking-tight truncate max-w-full text-center ${active ? 'font-black text-accentCyan' : ''}`}>
                 {link.label}

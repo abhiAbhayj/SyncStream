@@ -41,10 +41,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { path: '/', label: 'Discovery', icon: Tv },
-    { path: '/search', label: 'Search', icon: Search },
-    { path: '/music', label: 'Music', icon: Music },
-    { path: '/watchlist', label: 'Watchlist', icon: Heart },
+    { path: '/', label: 'Discovery', icon: Tv, color: 'text-sky-400 fill-sky-400/30' },
+    { path: '/search', label: 'Search', icon: Search, color: 'text-cyan-400 fill-cyan-400/30' },
+    { path: '/music', label: 'Music', icon: Music, color: 'text-pink-400 fill-pink-400/30' },
+    { path: '/watchlist', label: 'Watchlist', icon: Heart, color: 'text-red-400 fill-red-400/30' },
   ];
 
   return (
@@ -104,7 +104,7 @@ export default function Navbar() {
                       : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-accentCyan' : ''}`} />
+                  <Icon className={`w-4 h-4 ${active ? (link.color || 'text-accentCyan') : 'text-gray-400 group-hover:text-white'}`} />
                   {link.label}
                   {active && (
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_6px_rgba(99,210,255,0.8)]" />
@@ -125,7 +125,7 @@ export default function Navbar() {
                          hover:bg-accentPurple/[0.22] hover:border-accentPurple/60 hover:shadow-[0_0_20px_rgba(149,100,255,0.25)] active:scale-95"
               title="Join Watch Party by Code"
             >
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentPurple" />
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400/30" />
               <span>Join Party</span>
             </button>
 
@@ -188,7 +188,7 @@ export default function Navbar() {
                           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition group"
                         >
                           <div className="w-8 h-8 rounded-lg bg-accentPurple/15 text-accentPurple flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <User className="w-4 h-4" />
+                            <User className="w-4 h-4 fill-accentPurple/40" />
                           </div>
                           <span>My Profile &amp; Themes</span>
                         </Link>
@@ -202,7 +202,7 @@ export default function Navbar() {
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-red-200 hover:bg-red-500/20 transition text-left group"
                       >
                         <div className="w-8 h-8 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <LogOut className="w-4 h-4" />
+                          <LogOut className="w-4 h-4 fill-red-400/40" />
                         </div>
                         <span>Sign Out</span>
                       </button>
@@ -278,7 +278,7 @@ export default function Navbar() {
                   disabled={!joinCode.trim()}
                   className="btn-primary flex-[2] !py-3 !text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  <Zap className="w-4 h-4 inline mr-1.5" />
+                  <Zap className="w-4 h-4 inline mr-1.5 text-yellow-400 fill-yellow-400" />
                   Enter Room
                 </button>
               </div>
