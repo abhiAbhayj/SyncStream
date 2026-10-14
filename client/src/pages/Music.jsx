@@ -202,6 +202,21 @@ export default function Music() {
     } catch {}
   };
 
+  const [chartsViewMode, setChartsViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('syncstream_charts_view') || 'card';
+    } catch {
+      return 'card';
+    }
+  });
+
+  const handleSetChartsViewMode = (mode) => {
+    setChartsViewMode(mode);
+    try {
+      localStorage.setItem('syncstream_charts_view', mode);
+    } catch {}
+  };
+
   // Playlist internal search & sort state
   const [playlistSearch, setPlaylistSearch] = useState('');
   const [playlistSort, setPlaylistSort] = useState('default');
@@ -1035,38 +1050,6 @@ export default function Music() {
                             {isCurrentPlaying && (
                               <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
                             )}
-
-                            {/* Always-accessible Quick Folder (Add to Playlist) on Cover Top-Left */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSongToAddToPlaylist(song);
-                              }}
-                              className="absolute top-1.5 left-1.5 p-1.5 rounded-full backdrop-blur-md bg-black/75 hover:bg-purple-600/90 text-purple-300 hover:text-white transition active:scale-90 border border-white/20 shadow-sm"
-                              title="Add to Playlist"
-                              aria-label="Add to Playlist"
-                            >
-                              <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
-                            </button>
-
-                            {/* Always-accessible Quick Heart on Cover Top-Right */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(song);
-                              }}
-                              className={`absolute top-1.5 right-1.5 p-1.5 rounded-full backdrop-blur-md transition active:scale-90 border shadow-sm ${
-                                isFav
-                                  ? 'bg-red-500/90 border-red-400 text-white shadow-red-500/40'
-                                  : 'bg-black/75 border-white/20 text-slate-100 hover:text-white hover:bg-black/90'
-                              }`}
-                              title={isFav ? 'Liked (Click to remove)' : 'Add to Favorites'}
-                              aria-label="Add to Favorites"
-                            >
-                              <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-white' : ''}`} />
-                            </button>
                           </div>
 
                           {/* Meta & Action Controls */}
@@ -1332,16 +1315,49 @@ export default function Music() {
                   </div>
                   <p className="text-xs text-slate-200 font-semibold">Real-time regional soundscapes: Telugu, Tamil, Kannada, Bollywood, K-Pop, Anime, Mollywood, Marathi &amp; Global Hits &bull; Live Updated.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => fetchCharts(true)}
-                  disabled={chartsLoading || isRefreshing}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 text-white border-2 border-accentCyan/70 text-xs font-black transition active:scale-95 self-start sm:self-auto shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.3)]"
-                  title="Force refresh live charts"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${chartsLoading || isRefreshing ? 'animate-spin' : ''}`} />
-                  <span>Live Refresh Charts</span>
-                </button>
+                
+                <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                  {/* View Mode Toggle: Card vs Compact List */}
+                  <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
+                    <button
+                      type="button"
+                      onClick={() => handleSetChartsViewMode('card')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        chartsViewMode === 'card'
+                          ? 'bg-accentCyan text-black font-bold shadow-md'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                      title="Card Carousel View"
+                      aria-label="Card Carousel View"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetChartsViewMode('list')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        chartsViewMode === 'list'
+                          ? 'bg-accentCyan text-black font-bold shadow-md'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                      title="Compact List View"
+                      aria-label="Compact List View"
+                    >
+                      <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => fetchCharts(true)}
+                    disabled={chartsLoading || isRefreshing}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 hover:from-accentCyan/45 hover:to-accentPurple/45 text-white border-2 border-accentCyan/70 text-xs font-black transition active:scale-95 shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.3)]"
+                    title="Force refresh live charts"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${chartsLoading || isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>Live Refresh Charts</span>
+                  </button>
+                </div>
               </div>
 
               {chartsLoading ? (
@@ -1368,6 +1384,9 @@ export default function Music() {
                             {chart.subtitle && <p className="text-[11px] text-slate-300 font-semibold">{chart.subtitle}</p>}
                           </div>
                           <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold text-slate-400 hidden xs:inline-block">
+                              {chart.songs.length} tracks
+                            </span>
                             <button
                               onClick={() => { if (chart.songs.length > 0) playQueue(chart.songs, 0); }}
                               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-accentCyan/25 hover:bg-accentCyan/40 text-accentCyan border-2 border-accentCyan/60 text-xs font-black transition active:scale-95 shadow-md"
@@ -1377,39 +1396,235 @@ export default function Music() {
                             </button>
                           </div>
                         </div>
-                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
-                          {chart.songs.map((s, idx) => {
-                            const isCur = currentTrack?.id === s.id;
-                            return (
-                              <div
-                                key={`${s.id}-${idx}`}
-                                onClick={() => {
-                                  if (currentTrack?.id === s.id) {
-                                    togglePlay();
-                                  } else {
-                                    playTrack(s, chart.songs);
-                                  }
-                                }}
-                                className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-40 cursor-pointer p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-lg ${
-                                  isCur ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.4)]' : 'border-white/20 bg-[#18203c]/95 hover:bg-[#202b52] hover:border-accentCyan/60'
-                                }`}
-                              >
-                                <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-md bg-black">
-                                  <img src={s.image || FALLBACK_COVER} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }} />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <div className="w-9 h-9 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-lg font-bold">
-                                      {isCur && isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+
+                        {/* View Mode 1: Card Carousel View */}
+                        {chartsViewMode === 'card' ? (
+                          <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+                            {chart.songs.map((s, idx) => {
+                              const isCur = currentTrack?.id === s.id;
+                              const isCurrentPlaying = isCur && isPlaying;
+                              const isFav = isFavorite(s.id);
+                              return (
+                                <div
+                                  key={`${s.id}-${idx}`}
+                                  className={`group relative flex flex-col gap-2 shrink-0 w-36 sm:w-44 p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-lg ${
+                                    isCur ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.4)]' : 'border-white/20 bg-[#18203c]/95 hover:bg-[#202b52] hover:border-accentCyan/60'
+                                  }`}
+                                >
+                                  <div
+                                    onClick={() => {
+                                      if (isCur) {
+                                        togglePlay();
+                                      } else {
+                                        playTrack(s, chart.songs);
+                                      }
+                                    }}
+                                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-md bg-black cursor-pointer"
+                                  >
+                                    <img
+                                      src={s.image || FALLBACK_COVER}
+                                      alt={s.title}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <div className="w-9 h-9 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-lg font-bold">
+                                        {isCurrentPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+                                      </div>
+                                    </div>
+                                    {isCurrentPlaying && (
+                                      <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
+                                    )}
+                                  </div>
+                                  <div className="space-y-0.5 min-w-0">
+                                    <p
+                                      onClick={() => {
+                                        if (isCur) {
+                                          togglePlay();
+                                        } else {
+                                          playTrack(s, chart.songs);
+                                        }
+                                      }}
+                                      className={`text-xs font-black truncate font-outfit cursor-pointer transition-colors ${
+                                        isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                      }`}
+                                      title={s.title}
+                                    >
+                                      {s.title}
+                                    </p>
+                                    <p className="text-[10px] text-slate-200 truncate font-semibold" title={s.artist}>{s.artist}</p>
+
+                                    {/* Action Row: Clock + Heart + Playlist */}
+                                    <div className="flex items-center justify-between pt-1">
+                                      <span className="text-[9px] font-mono font-black text-slate-300 flex items-center gap-1">
+                                        <Clock className="w-2.5 h-2.5 text-slate-400" />
+                                        {formatTime(s.duration)}
+                                      </span>
+                                      <div className="flex items-center gap-1">
+                                        {/* Single Favorite Heart Icon */}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavorite(s);
+                                          }}
+                                          className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                                            isFav
+                                              ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.35)]'
+                                              : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15'
+                                          }`}
+                                          title={isFav ? 'Liked (Click to Remove)' : 'Add to Favorites'}
+                                          aria-label="Add to Favorites"
+                                        >
+                                          <Heart className={`w-3 h-3 ${isFav ? 'fill-current text-red-400' : ''}`} />
+                                        </button>
+
+                                        {/* Single Add to Playlist Icon */}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSongToAddToPlaylist(s);
+                                          }}
+                                          className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 transition active:scale-90"
+                                          title="Add to Playlist"
+                                          aria-label="Add to Playlist"
+                                        >
+                                          <FolderPlus className="w-3 h-3 stroke-[2.2]" />
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="space-y-0.5 min-w-0">
-                                  <p className={`text-xs font-black truncate font-outfit transition-colors ${isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'}`}>{s.title}</p>
-                                  <p className="text-[10px] text-slate-200 truncate font-semibold">{s.artist}</p>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          /* View Mode 2: Compact List View */
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                            {chart.songs.map((s, idx) => {
+                              const isCur = currentTrack?.id === s.id;
+                              const isCurrentPlaying = isCur && isPlaying;
+                              const isFav = isFavorite(s.id);
+                              return (
+                                <div
+                                  key={`chart-list-${s.id}-${idx}`}
+                                  className={`group flex items-center justify-between p-2 sm:p-2.5 rounded-xl border-2 transition-all duration-200 ${
+                                    isCur
+                                      ? 'bg-accentCyan/20 border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.35)]'
+                                      : 'border-white/15 bg-[#18203c]/90 hover:bg-[#202b52] hover:border-accentCyan/50'
+                                  }`}
+                                >
+                                  {/* Left: Rank + Thumbnail + Title/Artist */}
+                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <span className="w-5 text-center font-mono font-black text-xs text-slate-400 group-hover:text-accentCyan shrink-0">
+                                      {idx + 1}
+                                    </span>
+                                    <div
+                                      onClick={() => isCur ? togglePlay() : playTrack(s, chart.songs)}
+                                      className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black cursor-pointer shadow-sm"
+                                    >
+                                      <img
+                                        src={s.image || FALLBACK_COVER}
+                                        alt={s.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                        loading="lazy"
+                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {isCurrentPlaying ? (
+                                          <Pause className="w-4 h-4 text-accentCyan fill-current" />
+                                        ) : (
+                                          <Play className="w-4 h-4 text-white fill-current ml-0.5" />
+                                        )}
+                                      </div>
+                                      {isCurrentPlaying && (
+                                        <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
+                                      )}
+                                    </div>
+                                    <div className="min-w-0 flex-1 space-y-0.5">
+                                      <h4
+                                        onClick={() => isCur ? togglePlay() : playTrack(s, chart.songs)}
+                                        className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                                          isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                        }`}
+                                        title={s.title}
+                                      >
+                                        {s.title}
+                                      </h4>
+                                      <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold" title={s.artist}>
+                                        {s.artist}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Right: Duration + Heart + Folder + Play */}
+                                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
+                                    <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
+                                      {formatTime(s.duration)}
+                                    </span>
+
+                                    {/* Single Heart button */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleFavorite(s);
+                                      }}
+                                      className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                                        isFav
+                                          ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.35)]'
+                                          : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15 hover:border-red-400/40'
+                                      }`}
+                                      title={isFav ? 'Liked (Click to Remove)' : 'Add to Favorites'}
+                                      aria-label="Add to Favorites"
+                                    >
+                                      <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
+                                    </button>
+
+                                    {/* Single FolderPlus button */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSongToAddToPlaylist(s);
+                                      }}
+                                      className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/25 border border-white/10 hover:border-purple-400/60 text-purple-300 hover:text-purple-200 transition active:scale-90 shadow-sm"
+                                      title="Add to Playlist"
+                                      aria-label="Add to Playlist"
+                                    >
+                                      <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                                    </button>
+
+                                    {/* Play / Pause button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (isCur) {
+                                          togglePlay();
+                                        } else {
+                                          playTrack(s, chart.songs);
+                                        }
+                                      }}
+                                      className={`p-1.5 rounded-full transition active:scale-90 border ${
+                                        isCurrentPlaying
+                                          ? 'bg-accentCyan text-black border-white shadow-[0_0_10px_rgba(99,210,255,0.7)]'
+                                          : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
+                                      }`}
+                                      title={isCurrentPlaying ? 'Pause' : 'Play'}
+                                    >
+                                      {isCurrentPlaying ? (
+                                        <Pause className="w-3 h-3 fill-current" />
+                                      ) : (
+                                        <Play className="w-3 h-3 fill-current ml-0.5" />
+                                      )}
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1547,34 +1762,6 @@ export default function Music() {
                           <Play className="w-6 h-6 text-white fill-current ml-0.5" />
                         )}
                       </div>
-
-                      {/* Always Visible Folder Icon on Cover Top-Left */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSongToAddToPlaylist(song);
-                        }}
-                        className="absolute top-1.5 left-1.5 p-1.5 rounded-full backdrop-blur-md bg-black/75 hover:bg-purple-600/90 text-purple-300 hover:text-white transition active:scale-90 border border-white/20 shadow-sm"
-                        title="Add to Playlist"
-                        aria-label="Add to Playlist"
-                      >
-                        <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
-                      </button>
-
-                      {/* Always Visible Heart Icon on Cover Top-Right */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(song);
-                        }}
-                        className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-red-500 text-white shadow-md transition active:scale-90 border border-white/25"
-                        title="Remove from favorites"
-                        aria-label="Remove from favorites"
-                      >
-                        <Heart className="w-3.5 h-3.5 fill-current" />
-                      </button>
                     </div>
 
                     <div className="min-w-0 flex-1 space-y-0.5">
@@ -2024,38 +2211,6 @@ export default function Music() {
                               <Play className="w-6 h-6 text-white fill-current ml-0.5" />
                             )}
                           </div>
-
-                          {/* Quick Folder Icon on Cover Top-Left */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSongToAddToPlaylist(song);
-                            }}
-                            className="absolute top-1.5 left-1.5 p-1.5 rounded-full backdrop-blur-md bg-black/75 hover:bg-purple-600/90 text-purple-300 hover:text-white transition active:scale-90 border border-white/20 shadow-sm"
-                            title="Add to Another Playlist"
-                            aria-label="Add to Another Playlist"
-                          >
-                            <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
-                          </button>
-
-                          {/* Quick Heart Icon on Cover Top-Right */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(song);
-                            }}
-                            className={`absolute top-1.5 right-1.5 p-1.5 rounded-full backdrop-blur-md transition active:scale-90 border shadow-sm ${
-                              isFav
-                                ? 'bg-red-500/90 border-red-400 text-white shadow-red-500/40'
-                                : 'bg-black/75 border-white/20 text-slate-100 hover:text-white hover:bg-black/90'
-                            }`}
-                            title={isFav ? 'Liked' : 'Like'}
-                            aria-label="Add to Favorites"
-                          >
-                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-white' : ''}`} />
-                          </button>
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-0.5">
