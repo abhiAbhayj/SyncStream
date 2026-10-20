@@ -5,11 +5,11 @@
 
 export const STREAMING_SERVERS = [
   { 
-    key: 'vidsrcpm', 
-    label: 'Server 1 (VidSrc PM)', 
+    key: 'vidsrcsu', 
+    label: 'Server 1 (VidSrc SU)', 
     badge: 'Recommended • Fast',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'Fast VidSrc cloud mirror with zero tab redirects'
+    description: 'Fast VidSrc cloud mirror with instant bufferless playback'
   },
   { 
     key: 'vidsrcto', 
@@ -33,49 +33,53 @@ export const STREAMING_SERVERS = [
     description: 'AutoEmbed cloud streaming node with subtitle support'
   },
   { 
-    key: 'vidlink', 
-    label: 'Server 5 (VidLink - HD)', 
-    badge: 'CC Subtitles',
+    key: 'videasy', 
+    label: 'Server 5 (Videasy - HD & CC)', 
+    badge: 'HD • Multi-Subtitles',
     tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    description: 'Rich player with full multi-language subtitles (English, Spanish, etc.)'
+    description: 'Modern multi-source player with full multi-language subtitles (English, Spanish, etc.)'
   }
 ];
 
-export const getEmbedStreamUrl = ({ serverKey = 'vidsrcpm', mediaType = 'movie', id, tmdbId, season = 1, episode = 1 }) => {
+export const getEmbedStreamUrl = ({ serverKey = 'vidsrcsu', mediaType = 'movie', id, tmdbId, season = 1, episode = 1 }) => {
   const activeId = tmdbId || id;
   const s = season || 1;
   const ep = episode || 1;
 
   if (mediaType === 'movie') {
     switch (serverKey) {
+      case 'vidsrcsu':
       case 'vidsrcpm':
-        return `https://vidsrc.pm/embed/movie/${activeId}`;
+        return `https://vidsrc.su/embed/movie/${activeId}`;
       case 'vidsrcto':
         return `https://vidsrc.to/embed/movie/${activeId}`;
       case 'vidsrcme':
         return `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
       case 'autoembedco':
         return `https://autoembed.co/movie/tmdb/${activeId}`;
+      case 'videasy':
       case 'vidlink':
-        return `https://vidlink.pro/movie/${activeId}`;
+        return `https://player.videasy.to/movie/${activeId}`;
       default:
-        return `https://vidsrc.pm/embed/movie/${activeId}`;
+        return `https://vidsrc.su/embed/movie/${activeId}`;
     }
   }
 
   // TV Shows and Anime
   switch (serverKey) {
+    case 'vidsrcsu':
     case 'vidsrcpm':
-      return `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
+      return `https://vidsrc.su/embed/tv/${activeId}/${s}/${ep}`;
     case 'vidsrcto':
       return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
     case 'vidsrcme':
       return `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
     case 'autoembedco':
       return `https://autoembed.co/tv/tmdb/${activeId}-${s}-${ep}`;
+    case 'videasy':
     case 'vidlink':
-      return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
+      return `https://player.videasy.to/tv/${activeId}/${s}/${ep}`;
     default:
-      return `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
+      return `https://vidsrc.su/embed/tv/${activeId}/${s}/${ep}`;
   }
 };
