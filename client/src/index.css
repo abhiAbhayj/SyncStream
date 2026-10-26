@@ -117,24 +117,24 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 6: Obsidian Shadow Void (Dark)
-   Ultimate Void Black (#000000), Ghost Silver White (#E2E8F0), Gunmetal Gray (#475569), Steel Silver (#94A3B8), Matte Carbon Panel (#0A0A0A)
+   THEME 6: Obsidian Shadow Void (Stealth Platinum & Phantom Violet Eclipse)
+   Ultimate Void Black (#000000), Ghost Platinum White (#F8FAFC), Phantom Violet (#818CF8), Cold Chrome Silver (#CBD5E1), Dark Carbon Slate (#0C0C12)
 ───────────────────────────────────────────── */
 .theme-obsidian-void {
-  --dark-bg:     0 0 0;
-  --dark-card:   10 10 10;
-  --dark-surf:   24 24 27;
-  --dark-border: 148 163 184;
+  --dark-bg:     2 2 4;
+  --dark-card:   12 12 18;
+  --dark-surf:   22 22 32;
+  --dark-border: 129 140 248;
 
-  --accent-cyan:   148 163 184;
-  --accent-purple: 71 85 105;
-  --accent-pink:   226 232 240;
-  --accent-gold:   203 213 225;
+  --accent-cyan:   203 213 225;
+  --accent-purple: 129 140 248;
+  --accent-pink:   248 250 252;
+  --accent-gold:   165 180 252;
   --accent-green:  148 163 184;
 
-  --glow-1: rgba(148, 163, 184, 0.25);
-  --glow-2: rgba(71, 85, 105, 0.22);
-  --glow-3: rgba(226, 232, 240, 0.12);
+  --glow-1: rgba(129, 140, 248, 0.26);
+  --glow-2: rgba(99, 102, 241, 0.20);
+  --glow-3: rgba(248, 250, 252, 0.12);
 }
 
 /* ─────────────────────────────────────────────
