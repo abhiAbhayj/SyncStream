@@ -260,126 +260,81 @@ export default function ThemeBackground() {
 
         state = { fissures, waves, embers };
       } else if (theme === 'emerald-biogrid') {
-        // 3. Emerald Matrix Biogrid (3D Cyber DNA Double-Helix + Synaptic Hexagonal Matrix + Tesla Arcs)
-        const helixRungs = isMobile ? 20 : 32;
-        const helixRadius = isMobile ? 65 : 110;
-        const packets = [];
-        for (let p = 0; p < (isMobile ? 6 : 12); p++) {
-          packets.push({
-            rungIndex: Math.floor(Math.random() * helixRungs),
-            t: Math.random(),
-            speed: (Math.random() > 0.5 ? 1 : -1) * (0.012 + Math.random() * 0.02)
+        // 3. Emerald Matrix Biogrid (Full-Screen Cyber Matrix Digital Rain & Synapse Bus Highways)
+        const colWidth = isMobile ? 32 : 44;
+        const colCount = Math.ceil(width / colWidth);
+        const matrixColumns = [];
+        for (let c = 0; c < colCount; c++) {
+          matrixColumns.push({
+            x: c * colWidth + Math.random() * 8,
+            y: Math.random() * height,
+            speed: 1.2 + Math.random() * 2.8,
+            length: Math.floor(8 + Math.random() * 14),
+            headGlow: Math.random() > 0.4
           });
         }
 
-        // Hexagonal Synaptic Background Matrix
-        const hexSize = isMobile ? 42 : 55;
-        const hexCols = Math.ceil(width / (hexSize * 1.5)) + 2;
-        const hexRows = Math.ceil(height / (hexSize * Math.sqrt(3))) + 2;
+        // Horizontal High-Speed Laser Bus Highways
+        const busCount = isMobile ? 4 : 6;
+        const busLines = [];
+        for (let b = 0; b < busCount; b++) {
+          busLines.push({
+            y: (b + 0.6) * (height / busCount),
+            speed: (b % 2 === 0 ? 1 : -1) * (2.5 + Math.random() * 3.5),
+            packets: [
+              { x: Math.random() * width, len: 45 + Math.random() * 70, color: '#00f5a0' },
+              { x: Math.random() * width, len: 30 + Math.random() * 50, color: '#2dd4bf' }
+            ]
+          });
+        }
 
-        // Floating Bio-Nanite Spores
-        const sporeCount = isMobile ? 22 : 45;
-        const spores = [];
-        for (let s = 0; s < sporeCount; s++) {
-          spores.push({
+        // Distributed Synaptic Circuit Nodes across full canvas
+        const nodeCount = isMobile ? 18 : 32;
+        const circuitNodes = [];
+        for (let n = 0; n < nodeCount; n++) {
+          circuitNodes.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            vy: -(0.3 + Math.random() * 0.7),
             vx: (Math.random() - 0.5) * 0.35,
-            size: Math.random() * 2.4 + 1.0,
-            phase: Math.random() * Math.PI * 2,
-            speed: 0.025 + Math.random() * 0.035
+            vy: (Math.random() - 0.5) * 0.35,
+            pulsePhase: Math.random() * Math.PI * 2
           });
         }
 
-        state = {
-          helixRungs,
-          helixRadius,
-          packets,
-          hexSize,
-          hexCols,
-          hexRows,
-          spores,
-          lightningArcs: [],
-          nextArcTimer: 18
-        };
+        state = { matrixColumns, busLines, circuitNodes, sparks: [], nextSparkTimer: 18 };
       } else if (theme === 'cobalt-quantum') {
-        // 4. Cobalt Quantum Wave (4D Rotating Quantum Tesseract + Lissajous Entanglement Orbitals)
-        // 16 Vertices of a 4D Hypercube (±1, ±1, ±1, ±1)
-        const vertices4D = [];
-        for (let i = 0; i < 16; i++) {
-          vertices4D.push({
-            x: (i & 1 ? 1 : -1),
-            y: (i & 2 ? 1 : -1),
-            z: (i & 4 ? 1 : -1),
-            w: (i & 8 ? 1 : -1)
-          });
-        }
+        // 4. Cobalt Quantum Wave (Full-Screen 3D Spacetime Wave Mesh & Particle Entanglement Web)
+        const gridSpacingX = isMobile ? 55 : 45;
+        const gridSpacingY = isMobile ? 48 : 38;
+        const cols = Math.ceil(width / gridSpacingX) + 2;
+        const rows = Math.ceil(height / gridSpacingY) + 2;
 
-        // 32 Edges connecting vertices that differ by exactly 1 bit
-        const edges4D = [];
-        for (let i = 0; i < 16; i++) {
-          for (let j = i + 1; j < 16; j++) {
-            const diff = i ^ j;
-            if ((diff & (diff - 1)) === 0) {
-              edges4D.push([i, j]);
-            }
-          }
-        }
-
-        const tesseractScale = Math.min(width, height) * (isMobile ? 0.24 : 0.28);
-
-        // Quantum Entangled Paired Orbitals (Lissajous curves)
-        const pairCount = isMobile ? 2 : 4;
-        const entangledPairs = [];
-        for (let p = 0; p < pairCount; p++) {
-          entangledPairs.push({
-            rX: Math.min(width, height) * (0.28 + p * 0.1),
-            rY: Math.min(width, height) * (0.16 + p * 0.08),
-            freqX: 1 + p * 0.5,
-            freqY: 2 + p * 0.5,
-            speed: 0.015 + p * 0.005,
-            phase: (p / pairCount) * Math.PI * 2,
-            color: p % 2 === 0 ? '#06b6d4' : '#3b82f6'
-          });
-        }
-
-        // Background probability wave stars
-        const starCount = isMobile ? 35 : 70;
-        const stars = [];
-        for (let s = 0; s < starCount; s++) {
-          stars.push({
+        // Full-screen quantum entanglement particles
+        const particleCount = isMobile ? 24 : 45;
+        const quantumParticles = [];
+        for (let p = 0; p < particleCount; p++) {
+          quantumParticles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            size: Math.random() * 2.0 + 0.8,
-            phase: Math.random() * Math.PI * 2,
-            speed: 0.02 + Math.random() * 0.03,
-            color: s % 3 === 0 ? '#f8fafc' : (s % 2 === 0 ? '#3b82f6' : '#06b6d4')
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: (Math.random() - 0.5) * 0.6,
+            size: Math.random() * 2.4 + 1.2,
+            color: p % 3 === 0 ? '#f8fafc' : (p % 2 === 0 ? '#3b82f6' : '#06b6d4'),
+            phase: Math.random() * Math.PI * 2
           });
         }
 
-        state = {
-          vertices4D,
-          edges4D,
-          tesseractScale,
-          entangledPairs,
-          stars,
-          angleXZ: 0,
-          angleYW: 0
-        };
+        state = { gridSpacingX, gridSpacingY, cols, rows, quantumParticles };
       } else if (theme === 'golden-sunfire') {
-        // 5. Golden Sunfire Monolith (Rotating Sacred Sun Mandala & Opposing Thermal Vortices)
-        const mandalaRays = isMobile ? 12 : 24;
-        const mandalaMaxR = Math.min(width, height) * (isMobile ? 0.38 : 0.32);
-
+        // 5. Golden Sunfire Monolith (Flanking Monolith Conduits & Sweeping Solar Prominence Curtains)
         // Stream A: Descending crystalline gold-frost needles (top -> down)
-        const frostCount = isMobile ? 24 : 48;
+        const frostCount = isMobile ? 25 : 50;
         const frostStream = [];
         for (let f = 0; f < frostCount; f++) {
           frostStream.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            vy: 0.4 + Math.random() * 0.8,
+            vy: 0.45 + Math.random() * 0.85,
             vx: (Math.random() - 0.5) * 0.25,
             length: (isMobile ? 22 : 38) + Math.random() * 28,
             width: Math.random() * 2.0 + 0.8,
@@ -389,13 +344,13 @@ export default function ThemeBackground() {
         }
 
         // Stream B: Ascending incandescent solar plasma embers (bottom -> up)
-        const emberCount = isMobile ? 25 : 52;
+        const emberCount = isMobile ? 25 : 55;
         const solarStream = [];
         for (let e = 0; e < emberCount; e++) {
           solarStream.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            vy: -(0.5 + Math.random() * 1.1),
+            vy: -(0.55 + Math.random() * 1.15),
             vx: (Math.random() - 0.5) * 0.35,
             size: Math.random() * 2.8 + 1.0,
             swayAmp: 1.5 + Math.random() * 3.0,
@@ -406,34 +361,45 @@ export default function ThemeBackground() {
           });
         }
 
-        state = { mandalaRays, mandalaMaxR, frostStream, solarStream };
-      } else if (theme === 'obsidian-void') {
-        // 6. Obsidian Shadow Void (Stealth Quantum Eclipse & Dark-Matter Lattice)
-        const eclipseRadius = Math.min(width, height) * (isMobile ? 0.16 : 0.14);
+        // Sweeping Horizontal Solar Prominence Ribbon Curtains
+        const curtainCount = isMobile ? 3 : 5;
+        const curtains = [];
+        for (let c = 0; c < curtainCount; c++) {
+          curtains.push({
+            baseY: (c + 0.5) * (height / curtainCount),
+            amp: (isMobile ? 20 : 38) + Math.random() * 20,
+            freq: 0.003 + Math.random() * 0.002,
+            speed: 0.02 + Math.random() * 0.015,
+            phase: Math.random() * Math.PI * 2,
+            color: c % 2 === 0 ? 'rgba(234, 179, 8, ' : 'rgba(245, 158, 11, '
+          });
+        }
 
-        // 3D Tumbling Geometric Dark-Matter Facets
-        const facetCount = isMobile ? 12 : 20;
-        const facets = [];
-        for (let f = 0; f < facetCount; f++) {
-          const size = (isMobile ? 18 : 28) + Math.random() * (isMobile ? 18 : 32);
-          facets.push({
+        state = { frostStream, solarStream, curtains };
+      } else if (theme === 'obsidian-void') {
+        // 6. Obsidian Shadow Void (Full-Canvas 3D Tumbling Dark-Matter Shards & Corner-to-Corner Crystal Lattice)
+        const shardCount = isMobile ? 15 : 26;
+        const shards = [];
+        for (let s = 0; s < shardCount; s++) {
+          const baseRadius = (isMobile ? 18 : 28) + Math.random() * (isMobile ? 24 : 38);
+          shards.push({
             x: Math.random() * width,
             y: Math.random() * height,
             vx: (Math.random() - 0.5) * 0.35,
-            vy: (Math.random() - 0.5) * 0.35,
+            vy: 0.15 + Math.random() * 0.3,
             rotX: Math.random() * Math.PI * 2,
             rotY: Math.random() * Math.PI * 2,
             rotZ: Math.random() * Math.PI * 2,
             vRotX: (Math.random() - 0.5) * 0.015,
             vRotY: (Math.random() - 0.5) * 0.018,
             vRotZ: (Math.random() - 0.5) * 0.012,
-            size,
             sides: Math.floor(Math.random() * 3) + 3,
-            alpha: 0.18 + Math.random() * 0.25
+            baseRadius,
+            alpha: 0.15 + Math.random() * 0.22
           });
         }
 
-        // Stealth Circuit Lattice Traces
+        // Corner-to-corner dendritic stealth circuit paths
         const cornerRoots = [
           { x: 0, y: 0, dirX: 1, dirY: 1 },
           { x: width, y: 0, dirX: -1, dirY: 1 },
@@ -448,9 +414,9 @@ export default function ThemeBackground() {
           let cx = root.x;
           let cy = root.y;
           const segments = [];
-          const depth = isMobile ? 4 : 7;
+          const depth = isMobile ? 5 : 8;
           for (let d = 0; d < depth; d++) {
-            const stepLen = (isMobile ? 24 : 40) + Math.random() * 25;
+            const stepLen = (isMobile ? 26 : 44) + Math.random() * 28;
             const mode = Math.floor(Math.random() * 3);
             let nx = cx;
             let ny = cy;
@@ -460,30 +426,40 @@ export default function ThemeBackground() {
               nx = cx + root.dirX * stepLen * 0.707;
               ny = cy + root.dirY * stepLen * 0.707;
             }
-            segments.push({ x1: cx, y1: cy, x2: nx, y2: ny, node: Math.random() > 0.4 });
+            segments.push({ x1: cx, y1: cy, x2: nx, y2: ny, node: Math.random() > 0.45 });
             cx = nx;
             cy = ny;
           }
           circuitPaths.push(segments);
         });
 
-        // Infall Dark-Matter Dust Particles
-        const dustCount = isMobile ? 35 : 65;
-        const infallDust = [];
-        for (let d = 0; d < dustCount; d++) {
-          const dist = 50 + Math.random() * (Math.max(width, height) * 0.55);
-          infallDust.push({
-            dist,
-            angle: Math.random() * Math.PI * 2,
-            angularSpeed: (0.006 + Math.random() * 0.012) * (d % 2 === 0 ? 1 : -1),
-            radialSpeed: -(0.3 + Math.random() * 0.6),
-            size: Math.random() * 2.0 + 0.8,
-            color: d % 3 === 0 ? '#f8fafc' : (d % 2 === 0 ? '#818cf8' : '#cbd5e1'),
+        // Atmospheric Dark-Matter Veil Fog Bands
+        const veilCount = isMobile ? 3 : 5;
+        const veils = [];
+        for (let v = 0; v < veilCount; v++) {
+          veils.push({
+            y: (v + 0.5) * (height / veilCount),
+            amp: 30 + Math.random() * 25,
+            speed: (v % 2 === 0 ? 1 : -1) * 0.015,
             phase: Math.random() * Math.PI * 2
           });
         }
 
-        state = { eclipseRadius, facets, circuitPaths, infallDust };
+        // Drifting Platinum and Phantom-Violet Micro-Sparks
+        const sparkCount = isMobile ? 25 : 55;
+        const microSparks = [];
+        for (let sp = 0; sp < sparkCount; sp++) {
+          microSparks.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 2.2 + 0.8,
+            speed: 0.02 + Math.random() * 0.03,
+            phase: Math.random() * Math.PI * 2,
+            color: sp % 3 === 0 ? '#f8fafc' : (sp % 2 === 0 ? '#818cf8' : '#cbd5e1')
+          });
+        }
+
+        state = { shards, circuitPaths, veils, microSparks };
       } else if (theme === 'cyberpunk-synthwave') {
         // 7. Cyberpunk Synthwave Neon (Slow-Gliding Neon Horizon Grid)
         const horizonY = height * 0.56;
@@ -505,54 +481,54 @@ export default function ThemeBackground() {
 
         state = { horizonY, gridRungs, gridLines, stars, scrollOffset: 0 };
       } else if (theme === 'mystic-amethyst') {
-        // 8. Mystic Amethyst Portal (Sacred Astrolabe & 3D Möbius Cosmic Nebula Ribbon)
-        const portalRadius = Math.min(width, height) * (isMobile ? 0.38 : 0.32);
+        // 8. Mystic Amethyst Portal (Full-Screen Cosmic Nebula Filament Web & Sinuous Arcane Ley Currents)
+        // Sinuous Diagonal Cosmic Energy Currents across the full canvas
+        const streamCount = isMobile ? 3 : 5;
+        const cosmicStreams = [];
+        for (let s = 0; s < streamCount; s++) {
+          cosmicStreams.push({
+            startX: (s / streamCount) * width,
+            startY: 0,
+            endX: width - (s / streamCount) * width,
+            endY: height,
+            amp: (isMobile ? 30 : 60) + Math.random() * 30,
+            speed: 0.02 + Math.random() * 0.015,
+            phase: Math.random() * Math.PI * 2,
+            color: s % 2 === 0 ? 'rgba(147, 51, 234, ' : 'rgba(16, 185, 129, '
+          });
+        }
 
-        // 3D Möbius Cosmic Nebula Ribbon Particles
-        const mobiusCount = isMobile ? 45 : 90;
-        const mobiusParticles = [];
-        const ribbonR = portalRadius * 1.1;
-        const ribbonWidth = portalRadius * 0.45;
-        for (let m = 0; m < mobiusCount; m++) {
-          mobiusParticles.push({
-            uNorm: (Math.random() * 2 - 1),
-            v: (m / mobiusCount) * Math.PI * 2,
-            vSpeed: 0.008 + Math.random() * 0.008,
-            size: Math.random() * 2.5 + 1.0,
-            color: m % 4 === 0 ? '#10b981' : (m % 2 === 0 ? '#9333ea' : (m % 3 === 0 ? '#c084fc' : '#f8fafc')),
+        // Floating Arcane Constellation Rune Nodes distributed across entire viewport
+        const nodeCount = isMobile ? 24 : 42;
+        const constellationNodes = [];
+        for (let n = 0; n < nodeCount; n++) {
+          constellationNodes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.45,
+            vy: (Math.random() - 0.5) * 0.45,
+            size: Math.random() * 2.8 + 1.2,
+            color: n % 4 === 0 ? '#10b981' : (n % 2 === 0 ? '#9333ea' : '#c084fc'),
             phase: Math.random() * Math.PI * 2
           });
         }
 
-        // Metatron's Cube 13 Sacred Geometry Circle Nodes
-        const metatronNodes = [
-          { dist: 0, angle: 0 }
-        ];
-        // 6 inner ring nodes
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * Math.PI * 2;
-          metatronNodes.push({ angle: a, dist: portalRadius * 0.5 });
-        }
-        // 6 outer ring nodes
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
-          metatronNodes.push({ angle: a, dist: portalRadius });
-        }
-
-        // Resonating Emerald Ley-Line Crystals on Perimeter
-        const crystalCount = isMobile ? 6 : 8;
-        const leyCrystals = [];
-        for (let c = 0; c < crystalCount; c++) {
-          leyCrystals.push({
-            angle: (c / crystalCount) * Math.PI * 2,
-            rotSpeed: (c % 2 === 0 ? 1 : -1) * 0.004,
-            radius: portalRadius * (0.8 + (c % 2) * 0.35),
-            size: (isMobile ? 8 : 12) + (c % 3) * 3,
+        // Drifting Cosmic Stardust
+        const dustCount = isMobile ? 30 : 60;
+        const stardust = [];
+        for (let d = 0; d < dustCount; d++) {
+          stardust.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: 0.2 + Math.random() * 0.5,
+            vy: 0.2 + Math.random() * 0.5,
+            size: Math.random() * 2.0 + 0.6,
+            color: d % 3 === 0 ? '#10b981' : (d % 2 === 0 ? '#c084fc' : '#f8fafc'),
             phase: Math.random() * Math.PI * 2
           });
         }
 
-        state = { portalRadius, ribbonR, ribbonWidth, mobiusParticles, metatronNodes, leyCrystals };
+        state = { cosmicStreams, constellationNodes, stardust };
       }
     }
 
@@ -764,178 +740,247 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'emerald-biogrid') {
-        // 3. Emerald Matrix Biogrid (3D Cyber DNA Double-Helix + Synaptic Hexagonal Matrix + Tesla Arcs)
+        // 3. Emerald Matrix Biogrid (Full-Screen Cyber Matrix Digital Rain & Synapse Bus Highways)
         ctx.save();
-        const cx = width * 0.5 + (mouseX - width * 0.5) * 0.08;
-        const cy = height * 0.5 + (mouseY - height * 0.5) * 0.08;
-        const { helixRungs, helixRadius, packets, hexSize, hexCols, hexRows, spores } = state;
+        const { matrixColumns, busLines, circuitNodes } = state;
 
-        // A. Background Hexagonal Synaptic Matrix
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.07)';
-        ctx.lineWidth = 1;
-        const hexH = hexSize * Math.sqrt(3);
-        const hexW = hexSize * 1.5;
-        for (let r = 0; r < hexRows; r++) {
-          for (let c = 0; c < hexCols; c++) {
-            const hx = c * hexW;
-            const hy = r * hexH + (c % 2 === 1 ? hexH * 0.5 : 0);
-            const distCenter = Math.hypot(hx - cx, hy - cy);
-            if (distCenter < width * 0.75) {
-              const pulse = 0.5 + Math.sin(frame * 0.02 + c * 0.5 + r * 0.3) * 0.5;
-              ctx.beginPath();
-              for (let a = 0; a < 6; a++) {
-                const angle = (a / 6) * Math.PI * 2;
-                const px = hx + Math.cos(angle) * (hexSize * 0.55);
-                const py = hy + Math.sin(angle) * (hexSize * 0.55);
-                if (a === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
+        // A. Full-Screen Cascading Cyber Matrix Bio-Data Rain
+        if (matrixColumns) {
+          matrixColumns.forEach((col) => {
+            col.y += col.speed;
+            if (col.y > height + col.length * 16) {
+              col.y = -col.length * 16;
+              col.speed = 1.2 + Math.random() * 2.8;
+            }
+
+            for (let i = 0; i < col.length; i++) {
+              const charY = col.y - i * 16;
+              if (charY >= 0 && charY <= height) {
+                const alpha = Math.max(0, 1 - i / col.length);
+                if (i === 0 && col.headGlow) {
+                  ctx.fillStyle = '#ffffff';
+                  ctx.globalAlpha = 0.9;
+                  ctx.fillRect(col.x - 1, charY - 1, 3, 3);
+                } else {
+                  ctx.fillStyle = i < 3 ? '#00f5a0' : '#10b981';
+                  ctx.globalAlpha = alpha * 0.45;
+                  ctx.fillRect(col.x, charY, 2, 8);
+                }
               }
-              ctx.closePath();
-              ctx.strokeStyle = `rgba(16, 185, 129, ${0.04 + pulse * 0.06})`;
+            }
+          });
+          ctx.globalAlpha = 1.0;
+        }
+
+        // B. Horizontal High-Speed Laser Bus Highways
+        if (busLines) {
+          busLines.forEach((bus) => {
+            ctx.beginPath();
+            ctx.moveTo(0, bus.y);
+            ctx.lineTo(width, bus.y);
+            ctx.strokeStyle = 'rgba(0, 245, 160, 0.08)';
+            ctx.lineWidth = 1.0;
+            ctx.stroke();
+
+            bus.packets.forEach((pkt) => {
+              pkt.x += bus.speed;
+              if (bus.speed > 0 && pkt.x > width + pkt.len) {
+                pkt.x = -pkt.len;
+              } else if (bus.speed < 0 && pkt.x < -pkt.len) {
+                pkt.x = width + pkt.len;
+              }
+
+              const pGrad = ctx.createLinearGradient(
+                bus.speed > 0 ? pkt.x : pkt.x + pkt.len,
+                bus.y,
+                bus.speed > 0 ? pkt.x + pkt.len : pkt.x,
+                bus.y
+              );
+              pGrad.addColorStop(0, 'rgba(0, 245, 160, 0)');
+              pGrad.addColorStop(0.7, pkt.color === '#00f5a0' ? 'rgba(0, 245, 160, 0.7)' : 'rgba(45, 212, 191, 0.7)');
+              pGrad.addColorStop(1, '#ffffff');
+
+              ctx.beginPath();
+              ctx.moveTo(pkt.x, bus.y);
+              ctx.lineTo(pkt.x + pkt.len, bus.y);
+              ctx.strokeStyle = pGrad;
+              ctx.lineWidth = 2.2;
               ctx.stroke();
-            }
-          }
-        }
-
-        // B. 3D Rotating Cyber DNA Double-Helix
-        const stepY = (height * 1.1) / helixRungs;
-        const startY = -height * 0.05;
-        const helixAngle = frame * 0.02;
-
-        for (let i = 0; i < helixRungs; i++) {
-          const y = startY + i * stepY;
-          const theta = i * 0.24 + helixAngle;
-
-          const cosT = Math.cos(theta);
-          const sinT = Math.sin(theta);
-
-          const xA = cx + cosT * helixRadius;
-          const xB = cx - cosT * helixRadius;
-
-          // Perspective depth weighting
-          const depthNormA = (sinT + 1) * 0.5;
-          const depthNormB = (-sinT + 1) * 0.5;
-
-          // Base-pair rung connecting Strand A and B
-          ctx.beginPath();
-          ctx.moveTo(xA, y);
-          ctx.lineTo(xB, y);
-          ctx.strokeStyle = `rgba(52, 211, 153, ${0.15 + Math.abs(cosT) * 0.25})`;
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
-
-          // Strand A Node
-          const sizeA = 2.0 + depthNormA * 2.5;
-          ctx.beginPath();
-          ctx.arc(xA, y, sizeA, 0, Math.PI * 2);
-          ctx.fillStyle = depthNormA > 0.5 ? '#34d399' : '#10b981';
-          ctx.globalAlpha = 0.3 + depthNormA * 0.7;
-          ctx.fill();
-
-          // Strand B Node
-          const sizeB = 2.0 + depthNormB * 2.5;
-          ctx.beginPath();
-          ctx.arc(xB, y, sizeB, 0, Math.PI * 2);
-          ctx.fillStyle = depthNormB > 0.5 ? '#34d399' : '#10b981';
-          ctx.globalAlpha = 0.3 + depthNormB * 0.7;
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1.0;
-
-        // Traveling Data Packets along Double Helix rungs
-        if (packets) {
-          packets.forEach((pkt) => {
-            pkt.t += pkt.speed;
-            if (pkt.t > 1) {
-              pkt.t = 0;
-              pkt.rungIndex = Math.floor(Math.random() * helixRungs);
-            } else if (pkt.t < 0) {
-              pkt.t = 1;
-              pkt.rungIndex = Math.floor(Math.random() * helixRungs);
-            }
-
-            const y = startY + pkt.rungIndex * stepY;
-            const theta = pkt.rungIndex * 0.24 + helixAngle;
-            const cosT = Math.cos(theta);
-            const xA = cx + cosT * helixRadius;
-            const xB = cx - cosT * helixRadius;
-            const px = xA + (xB - xA) * pkt.t;
-
-            ctx.beginPath();
-            ctx.arc(px, y, 3.2, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-
-            // Packet glow aura
-            ctx.beginPath();
-            ctx.arc(px, y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(52, 211, 153, 0.4)';
-            ctx.fill();
+            });
           });
         }
 
-        // C. Tesla Synaptic Lightning Arcs
-        state.nextArcTimer--;
-        if (state.nextArcTimer <= 0) {
-          state.nextArcTimer = Math.floor(18 + Math.random() * 26);
-          const rIdx = Math.floor(Math.random() * (helixRungs - 1));
-          const y1 = startY + rIdx * stepY;
-          const theta1 = rIdx * 0.24 + helixAngle;
-          const startX = Math.random() > 0.5 ? cx + Math.cos(theta1) * helixRadius : cx - Math.cos(theta1) * helixRadius;
+        // C. Distributed Synaptic Nodes across full canvas
+        if (circuitNodes) {
+          circuitNodes.forEach((node) => {
+            node.x += node.vx;
+            node.y += node.vy;
+            if (node.x < 0) node.x = width;
+            if (node.x > width) node.x = 0;
+            if (node.y < 0) node.y = height;
+            if (node.y > height) node.y = 0;
 
-          const targetX = startX + (Math.random() - 0.5) * (isMobile ? 120 : 220);
-          const targetY = y1 + (Math.random() - 0.5) * (isMobile ? 80 : 160);
+            const pulse = 0.4 + Math.sin(frame * 0.03 + node.pulsePhase) * 0.4;
 
-          const segments = [];
-          const steps = 7;
-          for (let s = 0; s < steps; s++) {
-            const frac = s / (steps - 1);
-            const jx = (Math.random() - 0.5) * 22;
-            const jy = (Math.random() - 0.5) * 22;
-            segments.push({
-              x: startX + (targetX - startX) * frac + jx,
-              y: y1 + (targetY - y1) * frac + jy
-            });
-          }
-          if (!state.lightningArcs) state.lightningArcs = [];
-          state.lightningArcs.push({ segments, life: 1.0 });
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#00f5a0';
+            ctx.globalAlpha = pulse;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 6.0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 245, 160, 0.2)';
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+          });
         }
 
-        if (state.lightningArcs) {
-          state.lightningArcs.forEach((arc, aIdx) => {
-            arc.life -= 0.12;
-            if (arc.life <= 0) {
-              state.lightningArcs.splice(aIdx, 1);
+        // D. Spontaneous Tesla Discharges between nearby nodes
+        state.nextSparkTimer--;
+        if (state.nextSparkTimer <= 0 && circuitNodes && circuitNodes.length > 2) {
+          state.nextSparkTimer = Math.floor(16 + Math.random() * 22);
+          const i1 = Math.floor(Math.random() * circuitNodes.length);
+          const n1 = circuitNodes[i1];
+
+          let closestDist = 280;
+          let targetNode = null;
+          circuitNodes.forEach((n2, i2) => {
+            if (i1 !== i2) {
+              const d = Math.hypot(n1.x - n2.x, n1.y - n2.y);
+              if (d < closestDist) {
+                closestDist = d;
+                targetNode = n2;
+              }
+            }
+          });
+
+          if (targetNode) {
+            const steps = 6;
+            const segments = [];
+            for (let s = 0; s < steps; s++) {
+              const frac = s / (steps - 1);
+              const jx = (Math.random() - 0.5) * 18;
+              const jy = (Math.random() - 0.5) * 18;
+              segments.push({
+                x: n1.x + (targetNode.x - n1.x) * frac + jx,
+                y: n1.y + (targetNode.y - n1.y) * frac + jy
+              });
+            }
+            if (!state.sparks) state.sparks = [];
+            state.sparks.push({ segments, life: 1.0 });
+          }
+        }
+
+        if (state.sparks) {
+          state.sparks.forEach((sp, idx) => {
+            sp.life -= 0.14;
+            if (sp.life <= 0) {
+              state.sparks.splice(idx, 1);
               return;
             }
             ctx.beginPath();
-            arc.segments.forEach((pt, pIdx) => {
+            sp.segments.forEach((pt, pIdx) => {
               if (pIdx === 0) ctx.moveTo(pt.x, pt.y);
               else ctx.lineTo(pt.x, pt.y);
             });
-            ctx.strokeStyle = `rgba(16, 185, 129, ${arc.life * 0.4})`;
-            ctx.lineWidth = 4.0;
+            ctx.strokeStyle = `rgba(0, 245, 160, ${sp.life * 0.5})`;
+            ctx.lineWidth = 3.5;
             ctx.stroke();
 
-            ctx.strokeStyle = `rgba(255, 255, 255, ${arc.life * 0.9})`;
-            ctx.lineWidth = 1.6;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${sp.life * 0.95})`;
+            ctx.lineWidth = 1.4;
             ctx.stroke();
           });
         }
 
-        // D. Floating Bio-Nanite Spores
-        if (spores) {
-          spores.forEach((sp) => {
-            sp.y += sp.vy;
-            sp.x += sp.vx;
-            if (sp.y < 0) {
-              sp.y = height + 10;
-              sp.x = Math.random() * width;
+        ctx.restore();
+      } else if (activeTheme === 'cobalt-quantum') {
+        // 4. Cobalt Quantum Wave (Full-Screen 3D Spacetime Wave Mesh & Particle Entanglement Web)
+        ctx.save();
+        const { gridSpacingX, gridSpacingY, cols, rows, quantumParticles } = state;
+        const waveSpeed = frame * 0.028;
+
+        // A. Full-Screen 3D Spacetime Topological Wave Mesh
+        ctx.lineWidth = 1.1;
+
+        // Horizontal curvature wave lines
+        for (let r = 0; r < rows; r++) {
+          ctx.beginPath();
+          const by = r * gridSpacingY;
+          for (let c = 0; c < cols; c++) {
+            const bx = c * gridSpacingX;
+            const wave = Math.sin(bx * 0.008 + by * 0.006 - waveSpeed) * 14 +
+                         Math.cos(bx * 0.012 - by * 0.008 + waveSpeed * 0.7) * 8;
+            const py = by + wave;
+
+            if (c === 0) ctx.moveTo(bx, py);
+            else ctx.lineTo(bx, py);
+          }
+          const rowProgress = r / rows;
+          ctx.strokeStyle = `rgba(59, 130, 246, ${0.06 + Math.sin(rowProgress * Math.PI) * 0.12})`;
+          ctx.stroke();
+        }
+
+        // Vertical curvature wave lines
+        for (let c = 0; c < cols; c++) {
+          ctx.beginPath();
+          const bx = c * gridSpacingX;
+          for (let r = 0; r < rows; r++) {
+            const by = r * gridSpacingY;
+            const wave = Math.sin(bx * 0.008 + by * 0.006 - waveSpeed) * 14 +
+                         Math.cos(bx * 0.012 - by * 0.008 + waveSpeed * 0.7) * 8;
+            const px = bx + Math.sin(by * 0.01 + waveSpeed) * 6;
+
+            if (r === 0) ctx.moveTo(px, by + wave);
+            else ctx.lineTo(px, by + wave);
+          }
+          const colProgress = c / cols;
+          ctx.strokeStyle = `rgba(6, 182, 212, ${0.05 + Math.sin(colProgress * Math.PI) * 0.10})`;
+          ctx.stroke();
+        }
+
+        // B. Full-Screen Quantum Particles & Proximity Entanglement Lines
+        if (quantumParticles) {
+          quantumParticles.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = width;
+            if (p.x > width) p.x = 0;
+            if (p.y < 0) p.y = height;
+            if (p.y > height) p.y = 0;
+          });
+
+          const maxEntangleDist = isMobile ? 120 : 160;
+          for (let i = 0; i < quantumParticles.length; i++) {
+            const p1 = quantumParticles[i];
+            for (let j = i + 1; j < quantumParticles.length; j++) {
+              const p2 = quantumParticles[j];
+              const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+              if (dist < maxEntangleDist) {
+                const alpha = (1 - dist / maxEntangleDist) * 0.45;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = `rgba(6, 182, 212, ${alpha})`;
+                ctx.lineWidth = 1.0;
+                ctx.stroke();
+              }
             }
-            const pulse = 0.35 + Math.sin(frame * sp.speed + sp.phase) * 0.45;
+          }
+
+          // Render Particle Nodes
+          quantumParticles.forEach((p) => {
+            const pulse = 0.4 + Math.sin(frame * 0.03 + p.phase) * 0.4;
+
             ctx.beginPath();
-            ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
-            ctx.fillStyle = '#34d399';
+            ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+            ctx.fillStyle = p.color === '#06b6d4' ? 'rgba(6, 182, 212, 0.2)' : 'rgba(59, 130, 246, 0.2)';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
             ctx.globalAlpha = Math.max(0, pulse);
             ctx.fill();
             ctx.globalAlpha = 1.0;
@@ -943,214 +988,76 @@ export default function ThemeBackground() {
         }
 
         ctx.restore();
-      } else if (activeTheme === 'cobalt-quantum') {
-        // 4. Cobalt Quantum Wave (4D Rotating Quantum Tesseract + Lissajous Entanglement Orbitals)
-        ctx.save();
-        const cx = width * 0.5 + (mouseX - width * 0.5) * 0.14;
-        const cy = height * 0.5 + (mouseY - height * 0.5) * 0.14;
-        const { vertices4D, edges4D, tesseractScale, entangledPairs, stars } = state;
-
-        // Background Probability Wave Stars
-        if (stars) {
-          stars.forEach((st) => {
-            const p = 0.3 + Math.sin(frame * st.speed + st.phase) * 0.4;
-            ctx.fillStyle = st.color;
-            ctx.globalAlpha = Math.max(0, p);
-            ctx.beginPath();
-            ctx.arc(st.x, st.y, st.size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-          });
-        }
-
-        // Quantum Probability Wave Rings radiating from center
-        for (let w = 0; w < 4; w++) {
-          const prog = ((frame * 0.004 + w * 0.25) % 1);
-          const r = prog * (Math.min(width, height) * 0.6);
-          const alpha = Math.sin(prog * Math.PI) * 0.2;
-          ctx.beginPath();
-          ctx.arc(cx, cy, r, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(6, 182, 212, ${alpha})`;
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
-
-        // A. 4D Rotating Quantum Tesseract Hypercube Projection
-        state.angleXZ = (state.angleXZ || 0) + 0.012;
-        state.angleYW = (state.angleYW || 0) + 0.016;
-        const cosXZ = Math.cos(state.angleXZ);
-        const sinXZ = Math.sin(state.angleXZ);
-        const cosYW = Math.cos(state.angleYW);
-        const sinYW = Math.sin(state.angleYW);
-
-        const projected = [];
-        if (vertices4D) {
-          vertices4D.forEach((v) => {
-            const x1 = v.x * cosXZ - v.z * sinXZ;
-            const z1 = v.x * sinXZ + v.z * cosXZ;
-            const y1 = v.y * cosYW - v.w * sinYW;
-            const w1 = v.y * sinYW + v.w * cosYW;
-
-            // 4D to 3D perspective projection
-            const dist4 = 2.4;
-            const factor4 = dist4 / (dist4 - w1 * 0.6);
-            const x3 = x1 * factor4;
-            const y3 = y1 * factor4;
-            const z3 = z1 * factor4;
-
-            // 3D to 2D perspective screen projection
-            const dist3 = 3.2;
-            const factor3 = dist3 / (dist3 - z3 * 0.5);
-            const screenX = cx + x3 * factor3 * tesseractScale;
-            const screenY = cy + y3 * factor3 * tesseractScale;
-
-            projected.push({ x: screenX, y: screenY, depth: z3 + w1 });
-          });
-        }
-
-        // Draw 32 Tesseract Edges
-        if (edges4D && projected.length === 16) {
-          edges4D.forEach(([i, j]) => {
-            const p1 = projected[i];
-            const p2 = projected[j];
-            const avgDepth = (p1.depth + p2.depth) * 0.5;
-            const normDepth = (avgDepth + 2) / 4;
-            const alpha = 0.15 + Math.max(0, Math.min(1, normDepth)) * 0.45;
-
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = normDepth > 0.5 ? `rgba(6, 182, 212, ${alpha})` : `rgba(59, 130, 246, ${alpha})`;
-            ctx.lineWidth = normDepth > 0.5 ? 1.8 : 1.0;
-            ctx.stroke();
-          });
-
-          // Draw 16 Tesseract Quantum Vertices
-          projected.forEach((p) => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 2.8, 0, Math.PI * 2);
-            ctx.fillStyle = '#06b6d4';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 6.0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(6, 182, 212, 0.25)';
-            ctx.fill();
-          });
-        }
-
-        // B. Quantum Entangled Paired Orbitals (Lissajous curves)
-        if (entangledPairs) {
-          entangledPairs.forEach((pair) => {
-            const time = frame * pair.speed + pair.phase;
-            const x1 = cx + Math.cos(time * pair.freqX) * pair.rX;
-            const y1 = cy + Math.sin(time * pair.freqY) * pair.rY;
-            const x2 = cx - Math.cos(time * pair.freqX) * pair.rX;
-            const y2 = cy - Math.sin(time * pair.freqY) * pair.rY;
-
-            // Quantum Entanglement Coherence Beam
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = `rgba(59, 130, 246, 0.18)`;
-            ctx.lineWidth = 1.0;
-            ctx.setLineDash([6, 6]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Entangled Particle 1
-            ctx.beginPath();
-            ctx.arc(x1, y1, 3.2, 0, Math.PI * 2);
-            ctx.fillStyle = '#3b82f6';
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(x1, y1, 7.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
-            ctx.fill();
-
-            // Entangled Particle 2
-            ctx.beginPath();
-            ctx.arc(x2, y2, 3.2, 0, Math.PI * 2);
-            ctx.fillStyle = '#06b6d4';
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(x2, y2, 7.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(6, 182, 212, 0.25)';
-            ctx.fill();
-          });
-        }
-
-        ctx.restore();
       } else if (activeTheme === 'golden-sunfire') {
-        // 5. Golden Sunfire Monolith (Rotating Sacred Sun Mandala & Opposing Thermal Vortices)
+        // 5. Golden Sunfire Monolith (Flanking Monolith Conduits, Solar Prominence Curtains & Opposing Thermal Streams)
         ctx.save();
-        const cx = width * 0.5;
-        const cy = height * 0.5;
-        const { mandalaRays, mandalaMaxR, frostStream, solarStream } = state;
+        const { frostStream, solarStream, curtains } = state;
+        const pillarW = isMobile ? 32 : 55;
 
-        // A. Central Sunfire Core Corona Glow
-        const sunGrad = ctx.createRadialGradient(cx, cy, 15, cx, cy, mandalaMaxR * 1.6);
-        const sunPulse = 0.7 + Math.sin(frame * 0.02) * 0.3;
-        sunGrad.addColorStop(0, `rgba(234, 179, 8, ${0.25 * sunPulse})`);
-        sunGrad.addColorStop(0.4, `rgba(245, 158, 11, ${0.12 * sunPulse})`);
-        sunGrad.addColorStop(1, 'rgba(6, 6, 6, 0)');
-        ctx.fillStyle = sunGrad;
-        ctx.fillRect(0, 0, width, height);
+        // A. Flanking Monolith Energy Conduits (Left & Right Viewport Edges)
+        // Left Column Conduit
+        const leftGrad = ctx.createLinearGradient(0, 0, pillarW, 0);
+        leftGrad.addColorStop(0, 'rgba(234, 179, 8, 0.18)');
+        leftGrad.addColorStop(0.6, 'rgba(245, 158, 11, 0.08)');
+        leftGrad.addColorStop(1, 'rgba(6, 6, 6, 0)');
+        ctx.fillStyle = leftGrad;
+        ctx.fillRect(0, 0, pillarW * 1.5, height);
 
-        // B. Rotating Sacred Sun Monolith Mandala
-        // Outer Sunburst Rays
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(frame * 0.0025);
-        for (let i = 0; i < mandalaRays; i++) {
-          const a = (i / mandalaRays) * Math.PI * 2;
-          const rInner = mandalaMaxR * 0.75;
-          const rOuter = mandalaMaxR * (1.0 + (i % 2 === 0 ? 0.28 : 0.12));
-          ctx.beginPath();
-          ctx.moveTo(Math.cos(a) * rInner, Math.sin(a) * rInner);
-          ctx.lineTo(Math.cos(a) * rOuter, Math.sin(a) * rOuter);
-          ctx.strokeStyle = i % 2 === 0 ? '#eab308' : '#f59e0b';
-          ctx.globalAlpha = 0.35 + Math.sin(frame * 0.03 + i) * 0.2;
-          ctx.lineWidth = i % 2 === 0 ? 2.2 : 1.2;
-          ctx.stroke();
+        // Right Column Conduit
+        const rightGrad = ctx.createLinearGradient(width, 0, width - pillarW, 0);
+        rightGrad.addColorStop(0, 'rgba(234, 179, 8, 0.18)');
+        rightGrad.addColorStop(0.6, 'rgba(245, 158, 11, 0.08)');
+        rightGrad.addColorStop(1, 'rgba(6, 6, 6, 0)');
+        ctx.fillStyle = rightGrad;
+        ctx.fillRect(width - pillarW * 1.5, 0, pillarW * 1.5, height);
 
-          // Diamond ray tips
-          if (i % 2 === 0) {
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(Math.cos(a) * rOuter, Math.sin(a) * rOuter, 1.8, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-        ctx.restore();
+        // Monolith Vertical Edge Bus Rails
+        const railPulse = 0.5 + Math.sin(frame * 0.03) * 0.3;
+        ctx.strokeStyle = `rgba(234, 179, 8, ${0.4 * railPulse})`;
+        ctx.lineWidth = 1.6;
 
-        // Intermediate Sacred Inscribed Ring (Counter-rotating)
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(-frame * 0.0035);
         ctx.beginPath();
-        ctx.arc(0, 0, mandalaMaxR * 0.65, 0, Math.PI * 2);
-        ctx.strokeStyle = '#eab308';
-        ctx.globalAlpha = 0.4;
-        ctx.lineWidth = 1.4;
-        ctx.setLineDash([12, 10, 4, 10]);
+        ctx.moveTo(pillarW * 0.6, 0);
+        ctx.lineTo(pillarW * 0.6, height);
         ctx.stroke();
 
-        // Inscribed triangular mandala glyphs
-        const glyphs = 8;
-        for (let g = 0; g < glyphs; g++) {
-          const ga = (g / glyphs) * Math.PI * 2;
-          const gx = Math.cos(ga) * (mandalaMaxR * 0.65);
-          const gy = Math.sin(ga) * (mandalaMaxR * 0.65);
-          ctx.beginPath();
-          ctx.arc(gx, gy, 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = '#fef08a';
-          ctx.globalAlpha = 0.6;
-          ctx.fill();
-        }
-        ctx.restore();
+        ctx.beginPath();
+        ctx.moveTo(width - pillarW * 0.6, 0);
+        ctx.lineTo(width - pillarW * 0.6, height);
+        ctx.stroke();
 
-        // C. Stream A: Descending Crystalline Gold-Frost Needles (Top -> Down)
+        // Pulsing tick marks down the side monoliths
+        const ticks = isMobile ? 12 : 24;
+        for (let t = 0; t < ticks; t++) {
+          const ty = (t / ticks) * height;
+          const tp = Math.sin(frame * 0.04 + t * 0.4);
+          if (tp > 0.2) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(pillarW * 0.6 - 2, ty, 4, 10);
+            ctx.fillRect(width - pillarW * 0.6 - 2, ty, 4, 10);
+          }
+        }
+
+        // B. Sweeping Horizontal Solar Prominence Ribbon Curtains
+        if (curtains) {
+          curtains.forEach((curt, cIdx) => {
+            ctx.beginPath();
+            const step = isMobile ? 35 : 20;
+            for (let x = 0; x <= width + step; x += step) {
+              const yOffset = Math.sin(x * curt.freq + frame * curt.speed + curt.phase) * curt.amp +
+                              Math.cos(x * curt.freq * 1.8 - frame * curt.speed * 0.7) * (curt.amp * 0.4);
+              const y = curt.baseY + yOffset;
+              if (x === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            const pulse = 0.25 + Math.sin(frame * 0.02 + cIdx) * 0.15;
+            ctx.strokeStyle = `${curt.color}${pulse})`;
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+          });
+        }
+
+        // C. Stream A: Descending Crystalline Gold-Frost Needles (Top -> Down across full width)
         if (frostStream) {
           frostStream.forEach((f) => {
             f.y += f.vy;
@@ -1169,7 +1076,7 @@ export default function ThemeBackground() {
           });
         }
 
-        // D. Stream B: Ascending Solar Plasma Embers (Bottom -> Up)
+        // D. Stream B: Ascending Solar Plasma Embers (Bottom -> Up across full width)
         if (solarStream) {
           solarStream.forEach((s) => {
             s.y += s.vy;
@@ -1188,109 +1095,34 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'obsidian-void') {
-        // 6. Obsidian Shadow Void (Stealth Quantum Eclipse & Dark-Matter Lattice)
+        // 6. Obsidian Shadow Void (Full-Canvas 3D Tumbling Dark-Matter Shards & Corner-to-Corner Crystal Lattice)
         ctx.save();
-        const cx = width * 0.5 + (mouseX - width * 0.5) * 0.08;
-        const cy = height * 0.5 + (mouseY - height * 0.5) * 0.08;
-        const { eclipseRadius, facets, circuitPaths, infallDust } = state;
+        const { shards, circuitPaths, veils, microSparks } = state;
 
-        // A. Stealth Quantum Eclipse Monolith & Coronal Rays
-        const coronaRays = 16;
-        for (let r = 0; r < coronaRays; r++) {
-          const angle = (r / coronaRays) * Math.PI * 2 + frame * 0.002;
-          const rayLen = eclipseRadius * (1.6 + Math.sin(frame * 0.03 + r * 1.5) * 0.4);
-          const rx = cx + Math.cos(angle) * rayLen;
-          const ry = cy + Math.sin(angle) * rayLen;
-          const rGrad = ctx.createLinearGradient(cx, cy, rx, ry);
-          rGrad.addColorStop(0, 'rgba(129, 140, 248, 0.18)');
-          rGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.08)');
-          rGrad.addColorStop(1, 'rgba(2, 2, 4, 0)');
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(rx, ry);
-          ctx.strokeStyle = rGrad;
-          ctx.lineWidth = 2.4;
-          ctx.stroke();
-        }
-
-        // Shimmering Platinum-Chrome & Phantom-Violet Photon Ring
-        const ringPulse = 0.75 + Math.sin(frame * 0.04) * 0.25;
-        ctx.beginPath();
-        ctx.arc(cx, cy, eclipseRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(203, 213, 225, ${0.45 * ringPulse})`;
-        ctx.lineWidth = 2.0;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, eclipseRadius * 1.05, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(129, 140, 248, ${0.3 * ringPulse})`;
-        ctx.lineWidth = 1.0;
-        ctx.stroke();
-
-        // Total Event Horizon Black Abyss Void
-        ctx.beginPath();
-        ctx.arc(cx, cy, eclipseRadius * 0.98, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
-        ctx.fill();
-
-        // B. 3D Tumbling Geometric Dark-Matter Facets
-        if (facets) {
-          facets.forEach((f) => {
-            f.x += f.vx;
-            f.y += f.vy;
-            f.rotX += f.vRotX;
-            f.rotY += f.vRotY;
-            f.rotZ += f.vRotZ;
-
-            if (f.x < -60) f.x = width + 60;
-            if (f.x > width + 60) f.x = -60;
-            if (f.y < -60) f.y = height + 60;
-            if (f.y > height + 60) f.y = -60;
-
-            ctx.save();
-            ctx.translate(f.x, f.y);
-            ctx.rotate(f.rotZ);
-
+        // A. Atmospheric Dark-Matter Veil Fog Bands
+        if (veils) {
+          veils.forEach((v, vIdx) => {
             ctx.beginPath();
-            const cosX = Math.cos(f.rotX);
-            const sinY = Math.sin(f.rotY);
-            for (let s = 0; s < f.sides; s++) {
-              const a = (s / f.sides) * Math.PI * 2;
-              const px = Math.cos(a) * f.size * (0.7 + sinY * 0.3);
-              const py = Math.sin(a) * f.size * (0.7 + cosX * 0.3);
-              if (s === 0) ctx.moveTo(px, py);
-              else ctx.lineTo(px, py);
+            const step = isMobile ? 40 : 25;
+            for (let x = 0; x <= width + step; x += step) {
+              const yOffset = Math.sin(x * 0.003 + frame * v.speed + v.phase) * v.amp;
+              const y = v.y + yOffset;
+              if (x === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
             }
-            ctx.closePath();
-
-            // Dark-matter semi-translucent fill
-            ctx.fillStyle = `rgba(12, 12, 18, ${f.alpha})`;
-            ctx.fill();
-
-            // Platinum-chrome and violet edges
-            ctx.strokeStyle = `rgba(203, 213, 225, ${f.alpha * 1.5})`;
-            ctx.lineWidth = 1.2;
+            const pulse = 0.12 + Math.sin(frame * 0.02 + vIdx) * 0.08;
+            ctx.strokeStyle = `rgba(129, 140, 248, ${pulse})`;
+            ctx.lineWidth = isMobile ? 12 : 24;
             ctx.stroke();
-
-            // Facet vertex glint
-            const glintA = (0 / f.sides) * Math.PI * 2;
-            const gx = Math.cos(glintA) * f.size * (0.7 + sinY * 0.3);
-            const gy = Math.sin(glintA) * f.size * (0.7 + cosX * 0.3);
-            ctx.beginPath();
-            ctx.arc(gx, gy, 1.8, 0, Math.PI * 2);
-            ctx.fillStyle = '#818cf8';
-            ctx.fill();
-
-            ctx.restore();
           });
         }
 
-        // C. Stealth Quantum Circuit Lattice Traces
+        // B. Corner-to-Corner Dendritic Stealth Circuit Lattice
         if (circuitPaths) {
           circuitPaths.forEach((branch, bIdx) => {
-            const p = 0.35 + Math.sin(frame * 0.02 + bIdx) * 0.25;
-            ctx.strokeStyle = `rgba(129, 140, 248, ${p * 0.35})`;
-            ctx.lineWidth = 1.2;
+            const p = 0.35 + Math.sin(frame * 0.025 + bIdx) * 0.25;
+            ctx.strokeStyle = `rgba(129, 140, 248, ${p * 0.4})`;
+            ctx.lineWidth = 1.3;
             ctx.beginPath();
             branch.forEach((seg) => {
               ctx.moveTo(seg.x1, seg.y1);
@@ -1298,33 +1130,85 @@ export default function ThemeBackground() {
             });
             ctx.stroke();
 
+            // Circuit Node Junctions
             branch.forEach((seg) => {
               if (seg.node) {
                 ctx.fillStyle = '#cbd5e1';
                 ctx.beginPath();
                 ctx.arc(seg.x2, seg.y2, 1.8, 0, Math.PI * 2);
                 ctx.fill();
+
+                if (Math.sin(frame * 0.05 + seg.x2) > 0.8) {
+                  ctx.fillStyle = '#818cf8';
+                  ctx.beginPath();
+                  ctx.arc(seg.x2, seg.y2, 3.2, 0, Math.PI * 2);
+                  ctx.fill();
+                }
               }
             });
           });
         }
 
-        // D. Infall Dark-Matter Dust Particles
-        if (infallDust) {
-          infallDust.forEach((d) => {
-            d.dist += d.radialSpeed;
-            d.angle += d.angularSpeed;
-            if (d.dist < eclipseRadius) {
-              d.dist = Math.max(width, height) * 0.55;
-            }
-            const px = cx + Math.cos(d.angle) * d.dist;
-            const py = cy + Math.sin(d.angle) * d.dist;
-            const alpha = 0.2 + Math.sin(frame * 0.03 + d.phase) * 0.35;
+        // C. Full-Canvas 3D Tumbling Geometric Dark-Matter Polygon Shards
+        if (shards) {
+          shards.forEach((s) => {
+            s.x += s.vx;
+            s.y += s.vy;
+            s.rotX += s.vRotX;
+            s.rotY += s.vRotY;
+            s.rotZ += s.vRotZ;
 
-            ctx.fillStyle = d.color;
-            ctx.globalAlpha = Math.max(0, alpha);
+            if (s.x < -80) s.x = width + 80;
+            if (s.x > width + 80) s.x = -80;
+            if (s.y < -80) s.y = height + 80;
+            if (s.y > height + 80) s.y = -80;
+
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.rotate(s.rotZ);
+
             ctx.beginPath();
-            ctx.arc(px, py, d.size, 0, Math.PI * 2);
+            const cosX = Math.cos(s.rotX);
+            const sinY = Math.sin(s.rotY);
+            for (let side = 0; side < s.sides; side++) {
+              const a = (side / s.sides) * Math.PI * 2;
+              const px = Math.cos(a) * s.baseRadius * (0.65 + sinY * 0.35);
+              const py = Math.sin(a) * s.baseRadius * (0.65 + cosX * 0.35);
+              if (side === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+
+            // Dark-matter semi-translucent fill
+            ctx.fillStyle = `rgba(12, 12, 18, ${s.alpha})`;
+            ctx.fill();
+
+            // Platinum-chrome and phantom-violet edges
+            ctx.strokeStyle = `rgba(203, 213, 225, ${s.alpha * 1.8})`;
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+
+            // Vertex specular glint
+            const glintA = 0;
+            const gx = Math.cos(glintA) * s.baseRadius * (0.65 + sinY * 0.35);
+            const gy = Math.sin(glintA) * s.baseRadius * (0.65 + cosX * 0.35);
+            ctx.beginPath();
+            ctx.arc(gx, gy, 2.0, 0, Math.PI * 2);
+            ctx.fillStyle = '#818cf8';
+            ctx.fill();
+
+            ctx.restore();
+          });
+        }
+
+        // D. Drifting Platinum and Phantom-Violet Micro-Sparks
+        if (microSparks) {
+          microSparks.forEach((sp) => {
+            const p = 0.25 + Math.sin(frame * sp.speed + sp.phase) * 0.35;
+            ctx.fillStyle = sp.color;
+            ctx.globalAlpha = Math.max(0, p);
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1.0;
           });
@@ -1388,151 +1272,115 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'mystic-amethyst') {
-        // 8. Mystic Amethyst Portal (Sacred Astrolabe & 3D Möbius Cosmic Nebula Ribbon)
+        // 8. Mystic Amethyst Portal (Full-Screen Sinuous Cosmic Currents & Constellation Network)
         ctx.save();
-        const cx = width * 0.5;
-        const cy = height * 0.5;
-        const { portalRadius, ribbonR, ribbonWidth, mobiusParticles, metatronNodes, leyCrystals } = state;
+        const { cosmicStreams, constellationNodes, stardust } = state;
 
-        // A. 3D Möbius Cosmic Nebula Ribbon
-        if (mobiusParticles) {
-          mobiusParticles.forEach((p) => {
-            p.v += p.vSpeed;
-            const u = p.uNorm * ribbonWidth;
-            const halfV = p.v * 0.5;
-
-            // Parametric 3D Möbius equation
-            const rPrime = ribbonR + u * Math.cos(halfV);
-            const x3D = rPrime * Math.cos(p.v);
-            const y3D = rPrime * Math.sin(p.v);
-            const z3D = u * Math.sin(halfV);
-
-            // Perspective Depth Projection
-            const dist = portalRadius * 2.5;
-            const factor = dist / (dist - z3D);
-            const px = cx + x3D * factor;
-            const py = cy + y3D * factor;
-
-            const depthAlpha = 0.2 + ((z3D + ribbonWidth) / (ribbonWidth * 2)) * 0.6;
-
-            // Stardust halo
+        // A. Full-Canvas Sinuous Cosmic Nebula Currents (Corner-to-Corner S-Curves)
+        if (cosmicStreams) {
+          cosmicStreams.forEach((stream, sIdx) => {
             ctx.beginPath();
-            ctx.arc(px, py, p.size * 2, 0, Math.PI * 2);
-            ctx.fillStyle = p.color === '#10b981' ? 'rgba(16, 185, 129, 0.18)' : 'rgba(147, 51, 234, 0.18)';
-            ctx.fill();
+            const steps = isMobile ? 24 : 45;
+            for (let i = 0; i <= steps; i++) {
+              const t = i / steps;
+              // Diagonal base line interpolated from start to end
+              const bx = stream.startX + (stream.endX - stream.startX) * t;
+              const by = stream.startY + (stream.endY - stream.startY) * t;
 
-            // Stardust core
-            ctx.beginPath();
-            ctx.arc(px, py, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = Math.max(0, depthAlpha);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
+              // Harmonic S-wave perpendicular displacement
+              const perpDist = Math.sin(t * Math.PI * 2 + frame * stream.speed + stream.phase) * stream.amp +
+                               Math.cos(t * Math.PI * 4 - frame * stream.speed * 0.6) * (stream.amp * 0.35);
+              const px = bx + perpDist * 0.6;
+              const py = by + perpDist;
+
+              if (i === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
+            const pulse = 0.25 + Math.sin(frame * 0.02 + sIdx) * 0.15;
+            ctx.strokeStyle = `${stream.color}${pulse})`;
+            ctx.lineWidth = isMobile ? 2.0 : 3.0;
+            ctx.stroke();
           });
         }
 
-        // B. Metatron's Cube Sacred Geometry Astrolabe
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(frame * 0.003);
-
-        const nodeCoords = [];
-        if (metatronNodes) {
-          metatronNodes.forEach((mn) => {
-            if (mn.dist === 0) {
-              nodeCoords.push({ x: 0, y: 0 });
-            } else {
-              nodeCoords.push({
-                x: Math.cos(mn.angle) * mn.dist,
-                y: Math.sin(mn.angle) * mn.dist
-              });
-            }
+        // B. Floating Arcane Constellation Rune Network & Proximity Laser Filaments
+        if (constellationNodes) {
+          constellationNodes.forEach((n) => {
+            n.x += n.vx;
+            n.y += n.vy;
+            if (n.x < 0) n.x = width;
+            if (n.x > width) n.x = 0;
+            if (n.y < 0) n.y = height;
+            if (n.y > height) n.y = 0;
           });
 
-          // Draw Sacred Geometry lines connecting all nodes
-          ctx.strokeStyle = 'rgba(192, 132, 252, 0.22)';
-          ctx.lineWidth = 1.0;
-          for (let i = 0; i < nodeCoords.length; i++) {
-            for (let j = i + 1; j < nodeCoords.length; j++) {
-              ctx.beginPath();
-              ctx.moveTo(nodeCoords[i].x, nodeCoords[i].y);
-              ctx.lineTo(nodeCoords[j].x, nodeCoords[j].y);
-              ctx.stroke();
+          // Proximity laser filaments between rune nodes
+          const maxFilamentDist = isMobile ? 120 : 170;
+          for (let i = 0; i < constellationNodes.length; i++) {
+            const n1 = constellationNodes[i];
+            for (let j = i + 1; j < constellationNodes.length; j++) {
+              const n2 = constellationNodes[j];
+              const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y);
+              if (dist < maxFilamentDist) {
+                const alpha = (1 - dist / maxFilamentDist) * 0.38;
+                ctx.beginPath();
+                ctx.moveTo(n1.x, n1.y);
+                ctx.lineTo(n2.x, n2.y);
+                ctx.strokeStyle = n1.color === '#10b981' || n2.color === '#10b981'
+                  ? `rgba(16, 185, 129, ${alpha})`
+                  : `rgba(192, 132, 252, ${alpha})`;
+                ctx.lineWidth = 1.0;
+                ctx.stroke();
+              }
             }
           }
 
-          // Node Circles
-          nodeCoords.forEach((nc, idx) => {
-            const p = 0.4 + Math.sin(frame * 0.03 + idx) * 0.4;
-            ctx.beginPath();
-            ctx.arc(nc.x, nc.y, idx === 0 ? 6.0 : 3.5, 0, Math.PI * 2);
-            ctx.fillStyle = idx === 0 ? '#10b981' : '#c084fc';
-            ctx.globalAlpha = p;
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-          });
-        }
-        ctx.restore();
-
-        // Outer Astrolabe Concentric Runic Rings
-        for (let r = 0; r < 3; r++) {
-          const ringRad = portalRadius * (0.6 + r * 0.35);
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate((r % 2 === 0 ? 1 : -1) * frame * (0.002 + r * 0.001));
-          ctx.beginPath();
-          ctx.arc(0, 0, ringRad, 0, Math.PI * 2);
-          ctx.strokeStyle = r === 1 ? '#10b981' : '#9333ea';
-          ctx.globalAlpha = 0.35;
-          ctx.lineWidth = 1.3;
-          ctx.setLineDash(r === 0 ? [14, 10, 4, 10] : [20, 12]);
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        // C. Resonating Emerald Ley-Line Crystals on Perimeter
-        if (leyCrystals) {
-          const crystalPoints = [];
-          leyCrystals.forEach((crys) => {
-            crys.angle += crys.rotSpeed;
-            const lx = cx + Math.cos(crys.angle) * crys.radius;
-            const ly = cy + Math.sin(crys.angle) * crys.radius;
-            crystalPoints.push({ x: lx, y: ly, size: crys.size });
-          });
-
-          // Emerald laser perimeter filament
-          ctx.beginPath();
-          crystalPoints.forEach((pt, idx) => {
-            if (idx === 0) ctx.moveTo(pt.x, pt.y);
-            else ctx.lineTo(pt.x, pt.y);
-          });
-          ctx.closePath();
-          ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-
-          // Render Faceted Emerald Crystals
-          crystalPoints.forEach((pt, idx) => {
-            const pulse = 0.5 + Math.sin(frame * 0.035 + idx) * 0.45;
+          // Faceted Arcane Rune Diamonds
+          constellationNodes.forEach((n) => {
+            const pulse = 0.4 + Math.sin(frame * 0.03 + n.phase) * 0.4;
             ctx.save();
-            ctx.translate(pt.x, pt.y);
-            ctx.rotate(frame * 0.02 + idx);
+            ctx.translate(n.x, n.y);
+            ctx.rotate(frame * 0.015 + n.phase);
 
-            // Diamond crystal facet
+            // Outer soft glow aura
             ctx.beginPath();
-            ctx.moveTo(0, -pt.size * 0.6);
-            ctx.lineTo(pt.size * 0.4, 0);
-            ctx.lineTo(0, pt.size * 0.6);
-            ctx.lineTo(-pt.size * 0.4, 0);
-            ctx.closePath();
-
-            ctx.fillStyle = `rgba(16, 185, 129, ${0.4 * pulse})`;
+            ctx.arc(0, 0, n.size * 2.4, 0, Math.PI * 2);
+            ctx.fillStyle = n.color === '#10b981' ? 'rgba(16, 185, 129, 0.16)' : 'rgba(147, 51, 234, 0.16)';
             ctx.fill();
-            ctx.strokeStyle = '#34d399';
-            ctx.lineWidth = 1.2;
+
+            // Diamond rune facet
+            ctx.beginPath();
+            ctx.moveTo(0, -n.size * 1.2);
+            ctx.lineTo(n.size * 0.8, 0);
+            ctx.lineTo(0, n.size * 1.2);
+            ctx.lineTo(-n.size * 0.8, 0);
+            ctx.closePath();
+            ctx.fillStyle = n.color;
+            ctx.globalAlpha = Math.max(0, pulse);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 0.8;
             ctx.stroke();
 
             ctx.restore();
+          });
+        }
+
+        // C. Drifting Cosmic Stardust
+        if (stardust) {
+          stardust.forEach((d) => {
+            d.x += d.vx;
+            d.y += d.vy;
+            if (d.x > width) d.x = 0;
+            if (d.y > height) d.y = 0;
+
+            const p = 0.25 + Math.sin(frame * 0.03 + d.phase) * 0.35;
+            ctx.fillStyle = d.color;
+            ctx.globalAlpha = Math.max(0, p);
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
           });
         }
 
