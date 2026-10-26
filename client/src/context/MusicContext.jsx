@@ -814,7 +814,24 @@ export const MusicProvider = ({ children }) => {
       ]);
 
       if (favRes.status === 'fulfilled' && Array.isArray(favRes.value.data)) {
-        setFavorites(favRes.value.data);
+        let serverFavs = favRes.value.data;
+        try {
+          const savedOrder = localStorage.getItem('syncstream_favorites_order');
+          if (savedOrder) {
+            const orderIds = JSON.parse(savedOrder);
+            if (Array.isArray(orderIds)) {
+              serverFavs.sort((a, b) => {
+                const idxA = orderIds.indexOf(a.id);
+                const idxB = orderIds.indexOf(b.id);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return 0;
+              });
+            }
+          }
+        } catch (e) {}
+        setFavorites(serverFavs);
         localStorage.setItem('syncstream_favorites', JSON.stringify(favRes.value.data));
       }
 
@@ -865,6 +882,16 @@ export const MusicProvider = ({ children }) => {
       }
     }
   }, [favorites]);
+
+  // Reorder user favorite songs
+  const reorderFavorites = useCallback((newFavorites) => {
+    if (!Array.isArray(newFavorites)) return;
+    setFavorites(newFavorites);
+    try {
+      localStorage.setItem('syncstream_favorites', JSON.stringify(newFavorites));
+      localStorage.setItem('syncstream_favorites_order', JSON.stringify(newFavorites.map(s => s.id)));
+    } catch (e) {}
+  }, []);
 
   // Create Playlist
   const createPlaylist = useCallback(async (name, description = '') => {
@@ -1021,6 +1048,7 @@ export const MusicProvider = ({ children }) => {
     playlists,
     isFavorite,
     toggleFavorite,
+    reorderFavorites,
     createPlaylist,
     updatePlaylist,
     deletePlaylist,

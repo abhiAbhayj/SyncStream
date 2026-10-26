@@ -134,6 +134,7 @@ export default function Music() {
     playlists,
     isFavorite,
     toggleFavorite,
+    reorderFavorites,
     createPlaylist,
     updatePlaylist,
     deletePlaylist,
@@ -271,10 +272,24 @@ export default function Music() {
 
   const handleReorderPlaylistSongs = (fromIndex, toIndex) => {
     if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
+
+    const sourceSong = displayedPlaylistSongs[fromIndex];
+    const targetSong = displayedPlaylistSongs[toIndex];
+    if (!sourceSong || !targetSong) return;
+
     setPlaylistSongs(prev => {
-      const updated = [...prev];
-      const [moved] = updated.splice(fromIndex, 1);
-      updated.splice(toIndex, 0, moved);
+      let baseList = [...prev];
+      if (playlistSort !== 'default') {
+        baseList = [...displayedPlaylistSongs];
+      }
+
+      const actualFrom = baseList.findIndex(s => s.id === sourceSong.id);
+      const actualTo = baseList.findIndex(s => s.id === targetSong.id);
+      if (actualFrom === -1 || actualTo === -1) return prev;
+
+      const updated = [...baseList];
+      const [moved] = updated.splice(actualFrom, 1);
+      updated.splice(actualTo, 0, moved);
 
       // Save custom order to localStorage for persistence
       if (selectedPlaylistDetails?.id) {
@@ -287,10 +302,13 @@ export default function Music() {
       }
       return updated;
     });
+
+    if (playlistSort !== 'default') {
+      setPlaylistSort('default');
+    }
   };
 
   const handleDragStart = (idx, e) => {
-    if (playlistSort !== 'default' || playlistSearch) return;
     setDraggedSongIndex(idx);
     e.dataTransfer.effectAllowed = 'move';
     try {
@@ -299,7 +317,6 @@ export default function Music() {
   };
 
   const handleDragOver = (idx, e) => {
-    if (playlistSort !== 'default' || playlistSearch) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (dragOverIndex !== idx) {
@@ -315,7 +332,6 @@ export default function Music() {
 
   const handleDrop = (toIndex, e) => {
     e.preventDefault();
-    if (playlistSort !== 'default' || playlistSearch) return;
     const fromIndex = draggedSongIndex;
     if (fromIndex !== null && fromIndex !== toIndex) {
       handleReorderPlaylistSongs(fromIndex, toIndex);
@@ -329,9 +345,8 @@ export default function Music() {
     setDragOverIndex(null);
   };
 
-  // Touch Drag Support for Mobile devices
+  // Touch Drag Support for Mobile devices (all sort options)
   const handleTouchStart = (idx) => {
-    if (playlistSort !== 'default' || playlistSearch) return;
     touchDragRef.current = { fromIndex: idx, targetIndex: idx };
     setDraggedSongIndex(idx);
   };
@@ -358,6 +373,149 @@ export default function Music() {
     touchDragRef.current = { fromIndex: null, targetIndex: null };
     setDraggedSongIndex(null);
     setDragOverIndex(null);
+  };
+
+  // ── Favorites Internal Search, Sort & Drag Reorder State ──
+  const [favoriteSearch, setFavoriteSearch] = useState('');
+  const [favoriteSort, setFavoriteSort] = useState('default');
+  const [draggedFavIndex, setDraggedFavIndex] = useState(null);
+  const [dragOverFavIndex, setDragOverFavIndex] = useState(null);
+  const touchFavDragRef = useRef({ fromIndex: null, targetIndex: null });
+
+  // Filtered & Sorted favorite songs
+  const displayedFavorites = useMemo(() => {
+    let list = [...favorites];
+
+    if (favoriteSearch.trim()) {
+      const q = favoriteSearch.toLowerCase().trim();
+      list = list.filter(song =>
+        (song.title && song.title.toLowerCase().includes(q)) ||
+        (song.artist && song.artist.toLowerCase().includes(q)) ||
+        (song.album && song.album.toLowerCase().includes(q))
+      );
+    }
+
+    switch (favoriteSort) {
+      case 'title_asc':
+        list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        break;
+      case 'title_desc':
+        list.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+        break;
+      case 'artist_asc':
+        list.sort((a, b) => (a.artist || '').localeCompare(b.artist || ''));
+        break;
+      case 'duration_asc':
+        list.sort((a, b) => (parseInt(a.duration, 10) || 0) - (parseInt(b.duration, 10) || 0));
+        break;
+      case 'duration_desc':
+        list.sort((a, b) => (parseInt(b.duration, 10) || 0) - (parseInt(a.duration, 10) || 0));
+        break;
+      case 'newest':
+        list.sort((a, b) => {
+          if (a.added_at && b.added_at) return new Date(b.added_at) - new Date(a.added_at);
+          return 0;
+        });
+        break;
+      case 'default':
+      default:
+        break;
+    }
+
+    return list;
+  }, [favorites, favoriteSearch, favoriteSort]);
+
+  const handleReorderFavorites = (fromIndex, toIndex) => {
+    if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
+
+    const sourceSong = displayedFavorites[fromIndex];
+    const targetSong = displayedFavorites[toIndex];
+    if (!sourceSong || !targetSong) return;
+
+    let baseList = [...favorites];
+    if (favoriteSort !== 'default') {
+      baseList = [...displayedFavorites];
+    }
+
+    const actualFrom = baseList.findIndex(s => s.id === sourceSong.id);
+    const actualTo = baseList.findIndex(s => s.id === targetSong.id);
+    if (actualFrom === -1 || actualTo === -1) return;
+
+    const updated = [...baseList];
+    const [moved] = updated.splice(actualFrom, 1);
+    updated.splice(actualTo, 0, moved);
+
+    reorderFavorites(updated);
+
+    if (favoriteSort !== 'default') {
+      setFavoriteSort('default');
+    }
+  };
+
+  const handleFavDragStart = (idx, e) => {
+    setDraggedFavIndex(idx);
+    e.dataTransfer.effectAllowed = 'move';
+    try {
+      e.dataTransfer.setData('text/plain', idx.toString());
+    } catch {}
+  };
+
+  const handleFavDragOver = (idx, e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverFavIndex !== idx) {
+      setDragOverFavIndex(idx);
+    }
+  };
+
+  const handleFavDragLeave = (idx) => {
+    if (dragOverFavIndex === idx) {
+      setDragOverFavIndex(null);
+    }
+  };
+
+  const handleFavDrop = (toIndex, e) => {
+    e.preventDefault();
+    const fromIndex = draggedFavIndex;
+    if (fromIndex !== null && fromIndex !== toIndex) {
+      handleReorderFavorites(fromIndex, toIndex);
+    }
+    setDraggedFavIndex(null);
+    setDragOverFavIndex(null);
+  };
+
+  const handleFavDragEnd = () => {
+    setDraggedFavIndex(null);
+    setDragOverFavIndex(null);
+  };
+
+  const handleFavTouchStart = (idx) => {
+    touchFavDragRef.current = { fromIndex: idx, targetIndex: idx };
+    setDraggedFavIndex(idx);
+  };
+
+  const handleFavTouchMove = (e) => {
+    if (touchFavDragRef.current.fromIndex === null) return;
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    const songCard = element?.closest('[data-fav-index]');
+    if (songCard) {
+      const overIdx = parseInt(songCard.getAttribute('data-fav-index'), 10);
+      if (!isNaN(overIdx) && overIdx !== touchFavDragRef.current.targetIndex) {
+        touchFavDragRef.current.targetIndex = overIdx;
+        setDragOverFavIndex(overIdx);
+      }
+    }
+  };
+
+  const handleFavTouchEnd = () => {
+    const { fromIndex, targetIndex } = touchFavDragRef.current;
+    if (fromIndex !== null && targetIndex !== null && fromIndex !== targetIndex) {
+      handleReorderFavorites(fromIndex, targetIndex);
+    }
+    touchFavDragRef.current = { fromIndex: null, targetIndex: null };
+    setDraggedFavIndex(null);
+    setDragOverFavIndex(null);
   };
 
   // Fetch trending songs by language with pagination (Dual-Engine live updated)
@@ -1752,6 +1910,89 @@ export default function Music() {
 
             {favorites.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => playQueue(displayedFavorites, 0)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs sm:text-sm font-black shadow-lg shadow-red-500/50 hover:opacity-95 transition active:scale-95 border border-white/25"
+                >
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Play All ({displayedFavorites.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const listToShuffle = displayedFavorites.length > 0 ? displayedFavorites : favorites;
+                    const shuffled = [...listToShuffle].sort(() => Math.random() - 0.5);
+                    playQueue(shuffled, 0);
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black border-2 border-white/25 transition active:scale-95 shadow-md"
+                >
+                  <Shuffle className="w-4 h-4 text-red-400" />
+                  <span>Shuffle</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {favorites.length > 0 && (
+            /* ── Favorites Controls Toolbar: Search Songs, Sort Options, View Mode ── */
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-[#18203c]/90 border border-white/15 shadow-xl">
+              {/* Search Inside Favorites */}
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={favoriteSearch}
+                  onChange={(e) => setFavoriteSearch(e.target.value)}
+                  placeholder="Search liked songs..."
+                  className="w-full bg-[#12182f] border border-white/20 focus:border-red-400 rounded-xl pl-10 pr-9 py-2 text-xs sm:text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-red-400 transition font-semibold"
+                />
+                {favoriteSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setFavoriteSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 transition cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap justify-between sm:justify-end">
+                {favoriteSearch && (
+                  <span className="text-xs font-mono font-bold text-slate-300 px-3 py-1 rounded-full bg-white/10 border border-white/20">
+                    Found {displayedFavorites.length} of {favorites.length}
+                  </span>
+                )}
+
+                {/* Drag & drop helper pill (available in all sort options) */}
+                {favorites.length > 1 && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/40 text-[11px] font-black text-red-400 shrink-0 shadow-sm">
+                    <GripVertical className="w-3.5 h-3.5 text-red-400" />
+                    <span>Drag songs to reorder</span>
+                  </div>
+                )}
+
+                {/* Sort Options Dropdown */}
+                <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                  <span className="text-xs font-bold text-slate-300 hidden md:inline">Sort:</span>
+                  <select
+                    value={favoriteSort}
+                    onChange={(e) => setFavoriteSort(e.target.value)}
+                    className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer"
+                  >
+                    <option value="default" className="bg-[#18203c] text-white">Default (Custom)</option>
+                    <option value="newest" className="bg-[#18203c] text-white">Recently Liked</option>
+                    <option value="title_asc" className="bg-[#18203c] text-white">Title (A &rarr; Z)</option>
+                    <option value="title_desc" className="bg-[#18203c] text-white">Title (Z &rarr; A)</option>
+                    <option value="artist_asc" className="bg-[#18203c] text-white">Artist (A &rarr; Z)</option>
+                    <option value="duration_desc" className="bg-[#18203c] text-white">Duration (Longest)</option>
+                    <option value="duration_asc" className="bg-[#18203c] text-white">Duration (Shortest)</option>
+                  </select>
+                </div>
+
                 {/* View Mode Toggle: Card vs Compact List */}
                 <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
                   <button
@@ -1781,29 +2022,9 @@ export default function Music() {
                     <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => playQueue(favorites, 0)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs sm:text-sm font-black shadow-lg shadow-red-500/50 hover:opacity-95 transition active:scale-95 border border-white/25"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>Play All</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const shuffled = [...favorites].sort(() => Math.random() - 0.5);
-                    playQueue(shuffled, 0);
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black border-2 border-white/25 transition active:scale-95 shadow-md"
-                >
-                  <Shuffle className="w-4 h-4 text-red-400" />
-                  <span>Shuffle</span>
-                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {favorites.length === 0 ? (
             <div className="text-center py-20 rounded-3xl border-2 border-white/25 p-8 space-y-3 bg-[#18203c]/95 shadow-2xl">
@@ -1822,28 +2043,68 @@ export default function Music() {
                 Explore Songs
               </button>
             </div>
+          ) : displayedFavorites.length === 0 ? (
+            <div className="text-center py-16 rounded-3xl border-2 border-white/20 bg-[#18203c]/90 p-8 space-y-3 shadow-xl">
+              <Search className="w-10 h-10 text-slate-400 mx-auto" />
+              <h3 className="text-base font-black text-white">No liked songs found</h3>
+              <p className="text-xs text-slate-300">No songs in your liked library matched "{favoriteSearch}"</p>
+              <button
+                type="button"
+                onClick={() => setFavoriteSearch('')}
+                className="mt-2 px-4 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition"
+              >
+                Clear Search
+              </button>
+            </div>
           ) : viewMode === 'card' ? (
             /* ── Favorites Card (Grid) View ── */
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {favorites.map((song, idx) => {
+              {displayedFavorites.map((song, idx) => {
                 const isCurrent = currentTrack?.id === song.id;
                 const isCurrentPlaying = isCurrent && isPlaying;
+                const isDragging = draggedFavIndex === idx;
+                const isDragOver = dragOverFavIndex === idx && draggedFavIndex !== idx;
+                const isReorderable = displayedFavorites.length > 1;
 
                 return (
                   <div
                     key={`${song.id}-${idx}`}
-                    className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-2.5 transition-all duration-300 flex flex-col gap-2 shadow-xl backdrop-blur-md overflow-hidden ${
-                      isCurrent
+                    data-fav-index={idx}
+                    draggable={isReorderable}
+                    onDragStart={(e) => handleFavDragStart(idx, e)}
+                    onDragOver={(e) => handleFavDragOver(idx, e)}
+                    onDragLeave={() => handleFavDragLeave(idx)}
+                    onDrop={(e) => handleFavDrop(idx, e)}
+                    onDragEnd={handleFavDragEnd}
+                    className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-2.5 transition-all duration-300 flex flex-col gap-2 shadow-xl backdrop-blur-md overflow-hidden select-none ${
+                      isDragging
+                        ? 'opacity-30 scale-95 border-dashed border-red-400'
+                        : isDragOver
+                        ? 'border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.7)] ring-2 ring-red-400 bg-red-500/20 scale-[1.02]'
+                        : isCurrent
                         ? 'bg-red-500/25 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.45)] ring-2 ring-red-500/60'
                         : 'border-white/20 bg-[#18203c]/95 hover:border-red-500/60 hover:bg-[#221c38] hover:shadow-[0_10px_30px_rgba(239,68,68,0.25)]'
                     }`}
                   >
+                    {/* Drag Handle for Card View (all sort options) */}
+                    {isReorderable && (
+                      <div
+                        onTouchStart={() => handleFavTouchStart(idx)}
+                        onTouchMove={handleFavTouchMove}
+                        onTouchEnd={handleFavTouchEnd}
+                        className="absolute top-2 left-2 z-10 p-1 rounded-md bg-black/80 backdrop-blur-md border border-white/20 text-slate-300 hover:text-white cursor-grab active:cursor-grabbing shadow-sm touch-none"
+                        title="Touch & drag to reorder"
+                      >
+                        <GripVertical className="w-3 h-3 text-red-400" />
+                      </div>
+                    )}
+
                     <div
                       onClick={() => {
                         if (currentTrack?.id === song.id) {
                           togglePlay();
                         } else {
-                          playTrack(song, favorites);
+                          playTrack(song, displayedFavorites);
                         }
                       }}
                       className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
@@ -1869,7 +2130,7 @@ export default function Music() {
                           if (currentTrack?.id === song.id) {
                             togglePlay();
                           } else {
-                            playTrack(song, favorites);
+                            playTrack(song, displayedFavorites);
                           }
                         }}
                         className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
@@ -1918,7 +2179,7 @@ export default function Music() {
                               if (currentTrack?.id === song.id) {
                                 togglePlay();
                               } else {
-                                playTrack(song, favorites);
+                                playTrack(song, displayedFavorites);
                               }
                             }}
                             className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
@@ -1940,24 +2201,50 @@ export default function Music() {
           ) : (
             /* ── Favorites Compact List View ── */
             <div className="space-y-1.5">
-              {favorites.map((song, idx) => {
+              {displayedFavorites.map((song, idx) => {
                 const isCurrent = currentTrack?.id === song.id;
                 const isCurrentPlaying = isCurrent && isPlaying;
+                const isDragging = draggedFavIndex === idx;
+                const isDragOver = dragOverFavIndex === idx && draggedFavIndex !== idx;
+                const isReorderable = displayedFavorites.length > 1;
 
                 return (
                   <div
                     key={`${song.id}-${idx}`}
-                    className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
-                      isCurrent
+                    data-fav-index={idx}
+                    draggable={isReorderable}
+                    onDragStart={(e) => handleFavDragStart(idx, e)}
+                    onDragOver={(e) => handleFavDragOver(idx, e)}
+                    onDragLeave={() => handleFavDragLeave(idx)}
+                    onDrop={(e) => handleFavDrop(idx, e)}
+                    onDragEnd={handleFavDragEnd}
+                    className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 select-none ${
+                      isDragging
+                        ? 'opacity-30 scale-[0.98] border-dashed border-red-400'
+                        : isDragOver
+                        ? 'border-red-400 bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.5)] ring-2 ring-red-400'
+                        : isCurrent
                         ? 'bg-red-500/20 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.35)] ring-1 ring-red-500/60'
                         : 'bg-[#18203c]/90 border-white/10 hover:border-red-500/50 hover:bg-[#202b52] hover:shadow-md'
                     }`}
                   >
-                    {/* Left: Index / Play Button + Thumbnail + Title/Artist */}
-                    <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                    {/* Left: Drag Handle + Index / Play Button + Thumbnail + Title/Artist */}
+                    <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+                      {isReorderable && (
+                        <div
+                          onTouchStart={() => handleFavTouchStart(idx)}
+                          onTouchMove={handleFavTouchMove}
+                          onTouchEnd={handleFavTouchEnd}
+                          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 text-slate-400 hover:text-red-400 transition shrink-0 touch-none"
+                          title="Touch & drag to reorder"
+                        >
+                          <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400/80 group-hover:text-red-400" />
+                        </div>
+                      )}
+
                       <button
                         type="button"
-                        onClick={() => isCurrent ? togglePlay() : playTrack(song, favorites)}
+                        onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedFavorites)}
                         className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
                       >
                         {isCurrentPlaying ? (
@@ -1973,7 +2260,7 @@ export default function Music() {
                       </button>
 
                       <div
-                        onClick={() => isCurrent ? togglePlay() : playTrack(song, favorites)}
+                        onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedFavorites)}
                         className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
                       >
                         <img
@@ -1987,7 +2274,7 @@ export default function Music() {
 
                       <div className="min-w-0 flex-1 space-y-0.5">
                         <h4
-                          onClick={() => isCurrent ? togglePlay() : playTrack(song, favorites)}
+                          onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedFavorites)}
                           className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
                             isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
                           }`}
@@ -2042,7 +2329,7 @@ export default function Music() {
                           if (currentTrack?.id === song.id) {
                             togglePlay();
                           } else {
-                            playTrack(song, favorites);
+                            playTrack(song, displayedFavorites);
                           }
                         }}
                         className={`p-1.5 rounded-full transition active:scale-90 border ${
@@ -2108,14 +2395,30 @@ export default function Music() {
 
                 <div className="flex items-center gap-2">
                   {playlistSongs.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => playQueue(displayedPlaylistSongs, 0)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
-                    >
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Play All ({displayedPlaylistSongs.length})</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => playQueue(displayedPlaylistSongs, 0)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Play All ({displayedPlaylistSongs.length})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const listToShuffle = displayedPlaylistSongs.length > 0 ? displayedPlaylistSongs : playlistSongs;
+                          const shuffled = [...listToShuffle].sort(() => Math.random() - 0.5);
+                          playQueue(shuffled, 0);
+                        }}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border-2 border-white/25 text-xs font-black transition active:scale-95 shadow-md"
+                        title="Shuffle Playlist"
+                      >
+                        <Shuffle className="w-3.5 h-3.5 text-accentCyan" />
+                        <span>Shuffle</span>
+                      </button>
+                    </>
                   )}
 
                   <button
@@ -2196,10 +2499,10 @@ export default function Music() {
                 </div>
 
                 <div className="flex items-center gap-2.5 flex-wrap justify-between sm:justify-end">
-                  {/* Drag & drop helper pill when default sort and no search */}
-                  {playlistSort === 'default' && !playlistSearch && playlistSongs.length > 1 && (
+                  {/* Drag & drop helper pill (available in all sort options) */}
+                  {playlistSongs.length > 1 && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-[11px] font-black text-accentCyan shrink-0 shadow-sm">
-                      <GripVertical className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
+                      <GripVertical className="w-3.5 h-3.5 text-accentCyan" />
                       <span>Drag songs to reorder</span>
                     </div>
                   )}
@@ -2285,7 +2588,7 @@ export default function Music() {
                     const isCurrent = currentTrack?.id === song.id;
                     const isCurrentPlaying = isCurrent && isPlaying;
                     const isFav = isFavorite(song.id);
-                    const isReorderable = playlistSort === 'default' && !playlistSearch;
+                    const isReorderable = displayedPlaylistSongs.length > 1;
                     const isDragging = draggedSongIndex === idx;
                     const isDragOver = dragOverIndex === idx && draggedSongIndex !== idx;
 
@@ -2447,7 +2750,7 @@ export default function Music() {
                     const isCurrent = currentTrack?.id === song.id;
                     const isCurrentPlaying = isCurrent && isPlaying;
                     const isFav = isFavorite(song.id);
-                    const isReorderable = playlistSort === 'default' && !playlistSearch;
+                    const isReorderable = displayedPlaylistSongs.length > 1;
                     const isDragging = draggedSongIndex === idx;
                     const isDragOver = dragOverIndex === idx && draggedSongIndex !== idx;
 
