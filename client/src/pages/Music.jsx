@@ -53,29 +53,29 @@ const formatTime = (seconds) => {
 };
 
 const SEARCH_CATEGORIES = [
-  { id: 'all', label: 'All Music', icon: Music2, color: 'text-cyan-400 fill-cyan-400/40' },
-  { id: 'artist', label: 'Artists', icon: User, color: 'text-purple-400 fill-purple-400/40' },
-  { id: 'movie', label: 'Movie OSTs', icon: Film, color: 'text-amber-400 fill-amber-400/40' },
-  { id: 'series', label: 'TV Series', icon: Tv, color: 'text-sky-400 fill-sky-400/40' },
+  { id: 'all', label: 'All Music', icon: Music2, color: 'text-cyan-400 fill-cyan-400' },
+  { id: 'artist', label: 'Artists', icon: User, color: 'text-purple-400 fill-purple-400' },
+  { id: 'movie', label: 'Movie OSTs', icon: Film, color: 'text-amber-400 fill-amber-400' },
+  { id: 'series', label: 'TV Series', icon: Tv, color: 'text-sky-400 fill-sky-400' },
   { id: 'anime', label: 'Anime OSTs', icon: Sparkles, color: 'text-pink-400 fill-pink-400' },
-  { id: 'song', label: 'Songs', icon: Disc3, color: 'text-emerald-400 fill-emerald-400/40' }
+  { id: 'song', label: 'Songs', icon: Disc3, color: 'text-emerald-400 fill-emerald-400' }
 ];
 
 const LANGUAGES = [
   { id: 'all', label: 'All Hits', icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' },
   { id: 'blues_rap', label: 'Blues Rap', icon: Music2, color: 'text-indigo-400 fill-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]' },
-  { id: 'rap', label: 'Rap & Hip-Hop', icon: Mic2, color: 'text-purple-400 fill-purple-400/40 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]' },
+  { id: 'rap', label: 'Rap & Hip-Hop', icon: Mic2, color: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.6)]' },
   { id: 'rock', label: 'Rock', icon: Zap, color: 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]' },
-  { id: 'kpop', label: 'K-Pop', icon: Headphones, color: 'text-pink-400 fill-pink-400/40 drop-shadow-[0_0_8px_rgba(244,114,182,0.5)]' },
-  { id: 'korean', label: 'Korean', icon: Compass, color: 'text-teal-400 fill-teal-400/40 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]' },
-  { id: 'hindi', label: 'Hindi', icon: Disc3, color: 'text-amber-400 fill-amber-400/40 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]' },
+  { id: 'kpop', label: 'K-Pop', icon: Headphones, color: 'text-pink-400 fill-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]' },
+  { id: 'korean', label: 'Korean', icon: Compass, color: 'text-teal-400 fill-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.6)]' },
+  { id: 'hindi', label: 'Hindi', icon: Disc3, color: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' },
   { id: 'anime', label: 'Anime', icon: Sparkles, color: 'text-rose-400 fill-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]' },
-  { id: 'english', label: 'English', icon: Globe, color: 'text-sky-400 fill-sky-400/40 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]' },
-  { id: 'kannada', label: 'Kannada', icon: Volume2, color: 'text-red-400 fill-red-400/40 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]' },
-  { id: 'malayalam', label: 'Malayalam', icon: Layers, color: 'text-emerald-400 fill-emerald-400/40 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' },
-  { id: 'telugu', label: 'Telugu', icon: Film, color: 'text-orange-400 fill-orange-400/40 drop-shadow-[0_0_8px_rgba(251,146,60,0.5)]' },
+  { id: 'english', label: 'English', icon: Globe, color: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]' },
+  { id: 'kannada', label: 'Kannada', icon: Volume2, color: 'text-red-400 fill-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]' },
+  { id: 'malayalam', label: 'Malayalam', icon: Layers, color: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]' },
+  { id: 'telugu', label: 'Telugu', icon: Film, color: 'text-orange-400 fill-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.6)]' },
   { id: 'tamil', label: 'Tamil', icon: Zap, color: 'text-yellow-300 fill-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.7)]' },
-  { id: 'marathi', label: 'Marathi', icon: Languages, color: 'text-amber-500 fill-amber-500/40 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' }
+  { id: 'marathi', label: 'Marathi', icon: Languages, color: 'text-amber-500 fill-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' }
 ];
 
 const SUGGESTIONS_BY_CATEGORY = {

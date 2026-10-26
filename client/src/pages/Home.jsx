@@ -203,9 +203,9 @@ export default function Home() {
 
   const tabs = [
     { id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' },
-    { id: 'ongoing', label: 'Ongoing & Airing', icon: Activity, color: 'text-emerald-400 fill-emerald-400/40 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' },
-    { id: 'schedule', label: 'Release Schedules', icon: Calendar, color: 'text-cyan-400 fill-cyan-400/40 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]' },
-    { id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400 fill-fuchsia-400/40 drop-shadow-[0_0_8px_rgba(232,121,249,0.5)]' }
+    { id: 'ongoing', label: 'Ongoing & Airing', icon: Activity, color: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]' },
+    { id: 'schedule', label: 'Release Schedules', icon: Calendar, color: 'text-cyan-400 fill-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]' },
+    { id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400 fill-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]' }
   ];
 
   return (
@@ -260,9 +260,9 @@ export default function Home() {
           {/* Feature highlights */}
           <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 max-w-3xl mx-auto border-t border-white/[0.06] mt-2 animate-fade-up stagger-5">
             {[
-              { icon: Tv, color: 'text-sky-400 fill-sky-400/30', bg: 'bg-sky-500/10 border-sky-400/30', title: 'Aggregated Catalog', desc: 'TMDB, Anime, MangaDex feeds in one dashboard.' },
+              { icon: Tv, color: 'text-sky-400 fill-sky-400', bg: 'bg-sky-500/10 border-sky-400/30', title: 'Aggregated Catalog', desc: 'TMDB, Anime, MangaDex feeds in one dashboard.' },
               { icon: Sparkles, color: 'text-purple-400 fill-purple-400', bg: 'bg-purple-500/10 border-purple-400/30', title: 'Host Sync Players', desc: 'Control playback across all participants live.' },
-              { icon: MessageSquareCode, color: 'text-pink-400 fill-pink-400/30', bg: 'bg-pink-500/10 border-pink-400/30', title: 'Lobby Chat', desc: 'Chat alongside streams with persistent history.' },
+              { icon: MessageSquareCode, color: 'text-pink-400 fill-pink-400', bg: 'bg-pink-500/10 border-pink-400/30', title: 'Lobby Chat', desc: 'Chat alongside streams with persistent history.' },
             ].map(({ icon: Icon, color, bg, title, desc }) => (
               <div key={title} className="flex flex-col items-center p-3 text-center space-y-1 hover-lift">
                 <div className={`p-2.5 rounded-xl border ${bg}`}>

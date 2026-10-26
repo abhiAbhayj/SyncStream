@@ -10,11 +10,11 @@ export default function BottomNav() {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { path: '/', label: 'Home', icon: Tv, iconClass: 'text-sky-400 fill-sky-400/35' },
-    { path: '/search', label: 'Search', icon: Search, iconClass: 'text-amber-400 fill-amber-400/35' },
-    { path: '/music', label: 'Music', icon: Music, iconClass: 'text-purple-400 fill-purple-400/35' },
-    { path: '/watchlist', label: 'Watchlist', icon: Heart, iconClass: 'text-rose-400 fill-rose-400/45' },
-    { path: user ? '/profile' : '/login', label: user ? 'Profile' : 'Sign In', icon: User, iconClass: 'text-cyan-400 fill-cyan-400/35' },
+    { path: '/', label: 'Home', icon: Tv, iconClass: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)]' },
+    { path: '/search', label: 'Search', icon: Search, iconClass: 'text-cyan-400 fill-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]' },
+    { path: '/music', label: 'Music', icon: Music, iconClass: 'text-pink-500 fill-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.7)]' },
+    { path: '/watchlist', label: 'Watchlist', icon: Heart, iconClass: 'text-rose-500 fill-rose-500 drop-shadow-[0_0_8px_rgba(244,63,94,0.7)]' },
+    { path: user ? '/profile' : '/login', label: user ? 'Profile' : 'Sign In', icon: User, iconClass: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]' },
   ];
 
   return (

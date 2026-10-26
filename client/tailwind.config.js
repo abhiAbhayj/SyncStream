@@ -7,13 +7,16 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans:     ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
-        display:  ['Space Grotesk', 'system-ui', 'sans-serif'],
+        sans:     ['Rajdhani', 'Sora', 'system-ui', 'sans-serif'],
+        display:  ['Orbitron', 'Space Grotesk', 'system-ui', 'sans-serif'],
+        robotic:  ['Orbitron', 'monospace'],
+        tech:     ['Orbitron', 'Rajdhani', 'monospace'],
+        designer: ['Syne', 'Orbitron', 'sans-serif'],
         sora:     ['Sora', 'system-ui', 'sans-serif'],
         orbitron: ['Orbitron', 'monospace'],
         bebas:    ['Bebas Neue', 'Impact', 'sans-serif'],
         rajdhani: ['Rajdhani', 'system-ui', 'sans-serif'],
-        dm:       ['DM Sans', 'system-ui', 'sans-serif'],
+        dm:       ['Rajdhani', 'Sora', 'sans-serif'],
         mono:     ['JetBrains Mono', 'monospace'],
       },
       colors: {

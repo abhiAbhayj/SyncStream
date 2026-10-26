@@ -41,10 +41,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { path: '/', label: 'Discovery', icon: Tv, color: 'text-sky-400 fill-sky-400/30' },
-    { path: '/search', label: 'Search', icon: Search, color: 'text-cyan-400 fill-cyan-400/30' },
-    { path: '/music', label: 'Music', icon: Music, color: 'text-pink-400 fill-pink-400/30' },
-    { path: '/watchlist', label: 'Watchlist', icon: Heart, color: 'text-red-400 fill-red-400/30' },
+    { path: '/', label: 'Discovery', icon: Tv, color: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]' },
+    { path: '/search', label: 'Search', icon: Search, color: 'text-cyan-400 fill-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]' },
+    { path: '/music', label: 'Music', icon: Music, color: 'text-pink-500 fill-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]' },
+    { path: '/watchlist', label: 'Watchlist', icon: Heart, color: 'text-rose-500 fill-rose-500 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]' },
   ];
 
   return (
@@ -125,7 +125,7 @@ export default function Navbar() {
                          hover:bg-accentPurple/[0.22] hover:border-accentPurple/60 hover:shadow-[0_0_20px_rgba(149,100,255,0.25)] active:scale-95"
               title="Join Watch Party by Code"
             >
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400/30" />
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
               <span>Join Party</span>
             </button>
 
@@ -188,7 +188,7 @@ export default function Navbar() {
                           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition group"
                         >
                           <div className="w-8 h-8 rounded-lg bg-accentPurple/15 text-accentPurple flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <User className="w-4 h-4 fill-accentPurple/40" />
+                            <User className="w-4 h-4 text-purple-400 fill-purple-400" />
                           </div>
                           <span>My Profile &amp; Themes</span>
                         </Link>
