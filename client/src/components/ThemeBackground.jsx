@@ -778,8 +778,8 @@ export default function ThemeBackground() {
             ctx.beginPath();
             ctx.moveTo(0, bus.y);
             ctx.lineTo(width, bus.y);
-            ctx.strokeStyle = 'rgba(0, 245, 160, 0.08)';
-            ctx.lineWidth = 1.0;
+            ctx.strokeStyle = 'rgba(0, 245, 160, 0.04)';
+            ctx.lineWidth = 0.8;
             ctx.stroke();
 
             bus.packets.forEach((pkt) => {
@@ -797,14 +797,14 @@ export default function ThemeBackground() {
                 bus.y
               );
               pGrad.addColorStop(0, 'rgba(0, 245, 160, 0)');
-              pGrad.addColorStop(0.7, pkt.color === '#00f5a0' ? 'rgba(0, 245, 160, 0.7)' : 'rgba(45, 212, 191, 0.7)');
+              pGrad.addColorStop(0.7, pkt.color === '#00f5a0' ? 'rgba(0, 245, 160, 0.35)' : 'rgba(45, 212, 191, 0.35)');
               pGrad.addColorStop(1, '#ffffff');
 
               ctx.beginPath();
               ctx.moveTo(pkt.x, bus.y);
               ctx.lineTo(pkt.x + pkt.len, bus.y);
               ctx.strokeStyle = pGrad;
-              ctx.lineWidth = 2.2;
+              ctx.lineWidth = 1.4;
               ctx.stroke();
             });
           });
@@ -989,56 +989,20 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'golden-sunfire') {
-        // 5. Golden Sunfire Monolith (Flanking Monolith Conduits, Solar Prominence Curtains & Opposing Thermal Streams)
+        // 5. Golden Sunfire Monolith (Radiant Solar Corona Atmosphere & Opposing Thermal Streams)
         ctx.save();
         const { frostStream, solarStream, curtains } = state;
-        const pillarW = isMobile ? 32 : 55;
 
-        // A. Flanking Monolith Energy Conduits (Left & Right Viewport Edges)
-        // Left Column Conduit
-        const leftGrad = ctx.createLinearGradient(0, 0, pillarW, 0);
-        leftGrad.addColorStop(0, 'rgba(234, 179, 8, 0.18)');
-        leftGrad.addColorStop(0.6, 'rgba(245, 158, 11, 0.08)');
-        leftGrad.addColorStop(1, 'rgba(6, 6, 6, 0)');
-        ctx.fillStyle = leftGrad;
-        ctx.fillRect(0, 0, pillarW * 1.5, height);
+        // A. Ambient Solar Corona Horizon Glow
+        const sunGrad = ctx.createRadialGradient(width * 0.5, height * 0.45, 20, width * 0.5, height * 0.45, Math.max(width, height) * 0.65);
+        const sunPulse = 0.75 + Math.sin(frame * 0.02) * 0.25;
+        sunGrad.addColorStop(0, `rgba(234, 179, 8, ${0.12 * sunPulse})`);
+        sunGrad.addColorStop(0.5, `rgba(245, 158, 11, ${0.05 * sunPulse})`);
+        sunGrad.addColorStop(1, 'rgba(6, 6, 6, 0)');
+        ctx.fillStyle = sunGrad;
+        ctx.fillRect(0, 0, width, height);
 
-        // Right Column Conduit
-        const rightGrad = ctx.createLinearGradient(width, 0, width - pillarW, 0);
-        rightGrad.addColorStop(0, 'rgba(234, 179, 8, 0.18)');
-        rightGrad.addColorStop(0.6, 'rgba(245, 158, 11, 0.08)');
-        rightGrad.addColorStop(1, 'rgba(6, 6, 6, 0)');
-        ctx.fillStyle = rightGrad;
-        ctx.fillRect(width - pillarW * 1.5, 0, pillarW * 1.5, height);
-
-        // Monolith Vertical Edge Bus Rails
-        const railPulse = 0.5 + Math.sin(frame * 0.03) * 0.3;
-        ctx.strokeStyle = `rgba(234, 179, 8, ${0.4 * railPulse})`;
-        ctx.lineWidth = 1.6;
-
-        ctx.beginPath();
-        ctx.moveTo(pillarW * 0.6, 0);
-        ctx.lineTo(pillarW * 0.6, height);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(width - pillarW * 0.6, 0);
-        ctx.lineTo(width - pillarW * 0.6, height);
-        ctx.stroke();
-
-        // Pulsing tick marks down the side monoliths
-        const ticks = isMobile ? 12 : 24;
-        for (let t = 0; t < ticks; t++) {
-          const ty = (t / ticks) * height;
-          const tp = Math.sin(frame * 0.04 + t * 0.4);
-          if (tp > 0.2) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(pillarW * 0.6 - 2, ty, 4, 10);
-            ctx.fillRect(width - pillarW * 0.6 - 2, ty, 4, 10);
-          }
-        }
-
-        // B. Sweeping Horizontal Solar Prominence Ribbon Curtains
+        // B. Gentle Solar Prominence Auroral Ribbons
         if (curtains) {
           curtains.forEach((curt, cIdx) => {
             ctx.beginPath();
@@ -1050,9 +1014,9 @@ export default function ThemeBackground() {
               if (x === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
             }
-            const pulse = 0.25 + Math.sin(frame * 0.02 + cIdx) * 0.15;
+            const pulse = 0.14 + Math.sin(frame * 0.02 + cIdx) * 0.08;
             ctx.strokeStyle = `${curt.color}${pulse})`;
-            ctx.lineWidth = 1.8;
+            ctx.lineWidth = 1.4;
             ctx.stroke();
           });
         }
@@ -1110,9 +1074,9 @@ export default function ThemeBackground() {
               if (x === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
             }
-            const pulse = 0.12 + Math.sin(frame * 0.02 + vIdx) * 0.08;
+            const pulse = 0.08 + Math.sin(frame * 0.02 + vIdx) * 0.05;
             ctx.strokeStyle = `rgba(129, 140, 248, ${pulse})`;
-            ctx.lineWidth = isMobile ? 12 : 24;
+            ctx.lineWidth = 1.4;
             ctx.stroke();
           });
         }
@@ -1402,10 +1366,8 @@ export default function ThemeBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ease-in-out"
+      className="fixed inset-0 w-full h-full pointer-events-none z-0 transition-opacity duration-700 ease-in-out"
       style={{
-        width: '100vw',
-        height: '100vh',
         opacity: 0.95
       }}
       aria-hidden="true"
