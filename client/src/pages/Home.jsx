@@ -9,7 +9,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
-    return sessionStorage.getItem('homeActiveTab') || 'trending';
+    try {
+      return sessionStorage.getItem('homeActiveTab') || 'trending';
+    } catch {
+      return 'trending';
+    }
   });
 
   const handleTabChange = (tabId) => {
@@ -41,7 +45,7 @@ export default function Home() {
         if (item.broadcast_day && grouped[item.broadcast_day]) {
           matchedDay = item.broadcast_day;
         } else if (item.broadcast) {
-          const broadcastStr = item.broadcast.toLowerCase();
+          const broadcastStr = String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || '')).toLowerCase();
           const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
           for (const day of dayNames) {
             if (broadcastStr.includes(day.toLowerCase())) {
@@ -59,7 +63,7 @@ export default function Home() {
 
         grouped[matchedDay].push({
           ...item,
-          broadcast: item.broadcast || `Airs every ${matchedDay.slice(0, -1)}`
+          broadcast: String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || `Airs every ${matchedDay.slice(0, -1)}`))
         });
       });
     }
@@ -129,7 +133,7 @@ export default function Home() {
         if (item.broadcast_day && grouped[item.broadcast_day]) {
           matchedDay = item.broadcast_day;
         } else if (item.broadcast) {
-          const broadcastStr = item.broadcast.toLowerCase();
+          const broadcastStr = String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || '')).toLowerCase();
           const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
           for (const day of dayNames) {
             if (broadcastStr.includes(day.toLowerCase())) {
@@ -146,7 +150,7 @@ export default function Home() {
 
         grouped[matchedDay].push({
           ...item,
-          broadcast: item.broadcast || `Airs every ${matchedDay.slice(0, -1)}`
+          broadcast: String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || `Airs every ${matchedDay.slice(0, -1)}`))
         });
       });
     }

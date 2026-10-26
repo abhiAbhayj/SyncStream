@@ -48,7 +48,8 @@ export const MusicProvider = ({ children }) => {
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem('syncstream_favorites');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -57,7 +58,8 @@ export const MusicProvider = ({ children }) => {
   const [playlists, setPlaylists] = useState(() => {
     try {
       const saved = localStorage.getItem('syncstream_user_playlists');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }

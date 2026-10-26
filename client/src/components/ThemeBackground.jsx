@@ -45,9 +45,11 @@ const LEGACY_THEME_MAP = {
 export default function ThemeBackground() {
   const canvasRef = useRef(null);
   const [activeTheme, setActiveTheme] = useState(() => {
-    const saved = localStorage.getItem('syncstream_theme');
-    if (saved && VALID_THEMES.includes(saved)) return saved;
-    if (saved && LEGACY_THEME_MAP[saved]) return LEGACY_THEME_MAP[saved];
+    try {
+      const saved = localStorage.getItem('syncstream_theme');
+      if (saved && VALID_THEMES.includes(saved)) return saved;
+      if (saved && LEGACY_THEME_MAP[saved]) return LEGACY_THEME_MAP[saved];
+    } catch {}
     return 'cryo-glacial';
   });
 

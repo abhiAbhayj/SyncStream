@@ -384,7 +384,7 @@ export default function Music() {
 
   // Filtered & Sorted favorite songs
   const displayedFavorites = useMemo(() => {
-    let list = [...favorites];
+    let list = Array.isArray(favorites) ? [...favorites] : [];
 
     if (favoriteSearch.trim()) {
       const q = favoriteSearch.toLowerCase().trim();
@@ -432,7 +432,7 @@ export default function Music() {
     const targetSong = displayedFavorites[toIndex];
     if (!sourceSong || !targetSong) return;
 
-    let baseList = [...favorites];
+    let baseList = Array.isArray(favorites) ? [...favorites] : [];
     if (favoriteSort !== 'default') {
       baseList = [...displayedFavorites];
     }
