@@ -106,6 +106,7 @@ export default function ThemeBackground() {
     let animationFrameId;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
+    let isMobile = width < 768;
 
     let mouseX = width * 0.5;
     let mouseY = height * 0.5;
@@ -122,6 +123,7 @@ export default function ThemeBackground() {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      isMobile = width < 768;
       initScene(activeTheme);
     };
     window.addEventListener('resize', handleResize);
@@ -132,7 +134,7 @@ export default function ThemeBackground() {
     function initScene(theme) {
       state = {};
       frame = 0;
-      const isMobile = width < 768;
+      isMobile = width < 768;
 
       if (theme === 'cryo-glacial') {
         // 1. Cryo-Prismatic Glacial Shatter (Sub-Zero Frost Prism Refraction)
@@ -537,12 +539,14 @@ export default function ThemeBackground() {
     initScene(activeTheme);
 
     function render() {
-      frame++;
-      ctx.clearRect(0, 0, width, height);
+      try {
+        frame++;
+        const isMobile = width < 768;
+        ctx.clearRect(0, 0, width, height);
 
-      // Smooth pointer follow for subtle inertia
-      mouseX += (targetMouseX - mouseX) * 0.04;
-      mouseY += (targetMouseY - mouseY) * 0.04;
+        // Smooth pointer follow for subtle inertia
+        mouseX += (targetMouseX - mouseX) * 0.04;
+        mouseY += (targetMouseY - mouseY) * 0.04;
 
       if (activeTheme === 'cryo-glacial') {
         // 1. Cryo-Prismatic Glacial Shatter (Sub-Zero Frost Prism Refraction)
@@ -1352,8 +1356,11 @@ export default function ThemeBackground() {
 
         ctx.restore();
       }
+    } catch (err) {
+      console.warn('[ThemeBackground render error]:', err);
+    }
 
-      animationFrameId = requestAnimationFrame(render);
+    animationFrameId = requestAnimationFrame(render);
     }
 
     render();
