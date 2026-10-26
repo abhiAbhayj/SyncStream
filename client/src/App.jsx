@@ -42,6 +42,15 @@ function AppContent() {
 
   React.useEffect(() => {
     const ALL_THEMES = [
+      'theme-cryo-glacial',
+      'theme-magma-thermal',
+      'theme-emerald-biogrid',
+      'theme-cobalt-quantum',
+      'theme-golden-sunfire',
+      'theme-obsidian-void',
+      'theme-cyberpunk-synthwave',
+      'theme-mystic-amethyst',
+      // Legacy classes
       'theme-storm-thunder',
       'theme-synthwave',
       'theme-cryo-vault',
@@ -54,31 +63,39 @@ function AppContent() {
       'theme-yokohama-night'
     ];
     const validThemes = [
-      'storm-thunder',
-      'cryo-vault',
-      'solar-flare',
-      'cosmic-singularity',
-      'plasma-web',
-      'cyber-foundry',
-      'bioluminescent-trench',
-      'windy-sakura'
+      'cryo-glacial',
+      'magma-thermal',
+      'emerald-biogrid',
+      'cobalt-quantum',
+      'golden-sunfire',
+      'obsidian-void',
+      'cyberpunk-synthwave',
+      'mystic-amethyst'
     ];
-    let savedTheme = localStorage.getItem('syncstream_theme') || 'storm-thunder';
+    let savedTheme = localStorage.getItem('syncstream_theme') || 'cryo-glacial';
     const legacyMap = {
-      synthwave: 'storm-thunder',
-      'yokohama-night': 'windy-sakura',
-      aurora: 'cryo-vault',
-      'neon-frost': 'cosmic-singularity',
-      'abyssal-trench': 'bioluminescent-trench',
-      'nebula-drift': 'cosmic-singularity',
-      'citrus-arcade': 'cyber-foundry'
+      'storm-thunder': 'cobalt-quantum',
+      synthwave: 'cyberpunk-synthwave',
+      'cryo-vault': 'cryo-glacial',
+      'solar-flare': 'magma-thermal',
+      'cosmic-singularity': 'mystic-amethyst',
+      'plasma-web': 'emerald-biogrid',
+      'cyber-foundry': 'golden-sunfire',
+      'bioluminescent-trench': 'mystic-amethyst',
+      'windy-sakura': 'cyberpunk-synthwave',
+      'yokohama-night': 'cyberpunk-synthwave',
+      aurora: 'cryo-glacial',
+      'neon-frost': 'cobalt-quantum',
+      'abyssal-trench': 'mystic-amethyst',
+      'nebula-drift': 'mystic-amethyst',
+      'citrus-arcade': 'golden-sunfire'
     };
     if (legacyMap[savedTheme]) {
       savedTheme = legacyMap[savedTheme];
       localStorage.setItem('syncstream_theme', savedTheme);
     } else if (!validThemes.includes(savedTheme)) {
-      savedTheme = 'storm-thunder';
-      localStorage.setItem('syncstream_theme', 'storm-thunder');
+      savedTheme = 'cryo-glacial';
+      localStorage.setItem('syncstream_theme', 'cryo-glacial');
     }
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
     document.body.classList.add(`theme-${savedTheme}`);

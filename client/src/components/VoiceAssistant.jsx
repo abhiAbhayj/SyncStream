@@ -775,8 +775,16 @@ export default function VoiceAssistant() {
     // ════════════════════════════════════════════════════════════════════════
     // 9. THEME INTENTS
     // ════════════════════════════════════════════════════════════════════════
-    if (command.includes('theme') || command.includes('storm') || command.includes('thunder') || command.includes('lightning') || command.includes('bolt') || command.includes('sakura') || command.includes('blossom') || command.includes('windy') || command.includes('leaf') || command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('solar flare') || command.includes('crimson') || command.includes('plasma') || command.includes('foundry') || command.includes('industrial') || command.includes('trench') || command.includes('bioluminescent') || command.includes('synthwave') || command.includes('yokohama')) {
+    if (command.includes('theme') || command.includes('cryo') || command.includes('glacial') || command.includes('ice') || command.includes('frost') || command.includes('magma') || command.includes('thermal') || command.includes('lava') || command.includes('emerald') || command.includes('matrix') || command.includes('biogrid') || command.includes('cobalt') || command.includes('quantum') || command.includes('golden') || command.includes('sunfire') || command.includes('amber') || command.includes('obsidian') || command.includes('void') || command.includes('cyberpunk') || command.includes('synthwave') || command.includes('neon') || command.includes('mystic') || command.includes('amethyst') || command.includes('portal')) {
       const ALL_THEMES = [
+        'theme-cryo-glacial',
+        'theme-magma-thermal',
+        'theme-emerald-biogrid',
+        'theme-cobalt-quantum',
+        'theme-golden-sunfire',
+        'theme-obsidian-void',
+        'theme-cyberpunk-synthwave',
+        'theme-mystic-amethyst',
         'theme-storm-thunder',
         'theme-synthwave',
         'theme-cryo-vault',
@@ -788,30 +796,28 @@ export default function VoiceAssistant() {
         'theme-windy-sakura',
         'theme-yokohama-night'
       ];
-      let newTheme = 'storm-thunder';
-      if (command.includes('storm') || command.includes('thunder') || command.includes('lightning') || command.includes('bolt')) newTheme = 'storm-thunder';
-      else if (command.includes('sakura') || command.includes('blossom') || command.includes('windy') || command.includes('leaf') || command.includes('cherry')) newTheme = 'windy-sakura';
-      else if (command.includes('cryo') || command.includes('glacial') || command.includes('vault') || command.includes('nitrogen') || command.includes('frost')) newTheme = 'cryo-vault';
-      else if (command.includes('singularity') || command.includes('black hole') || command.includes('cosmic') || command.includes('gravity')) newTheme = 'cosmic-singularity';
-      else if (command.includes('foundry') || command.includes('industrial') || command.includes('machinery') || command.includes('hazard') || command.includes('voltage')) newTheme = 'cyber-foundry';
-      else if (command.includes('trench') || command.includes('bioluminescent') || command.includes('abyss') || command.includes('jellyfish') || command.includes('echolocation')) newTheme = 'bioluminescent-trench';
-      else if (command.includes('yokohama') || command.includes('alley') || command.includes('rain')) newTheme = 'windy-sakura';
-      else if (command.includes('solar') || command.includes('flare') || command.includes('crimson') || command.includes('ember')) newTheme = 'solar-flare';
-      else if (command.includes('plasma') || command.includes('web') || command.includes('cyber')) newTheme = 'plasma-web';
-      else if (command.includes('synthwave') || command.includes('horizon') || command.includes('grid') || command.includes('default') || command.includes('reset')) newTheme = 'storm-thunder';
+      let newTheme = 'cryo-glacial';
+      if (command.includes('cryo') || command.includes('glacial') || command.includes('ice') || command.includes('frost') || command.includes('shatter')) newTheme = 'cryo-glacial';
+      else if (command.includes('magma') || command.includes('thermal') || command.includes('lava') || command.includes('heat') || command.includes('volcanic')) newTheme = 'magma-thermal';
+      else if (command.includes('emerald') || command.includes('matrix') || command.includes('biogrid') || command.includes('green')) newTheme = 'emerald-biogrid';
+      else if (command.includes('cobalt') || command.includes('quantum') || command.includes('spacetime') || command.includes('ripple') || command.includes('blue')) newTheme = 'cobalt-quantum';
+      else if (command.includes('golden') || command.includes('sunfire') || command.includes('monolith') || command.includes('amber') || command.includes('gold')) newTheme = 'golden-sunfire';
+      else if (command.includes('obsidian') || command.includes('void') || command.includes('shadow') || command.includes('black')) newTheme = 'obsidian-void';
+      else if (command.includes('cyberpunk') || command.includes('synthwave') || command.includes('neon') || command.includes('magenta')) newTheme = 'cyberpunk-synthwave';
+      else if (command.includes('mystic') || command.includes('amethyst') || command.includes('portal') || command.includes('purple')) newTheme = 'mystic-amethyst';
 
       ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
       document.body.classList.add(`theme-${newTheme}`);
       localStorage.setItem('syncstream_theme', newTheme);
       const labels = {
-        'storm-thunder': 'Dark Storm Thunderbolt',
-        'cryo-vault': 'Glacial Cryo-Vault',
-        'solar-flare': 'Crimson Solar Flare',
-        'cosmic-singularity': 'Cosmic Singularity (Black Hole)',
-        'plasma-web': 'Cyberpunk Plasma Web',
-        'cyber-foundry': 'Cyber-Industrial Foundry',
-        'bioluminescent-trench': 'Bioluminescent Deep Trench',
-        'windy-sakura': 'Windy Sakura Leaf Falling'
+        'cryo-glacial': 'Cryo-Prismatic Glacial Shatter',
+        'magma-thermal': 'Magma Thermal Convection Waves',
+        'emerald-biogrid': 'Emerald Matrix Biogrid',
+        'cobalt-quantum': 'Cobalt Quantum Wave',
+        'golden-sunfire': 'Golden Sunfire Monolith',
+        'obsidian-void': 'Obsidian Shadow Void',
+        'cyberpunk-synthwave': 'Cyberpunk Synthwave Neon',
+        'mystic-amethyst': 'Mystic Amethyst Portal'
       };
       setStatusText(`Theme: ${labels[newTheme] || newTheme}`);
       return;

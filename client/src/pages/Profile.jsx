@@ -22,16 +22,26 @@ import {
   Zap,
   Snowflake,
   Flame,
-  Disc,
-  Share2,
-  Hammer,
-  Waves,
-  Wind,
+  Activity,
+  Atom,
+  Crown,
+  Moon,
+  Layers,
+  Compass,
   Rocket
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
+  'theme-cryo-glacial',
+  'theme-magma-thermal',
+  'theme-emerald-biogrid',
+  'theme-cobalt-quantum',
+  'theme-golden-sunfire',
+  'theme-obsidian-void',
+  'theme-cyberpunk-synthwave',
+  'theme-mystic-amethyst',
+  // Legacy aliases
   'theme-storm-thunder',
   'theme-synthwave',
   'theme-cryo-vault',
@@ -46,84 +56,92 @@ const ALL_THEME_CLASSES = [
 
 const THEME_OPTIONS = [
   {
-    id: 'storm-thunder',
-    name: 'Dark Storm Thunderbolt',
-    icon: Zap,
-    iconColor: 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]',
-    iconBg: 'bg-yellow-400/10 border-yellow-400/30',
-    desc: 'Ominous stormcloud skies torn open by jagged branching Tesla lightning discharges, ionized sparks and thunderhead aura',
-    animation: 'Branching Tesla Discharge & Ionized Sparks',
-    swatch: ['#06070b', '#00f0ff', '#a855f7', '#10131f', '#ffffff'],
-  },
-  {
-    id: 'cryo-vault',
-    name: 'Glacial Cryo-Vault',
+    id: 'cryo-glacial',
+    name: 'Cryo-Prismatic Glacial Shatter',
+    vibe: 'Ice / Light Blue',
     icon: Snowflake,
-    iconColor: 'text-cyan-300 fill-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]',
-    iconBg: 'bg-cyan-400/10 border-cyan-400/30',
-    desc: 'Ultra-sleek freezing industrial aesthetic with liquid nitrogen vapor drift and sharp frost shards',
-    animation: 'Liquid Nitrogen Vapor Drift & Frost Shards',
-    swatch: ['#050b14', '#00d2ff', '#a5f3fc', '#0f1e36', '#ff3366'],
+    iconColor: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)]',
+    iconBg: 'bg-sky-400/10 border-sky-400/30',
+    desc: 'Sub-Zero Frost Prism Refraction with translucent rotating ice geometric shards that refract soft rainbow light beams',
+    animation: 'Sub-Zero Frost Prism Refraction',
+    swatch: ['#020617', '#38bdf8', '#22d3ee', '#0f172a', '#ffffff'],
   },
   {
-    id: 'solar-flare',
-    name: 'Crimson Solar Flare',
+    id: 'magma-thermal',
+    name: 'Magma Thermal Convection Waves',
+    vibe: 'Red',
     icon: Flame,
-    iconColor: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.7)]',
-    iconBg: 'bg-orange-500/10 border-orange-500/30',
-    desc: 'Coronal magnetic prominence loops rising with very sparse, warm ember dust motes drifting lazily',
-    animation: 'Coronal Prominence Loops & Ember Dust',
-    swatch: ['#0f080a', '#ff5e00', '#ffb703', '#1a1215', '#fffbeb'],
+    iconColor: 'text-red-500 fill-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]',
+    iconBg: 'bg-red-500/10 border-red-500/30',
+    desc: 'Molten Core Heat-Haze Distortion with atmospheric heat shimmer and molten convective waves rising from volcanic ash',
+    animation: 'Molten Core Heat-Haze Distortion',
+    swatch: ['#090505', '#ef4444', '#f97316', '#170a0a', '#fafafa'],
   },
   {
-    id: 'cosmic-singularity',
-    name: 'Cosmic Singularity (Black Hole)',
-    icon: Disc,
-    iconColor: 'text-purple-400 fill-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.7)]',
-    iconBg: 'bg-purple-500/10 border-purple-500/30',
-    desc: 'Gravitationally warped deep space phenomenon with swirling accretion disk, lensing grid and Hawking radiation',
-    animation: 'Gravitational Lensing & Swirling Accretion Disk',
-    swatch: ['#020205', '#ff7a00', '#7b2cbf', '#130f26', '#ffffff'],
-  },
-  {
-    id: 'plasma-web',
-    name: 'Cyberpunk Plasma Web',
-    icon: Share2,
-    iconColor: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]',
+    id: 'emerald-biogrid',
+    name: 'Emerald Matrix Biogrid',
+    vibe: 'Green',
+    icon: Activity,
+    iconColor: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.7)]',
     iconBg: 'bg-emerald-500/10 border-emerald-500/30',
-    desc: 'Ultra-thin, low-opacity connecting vector nodes with circuit mesh and traveling electric data sparks',
-    animation: 'Circuit Vector Mesh & Electric Data Sparks',
-    swatch: ['#090d16', '#00ff66', '#2563eb', '#111827', '#ffffff'],
+    desc: 'Inward Orbiting Lightning Rings with concentric energy circles that slowly spin with micro-voltage electric sparks',
+    animation: 'Inward Orbiting Lightning Rings',
+    swatch: ['#020804', '#10b981', '#34d399', '#061a0c', '#ffffff'],
   },
   {
-    id: 'cyber-foundry',
-    name: 'Cyber-Industrial Foundry',
-    icon: Hammer,
-    iconColor: 'text-amber-500 fill-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]',
+    id: 'cobalt-quantum',
+    name: 'Cobalt Quantum Wave',
+    vibe: 'Blue',
+    icon: Atom,
+    iconColor: 'text-blue-500 fill-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.7)]',
+    iconBg: 'bg-blue-500/10 border-blue-500/30',
+    desc: 'Warped Space-Time Ripple Grid with microscopic celestial grid that gently bends and ripples outward from center',
+    animation: 'Warped Space-Time Ripple Grid',
+    swatch: ['#030712', '#3b82f6', '#06b6d4', '#0f172a', '#f8fafc'],
+  },
+  {
+    id: 'golden-sunfire',
+    name: 'Golden Sunfire Monolith',
+    vibe: 'Golden',
+    icon: Crown,
+    iconColor: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.7)]',
     iconBg: 'bg-amber-500/10 border-amber-500/30',
-    desc: 'Raw heavy-machinery manufacturing theme with high-voltage hazard conduit spark flux and blast furnace heat',
-    animation: 'Chasing Dash-Array Spark Flux & Gravity Sparks',
-    swatch: ['#111215', '#ffb700', '#ff4f00', '#22252c', '#94a3b8'],
+    desc: 'Opposing Thermal Gradient Streams with descending frost-vapor and rising golden solar micro-ember dust',
+    animation: 'Opposing Thermal Gradient Streams',
+    swatch: ['#060606', '#eab308', '#f59e0b', '#141414', '#ffffff'],
   },
   {
-    id: 'bioluminescent-trench',
-    name: 'Bioluminescent Deep Trench',
-    icon: Waves,
-    iconColor: 'text-teal-400 fill-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.7)]',
-    iconBg: 'bg-teal-500/10 border-teal-500/30',
-    desc: 'Alien oceanic abyss with rhythmic pulse wave echolocation sonar and floating bioluminescent nodes',
-    animation: 'Pulse Wave Echolocation & Floating Organisms',
-    swatch: ['#010409', '#39ff14', '#e100ff', '#0a192f', '#8ea8c3'],
+    id: 'obsidian-void',
+    name: 'Obsidian Shadow Void',
+    vibe: 'Dark',
+    icon: Moon,
+    iconColor: 'text-slate-300 fill-slate-300 drop-shadow-[0_0_8px_rgba(148,163,184,0.7)]',
+    iconBg: 'bg-slate-500/10 border-slate-500/30',
+    desc: 'Freezing Circuit Crystal Growth with ultra-thin geometric crystal lines expanding across corners with spark nodes',
+    animation: 'Freezing Circuit Crystal Growth',
+    swatch: ['#000000', '#475569', '#94a3b8', '#0a0a0a', '#e2e8f0'],
   },
   {
-    id: 'windy-sakura',
-    name: 'Windy Sakura Leaf Falling',
-    icon: Wind,
-    iconColor: 'text-pink-400 fill-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.7)]',
+    id: 'cyberpunk-synthwave',
+    name: 'Cyberpunk Synthwave Neon',
+    vibe: 'Neon Pink & Teal',
+    icon: Layers,
+    iconColor: 'text-pink-500 fill-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.7)]',
     iconBg: 'bg-pink-500/10 border-pink-500/30',
-    desc: 'Moonlit midnight garden swept by wind currents carrying 3D tumbling pink sakura petals and fresh emerald leaves',
-    animation: '3D Tumbling Petals & Wind Gust Vortex',
-    swatch: ['#07050a', '#ff3385', '#34d399', '#140e1d', '#fff7fa'],
+    desc: 'Slow-Gliding Neon Horizon Grid with retro-futuristic wireframe floor sliding forward with magenta horizon glow',
+    animation: 'Slow-Gliding Neon Horizon Grid',
+    swatch: ['#05050c', '#ec4899', '#06b6d4', '#121022', '#ffffff'],
+  },
+  {
+    id: 'mystic-amethyst',
+    name: 'Mystic Amethyst Portal',
+    vibe: 'Royal Purple & Emerald',
+    icon: Compass,
+    iconColor: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]',
+    iconBg: 'bg-purple-500/10 border-purple-500/30',
+    desc: 'Concentric Portal Energy Rings with hypnotic circular energy ripples expanding outward and mystic particles',
+    animation: 'Concentric Portal Energy Rings',
+    swatch: ['#040208', '#9333ea', '#10b981', '#110c1d', '#f8fafc'],
   },
 ];
 
@@ -225,10 +243,21 @@ export default function Profile() {
 
   const [theme, setTheme] = useState(() => {
     let saved = localStorage.getItem('syncstream_theme');
-    if (saved === 'synthwave') saved = 'storm-thunder';
-    if (saved === 'yokohama-night') saved = 'windy-sakura';
+    const legacy = {
+      'storm-thunder': 'cobalt-quantum',
+      synthwave: 'cyberpunk-synthwave',
+      'cryo-vault': 'cryo-glacial',
+      'solar-flare': 'magma-thermal',
+      'cosmic-singularity': 'mystic-amethyst',
+      'plasma-web': 'emerald-biogrid',
+      'cyber-foundry': 'golden-sunfire',
+      'bioluminescent-trench': 'mystic-amethyst',
+      'windy-sakura': 'cyberpunk-synthwave',
+      'yokohama-night': 'cyberpunk-synthwave'
+    };
+    if (legacy[saved]) saved = legacy[saved];
     if (saved && THEME_OPTIONS.some(t => t.id === saved)) return saved;
-    return 'storm-thunder';
+    return 'cryo-glacial';
   });
 
   const [loading, setLoading] = useState(false);
@@ -281,11 +310,22 @@ export default function Profile() {
 
   React.useEffect(() => {
     return () => {
-      let currentPersisted = localStorage.getItem('syncstream_theme') || 'storm-thunder';
-      if (currentPersisted === 'synthwave') currentPersisted = 'storm-thunder';
-      if (currentPersisted === 'yokohama-night') currentPersisted = 'windy-sakura';
+      let currentPersisted = localStorage.getItem('syncstream_theme') || 'cryo-glacial';
+      const legacy = {
+        'storm-thunder': 'cobalt-quantum',
+        synthwave: 'cyberpunk-synthwave',
+        'cryo-vault': 'cryo-glacial',
+        'solar-flare': 'magma-thermal',
+        'cosmic-singularity': 'mystic-amethyst',
+        'plasma-web': 'emerald-biogrid',
+        'cyber-foundry': 'golden-sunfire',
+        'bioluminescent-trench': 'mystic-amethyst',
+        'windy-sakura': 'cyberpunk-synthwave',
+        'yokohama-night': 'cyberpunk-synthwave'
+      };
+      if (legacy[currentPersisted]) currentPersisted = legacy[currentPersisted];
       if (!THEME_OPTIONS.some(t => t.id === currentPersisted)) {
-        currentPersisted = 'storm-thunder';
+        currentPersisted = 'cryo-glacial';
       }
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
       document.body.classList.add(`theme-${currentPersisted}`);
