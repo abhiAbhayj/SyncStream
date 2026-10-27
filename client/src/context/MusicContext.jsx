@@ -43,6 +43,7 @@ export const MusicProvider = ({ children }) => {
   const pendingYtIdRef = useRef(null);
   const ytPollingRef = useRef(null);
   const bgAudioAnchorRef = useRef(null);
+  const userInitiatedPauseRef = useRef(false);
 
   // ── Favorites & Playlists State ──
   const [favorites, setFavorites] = useState(() => {
@@ -177,6 +178,12 @@ export const MusicProvider = ({ children }) => {
       });
     }
 
+    userInitiatedPauseRef.current = false;
+    // Engage mobile OS audio session anchor directly inside user gesture
+    if (bgAudioAnchorRef.current) {
+      bgAudioAnchorRef.current.play().catch(() => {});
+    }
+
     if (isYouTubeTrack(track)) {
       // Pause HTML5 audio engine
       if (audioRef.current) {
@@ -193,6 +200,7 @@ export const MusicProvider = ({ children }) => {
             ytPlayerRef.current.setVolume(isMuted ? 0 : safeVol * 100);
             ytPlayerRef.current.loadVideoById(ytId);
             ytPlayerRef.current.playVideo();
+            setIsPlaying(true);
           } catch (e) {
             console.warn('[YT Load Error]:', e);
           }
@@ -335,11 +343,19 @@ export const MusicProvider = ({ children }) => {
         try {
           const state = ytPlayerRef.current.getPlayerState();
           if (state === 1 || isPlaying) {
+            userInitiatedPauseRef.current = true;
             ytPlayerRef.current.pauseVideo();
             setIsPlaying(false);
+            if (bgAudioAnchorRef.current) {
+              bgAudioAnchorRef.current.pause();
+            }
           } else {
+            userInitiatedPauseRef.current = false;
             ytPlayerRef.current.playVideo();
             setIsPlaying(true);
+            if (bgAudioAnchorRef.current) {
+              bgAudioAnchorRef.current.play().catch(() => {});
+            }
           }
         } catch (e) {
           console.warn('[YT Toggle Error]:', e);
@@ -350,13 +366,21 @@ export const MusicProvider = ({ children }) => {
       if (!audio) return;
 
       if (audio.paused) {
+        userInitiatedPauseRef.current = false;
         if (!audio.src || audio.src !== currentTrack.audio_url) {
           audio.src = currentTrack.audio_url;
         }
         audio.play().then(() => setIsPlaying(true)).catch(console.error);
+        if (bgAudioAnchorRef.current) {
+          bgAudioAnchorRef.current.play().catch(() => {});
+        }
       } else {
+        userInitiatedPauseRef.current = true;
         audio.pause();
         setIsPlaying(false);
+        if (bgAudioAnchorRef.current) {
+          bgAudioAnchorRef.current.pause();
+        }
       }
     }
   }, [currentTrack, queue, isPlaying, playTrack]);
@@ -381,6 +405,11 @@ export const MusicProvider = ({ children }) => {
 
   // Close / Dismiss Player completely
   const closePlayer = useCallback(() => {
+    userInitiatedPauseRef.current = true;
+    if (bgAudioAnchorRef.current) {
+      bgAudioAnchorRef.current.pause();
+    }
+
     try {
       if (typeof document !== 'undefined') {
         const doc = document;
@@ -496,14 +525,16 @@ export const MusicProvider = ({ children }) => {
           height: '160',
           width: '160',
           playerVars: {
-            autoplay: 0,
+            autoplay: 1,
             controls: 0,
             disablekb: 1,
             fs: 0,
             rel: 0,
             modestbranding: 1,
             playsinline: 1,
-            origin: window.location.origin
+            origin: window.location.origin,
+            enablejsapi: 1,
+            widget_referrer: window.location.origin
           },
           events: {
             onReady: (event) => {
@@ -524,14 +555,29 @@ export const MusicProvider = ({ children }) => {
             onStateChange: (event) => {
               // 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 0 = ENDED
               if (event.data === 1) {
+                userInitiatedPauseRef.current = false;
                 setIsPlaying(true);
                 setIsLoading(false);
                 setPlaybackError(null);
                 const d = ytPlayerRef.current?.getDuration?.();
                 if (d && d > 0) setDuration(d);
+                if (bgAudioAnchorRef.current && bgAudioAnchorRef.current.paused) {
+                  bgAudioAnchorRef.current.play().catch(() => {});
+                }
               } else if (event.data === 2) {
-                setIsPlaying(false);
-                setIsLoading(false);
+                // If paused but user did NOT initiate the pause (e.g. screen lock / background auto-pause)
+                if (!userInitiatedPauseRef.current) {
+                  try {
+                    ytPlayerRef.current?.playVideo();
+                  } catch (e) {}
+                  setIsPlaying(true);
+                  if (bgAudioAnchorRef.current && bgAudioAnchorRef.current.paused) {
+                    bgAudioAnchorRef.current.play().catch(() => {});
+                  }
+                } else {
+                  setIsPlaying(false);
+                  setIsLoading(false);
+                }
               } else if (event.data === 3) {
                 setIsLoading(true);
               } else if (event.data === 0) {
@@ -577,7 +623,7 @@ export const MusicProvider = ({ children }) => {
     }
   }, [volume, isMuted]);
 
-  // Polling for YouTube player playback time and duration
+  // Polling for YouTube player playback time, duration and background watchdog
   useEffect(() => {
     if (isPlaying && isYouTubeTrack(currentTrack)) {
       ytPollingRef.current = setInterval(() => {
@@ -587,9 +633,17 @@ export const MusicProvider = ({ children }) => {
             const dur = ytPlayerRef.current.getDuration() || currentTrack?.duration || 0;
             setCurrentTime(cur);
             if (dur > 0) setDuration(dur);
+
+            // Auto-pause Watchdog: If user didn't pause, but YouTube state is paused, re-fire playVideo()
+            if (!userInitiatedPauseRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
+              const state = ytPlayerRef.current.getPlayerState();
+              if (state === 2) {
+                ytPlayerRef.current.playVideo();
+              }
+            }
           } catch (e) {}
         }
-      }, 250);
+      }, 500);
     } else {
       if (ytPollingRef.current) {
         clearInterval(ytPollingRef.current);
@@ -668,66 +722,89 @@ export const MusicProvider = ({ children }) => {
     };
   }, [isLooping, nextTrack, currentTrack, volume]);
 
-  // ── Mobile Background Audio Keep-Alive Anchor (Maintains OS Audio Session Lock) ──
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      if (!bgAudioAnchorRef.current) {
-        // Ultra-compact 1-sample silent WAV loop
-        const a = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-        a.loop = true;
-        a.volume = 0.001; // Inaudible anchor holding mobile OS audio thread
-        bgAudioAnchorRef.current = a;
-      }
-    } catch (e) {}
-  }, []);
-
-  // Sync background audio anchor state with player playback
+  // ── Sync DOM Background Audio Anchor with Playback State ──
   useEffect(() => {
     const anchor = bgAudioAnchorRef.current;
     if (!anchor) return;
-    if (isPlaying) {
+    try {
+      anchor.volume = 0.001; // Inaudible anchor holding mobile OS audio thread
+    } catch (e) {}
+    if (isPlaying && !userInitiatedPauseRef.current) {
       anchor.play().catch(() => {});
     } else {
       anchor.pause();
     }
   }, [isPlaying]);
 
-  // ── Mobile Background Resilience (Tab Switch / Power Button Screen Lock) ──
+  // ── Mobile Background Resilience (Tab Switch / Screen Lock / Inactivity) ──
   useEffect(() => {
-    if (typeof document === 'undefined') return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Tab switched / screen locked: ensure background audio anchor holds the session
-        if (isPlaying) {
-          if (bgAudioAnchorRef.current && bgAudioAnchorRef.current.paused) {
-            bgAudioAnchorRef.current.play().catch(() => {});
-          }
-          if (isYouTubeTrack(currentTrack) && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-            try {
-              ytPlayerRef.current.playVideo();
-            } catch (e) {}
-          }
+    const handleBackgroundEvent = () => {
+      // If actively playing and not paused by user
+      if (isPlaying && !userInitiatedPauseRef.current) {
+        if (bgAudioAnchorRef.current && bgAudioAnchorRef.current.paused) {
+          bgAudioAnchorRef.current.play().catch(() => {});
         }
-      } else {
-        // Tab restored to foreground
-        if (isPlaying && isYouTubeTrack(currentTrack)) {
-          if (ytPlayerRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
-            try {
-              const state = ytPlayerRef.current.getPlayerState();
-              if (state === 2) {
-                ytPlayerRef.current.playVideo();
-              }
-            } catch (e) {}
-          }
+
+        if (isYouTubeTrack(currentTrack) && ytPlayerRef.current) {
+          try {
+            ytPlayerRef.current.playVideo();
+          } catch (e) {}
+
+          // Defensive sequential re-triggers for delayed auto-pause
+          setTimeout(() => {
+            if (!userInitiatedPauseRef.current && ytPlayerRef.current?.getPlayerState?.() === 2) {
+              try { ytPlayerRef.current.playVideo(); } catch (e) {}
+            }
+          }, 100);
+
+          setTimeout(() => {
+            if (!userInitiatedPauseRef.current && ytPlayerRef.current?.getPlayerState?.() === 2) {
+              try { ytPlayerRef.current.playVideo(); } catch (e) {}
+            }
+          }, 400);
+
+          setTimeout(() => {
+            if (!userInitiatedPauseRef.current && ytPlayerRef.current?.getPlayerState?.() === 2) {
+              try { ytPlayerRef.current.playVideo(); } catch (e) {}
+            }
+          }, 900);
         }
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    const handleForegroundEvent = () => {
+      if (isPlaying && !userInitiatedPauseRef.current && isYouTubeTrack(currentTrack)) {
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
+          try {
+            const state = ytPlayerRef.current.getPlayerState();
+            if (state === 2) {
+              ytPlayerRef.current.playVideo();
+            }
+          } catch (e) {}
+        }
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        handleBackgroundEvent();
+      } else {
+        handleForegroundEvent();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', handleBackgroundEvent);
+    window.addEventListener('blur', handleBackgroundEvent);
+    window.addEventListener('focus', handleForegroundEvent);
+
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', handleBackgroundEvent);
+      window.removeEventListener('blur', handleBackgroundEvent);
+      window.removeEventListener('focus', handleForegroundEvent);
     };
   }, [isPlaying, currentTrack]);
 
@@ -772,8 +849,34 @@ export const MusicProvider = ({ children }) => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
 
     const actionHandlers = [
-      ['play', () => { if (!isPlaying) togglePlay(); }],
-      ['pause', () => { if (isPlaying) togglePlay(); }],
+      ['play', () => {
+        userInitiatedPauseRef.current = false;
+        if (isYouTubeTrack(currentTrack)) {
+          try {
+            ytPlayerRef.current?.playVideo();
+          } catch (e) {}
+          setIsPlaying(true);
+          if (bgAudioAnchorRef.current) {
+            bgAudioAnchorRef.current.play().catch(() => {});
+          }
+        } else {
+          togglePlay();
+        }
+      }],
+      ['pause', () => {
+        userInitiatedPauseRef.current = true;
+        if (isYouTubeTrack(currentTrack)) {
+          try {
+            ytPlayerRef.current?.pauseVideo();
+          } catch (e) {}
+          setIsPlaying(false);
+          if (bgAudioAnchorRef.current) {
+            bgAudioAnchorRef.current.pause();
+          }
+        } else {
+          togglePlay();
+        }
+      }],
       ['previoustrack', () => { prevTrack(); }],
       ['nexttrack', () => { nextTrack(); }],
       ['seekto', (details) => { if (details.seekTime !== undefined) seek(details.seekTime); }],
@@ -795,7 +898,7 @@ export const MusicProvider = ({ children }) => {
         } catch (e) {}
       }
     };
-  }, [isPlaying, togglePlay, prevTrack, nextTrack, seek, skipBackward, skipForward, closePlayer]);
+  }, [isPlaying, currentTrack, togglePlay, prevTrack, nextTrack, seek, skipBackward, skipForward, closePlayer]);
 
   // Sync queue to localStorage
   useEffect(() => {
@@ -1083,6 +1186,26 @@ export const MusicProvider = ({ children }) => {
   return (
     <MusicContext.Provider value={value}>
       {children}
+      {/* In-DOM Audio Anchor for mobile OS audio session keep-alive */}
+      <audio
+        ref={bgAudioAnchorRef}
+        loop
+        playsInline
+        preload="auto"
+        src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          right: 0,
+          width: '1px',
+          height: '1px',
+          opacity: 0.01,
+          pointerEvents: 'none',
+          zIndex: 1
+        }}
+        aria-hidden="true"
+      />
+
       {/* Invisible YouTube Iframe Engine (Kept active in live DOM tree for uninterrupted background playback) */}
       <div
         id="syncstream-hidden-yt-container"
@@ -1090,13 +1213,12 @@ export const MusicProvider = ({ children }) => {
           position: 'fixed',
           bottom: 0,
           right: 0,
-          width: '240px',
-          height: '180px',
-          opacity: 0.001,
+          width: '200px',
+          height: '200px',
+          opacity: 0.01,
           pointerEvents: 'none',
-          zIndex: -50,
-          transform: 'scale(0.01)',
-          transformOrigin: 'bottom right',
+          zIndex: 1,
+          clipPath: 'inset(99%)',
           overflow: 'hidden'
         }}
         aria-hidden="true"
