@@ -7,6 +7,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
+import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb } from 'lucide-react';
 
 const formatDuration = (mins, mediaType, episodesCount) => {
