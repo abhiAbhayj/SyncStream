@@ -1,61 +1,89 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Phone, Loader2, Key, CheckCircle2, Lock, Eye, EyeOff, Copy } from 'lucide-react';
+import { Phone, Loader2, Key, Check, Lock, Eye, EyeOff, Copy, ArrowLeft, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   
-  // Steps: 1 = Email, 2 = OTP, 3 = New Password
+  // Steps: 1 = Enter Identifier (Phone/Username), 2 = Enter OTP, 3 = New Password
   const [step, setStep] = useState(1);
   
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [identifier, setIdentifier] = useState('');
+  const [matchedPhone, setMatchedPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [secureToken, setSecureToken] = useState('');
   const [displayedMockOtp, setDisplayedMockOtp] = useState(null);
+  const [copiedOtp, setCopiedOtp] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const API_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-  const handleSendEmail = async (e) => {
+  const getApiUrl = (endpoint) => {
+    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+    return `${base}${endpoint}`;
+  };
+
+  const handleSendCode = async (e) => {
     e.preventDefault();
     setError('');
-    if (!phoneNumber) return setError('Please enter your mobile number.');
+    const cleanId = identifier.trim();
+    if (!cleanId) return setError('Please enter your mobile number or username.');
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/auth/forgot-password`, { phone_number: phoneNumber });
+      const response = await axios.post(getApiUrl('/api/auth/forgot-password'), {
+        phone_number: cleanId,
+        identifier: cleanId
+      });
+
       setStep(2);
-      
-      // Feature: Show Dummy OTP in a popup on screen smoothly
+      if (response.data.phone_number) {
+        setMatchedPhone(response.data.phone_number);
+      }
       if (response.data.mockOtp) {
         setDisplayedMockOtp(response.data.mockOtp);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to process request. Please try again later.');
+      setError(err.response?.data?.error || 'Failed to process request. Please check your username/phone number.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCopyOtp = () => {
+    if (!displayedMockOtp) return;
+    navigator.clipboard.writeText(displayedMockOtp);
+    setCopiedOtp(true);
+    setTimeout(() => setCopiedOtp(false), 2500);
+  };
+
+  const handleAutoFillOtp = () => {
+    if (!displayedMockOtp) return;
+    setOtp(displayedMockOtp);
+  };
+
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setError('');
-    if (!otp || otp.length !== 6) return setError('Please enter a valid 6-digit OTP.');
+    const cleanOtp = otp.trim();
+    if (!cleanOtp || cleanOtp.length !== 6) return setError('Please enter a valid 6-digit OTP code.');
 
     setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/api/auth/verify-otp`, { phone_number: phoneNumber, otp });
+      const res = await axios.post(getApiUrl('/api/auth/verify-otp'), {
+        phone_number: matchedPhone || identifier.trim(),
+        identifier: matchedPhone || identifier.trim(),
+        otp: cleanOtp
+      });
       setSecureToken(res.data.secureResetToken);
       setStep(3);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to verify OTP.');
+      setError(err.response?.data?.error || 'Failed to verify OTP code.');
     } finally {
       setLoading(false);
     }
@@ -69,10 +97,15 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/api/auth/reset-password`, { secureResetToken: secureToken, newPassword });
-      navigate('/login', { state: { message: 'Password has been successfully reset. You may now log in.' } });
+      await axios.post(getApiUrl('/api/auth/reset-password'), {
+        secureResetToken: secureToken,
+        newPassword
+      });
+      navigate('/login', {
+        state: { message: 'Password has been successfully updated. You may now log in.' }
+      });
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reset password. Your session may have expired.');
+      setError(err.response?.data?.error || 'Failed to reset password. Your reset session may have expired.');
     } finally {
       setLoading(false);
     }
@@ -96,9 +129,9 @@ export default function ForgotPassword() {
               {step === 1 ? 'Reset Password' : step === 2 ? 'Enter Code' : 'New Password'}
             </h1>
             <p className="text-gray-400 text-center text-sm">
-              {step === 1 && "Enter your mobile number and we'll send you a 6-digit code via SMS."}
-              {step === 2 && `We've sent a 6-digit code to ${phoneNumber}`}
-              {step === 3 && "Please enter your new password below."}
+              {step === 1 && "Enter your mobile number or username and we'll generate your 6-digit reset code."}
+              {step === 2 && `We've generated a 6-digit verification code for ${matchedPhone || identifier}`}
+              {step === 3 && "Please choose a secure new password for your account."}
             </p>
           </div>
 
@@ -108,20 +141,21 @@ export default function ForgotPassword() {
             </div>
           )}
 
-          {/* STEP 1: MOBILE NUMBER */}
+          {/* STEP 1: MOBILE NUMBER OR USERNAME */}
           {step === 1 && (
-            <form onSubmit={handleSendEmail} className="space-y-6 animate-fade-in">
+            <form onSubmit={handleSendCode} className="space-y-6 animate-fade-in">
               <div>
-                <label className="block text-sm font-bold text-gray-300 mb-2 ml-1">Mobile Number</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2 ml-1">Mobile Number or Username</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
-                    placeholder="Enter your phone number"
+                    placeholder="e.g. 9876543210 or your_username"
                     disabled={loading}
+                    autoFocus
                   />
                 </div>
               </div>
@@ -130,7 +164,7 @@ export default function ForgotPassword() {
                 disabled={loading}
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-[1.02] transition flex items-center justify-center gap-2 disabled:opacity-50 btn-glow-purple"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Code'}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Code'}
               </button>
             </form>
           )}
@@ -139,42 +173,67 @@ export default function ForgotPassword() {
           {step === 2 && (
             <form onSubmit={handleVerifyOtp} className="space-y-6 animate-fade-in">
               {displayedMockOtp && (
-                <div className="bg-accentPurple/10 border border-accentPurple/20 rounded-xl p-4 text-center animate-fade-in">
-                  <p className="text-xs text-accentPurple font-bold mb-1 tracking-widest uppercase">Dummy OTP Testing</p>
+                <div className="bg-accentPurple/15 border border-accentPurple/30 rounded-2xl p-4 text-center animate-fade-in space-y-3">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-accentCyan font-bold tracking-widest uppercase">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Your Verification OTP</span>
+                  </div>
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-2xl font-extrabold text-white tracking-widest">{displayedMockOtp}</span>
+                    <span className="text-3xl font-extrabold text-white tracking-[0.25em] font-mono bg-black/40 px-4 py-1.5 rounded-xl border border-white/10">
+                      {displayedMockOtp}
+                    </span>
                     <button 
                       type="button" 
-                      onClick={() => navigator.clipboard.writeText(displayedMockOtp)}
-                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition"
+                      onClick={handleCopyOtp}
+                      className="p-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-gray-300 hover:text-white transition flex items-center gap-1.5 text-xs font-semibold"
                       title="Copy OTP"
                     >
-                      <Copy className="w-4 h-4" />
+                      {copiedOtp ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      <span>{copiedOtp ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleAutoFillOtp}
+                    className="text-xs text-accentCyan hover:underline font-semibold"
+                  >
+                    Click to Auto-fill Code into Input
+                  </button>
                 </div>
               )}
+
               <div>
-                <label className="block text-sm font-bold text-gray-300 mb-2 ml-1 text-center">6-Digit Code</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2 ml-1 text-center">Enter 6-Digit Code</label>
                 <div className="relative flex justify-center">
                   <input
                     type="text"
                     maxLength={6}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-48 bg-darkBg border border-darkBorder rounded-2xl text-center text-3xl font-bold py-4 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition tracking-widest placeholder:text-gray-700"
+                    className="w-52 bg-darkBg border border-darkBorder rounded-2xl text-center text-3xl font-bold py-4 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition tracking-widest placeholder:text-gray-700 font-mono"
                     placeholder="------"
                     disabled={loading}
+                    autoFocus
                   />
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-[1.02] transition flex items-center justify-center gap-2 disabled:opacity-50 btn-glow-purple"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify Code'}
-              </button>
+
+              <div className="flex flex-col gap-2">
+                <button
+                  type="submit"
+                  disabled={loading || otp.length !== 6}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentPurple/25 hover:opacity-90 hover:scale-[1.02] transition flex items-center justify-center gap-2 disabled:opacity-50 btn-glow-purple"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify Code'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setOtp(''); setError(''); }}
+                  className="text-xs text-gray-400 hover:text-white transition text-center py-1"
+                >
+                  Change phone number or username
+                </button>
+              </div>
             </form>
           )}
 
@@ -191,8 +250,9 @@ export default function ForgotPassword() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full bg-darkBg border border-darkBorder rounded-2xl pl-12 pr-12 py-3.5 text-white focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition placeholder:text-gray-600"
-                      placeholder="Enter new password"
+                      placeholder="Enter new password (min. 6 characters)"
                       disabled={loading}
+                      autoFocus
                     />
                     <button
                       type="button"
@@ -203,8 +263,9 @@ export default function ForgotPassword() {
                     </button>
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-bold text-gray-300 mb-2 ml-1">Confirm Password</label>
+                  <label className="block text-sm font-bold text-gray-300 mb-2 ml-1">Confirm New Password</label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                     <input
@@ -225,6 +286,7 @@ export default function ForgotPassword() {
                   </div>
                 </div>
               </div>
+
               <button
                 type="submit"
                 disabled={loading}
@@ -238,7 +300,7 @@ export default function ForgotPassword() {
           <div className="mt-8 text-center">
             <Link to="/login" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition group">
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Login
+              <span>Back to Login</span>
             </Link>
           </div>
 

@@ -61,17 +61,21 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { phone_number, password } = req.body;
+  const rawId = (req.body.phone_number || req.body.username || req.body.identifier || '').trim();
+  const { password } = req.body;
 
-  if (!phone_number || !password) {
-    return res.status(400).json({ error: 'Phone number and password are required.' });
+  if (!rawId || !password) {
+    return res.status(400).json({ error: 'Phone number/username and password are required.' });
   }
 
   try {
-    // 1. Find user by phone_number
-    const [users] = await db.query('SELECT * FROM users WHERE phone_number = ?', [phone_number]);
+    // 1. Find user by phone_number or username
+    const [users] = await db.query(
+      'SELECT * FROM users WHERE phone_number = ? OR username = ?',
+      [rawId, rawId]
+    );
     if (users.length === 0) {
-      return res.status(401).json({ error: 'Invalid phone number or password.' });
+      return res.status(401).json({ error: 'Invalid phone number/username or password.' });
     }
 
     const user = users[0];
@@ -79,7 +83,7 @@ export const login = async (req, res) => {
     // 2. Compare password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid phone number or password.' });
+      return res.status(401).json({ error: 'Invalid phone number/username or password.' });
     }
 
     // 3. Generate token
@@ -179,14 +183,34 @@ export const updateProfile = async (req, res) => {
 };
 
 export const forgotPassword = async (req, res) => {
-  const { phone_number } = req.body;
-  if (!phone_number) return res.status(400).json({ error: 'Phone number is required.' });
+  const rawId = (req.body.phone_number || req.body.identifier || req.body.username || '').trim();
+  if (!rawId) return res.status(400).json({ error: 'Please enter your mobile number or username.' });
+
+  const digitsOnly = rawId.replace(/\D/g, '');
 
   try {
-    const [users] = await db.query('SELECT id, username FROM users WHERE phone_number = ?', [phone_number]);
-    if (users.length === 0) {
-      return res.status(404).json({ error: 'User with this phone number does not exist.' });
+    let [users] = await db.query(
+      'SELECT id, username, phone_number FROM users WHERE phone_number = ? OR username = ?',
+      [rawId, rawId]
+    );
+
+    // If not found by exact match and digits length is at least 7, try normalized digits match
+    if (users.length === 0 && digitsOnly.length >= 7) {
+      const [digitMatchedUsers] = await db.query(
+        `SELECT id, username, phone_number FROM users 
+         WHERE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone_number, ' ', ''), '-', ''), '+', ''), '(', ''), ')', '') LIKE ?`,
+        [`%${digitsOnly.slice(-10)}%`]
+      );
+      if (digitMatchedUsers.length > 0) {
+        users = digitMatchedUsers;
+      }
     }
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'No account found with this username or mobile number.' });
+    }
+
+    const matchedUser = users[0];
 
     // Generate 6-Digit OTP
     const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -195,14 +219,15 @@ export const forgotPassword = async (req, res) => {
 
     await db.query(
       'UPDATE users SET reset_otp = ?, reset_otp_expiry = ? WHERE id = ?',
-      [resetOtpHash, expiry, users[0].id]
+      [resetOtpHash, expiry, matchedUser.id]
     );
 
     // Fallback Mock SMS: Send it straight to the frontend for easy testing!
-    console.log(`\n\n[MOCK SMS] Password Reset OTP for ${phone_number}:\n[ ${resetOtp} ]\n\n`);
+    console.log(`\n\n[MOCK SMS] Password Reset OTP for ${matchedUser.phone_number} (${matchedUser.username}):\n[ ${resetOtp} ]\n\n`);
     
     res.json({ 
-      message: 'If an account with that number exists, an SMS reset code has been sent.',
+      message: 'If an account exists, a 6-digit reset code has been sent.',
+      phone_number: matchedUser.phone_number,
       mockOtp: resetOtp // Expose to frontend for popup
     });
   } catch (error) {
@@ -212,11 +237,29 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
-  const { phone_number, otp } = req.body;
-  if (!phone_number || !otp) return res.status(400).json({ error: 'Phone number and OTP are required.' });
+  const rawId = (req.body.phone_number || req.body.identifier || req.body.username || '').trim();
+  const { otp } = req.body;
+  if (!rawId || !otp) return res.status(400).json({ error: 'Phone number or username and OTP are required.' });
+
+  const digitsOnly = rawId.replace(/\D/g, '');
 
   try {
-    const [users] = await db.query('SELECT id, reset_otp, reset_otp_expiry FROM users WHERE phone_number = ?', [phone_number]);
+    let [users] = await db.query(
+      'SELECT id, reset_otp, reset_otp_expiry, phone_number, username FROM users WHERE phone_number = ? OR username = ?',
+      [rawId, rawId]
+    );
+
+    if (users.length === 0 && digitsOnly.length >= 7) {
+      const [digitMatchedUsers] = await db.query(
+        `SELECT id, reset_otp, reset_otp_expiry, phone_number, username FROM users 
+         WHERE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone_number, ' ', ''), '-', ''), '+', ''), '(', ''), ')', '') LIKE ?`,
+        [`%${digitsOnly.slice(-10)}%`]
+      );
+      if (digitMatchedUsers.length > 0) {
+        users = digitMatchedUsers;
+      }
+    }
+
     if (users.length === 0 || !users[0].reset_otp) {
       return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
@@ -226,9 +269,9 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
     }
 
-    const isMatch = await bcrypt.compare(otp, user.reset_otp);
+    const isMatch = await bcrypt.compare(otp.toString().trim(), user.reset_otp);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Incorrect OTP.' });
+      return res.status(400).json({ error: 'Incorrect OTP. Please check the code and try again.' });
     }
 
     // Generate a short-lived temporary secure session token to authorize the password change
