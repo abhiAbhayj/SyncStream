@@ -8,7 +8,7 @@ import EmbedPlayer from '../components/EmbedPlayer';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb } from 'lucide-react';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb } from 'lucide-react';
 
 const formatDuration = (mins, mediaType, episodesCount) => {
   const m = parseInt(mins, 10);
@@ -71,6 +71,8 @@ export default function WatchParty() {
 
   // Incoming sync state from host socket
   const [inboundSyncEvent, setInboundSyncEvent] = useState(null);
+  const [isPlayingState, setIsPlayingState] = useState(true);
+  const [lastSyncAction, setLastSyncAction] = useState('Party sync active');
 
   // 1. Fetch Room and Media Info
   useEffect(() => {
@@ -152,21 +154,47 @@ export default function WatchParty() {
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
       if (state.embedServer) setEmbedServer(state.embedServer);
-      if (state.activeSeason) setActiveSeason(state.activeSeason);
-      if (state.activeEpisode) setActiveEpisode(state.activeEpisode);
-      if (state.customUrl) setCustomUrl(state.customUrl);
+      if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
+      if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
+      if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
+      if (state.event === 'play') setIsPlayingState(true);
+      if (state.event === 'pause') setIsPlayingState(false);
+      if (state.sender) setLastSyncAction(`Stream synced by @${state.sender}`);
     });
 
     socket.on('media_sync', (state) => {
-      // Ignore sync events if we are the host (to prevent cycles)
-      if (user.id === room.host_id) return;
-      console.log('[Socket] Media sync request received:', state);
+      // Ignore sync events if we are the sender (to prevent loops)
+      if (state.sender === user.username) return;
+      console.log('[Socket] Media sync request received from', state.sender, state);
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
       if (state.embedServer) setEmbedServer(state.embedServer);
-      if (state.activeSeason) setActiveSeason(state.activeSeason);
-      if (state.activeEpisode) setActiveEpisode(state.activeEpisode);
-      if (state.customUrl) setCustomUrl(state.customUrl);
+      if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
+      if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
+      if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
+      if (state.event === 'play') setIsPlayingState(true);
+      if (state.event === 'pause') setIsPlayingState(false);
+
+      const senderName = state.sender || 'Party member';
+      if (state.event === 'play') {
+        setLastSyncAction(`Played by @${senderName}`);
+        addNotification(`${senderName} played the stream`, 'sync');
+      } else if (state.event === 'pause') {
+        setLastSyncAction(`Paused by @${senderName}`);
+        addNotification(`${senderName} paused the stream`, 'sync');
+      } else if (state.event === 'seek') {
+        setLastSyncAction(`Jumped by @${senderName}`);
+        addNotification(`${senderName} jumped in the stream`, 'sync');
+      } else if (state.activeEpisode && state.activeEpisode !== activeEpisode) {
+        setLastSyncAction(`Ep ${state.activeEpisode} selected by @${senderName}`);
+        addNotification(`${senderName} switched to Episode ${state.activeEpisode}`, 'sync');
+      } else if (state.embedServer && state.embedServer !== embedServer) {
+        setLastSyncAction(`Server switched by @${senderName}`);
+        addNotification(`${senderName} switched streaming server`, 'sync');
+      } else if (state.playbackMode && state.playbackMode !== playbackMode) {
+        setLastSyncAction(`Mode changed by @${senderName}`);
+        addNotification(`${senderName} changed playback mode`, 'sync');
+      }
     });
 
     socket.on('user_joined', ({ username }) => {
@@ -202,8 +230,11 @@ export default function WatchParty() {
   const isHost = user?.id === room?.host_id;
 
   const emitRoomState = (changes = {}) => {
-    if (!socket || !user || !room || !isHost) return;
+    if (!socket || !user || !room) return;
     
+    if (changes.event === 'play') setIsPlayingState(true);
+    if (changes.event === 'pause') setIsPlayingState(false);
+
     const payload = {
       roomCode: code,
       sender: user.username,
@@ -217,6 +248,22 @@ export default function WatchParty() {
     };
     
     socket.emit('media_sync', payload);
+  };
+
+  const handleTogglePartyPlayPause = () => {
+    const nextPlay = !isPlayingState;
+    setIsPlayingState(nextPlay);
+    emitRoomState({ event: nextPlay ? 'play' : 'pause' });
+    setLastSyncAction(`${nextPlay ? 'Played' : 'Paused'} by @${user?.username || 'you'}`);
+    addNotification(`You ${nextPlay ? 'played' : 'paused'} the stream`, 'sync');
+  };
+
+  const handleRequestResync = () => {
+    if (socket && code) {
+      socket.emit('request_playback_state', { roomCode: code });
+      setLastSyncAction(`Re-sync requested`);
+      addNotification(`Requested synchronization from room`, 'sync');
+    }
   };
 
   const handleHostStateChange = (event, time) => {
@@ -582,40 +629,38 @@ export default function WatchParty() {
             <div className="flex items-center gap-1 sm:gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold overflow-x-auto max-w-full">
               {mediaDetail.youtube_trailer && (
                 <button
-                  disabled={!isHost}
                   onClick={() => handlePlaybackModeChange('trailer')}
                   className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                     playbackMode === 'trailer' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  }`}
                 >
                   YouTube Trailer
                 </button>
               )}
               <button
-                disabled={!isHost}
                 onClick={() => handlePlaybackModeChange('solo-embed')}
                 className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                   playbackMode === 'solo-embed' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                }`}
               >
                 Standard Embed
               </button>
               <button
-                disabled={!isHost}
                 onClick={() => handlePlaybackModeChange('solo-html5')}
                 className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                   playbackMode === 'solo-html5' ? 'bg-accentCyan/10 text-accentCyan font-extrabold' : 'text-gray-400 hover:text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                }`}
               >
                 Custom Video/Embed
               </button>
             </div>
             
-            {!isHost && (
-              <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider self-start sm:self-auto shrink-0">
-                Sync Mode: Active
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Shared Control Active
               </span>
-            )}
+            </div>
           </div>
 
           {/* Streaming Server Selector (only for Standard Embed) */}
@@ -626,23 +671,18 @@ export default function WatchParty() {
                   <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan shrink-0" />
                   <span className="text-[11px] sm:text-xs text-gray-300 font-bold uppercase tracking-wider">Streaming Server:</span>
                 </div>
-                {!isHost ? (
-                  <span className="text-[10px] sm:text-[11px] text-gray-400">Host controls active streaming server</span>
-                ) : (
-                  <span className="text-[10px] sm:text-[11px] text-gray-400">Switch server if stream buffers</span>
-                )}
+                <span className="text-[10px] sm:text-[11px] text-gray-400">Shared Party Control • Any participant can switch server</span>
               </div>
 
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-1">
                 {STREAMING_SERVERS.map((server) => (
                   <button
                     key={server.key}
-                    disabled={!isHost}
                     onClick={() => handleServerChange(server.key)}
                     className={`group relative px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 sm:gap-2 ${
                       embedServer === server.key
                         ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-lg shadow-accentCyan/10 ring-1 ring-accentCyan/30'
-                        : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'border-darkBorder bg-darkCard/60 text-gray-400 hover:text-white hover:border-white/20'
                     }`}
                   >
                     <span>{server.label}</span>
@@ -665,15 +705,14 @@ export default function WatchParty() {
           {playbackMode === 'solo-html5' && (
             <div className="flex flex-col gap-2 border border-darkBorder bg-black/20 p-4 rounded-2xl">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                {isHost ? 'Paste Direct Video URL (.mp4, .m3u8) or Custom Embed URL:' : 'Custom Stream Source (Selected by Host):'}
+                Direct Video URL (.mp4, .m3u8) or Custom Embed URL (Shared Control):
               </label>
               <input
-                disabled={!isHost}
                 type="text"
-                placeholder={isHost ? "e.g. https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" : "No stream source has been loaded yet."}
+                placeholder="e.g. https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
                 value={customUrl}
                 onChange={(e) => handleCustomUrlChange(e.target.value)}
-                className="w-full px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition disabled:opacity-75"
+                className="w-full px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
               />
             </div>
           )}
@@ -732,6 +771,57 @@ export default function WatchParty() {
             })()}
           </div>
 
+          {/* Party Live Sync Dashboard Bar */}
+          <div className="bg-gradient-to-r from-darkCard/90 via-black/40 to-darkCard/90 border border-darkBorder/80 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="relative flex items-center justify-center shrink-0">
+                <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping absolute" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative" />
+              </div>
+              <div className="flex flex-col text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-white">Party Live Sync</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Shared Control
+                  </span>
+                </div>
+                <span className="text-[11px] text-gray-400">
+                  {lastSyncAction || (isPlayingState ? 'Stream playing in sync for everyone' : 'Stream paused in sync')}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+              <button
+                type="button"
+                onClick={handleTogglePartyPlayPause}
+                className="px-3.5 py-1.5 rounded-xl bg-accentCyan/15 hover:bg-accentCyan/25 text-accentCyan border border-accentCyan/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+              >
+                {isPlayingState ? (
+                  <>
+                    <Pause className="w-3.5 h-3.5 fill-current" />
+                    <span>Sync Pause</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Sync Play</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRequestResync}
+                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                title="Re-synchronize room state"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Re-sync</span>
+              </button>
+            </div>
+          </div>
+
           {/* Season and Episode selector Directory for TV/Anime ONLY - NEVER FOR MOVIES */}
           {isEpisodic && (
             <div className="border border-darkBorder bg-black/10 rounded-2xl p-4 space-y-4">
@@ -745,11 +835,10 @@ export default function WatchParty() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
                   <select
-                    disabled={!isHost}
                     value={activeSeason || 1}
                     onChange={(e) => handleSeasonChange(parseInt(e.target.value, 10))}
-                    className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer disabled:opacity-75"
-                    title={!isHost ? "Host controls active season" : "Select season"}
+                    className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer"
+                    title="Select season for party"
                   >
                     {seasonsList.map((s) => (
                       <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg font-medium">
@@ -778,12 +867,11 @@ export default function WatchParty() {
                     return (
                       <button
                         key={epNum}
-                        disabled={!isHost}
                         onClick={() => handleEpisodeChange(epNum)}
                         className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group ${
                           isSelected
                             ? 'border-accentCyan bg-accentCyan/15 text-accentCyan'
-                            : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white disabled:opacity-50'
+                            : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white'
                         }`}
                       >
                         <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
@@ -821,15 +909,12 @@ export default function WatchParty() {
                 {relatedEntries.map((item) => (
                   <button
                     key={item.id}
-                    disabled={!isHost && item.isSeason}
                     onClick={() => {
                       if (item.isSeason) {
                         handleSeasonChange(item.season_number);
                       }
                     }}
-                    className={`relative overflow-hidden rounded-xl p-2.5 sm:p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[85px] sm:min-h-[90px] ${
-                      isHost ? 'cursor-pointer active:scale-95' : 'cursor-default'
-                    } ${
+                    className={`relative overflow-hidden rounded-xl p-2.5 sm:p-3 text-left transition-all duration-200 group flex flex-col justify-between min-h-[85px] sm:min-h-[90px] cursor-pointer active:scale-95 ${
                       item.isActive
                         ? 'border-2 border-[#10b981] bg-[#10b981]/15 text-white shadow-[0_0_20px_rgba(16,185,129,0.45)] ring-1 ring-[#10b981]'
                         : 'border border-darkBorder bg-darkCard/70 hover:border-white/30 hover:bg-darkCard text-gray-300'
@@ -871,9 +956,7 @@ export default function WatchParty() {
           <div className="bg-black/20 border border-darkBorder/40 p-4 rounded-xl flex items-start gap-2.5">
             <Lightbulb className="w-4 h-4 text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)] shrink-0 mt-0.5" />
             <p className="text-xs text-gray-400 leading-relaxed font-medium">
-              {isHost 
-                ? "You are the room host. Switching players, streaming servers, seasons, episodes, or pasting custom links will synchronize participants automatically."
-                : "Live synchronized session active. Standard players, seasons, episodes, and stream wraps are synchronized. Enjoy the show!"}
+              Live synchronized session active! Both the host and joined party members have shared control over playback (Play/Pause/Seek), server selection, seasons, and episodes. Actions synchronize in real time for everyone in the room.
             </p>
           </div>
         </div>

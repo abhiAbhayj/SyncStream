@@ -636,8 +636,8 @@ export default function Profile() {
   };
 
   const handleSignOut = () => {
-    logout();
-    navigate('/login');
+    window.dispatchEvent(new CustomEvent('open-logout-confirm'));
+
   };
 
   const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.bots;

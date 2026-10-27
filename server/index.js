@@ -101,6 +101,22 @@ io.on('connection', (socket) => {
     socket.to(roomCode).emit('media_sync', data);
   });
 
+  // 2b. Explicit request to re-synchronize room state
+  socket.on('request_playback_state', ({ roomCode }) => {
+    if (roomPlaybackStates[roomCode]) {
+      const state = roomPlaybackStates[roomCode];
+      let currentTime = state.time || 0;
+      if (state.event === 'play' && state.lastUpdated) {
+        const elapsedSeconds = (Date.now() - state.lastUpdated) / 1000;
+        currentTime += elapsedSeconds;
+      }
+      socket.emit('media_sync', {
+        ...state,
+        time: currentTime
+      });
+    }
+  });
+
   // 3. Sync chat messages and save to MySQL
   socket.on('send_message', async ({ roomCode, messageText, userId, username, avatarUrl }) => {
     if (!roomCode || !messageText || !userId) return;

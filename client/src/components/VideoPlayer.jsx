@@ -122,7 +122,7 @@ export default function VideoPlayer({
   // 2.5 Listen for Global Voice Commands
   useEffect(() => {
     const handleVoiceCommand = (e) => {
-      if (!isHost || !videoRef.current) return;
+      if (!videoRef.current) return;
       const { action } = e.detail;
 
       if (action === 'play') {
@@ -144,7 +144,7 @@ export default function VideoPlayer({
 
     window.addEventListener('voice-command', handleVoiceCommand);
     return () => window.removeEventListener('voice-command', handleVoiceCommand);
-  }, [isHost]);
+  }, []);
 
   // 3. User interaction triggers (Host only)
   const handlePlayPause = () => {
@@ -165,7 +165,7 @@ export default function VideoPlayer({
   };
 
   const handleSeekChange = (e) => {
-    if (!videoRef.current || !isHost) return;
+    if (!videoRef.current) return;
     const newTime = parseFloat(e.target.value);
     videoRef.current.currentTime = newTime;
     setCurrentTime(newTime);
@@ -173,8 +173,8 @@ export default function VideoPlayer({
   };
 
   const triggerOutboundSync = (event, time) => {
-    // Only emit state changes if we are the host and NOT currently processing an inbound sync event
-    if (isHost && !isSyncingRef.current && onStateChange) {
+    // Only emit state changes if NOT currently processing an inbound sync event
+    if (!isSyncingRef.current && onStateChange) {
       onStateChange(event, time);
     }
   };
@@ -182,14 +182,14 @@ export default function VideoPlayer({
   // 4. Video event listeners
   const onPlay = () => {
     setIsPlaying(true);
-    if (!isSyncingRef.current && isHost) {
+    if (!isSyncingRef.current) {
       triggerOutboundSync('play', videoRef.current.currentTime);
     }
   };
 
   const onPause = () => {
     setIsPlaying(false);
-    if (!isSyncingRef.current && isHost) {
+    if (!isSyncingRef.current) {
       triggerOutboundSync('pause', videoRef.current.currentTime);
     }
   };
@@ -262,7 +262,7 @@ export default function VideoPlayer({
         onLoadedMetadata={onLoadedMetadata}
         onWaiting={() => setIsLoading(true)}
         onPlaying={() => setIsLoading(false)}
-        onClick={isHost ? handlePlayPause : undefined}
+        onClick={handlePlayPause}
       />
 
       {/* Loading overlay */}
@@ -272,21 +272,11 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* Sync Warning banner (For non-hosts) */}
-      {!isHost && (
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-accentPurple/20 backdrop-blur-md text-accentPurple border border-accentPurple/30 px-3 py-1.5 rounded-xl text-xs font-semibold">
-          <ShieldAlert className="w-3.5 h-3.5" />
-          Synchronized to Host controls
-        </div>
-      )}
-
-      {/* Host Control Status label */}
-      {isHost && (
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-accentCyan/20 backdrop-blur-md text-accentCyan border border-accentCyan/30 px-3 py-1.5 rounded-xl text-xs font-semibold">
-          <Play className="w-3 h-3 fill-current" />
-          Watch Host Controls Active
-        </div>
-      )}
+      {/* Party Sync Status label */}
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-black/75 backdrop-blur-md text-accentCyan border border-accentCyan/30 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-lg">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <span>Shared Party Sync</span>
+      </div>
 
       {/* Custom Control Bar overlay */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300 flex flex-col gap-3 z-20">
@@ -300,11 +290,8 @@ export default function VideoPlayer({
             max={duration || 100}
             step={0.1}
             value={currentTime}
-            disabled={!isHost}
             onChange={handleSeekChange}
-            className={`flex-grow h-1.5 rounded-lg appearance-none bg-white/20 transition-all ${
-              isHost ? 'cursor-pointer hover:h-2 accent-accentCyan' : 'cursor-not-allowed opacity-75'
-            }`}
+            className="flex-grow h-1.5 rounded-lg appearance-none bg-white/20 transition-all cursor-pointer hover:h-2 accent-accentCyan"
           />
           <span className="text-xs font-bold text-gray-300 font-mono">{formatTime(duration)}</span>
         </div>
@@ -314,13 +301,9 @@ export default function VideoPlayer({
           <div className="flex items-center gap-3">
             {/* Play/Pause */}
             <button
-              onClick={isHost ? handlePlayPause : undefined}
-              disabled={!isHost}
-              className={`p-2 rounded-xl border text-white transition ${
-                isHost 
-                  ? 'border-white/10 bg-white/5 hover:bg-white/15 hover:border-white/25 active:scale-95' 
-                  : 'border-transparent bg-transparent opacity-50 cursor-not-allowed'
-              }`}
+              onClick={handlePlayPause}
+              className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/15 hover:border-white/25 active:scale-95 text-white transition cursor-pointer"
+              title="Play / Pause stream (Syncs with all party members)"
             >
               {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
             </button>

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Tv, Phone, Lock, LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Tv, Phone, Lock, LogIn, Loader2, Eye, EyeOff, Check } from 'lucide-react';
 
 export default function Login() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const infoMessage = location.state?.message;
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -52,6 +54,14 @@ export default function Login() {
             Access watch parties and save tracking watchlist profiles.
           </p>
         </div>
+
+        {/* Notification Messages */}
+        {infoMessage && (
+          <div className="bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold p-3.5 rounded-xl text-center flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.15)] animate-fade-in">
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{infoMessage}</span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {error && (

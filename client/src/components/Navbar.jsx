@@ -26,9 +26,9 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-    logout();
+    window.dispatchEvent(new CustomEvent('open-logout-confirm'));
     setDropdownOpen(false);
-    navigate('/login');
+
   };
 
   const handleJoinSubmit = (e) => {
