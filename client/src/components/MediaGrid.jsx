@@ -288,7 +288,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
 
               {/* ── Info ── */}
               <div className="p-3 flex flex-col gap-1">
-                <h3 className={`font-semibold text-sm leading-snug line-clamp-2 transition-all duration-300 text-gray-200
+                <h3 className={`font-dmsans font-semibold text-sm leading-snug line-clamp-2 transition-all duration-300 text-gray-200
                                group-hover:bg-gradient-to-r ${cfg.titleHover}
                                group-hover:bg-clip-text group-hover:text-transparent`}>
                   {item.title || item.name}

@@ -83,7 +83,7 @@ export default function Navbar() {
                   className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <span className="font-orbitron font-extrabold text-base sm:text-xl tracking-widest text-gradient-aurora uppercase">
+              <span className="font-josefin font-extrabold text-base sm:text-xl tracking-wider text-gradient-aurora uppercase">
                 SyncStream
               </span>
             </Link>
@@ -98,7 +98,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`nav-link relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 font-rajdhani tracking-wide uppercase text-[13px] ${
+                  className={`nav-link relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 font-manrope tracking-wider uppercase text-[12px] font-bold ${
                     active
                       ? 'text-white bg-white/[0.07]'
                       : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'

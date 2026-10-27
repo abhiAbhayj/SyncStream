@@ -233,7 +233,7 @@ export default function Home() {
             <span>THE ULTIMATE STREAMING HUB</span>
           </div>
 
-          <h1 className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-bebas tracking-wider leading-tight sm:leading-none uppercase animate-fade-up stagger-2">
+          <h1 className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-josefin font-bold tracking-wider leading-tight sm:leading-none uppercase animate-fade-up stagger-2">
             Discover, Stream &amp;
             <br />
             <span className="text-gradient-aurora title-glow">Watch Together</span>
@@ -283,7 +283,7 @@ export default function Home() {
       {/* ── Discovery Feed Live Header Row ── */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider font-orbitron">
+          <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider font-josefin">
             Discovery Feed
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">

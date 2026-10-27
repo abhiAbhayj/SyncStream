@@ -260,7 +260,7 @@ export default function Watchlist() {
                     {/* Glowing Name Tag Pill */}
                     <div className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r ${sec.tagBg} border ${sec.tagBorder} ${sec.tagText} ${sec.tagShadow}`}>
                       <Icon className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-                      <span className="font-orbitron font-extrabold text-xs sm:text-sm tracking-wider uppercase">
+                      <span className="font-josefin font-extrabold text-xs sm:text-sm tracking-wider uppercase">
                         {sec.title}
                       </span>
                     </div>
@@ -296,7 +296,7 @@ export default function Watchlist() {
                 <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                   <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gray-500/20 border border-gray-400/40 text-gray-200">
                     <Layers className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-                    <span className="font-orbitron font-extrabold text-xs sm:text-sm tracking-wider uppercase">
+                    <span className="font-josefin font-extrabold text-xs sm:text-sm tracking-wider uppercase">
                       OTHER MEDIA
                     </span>
                   </div>
