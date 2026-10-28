@@ -44,6 +44,8 @@ export const MusicProvider = ({ children }) => {
   const ytPollingRef = useRef(null);
   const bgAudioAnchorRef = useRef(null);
   const userInitiatedPauseRef = useRef(false);
+  const currentTrackRef = useRef(null);
+  const activeEngineRef = useRef('none'); // 'none' | 'html5' | 'youtube'
 
   // ── Favorites & Playlists State ──
   const [favorites, setFavorites] = useState(() => {
@@ -74,6 +76,8 @@ export const MusicProvider = ({ children }) => {
       return null;
     }
   });
+
+  currentTrackRef.current = currentTrack;
 
   const [queue, setQueue] = useState(() => {
     try {
@@ -161,6 +165,10 @@ export const MusicProvider = ({ children }) => {
   const playTrack = useCallback((track, trackList = null) => {
     if (!track) return;
 
+    // 0. Update synchronous tracking refs immediately
+    currentTrackRef.current = track;
+    userInitiatedPauseRef.current = false;
+
     setPlaybackError(null);
     setCurrentTrack(track);
     setCurrentTime(0);
@@ -178,19 +186,24 @@ export const MusicProvider = ({ children }) => {
       });
     }
 
-    userInitiatedPauseRef.current = false;
     // Engage mobile OS audio session anchor directly inside user gesture
     if (bgAudioAnchorRef.current) {
       bgAudioAnchorRef.current.play().catch(() => {});
     }
 
     if (isYouTubeTrack(track)) {
-      // Pause HTML5 audio engine
+      activeEngineRef.current = 'youtube';
+
+      // 1. Immediately and completely STOP and PURGE HTML5 audio engine
       if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
+        try {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+          audioRef.current.src = '';
+        } catch (e) {}
       }
 
+      // 2. Play on YouTube engine
       const ytId = extractYouTubeId(track);
       if (ytId) {
         setIsLoading(true);
@@ -209,26 +222,41 @@ export const MusicProvider = ({ children }) => {
         }
       }
     } else {
-      // JioSaavn / Direct Audio track -> Pause YouTube player
-      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+      activeEngineRef.current = 'html5';
+
+      // 1. Immediately and completely STOP the YouTube player engine
+      if (ytPlayerRef.current) {
         try {
-          ytPlayerRef.current.pauseVideo();
+          if (typeof ytPlayerRef.current.stopVideo === 'function') {
+            ytPlayerRef.current.stopVideo();
+          } else if (typeof ytPlayerRef.current.pauseVideo === 'function') {
+            ytPlayerRef.current.pauseVideo();
+          }
         } catch (e) {}
       }
+      pendingYtIdRef.current = null;
 
+      // 2. Play on HTML5 audio engine
       const audio = audioRef.current;
       if (audio && track.audio_url) {
         setIsLoading(true);
-        if (audio.src !== track.audio_url) {
-          audio.src = track.audio_url;
-        }
-        audio.currentTime = 0;
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+        } catch (e) {}
+
+        audio.src = track.audio_url;
+        const safeVol = isNaN(volume) ? 0.85 : volume;
+        audio.volume = isMuted ? 0 : safeVol;
+
         audio.play().then(() => {
           setIsPlaying(true);
           setIsLoading(false);
         }).catch(err => {
-          console.warn('[Audio Playback Error]:', err.message);
-          setIsPlaying(false);
+          if (err.name !== 'AbortError') {
+            console.warn('[Audio Playback Error]:', err.message);
+            setIsPlaying(false);
+          }
           setIsLoading(false);
         });
       }
@@ -244,7 +272,7 @@ export const MusicProvider = ({ children }) => {
     const clamped = Math.max(0, Math.min(time, duration || 0));
     setCurrentTime(clamped);
 
-    if (isYouTubeTrack(currentTrack)) {
+    if (isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
       if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
         try {
           ytPlayerRef.current.seekTo(clamped, true);
@@ -256,7 +284,7 @@ export const MusicProvider = ({ children }) => {
         audio.currentTime = clamped;
       }
     }
-  }, [duration, currentTrack]);
+  }, [duration]);
 
   // 10s Skip Forward
   const skipForward = useCallback((seconds = 10) => {
@@ -339,6 +367,15 @@ export const MusicProvider = ({ children }) => {
     if (!currentTrack) return;
 
     if (isYouTubeTrack(currentTrack)) {
+      activeEngineRef.current = 'youtube';
+      // Ensure HTML5 audio is stopped
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+          audioRef.current.src = '';
+        } catch (e) {}
+      }
       if (ytPlayerRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
         try {
           const state = ytPlayerRef.current.getPlayerState();
@@ -362,6 +399,11 @@ export const MusicProvider = ({ children }) => {
         }
       }
     } else {
+      activeEngineRef.current = 'html5';
+      // Ensure YouTube player is stopped
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.stopVideo === 'function') {
+        try { ytPlayerRef.current.stopVideo(); } catch (e) {}
+      }
       const audio = audioRef.current;
       if (!audio) return;
 
@@ -406,6 +448,8 @@ export const MusicProvider = ({ children }) => {
   // Close / Dismiss Player completely
   const closePlayer = useCallback(() => {
     userInitiatedPauseRef.current = true;
+    activeEngineRef.current = 'none';
+    currentTrackRef.current = null;
     if (bgAudioAnchorRef.current) {
       bgAudioAnchorRef.current.pause();
     }
@@ -422,9 +466,11 @@ export const MusicProvider = ({ children }) => {
 
     const audio = audioRef.current;
     if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = '';
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = '';
+      } catch (e) {}
     }
 
     if (ytPlayerRef.current) {
@@ -546,15 +592,24 @@ export const MusicProvider = ({ children }) => {
               if (pendingYtIdRef.current) {
                 const vid = pendingYtIdRef.current;
                 pendingYtIdRef.current = null;
-                try {
-                  event.target.loadVideoById(vid);
-                  event.target.playVideo();
-                } catch (e) {}
+                if (isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
+                  try {
+                    event.target.loadVideoById(vid);
+                    event.target.playVideo();
+                  } catch (e) {}
+                }
               }
             },
             onStateChange: (event) => {
               // 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 0 = ENDED
               if (event.data === 1) {
+                // GUARD: If active engine is NOT YouTube or current track is NOT YouTube, STOP YouTube immediately!
+                if (!isYouTubeTrack(currentTrackRef.current) || activeEngineRef.current !== 'youtube') {
+                  try {
+                    ytPlayerRef.current?.stopVideo();
+                  } catch (e) {}
+                  return;
+                }
                 userInitiatedPauseRef.current = false;
                 setIsPlaying(true);
                 setIsLoading(false);
@@ -566,7 +621,8 @@ export const MusicProvider = ({ children }) => {
                 }
               } else if (event.data === 2) {
                 // If paused but user did NOT initiate the pause (e.g. screen lock / background auto-pause)
-                if (!userInitiatedPauseRef.current) {
+                // ONLY re-trigger if current track is an active YouTube track!
+                if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
                   try {
                     ytPlayerRef.current?.playVideo();
                   } catch (e) {}
@@ -575,28 +631,36 @@ export const MusicProvider = ({ children }) => {
                     bgAudioAnchorRef.current.play().catch(() => {});
                   }
                 } else {
-                  setIsPlaying(false);
-                  setIsLoading(false);
+                  if (activeEngineRef.current === 'youtube') {
+                    setIsPlaying(false);
+                    setIsLoading(false);
+                  }
                 }
               } else if (event.data === 3) {
-                setIsLoading(true);
+                if (activeEngineRef.current === 'youtube') {
+                  setIsLoading(true);
+                }
               } else if (event.data === 0) {
-                setIsPlaying(false);
-                if (isLoopingRef.current === 'track') {
-                  try {
-                    ytPlayerRef.current.seekTo(0, true);
-                    ytPlayerRef.current.playVideo();
-                  } catch (e) {}
-                } else if (nextTrackRef.current) {
-                  nextTrackRef.current();
+                if (activeEngineRef.current === 'youtube') {
+                  setIsPlaying(false);
+                  if (isLoopingRef.current === 'track') {
+                    try {
+                      ytPlayerRef.current.seekTo(0, true);
+                      ytPlayerRef.current.playVideo();
+                    } catch (e) {}
+                  } else if (nextTrackRef.current) {
+                    nextTrackRef.current();
+                  }
                 }
               }
             },
             onError: (err) => {
-              console.warn('[YouTube Player Event Error]:', err.data);
-              setIsLoading(false);
-              setIsPlaying(false);
-              setPlaybackError('Unable to stream this YouTube track.');
+              if (activeEngineRef.current === 'youtube') {
+                console.warn('[YouTube Player Event Error]:', err.data);
+                setIsLoading(false);
+                setIsPlaying(false);
+                setPlaybackError('Unable to stream this YouTube track.');
+              }
             }
           }
         });
@@ -625,17 +689,22 @@ export const MusicProvider = ({ children }) => {
 
   // Polling for YouTube player playback time, duration and background watchdog
   useEffect(() => {
-    if (isPlaying && isYouTubeTrack(currentTrack)) {
+    if (isPlaying && isYouTubeTrack(currentTrack) && activeEngineRef.current === 'youtube') {
       ytPollingRef.current = setInterval(() => {
         if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
           try {
+            // Guard: If switched away from YouTube, stop immediately and return
+            if (!isYouTubeTrack(currentTrackRef.current) || activeEngineRef.current !== 'youtube') {
+              ytPlayerRef.current.stopVideo();
+              return;
+            }
             const cur = ytPlayerRef.current.getCurrentTime() || 0;
-            const dur = ytPlayerRef.current.getDuration() || currentTrack?.duration || 0;
+            const dur = ytPlayerRef.current.getDuration() || currentTrackRef.current?.duration || 0;
             setCurrentTime(cur);
             if (dur > 0) setDuration(dur);
 
             // Auto-pause Watchdog: If user didn't pause, but YouTube state is paused, re-fire playVideo()
-            if (!userInitiatedPauseRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
+            if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube' && typeof ytPlayerRef.current.getPlayerState === 'function') {
               const state = ytPlayerRef.current.getPlayerState();
               if (state === 2) {
                 ytPlayerRef.current.playVideo();
@@ -671,21 +740,45 @@ export const MusicProvider = ({ children }) => {
 
     const audio = audioRef.current;
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration || currentTrack?.duration || 0);
-      setIsLoading(false);
+    const handleTimeUpdate = () => {
+      if (activeEngineRef.current === 'html5') {
+        setCurrentTime(audio.currentTime);
+      }
     };
-    const handleWaiting = () => setIsLoading(true);
-    const handleCanPlay = () => setIsLoading(false);
+    const handleLoadedMetadata = () => {
+      if (activeEngineRef.current === 'html5') {
+        setDuration(audio.duration || currentTrackRef.current?.duration || 0);
+        setIsLoading(false);
+      }
+    };
+    const handleWaiting = () => {
+      if (activeEngineRef.current === 'html5') setIsLoading(true);
+    };
+    const handleCanPlay = () => {
+      if (activeEngineRef.current === 'html5') setIsLoading(false);
+    };
     const handlePlaying = () => {
+      // Guard: If currently on YouTube engine, HTML5 audio MUST NOT play!
+      if (activeEngineRef.current !== 'html5' || isYouTubeTrack(currentTrackRef.current)) {
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.src = '';
+        } catch (e) {}
+        return;
+      }
       setIsPlaying(true);
       setIsLoading(false);
       setPlaybackError(null);
     };
-    const handlePause = () => setIsPlaying(false);
+    const handlePause = () => {
+      if (activeEngineRef.current === 'html5') {
+        setIsPlaying(false);
+      }
+    };
     const handleEnded = () => {
-      if (isLooping === 'track') {
+      if (activeEngineRef.current !== 'html5') return;
+      if (isLoopingRef.current === 'track') {
         audio.currentTime = 0;
         audio.play().catch(console.error);
       } else {
@@ -693,7 +786,7 @@ export const MusicProvider = ({ children }) => {
       }
     };
     const handleError = (e) => {
-      if (!isYouTubeTrack(currentTrack)) {
+      if (activeEngineRef.current === 'html5' && !isYouTubeTrack(currentTrackRef.current)) {
         console.warn('Audio playback stream error:', e);
         setIsLoading(false);
         setIsPlaying(false);
@@ -747,26 +840,26 @@ export const MusicProvider = ({ children }) => {
           bgAudioAnchorRef.current.play().catch(() => {});
         }
 
-        if (isYouTubeTrack(currentTrack) && ytPlayerRef.current) {
+        if (isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube' && ytPlayerRef.current) {
           try {
             ytPlayerRef.current.playVideo();
           } catch (e) {}
 
           // Defensive sequential re-triggers for delayed auto-pause
           setTimeout(() => {
-            if (!userInitiatedPauseRef.current && ytPlayerRef.current?.getPlayerState?.() === 2) {
+            if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube' && ytPlayerRef.current?.getPlayerState?.() === 2) {
               try { ytPlayerRef.current.playVideo(); } catch (e) {}
             }
           }, 100);
 
           setTimeout(() => {
-            if (!userInitiatedPauseRef.current && ytPlayerRef.current?.getPlayerState?.() === 2) {
+            if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube' && ytPlayerRef.current?.getPlayerState?.() === 2) {
               try { ytPlayerRef.current.playVideo(); } catch (e) {}
             }
           }, 400);
 
           setTimeout(() => {
-            if (!userInitiatedPauseRef.current && ytPlayerRef.current?.getPlayerState?.() === 2) {
+            if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube' && ytPlayerRef.current?.getPlayerState?.() === 2) {
               try { ytPlayerRef.current.playVideo(); } catch (e) {}
             }
           }, 900);
@@ -775,7 +868,7 @@ export const MusicProvider = ({ children }) => {
     };
 
     const handleForegroundEvent = () => {
-      if (isPlaying && !userInitiatedPauseRef.current && isYouTubeTrack(currentTrack)) {
+      if (isPlaying && !userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
         if (ytPlayerRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
           try {
             const state = ytPlayerRef.current.getPlayerState();
@@ -851,7 +944,7 @@ export const MusicProvider = ({ children }) => {
     const actionHandlers = [
       ['play', () => {
         userInitiatedPauseRef.current = false;
-        if (isYouTubeTrack(currentTrack)) {
+        if (isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
           try {
             ytPlayerRef.current?.playVideo();
           } catch (e) {}
@@ -865,7 +958,7 @@ export const MusicProvider = ({ children }) => {
       }],
       ['pause', () => {
         userInitiatedPauseRef.current = true;
-        if (isYouTubeTrack(currentTrack)) {
+        if (isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
           try {
             ytPlayerRef.current?.pauseVideo();
           } catch (e) {}
