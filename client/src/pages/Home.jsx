@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
+import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -469,10 +470,11 @@ export default function Home() {
                           className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentCyan/30 rounded-2xl hover:bg-darkCard/60 transition group"
                         >
                           <img
-                            src={show.poster_path}
+                            src={formatMediaPoster({ ...show, media_type: 'tv' })}
                             alt={show.title}
                             className="w-14 h-18 object-cover rounded-xl border border-white/5"
                             referrerPolicy="no-referrer"
+                            onError={(e) => handlePosterError(e, { ...show, media_type: 'tv' })}
                           />
                           <div className="space-y-1">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{show.title}</h4>
@@ -507,10 +509,11 @@ export default function Home() {
                           className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPurple/30 rounded-2xl hover:bg-darkCard/60 transition group"
                         >
                           <img
-                            src={anime.poster_path}
+                            src={formatMediaPoster({ ...anime, media_type: 'anime' })}
                             alt={anime.title}
                             className="w-14 h-18 object-cover rounded-xl border border-white/5"
                             referrerPolicy="no-referrer"
+                            onError={(e) => handlePosterError(e, { ...anime, media_type: 'anime' })}
                           />
                           <div className="space-y-1 flex-grow">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{anime.title}</h4>
@@ -544,10 +547,11 @@ export default function Home() {
                         className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPink/30 rounded-2xl hover:bg-darkCard/60 transition group"
                       >
                         <img
-                          src={manga.poster_path}
+                          src={formatMediaPoster({ ...manga, media_type: 'manga' })}
                           alt={manga.title}
                           className="w-14 h-18 object-cover rounded-xl border border-white/5"
                           referrerPolicy="no-referrer"
+                          onError={(e) => handlePosterError(e, { ...manga, media_type: 'manga' })}
                         />
                         <div className="space-y-1 flex-grow">
                           <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentPink transition line-clamp-1">{manga.title}</h4>

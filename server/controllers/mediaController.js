@@ -532,6 +532,17 @@ export const getAniListMediaDetail = async (alId) => {
   }
 };
 
+// Safely normalize TMDB relative poster/backdrop paths to full CDN URLs
+export const normalizePosterUrl = (posterPath, backdropPath) => {
+  const clean = (p) => {
+    if (!p || typeof p !== 'string' || p.trim() === '') return null;
+    const s = p.trim();
+    if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('data:')) return s;
+    return `https://image.tmdb.org/t/p/w500${s.startsWith('/') ? '' : '/'}${s}`;
+  };
+  return clean(posterPath) || clean(backdropPath) || null;
+};
+
 // Expand TV series results into multi-season entries if number_of_seasons > 1
 const expandTvSeasons = async (tvResults) => {
   if (!tvResults || tvResults.length === 0) return [];
@@ -540,6 +551,8 @@ const expandTvSeasons = async (tvResults) => {
   const remainingShows = tvResults.slice(6);
 
   const detailPromises = topShows.map(async (r) => {
+    const normPoster = normalizePosterUrl(r.poster_path, r.backdrop_path);
+    const normBackdrop = normalizePosterUrl(r.backdrop_path, r.poster_path);
     try {
       const res = await axios.get(`${TMDB_BASE_URL}/tv/${r.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
       const d = res.data;
@@ -554,8 +567,8 @@ const expandTvSeasons = async (tvResults) => {
               tmdb_id: r.id.toString(),
               title: s.season_number === 1 ? (r.name || r.title) : `${r.name || r.title} Season ${s.season_number}`,
               overview: s.overview || r.overview || '',
-              poster_path: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : (r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null),
-              backdrop_path: r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null,
+              poster_path: normalizePosterUrl(s.poster_path, normPoster),
+              backdrop_path: normBackdrop,
               release_date: s.air_date || r.first_air_date || '',
               vote_average: r.vote_average || 0,
               genre_ids: r.genre_ids || [],
@@ -568,17 +581,51 @@ const expandTvSeasons = async (tvResults) => {
             });
           }
         });
-        return seasonEntries.length > 0 ? seasonEntries : [{ ...r, runtime: episodeRuntime, duration: episodeRuntime }];
+        return seasonEntries.length > 0 ? seasonEntries : [{
+          ...r,
+          id: r.id.toString(),
+          title: r.name || r.title,
+          poster_path: normPoster,
+          backdrop_path: normBackdrop,
+          media_type: 'tv',
+          runtime: episodeRuntime,
+          duration: episodeRuntime
+        }];
       }
-      return [{ ...r, runtime: episodeRuntime, duration: episodeRuntime }];
+      return [{
+        ...r,
+        id: r.id.toString(),
+        title: r.name || r.title,
+        poster_path: normPoster,
+        backdrop_path: normBackdrop,
+        media_type: 'tv',
+        runtime: episodeRuntime,
+        duration: episodeRuntime
+      }];
     } catch {
-      return [r];
+      return [{
+        ...r,
+        id: r.id.toString(),
+        title: r.name || r.title,
+        poster_path: normPoster,
+        backdrop_path: normBackdrop,
+        media_type: 'tv'
+      }];
     }
   });
 
   const resolved = await Promise.all(detailPromises);
   resolved.forEach(items => expanded.push(...items));
-  expanded.push(...remainingShows);
+  remainingShows.forEach(r => {
+    expanded.push({
+      ...r,
+      id: r.id.toString(),
+      title: r.name || r.title,
+      poster_path: normalizePosterUrl(r.poster_path, r.backdrop_path),
+      backdrop_path: normalizePosterUrl(r.backdrop_path, r.poster_path),
+      media_type: 'tv'
+    });
+  });
   return expanded;
 };
 
@@ -592,10 +639,21 @@ const expandMovieCollections = async (movieResults) => {
   const remainingMovies = movieResults.slice(6);
 
   const colPromises = topMovies.map(async (m) => {
+    const normPoster = normalizePosterUrl(m.poster_path, m.backdrop_path);
+    const normBackdrop = normalizePosterUrl(m.backdrop_path, m.poster_path);
     try {
       const res = await axios.get(`${TMDB_BASE_URL}/movie/${m.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
       const mRuntime = res.data?.runtime || null;
-      const baseMovie = { ...m, runtime: mRuntime, duration: mRuntime };
+      const baseMovie = {
+        ...m,
+        id: m.id.toString(),
+        title: m.title || m.name,
+        poster_path: normPoster,
+        backdrop_path: normBackdrop,
+        media_type: 'movie',
+        runtime: mRuntime,
+        duration: mRuntime
+      };
       const col = res.data?.belongs_to_collection;
       if (col && col.id) {
         const colRes = await axios.get(`${TMDB_BASE_URL}/collection/${col.id}?api_key=${TMDB_API_KEY}`, { timeout: 3500 });
@@ -605,8 +663,8 @@ const expandMovieCollections = async (movieResults) => {
           external_media_id: p.id.toString(),
           title: p.title || p.name,
           overview: p.overview || '',
-          poster_path: p.poster_path ? `https://image.tmdb.org/t/p/w500${p.poster_path}` : null,
-          backdrop_path: p.backdrop_path ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}` : null,
+          poster_path: normalizePosterUrl(p.poster_path, p.backdrop_path),
+          backdrop_path: normalizePosterUrl(p.backdrop_path, p.poster_path),
           release_date: p.release_date || '',
           vote_average: p.vote_average || 0,
           genre_ids: p.genre_ids || [],
@@ -619,7 +677,14 @@ const expandMovieCollections = async (movieResults) => {
       }
       return [baseMovie];
     } catch {
-      return [m];
+      return [{
+        ...m,
+        id: m.id.toString(),
+        title: m.title || m.name,
+        poster_path: normPoster,
+        backdrop_path: normBackdrop,
+        media_type: 'movie'
+      }];
     }
   });
 
@@ -636,7 +701,14 @@ const expandMovieCollections = async (movieResults) => {
   remainingMovies.forEach(it => {
     if (!seenIds.has(it.id.toString())) {
       seenIds.add(it.id.toString());
-      expanded.push(it);
+      expanded.push({
+        ...it,
+        id: it.id.toString(),
+        title: it.title || it.name,
+        poster_path: normalizePosterUrl(it.poster_path, it.backdrop_path),
+        backdrop_path: normalizePosterUrl(it.backdrop_path, it.poster_path),
+        media_type: 'movie'
+      });
     }
   });
 
@@ -1273,7 +1345,17 @@ export const searchMedia = async (req, res) => {
       }
     }
 
-    res.json(results);
+    // Ensure every single search result has normalized poster and backdrop paths
+    const normalizedResults = (results || []).map(item => {
+      if (!item) return item;
+      return {
+        ...item,
+        poster_path: normalizePosterUrl(item.poster_path, item.backdrop_path || item.cover || item.image || item.thumbnail),
+        backdrop_path: normalizePosterUrl(item.backdrop_path, item.poster_path)
+      };
+    });
+
+    res.json(normalizedResults);
   } catch (error) {
     console.error('Unified Search Error:', error);
     res.status(500).json({ error: 'Failed to search media catalog' });

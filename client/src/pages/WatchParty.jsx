@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
+import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
@@ -399,9 +400,13 @@ export default function WatchParty() {
 
   const currentSeason = isEpisodic ? (seasonsList.find(s => s.season_number === activeSeason) || seasonsList[0]) : null;
   const activeOverview = (isEpisodic && (currentSeasonData?.overview || currentSeason?.overview)) ? (currentSeasonData?.overview || currentSeason?.overview) : (mediaDetail?.overview || 'No synopsis available for this title.');
-  const activePoster = (isEpisodic && currentSeasonData?.poster_path)
-    ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
-    : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : mediaDetail?.poster_path);
+  const activePoster = formatMediaPoster({
+    ...mediaDetail,
+    media_type: room?.media_type || 'movie',
+    poster_path: (isEpisodic && currentSeasonData?.poster_path)
+      ? currentSeasonData.poster_path
+      : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : mediaDetail?.poster_path)
+  });
   const activeSeasonName = isEpisodic ? (currentSeason?.name || `Season ${activeSeason}`) : '';
 
   const relatedEntries = (() => {
@@ -536,19 +541,13 @@ export default function WatchParty() {
       {/* ── Media Details Overview Card AT THE TOP (Requested by User) ── */}
       <div className="glass-panel border border-darkBorder p-5 sm:p-6 rounded-2xl shadow-xl flex flex-col md:flex-row gap-5 md:gap-6 items-start">
         <div className="w-[120px] sm:w-[150px] md:w-[180px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto md:mx-0">
-          {activePoster ? (
-            <img 
-              src={activePoster} 
-              alt={mediaDetail.title}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-tr from-gray-800 to-gray-900">
-              <span className="font-bold text-sm mb-1 text-white">{mediaDetail.title}</span>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider">No Poster</span>
-            </div>
-          )}
+          <img 
+            src={activePoster} 
+            alt={mediaDetail?.title || 'Poster'}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={(e) => handlePosterError(e, { ...mediaDetail, media_type: room?.media_type || 'movie' })}
+          />
         </div>
 
         <div className="flex-grow space-y-3 text-left w-full">

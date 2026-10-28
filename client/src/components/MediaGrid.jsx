@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
 import { Star, Play, Pause, BookOpen, Music, ArrowRight, Clock, Sparkles, FolderPlus } from 'lucide-react';
+import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 
 const FALLBACK_MUSIC_IMAGE = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=60';
 const FALLBACK_MEDIA_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';
@@ -104,7 +105,7 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             (Boolean(currentTrack.title) && Boolean(itemTitle) && currentTrack.title.toLowerCase().trim() === itemTitle)
           );
           const isCurrentPlaying = isCurrent && isPlaying;
-          const posterSrc = item.poster_path || item.image || item.thumbnail || (isMusic ? FALLBACK_MUSIC_IMAGE : null);
+          const posterSrc = formatMediaPoster(item);
 
           if (isMusic) {
             return (
@@ -125,24 +126,14 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
               >
                 {/* ── Music Square Album Cover (1:1 Ratio) ── */}
                 <div className="relative w-full aspect-square overflow-hidden bg-black/40">
-                  {posterSrc ? (
-                    <img
-                      src={posterSrc}
-                      alt={item.title || item.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = FALLBACK_MUSIC_IMAGE;
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-darkCard">
-                      <Music className="w-8 h-8 text-accentCyan mb-1" />
-                      <span className="text-[10px] text-gray-400 font-semibold uppercase">Music</span>
-                    </div>
-                  )}
+                  <img
+                    src={posterSrc}
+                    alt={item.title || item.name || 'Song Cover'}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => handlePosterError(e, item)}
+                  />
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
 
@@ -222,20 +213,14 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             >
               {/* ── Poster Image ── */}
               <div className="relative w-full aspect-[2/3] overflow-hidden bg-white/[0.03]">
-                {item.poster_path ? (
-                  <img
-                    src={item.poster_path}
-                    alt={item.title || item.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-75"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className={`w-full h-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-75 ${cfg.bg} bg-opacity-20`}>
-                    <span className={`font-bold text-lg mb-2 ${cfg.color} drop-shadow-md`}>{item.title || item.name}</span>
-                    <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No Poster</span>
-                  </div>
-                )}
+                <img
+                  src={posterSrc}
+                  alt={item.title || item.name || 'Media Poster'}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-75"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => handlePosterError(e, item)}
+                />
 
                 {/* Gradient overlay — always present subtly, stronger on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />

@@ -7,6 +7,7 @@ import MediaGrid from '../components/MediaGrid';
 import MangaReader from '../components/MangaReader';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
+import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock } from 'lucide-react';
 
@@ -341,9 +342,13 @@ export default function MediaDetail() {
 
   const currentSeason = isEpisodic ? (seasonsList.find(s => s.season_number === activeSeason) || seasonsList[0]) : null;
   const activeOverview = (isEpisodic && (currentSeasonData?.overview || currentSeason?.overview)) ? (currentSeasonData?.overview || currentSeason?.overview) : (detail?.overview || 'No synopsis available for this title.');
-  const activePoster = (isEpisodic && currentSeasonData?.poster_path)
-    ? (currentSeasonData.poster_path.startsWith('http') ? currentSeasonData.poster_path : `https://image.tmdb.org/t/p/w500${currentSeasonData.poster_path}`)
-    : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : detail?.poster_path);
+  const activePoster = formatMediaPoster({
+    ...detail,
+    media_type: type,
+    poster_path: (isEpisodic && currentSeasonData?.poster_path)
+      ? currentSeasonData.poster_path
+      : (isEpisodic && currentSeason?.poster_path ? currentSeason.poster_path : detail?.poster_path)
+  });
   const activeSeasonName = isEpisodic ? (currentSeason?.name || `Season ${activeSeason}`) : '';
 
   const relatedEntries = (() => {
@@ -472,19 +477,13 @@ export default function MediaDetail() {
       {/* ── Media Overview Card AT THE TOP (Requested by User) ── */}
       <div className="glass-panel border border-darkBorder p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
         <div className="w-[120px] sm:w-[150px] md:w-[200px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto sm:mx-0">
-          {activePoster ? (
-            <img 
-              src={activePoster} 
-              alt={detail.title}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-tr from-gray-800 to-gray-900">
-              <span className="font-bold text-sm sm:text-base mb-1 text-white">{detail.title}</span>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider">No Poster</span>
-            </div>
-          )}
+          <img 
+            src={activePoster} 
+            alt={detail?.title || 'Poster'}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={(e) => handlePosterError(e, { ...detail, media_type: type })}
+          />
         </div>
 
         <div className="flex-grow space-y-3 sm:space-y-4 text-left w-full min-w-0">
