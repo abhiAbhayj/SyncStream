@@ -12,7 +12,7 @@ import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User } from 'lucide-react';
 
-function CastAvatarCard({ member, onSelect }) {
+function CastAvatarCard({ member, onSelect, gridMode = false }) {
   const [imgFailed, setImgFailed] = useState(false);
   const initials = (member?.name || '?')
     .split(/\s+/)
@@ -28,7 +28,9 @@ function CastAvatarCard({ member, onSelect }) {
       type="button"
       onClick={onSelect}
       title={`View all movies & series for ${member.name}`}
-      className="group snap-start shrink-0 w-[108px] xs:w-[118px] sm:w-[136px] p-2.5 sm:p-3 rounded-2xl border border-darkBorder bg-darkCard/55 hover:border-accentCyan/70 hover:bg-accentCyan/10 hover:shadow-[0_0_20px_rgba(var(--accent-cyan),0.25)] hover:-translate-y-1 text-center transition-all duration-300 flex flex-col items-center gap-2 cursor-pointer active:scale-95"
+      className={`group p-2.5 sm:p-3 rounded-2xl border border-darkBorder bg-darkCard/55 hover:border-accentCyan/70 hover:bg-accentCyan/10 hover:shadow-[0_0_20px_rgba(var(--accent-cyan),0.25)] hover:-translate-y-1 text-center transition-all duration-300 flex flex-col items-center gap-2 cursor-pointer active:scale-95 ${
+        gridMode ? 'w-full' : 'snap-start shrink-0 w-[108px] xs:w-[118px] sm:w-[136px]'
+      }`}
     >
       {/* Avatar with animated orbital conic glint */}
       <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full p-[2px] flex items-center justify-center overflow-hidden">
@@ -138,6 +140,8 @@ export default function MediaDetail() {
   const [upNextCounting, setUpNextCounting] = useState(false);
   const [upNextSeconds, setUpNextSeconds] = useState(8);
   const [upNextDismissed, setUpNextDismissed] = useState(false);
+  const [castFilter, setCastFilter] = useState('all');
+  const [castExpanded, setCastExpanded] = useState(false);
 
   // Playback modes for Video Content
   // 'trailer' | 'solo-html5' | 'solo-embed'
@@ -324,7 +328,12 @@ export default function MediaDetail() {
     }
   }, [loading, detail?.id]);
 
-  // Reset Up-Next Autoplay state when season/episode/media changes
+  // Reset Up-Next Autoplay & Cast filters when media changes
+  useEffect(() => {
+    setCastFilter('all');
+    setCastExpanded(false);
+  }, [type, id]);
+
   useEffect(() => {
     setUpNextCounting(false);
     setUpNextSeconds(8);
@@ -1252,41 +1261,101 @@ export default function MediaDetail() {
       )}
 
       {/* ── Interactive Cast & Crew Avatar Carousel Glint ── */}
-      {detail.cast && detail.cast.length > 0 && (
-        <section className="glass-panel border border-darkBorder p-3.5 sm:p-5 rounded-2xl shadow-xl space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between gap-2 border-b border-darkBorder/60 pb-2.5">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="p-1.5 rounded-lg bg-accentPurple/20 text-accentPurple flex items-center justify-center shrink-0">
-                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </span>
-              <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-white font-outfit truncate">
-                {type === 'manga' ? 'Creators & Authors' : type === 'anime' ? 'Featured Characters & Voice' : 'Featured Cast & Crew'}
-              </h3>
-            </div>
-            <span className="text-[10px] sm:text-xs font-bold text-accentCyan bg-accentCyan/10 border border-accentCyan/25 px-2 py-0.5 rounded-full font-mono shrink-0">
-              {detail.cast.length} Featured
-            </span>
-          </div>
+      {detail.cast && detail.cast.length > 0 && (() => {
+        const castCount = detail.cast.filter(m => (m.role_type || 'Cast') !== 'Crew' && m.role_type !== 'Creator').length;
+        const crewCount = detail.cast.filter(m => m.role_type === 'Crew' || m.role_type === 'Creator').length;
+        const filteredCast = detail.cast.filter((m) => {
+          if (castFilter === 'Cast') return (m.role_type || 'Cast') !== 'Crew' && m.role_type !== 'Creator';
+          if (castFilter === 'Crew') return m.role_type === 'Crew' || m.role_type === 'Creator';
+          return true;
+        });
 
-          <div className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
-            {detail.cast.map((member, idx) => (
-              <CastAvatarCard
-                key={`${member.id || member.name}-${idx}`}
-                member={member}
-                onSelect={() => {
-                  const defaultSource = type === 'manga' ? 'mangadex' : (String(id).startsWith('al_') ? 'anilist_staff' : 'tmdb');
-                  const targetSource = member.source || defaultSource;
-                  const targetId = member.id || 'search';
-                  const targetName = member.name || member.character || '';
-                  navigate(`/person/${encodeURIComponent(targetSource)}/${encodeURIComponent(targetId)}?name=${encodeURIComponent(targetName)}`, {
-                    state: { member }
-                  });
-                }}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+        const handleOpenPerson = (member) => {
+          const defaultSource = type === 'manga' ? 'mangadex' : (String(id).startsWith('al_') ? 'anilist_staff' : 'tmdb');
+          const targetSource = member.source || defaultSource;
+          const targetId = member.id || 'search';
+          const targetName = member.name || member.character || '';
+          navigate(`/person/${encodeURIComponent(targetSource)}/${encodeURIComponent(targetId)}?name=${encodeURIComponent(targetName)}`, {
+            state: { member }
+          });
+        };
+
+        return (
+          <section className="glass-panel border border-darkBorder p-3.5 sm:p-5 rounded-2xl shadow-xl space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-darkBorder/60 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="p-1.5 rounded-lg bg-accentPurple/20 text-accentPurple flex items-center justify-center shrink-0">
+                  <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </span>
+                <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-white font-outfit truncate">
+                  {type === 'manga' ? 'Creators & Authors' : type === 'anime' ? 'Featured Cast, Voice & Staff' : 'Featured Cast & Crew'}
+                </h3>
+                <span className="text-[10px] sm:text-xs font-bold text-accentCyan bg-accentCyan/10 border border-accentCyan/25 px-2 py-0.5 rounded-full font-mono shrink-0">
+                  {filteredCast.length}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {castCount > 0 && crewCount > 0 && (
+                  <div className="inline-flex items-center gap-1 p-0.5 rounded-xl bg-black/35 border border-white/10">
+                    {[
+                      { key: 'all', label: `All (${detail.cast.length})` },
+                      { key: 'Cast', label: `Cast (${castCount})` },
+                      { key: 'Crew', label: `Crew (${crewCount})` }
+                    ].map((tab) => (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setCastFilter(tab.key)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition cursor-pointer ${
+                          castFilter === tab.key
+                            ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40'
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {filteredCast.length > 8 && (
+                  <button
+                    type="button"
+                    onClick={() => setCastExpanded((prev) => !prev)}
+                    className="px-2.5 py-1 rounded-xl border border-white/15 bg-white/5 hover:border-accentCyan/50 hover:text-accentCyan text-[10px] sm:text-[11px] font-bold text-gray-300 transition cursor-pointer active:scale-95"
+                  >
+                    {castExpanded ? 'Carousel View' : `View All (${filteredCast.length})`}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {castExpanded ? (
+              <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
+                {filteredCast.map((member, idx) => (
+                  <CastAvatarCard
+                    key={`${member.id || member.name}-${idx}`}
+                    member={member}
+                    gridMode={true}
+                    onSelect={() => handleOpenPerson(member)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
+                {filteredCast.map((member, idx) => (
+                  <CastAvatarCard
+                    key={`${member.id || member.name}-${idx}`}
+                    member={member}
+                    onSelect={() => handleOpenPerson(member)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })()}
 
       {/* Recommendations */}
       {detail.recommendations && detail.recommendations.length > 0 && (

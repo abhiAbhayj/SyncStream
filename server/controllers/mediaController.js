@@ -316,7 +316,7 @@ export const getAniListMediaDetail = async (alId) => {
         genres
         trailer { id site }
         studios(isMain: true) { nodes { name } }
-        characters(role: MAIN, perPage: 10) {
+        characters(perPage: 25, sort: [ROLE, RELEVANCE, ID]) {
           edges {
             role
             voiceActors(language: JAPANESE, sort: RELEVANCE) {
@@ -331,7 +331,7 @@ export const getAniListMediaDetail = async (alId) => {
             }
           }
         }
-        staff(perPage: 6, sort: RELEVANCE) {
+        staff(perPage: 20, sort: RELEVANCE) {
           edges {
             role
             node {
@@ -504,28 +504,30 @@ export const getAniListMediaDetail = async (alId) => {
     const cast = [];
     const seenPersonKeys = new Set();
 
-    (m.characters?.edges || []).slice(0, 10).forEach(c => {
+    (m.characters?.edges || []).forEach(c => {
       const va = c.voiceActors?.[0] || null;
       const charName = c.node?.name?.full || 'Character';
       if (va?.id) {
         const key = `al_staff_${va.id}`;
-        seenPersonKeys.add(key);
-        cast.push({
-          id: String(va.id),
-          source: 'anilist_staff',
-          name: va.name?.full || charName,
-          character: va.name?.full ? `Voice of ${charName}` : (c.role || 'Voice Actor'),
-          role_type: 'Voice',
-          profile_path: c.node?.image?.large || va.image?.large || c.node?.image?.medium || null,
-          person_avatar: va.image?.large || va.image?.medium || null
-        });
+        if (!seenPersonKeys.has(key)) {
+          seenPersonKeys.add(key);
+          cast.push({
+            id: String(va.id),
+            source: 'anilist_staff',
+            name: va.name?.full || charName,
+            character: va.name?.full ? `Voice of ${charName}` : (c.role || 'Voice Actor'),
+            role_type: 'Cast',
+            profile_path: c.node?.image?.large || va.image?.large || c.node?.image?.medium || null,
+            person_avatar: va.image?.large || va.image?.medium || null
+          });
+        }
       } else if (c.node?.id) {
         cast.push({
           id: String(c.node.id),
           source: 'anilist_char',
           name: charName,
-          character: c.role || 'Main',
-          role_type: 'Character',
+          character: c.role || 'Character',
+          role_type: 'Cast',
           profile_path: c.node?.image?.large || c.node?.image?.medium || null
         });
       }
@@ -1403,45 +1405,97 @@ export const getMediaDetail = async (req, res) => {
       if (isTmdbConfigured()) {
         try {
           const tmdbType = type === 'anime' ? 'tv' : type;
-          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos,recommendations,credits,keywords`);
+          const appendFields = tmdbType === 'tv'
+            ? 'videos,recommendations,credits,aggregate_credits,keywords'
+            : 'videos,recommendations,credits,keywords';
+          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=${appendFields}`);
           const d = detailRes.data;
           
           const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key;
-          const seenTmdbPeople = new Set();
-          const tmdbCast = (d.credits?.cast || []).slice(0, 14).map(c => {
-            seenTmdbPeople.add(String(c.id));
-            return {
-              id: String(c.id),
-              source: 'tmdb',
-              name: c.name,
-              character: c.character || 'Actor',
-              role_type: 'Cast',
-              profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-            };
-          });
+          const seenTmdbCastIds = new Set();
+          const rawCastSource = tmdbType === 'tv' && d.aggregate_credits?.cast?.length
+            ? [...d.aggregate_credits.cast, ...(d.credits?.cast || [])]
+            : (d.credits?.cast || []);
 
-          const crewCandidates = [
-            ...(d.created_by || []).map(cr => ({ ...cr, job: 'Creator' })),
-            ...(d.credits?.crew || []).filter(cr =>
-              ['Director', 'Screenplay', 'Writer', 'Story', 'Original Music Composer', 'Executive Producer'].includes(cr.job)
-            )
-          ];
-          const tmdbCrew = [];
-          for (const cr of crewCandidates) {
-            if (!cr?.id) continue;
-            const pid = String(cr.id);
-            if (seenTmdbPeople.has(pid)) continue;
-            seenTmdbPeople.add(pid);
-            tmdbCrew.push({
+          const tmdbCast = [];
+          for (const c of rawCastSource) {
+            if (!c?.id) continue;
+            const pid = String(c.id);
+            if (seenTmdbCastIds.has(pid)) continue;
+            seenTmdbCastIds.add(pid);
+            const charLabel = c.character || c.roles?.[0]?.character || 'Actor';
+            tmdbCast.push({
               id: pid,
               source: 'tmdb',
-              name: cr.name,
-              character: cr.job || 'Crew',
-              role_type: 'Crew',
-              profile_path: cr.profile_path ? `https://image.tmdb.org/t/p/w185${cr.profile_path}` : null
+              name: c.name,
+              character: charLabel,
+              role_type: 'Cast',
+              profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
             });
-            if (tmdbCrew.length >= 6) break;
+            if (tmdbCast.length >= 60) break;
           }
+
+          const rawCrewSource = [
+            ...(d.created_by || []).map(cr => ({ ...cr, job: 'Creator', priority: 100 })),
+            ...((d.credits?.crew || []).map(cr => ({ ...cr, priority: 80 }))),
+            ...((d.aggregate_credits?.crew || []).map(cr => ({
+              ...cr,
+              job: cr.jobs?.[0]?.job || cr.department || 'Crew',
+              priority: 60
+            })))
+          ];
+
+          const crewJobPriority = {
+            Creator: 1,
+            Director: 2,
+            Screenplay: 3,
+            Writer: 4,
+            Story: 5,
+            'Original Music Composer': 6,
+            Music: 6,
+            Producer: 7,
+            'Executive Producer': 8,
+            'Director of Photography': 9,
+            Cinematography: 9,
+            Editor: 10,
+            'Production Design': 11,
+            'Visual Effects Supervisor': 12
+          };
+
+          const crewMap = new Map();
+          for (const cr of rawCrewSource) {
+            if (!cr?.id) continue;
+            const pid = String(cr.id);
+            const jobName = cr.job || cr.department || 'Crew';
+            const existing = crewMap.get(pid);
+            if (existing) {
+              if (jobName && !existing.jobs.includes(jobName)) {
+                existing.jobs.push(jobName);
+              }
+            } else {
+              crewMap.set(pid, {
+                id: pid,
+                source: 'tmdb',
+                name: cr.name,
+                jobs: [jobName],
+                profile_path: cr.profile_path ? `https://image.tmdb.org/t/p/w185${cr.profile_path}` : null,
+                rank: crewJobPriority[jobName] || 50
+              });
+            }
+          }
+
+          const tmdbCrew = Array.from(crewMap.values())
+            .filter(cr => !seenTmdbCastIds.has(cr.id) || cr.rank <= 5)
+            .sort((a, b) => a.rank - b.rank)
+            .slice(0, 24)
+            .map(cr => ({
+              id: cr.id,
+              source: 'tmdb',
+              name: cr.name,
+              character: cr.jobs.slice(0, 2).join(' • '),
+              role_type: 'Crew',
+              profile_path: cr.profile_path
+            }));
 
           const cast = [...tmdbCast, ...tmdbCrew];
           const recommendations = d.recommendations?.results?.slice(0, 5).map(r => ({

@@ -815,7 +815,7 @@ export const getAniListMangaDetail = async (alId) => {
           genres
           averageScore
           startDate { year month day }
-          staff(perPage: 6) {
+          staff(perPage: 12, sort: RELEVANCE) {
             edges {
               role
               node {
