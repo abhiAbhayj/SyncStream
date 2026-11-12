@@ -157,6 +157,25 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('receive_message', messagePayload);
   });
 
+  // 3b. Live Floating Emoji Reactions (Watch Party overlay)
+  socket.on('party_reaction', ({ roomCode, emoji, username, id }) => {
+    if (!roomCode || !emoji) return;
+    socket.to(roomCode).emit('party_reaction', {
+      id: id || `${Date.now()}-${Math.random()}`,
+      emoji,
+      username: username || 'Guest'
+    });
+  });
+
+  // 3c. Chat Typing Indicator Broadcast
+  socket.on('user_typing', ({ roomCode, username, isTyping }) => {
+    if (!roomCode || !username) return;
+    socket.to(roomCode).emit('user_typing', {
+      username,
+      isTyping: Boolean(isTyping)
+    });
+  });
+
   // 4. Leave Room
   socket.on('leave_room', ({ roomCode, username }) => {
     socket.leave(roomCode);

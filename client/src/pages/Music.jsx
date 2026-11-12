@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
+import EqualizerBars from '../components/EqualizerBars';
 import {
   Music2,
   Play,
@@ -376,6 +377,16 @@ export default function Music() {
   };
 
   // ── Favorites Internal Search, Sort & Drag Reorder State ──
+  const [playRipple, setPlayRipple] = useState({ id: null, seq: 0 });
+  const handleSongPlayClick = (song, queueList) => {
+    setPlayRipple((prev) => ({ id: song.id, seq: prev.seq + 1 }));
+    if (currentTrack?.id === song.id) {
+      togglePlay();
+    } else {
+      playTrack(song, queueList);
+    }
+  };
+
   const [favoriteSearch, setFavoriteSearch] = useState('');
   const [favoriteSort, setFavoriteSort] = useState('default');
   const [draggedFavIndex, setDraggedFavIndex] = useState(null);
@@ -937,33 +948,33 @@ export default function Music() {
 
         {/* Global Search Bar */}
         <div className="flex flex-col gap-2 max-w-md w-full">
-          <form onSubmit={handleSearch} className="relative w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearchInputChange(e.target.value)}
-              placeholder="Search by Artist, Movie, Anime, Series or Song..."
-              className="w-full bg-[#1a2242] border-2 border-white/25 rounded-2xl pl-10 pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-accentCyan focus:ring-2 focus:ring-accentCyan/30 transition shadow-lg placeholder:text-slate-300 font-semibold"
-            />
-            <Search className="w-4 h-4 text-accentCyan absolute left-3.5 top-1/2 -translate-y-1/2" />
-            
-            {searchQuery && (
+          <form onSubmit={handleSearch} className="neon-beam-wrapper w-full shadow-lg">
+            <div className="neon-beam-inner relative flex items-center w-full">
+              <Search className="w-4 h-4 text-accentCyan absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchInputChange(e.target.value)}
+                placeholder="Search by Artist, Movie, Anime, Series or Song..."
+                className="w-full bg-transparent pl-10 pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none placeholder:text-slate-300 font-semibold"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-20 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition z-10"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
+              )}
               <button
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute right-20 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition"
-                title="Clear search"
+                type="submit"
+                className="btn-shimmer absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-xs font-black hover:shadow-[0_0_18px_rgba(99,210,255,0.7)] transition active:scale-95 z-10"
               >
-                <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                Search
               </button>
-            )}
-
-            <button
-              type="submit"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-xs font-black hover:shadow-[0_0_18px_rgba(99,210,255,0.7)] transition active:scale-95"
-            >
-              Search
-            </button>
+            </div>
           </form>
 
           {/* Quick Search Suggestions */}
@@ -1121,6 +1132,11 @@ export default function Music() {
                   className="w-full h-full object-cover"
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                 />
+                {currentTrack?.id === featuredSong.id && isPlaying && (
+                  <div className="absolute bottom-2 right-2 px-2 py-1 rounded-full bg-black/80 backdrop-blur-md border border-accentCyan/50 shadow-[0_0_12px_rgba(var(--accent-cyan),0.6)] flex items-center gap-1">
+                    <EqualizerBars isPlaying={true} size="sm" bars={4} />
+                  </div>
+                )}
               </div>
 
               {/* Meta Details */}
@@ -1140,15 +1156,16 @@ export default function Music() {
                 {/* Quick Play & Action Buttons */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-0.5">
                   <button
-                    onClick={() => {
-                      if (currentTrack?.id === featuredSong.id) {
-                        togglePlay();
-                      } else {
-                        playTrack(featuredSong, songs);
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.6)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
+                    onClick={() => handleSongPlayClick(featuredSong, songs)}
+                    className="btn-shimmer relative overflow-visible flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.6)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
                   >
+                    {playRipple.id === featuredSong.id && (
+                      <span
+                        key={playRipple.seq}
+                        aria-hidden="true"
+                        className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                      />
+                    )}
                     {currentTrack?.id === featuredSong.id && isPlaying ? (
                       <>
                         <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
@@ -1252,9 +1269,14 @@ export default function Music() {
             </div>
 
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <Loader2 className="w-8 h-8 text-accentCyan animate-spin" />
-                <p className="text-xs font-bold text-slate-200 font-mono">Loading pristine audio streams...</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5 py-2">
+                {Array.from({ length: 10 }, (_, idx) => (
+                  <div key={idx} className="rounded-xl sm:rounded-2xl border border-white/10 p-2 sm:p-3 space-y-2.5 bg-darkCard/40">
+                    <div className="aspect-square rounded-xl skeleton-neon" />
+                    <div className="h-3.5 w-3/4 rounded-md skeleton-neon" />
+                    <div className="h-2.5 w-1/2 rounded-md skeleton-neon" />
+                  </div>
+                ))}
               </div>
             ) : songs.length === 0 ? (
               <div className="text-center py-16 glass-panel rounded-3xl border-2 border-white/25 p-6 space-y-2 bg-[#18203c]/95 shadow-xl">
@@ -1307,27 +1329,26 @@ export default function Music() {
                               )}
                             </div>
                             {isCurrentPlaying && (
-                              <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
+                              <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md border border-accentCyan/50 shadow-[0_0_10px_rgba(var(--accent-cyan),0.55)]">
+                                <EqualizerBars isPlaying={true} size="sm" bars={3} />
+                              </div>
                             )}
                           </div>
 
                           {/* Meta & Action Controls */}
                           <div className="min-w-0 flex-1 space-y-0.5">
-                            <h4
-                              onClick={() => {
-                                if (currentTrack?.id === song.id) {
-                                  togglePlay();
-                                } else {
-                                  playTrack(song, songs);
-                                }
-                              }}
-                              className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer transition-colors ${
-                                isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                              }`}
-                              title={song.title}
-                            >
-                              {song.title}
-                            </h4>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} />}
+                              <h4
+                                onClick={() => handleSongPlayClick(song, songs)}
+                                className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer transition-colors ${
+                                  isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                }`}
+                                title={song.title}
+                              >
+                                {song.title}
+                              </h4>
+                            </div>
                             <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
                               {song.artist}
                             </p>
@@ -1369,17 +1390,11 @@ export default function Music() {
                                   <FolderPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
                                 </button>
 
-                                {/* Play / Pause Button */}
+                                {/* Play / Pause Button with Shockwave Ripple */}
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    if (currentTrack?.id === song.id) {
-                                      togglePlay();
-                                    } else {
-                                      playTrack(song, songs);
-                                    }
-                                  }}
-                                  className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
+                                  onClick={() => handleSongPlayClick(song, songs)}
+                                  className={`relative overflow-visible p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                                     isCurrentPlaying
                                       ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
                                       : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
@@ -1387,6 +1402,13 @@ export default function Music() {
                                   title={isCurrentPlaying ? 'Pause' : 'Play'}
                                   aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
                                 >
+                                  {playRipple.id === song.id && (
+                                    <span
+                                      key={playRipple.seq}
+                                      aria-hidden="true"
+                                      className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                                    />
+                                  )}
                                   {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />}
                                 </button>
                               </div>
@@ -1446,15 +1468,18 @@ export default function Music() {
                             </div>
 
                             <div className="min-w-0 flex-1 space-y-0.5">
-                              <h4
-                                onClick={() => isCurrent ? togglePlay() : playTrack(song, songs)}
-                                className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
-                                  isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                                }`}
-                                title={song.title}
-                              >
-                                {song.title}
-                              </h4>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} />}
+                                <h4
+                                  onClick={() => handleSongPlayClick(song, songs)}
+                                  className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                                    isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                  }`}
+                                  title={song.title}
+                                >
+                                  {song.title}
+                                </h4>
+                              </div>
                               <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold">
                                 {song.artist}
                               </p>
@@ -1691,7 +1716,9 @@ export default function Music() {
                                       </div>
                                     </div>
                                     {isCurrentPlaying && (
-                                      <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accentCyan shadow-[0_0_8px_#fff]" />
+                                      <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md border border-accentCyan/50 shadow-[0_0_10px_rgba(var(--accent-cyan),0.55)]">
+                                        <EqualizerBars isPlaying={true} size="sm" bars={3} />
+                                      </div>
                                     )}
                                   </div>
                                   <div className="space-y-0.5 min-w-0">
@@ -1796,7 +1823,9 @@ export default function Music() {
                                         )}
                                       </div>
                                       {isCurrentPlaying && (
-                                        <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_6px_#fff]" />
+                                        <div className="absolute bottom-1 right-1 px-1 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-accentCyan/50">
+                                          <EqualizerBars isPlaying={true} size="sm" bars={3} />
+                                        </div>
                                       )}
                                     </div>
                                     <div className="min-w-0 flex-1 space-y-0.5">
@@ -2122,6 +2151,11 @@ export default function Music() {
                           <Play className="w-6 h-6 text-white fill-current ml-0.5" />
                         )}
                       </div>
+                      {isCurrentPlaying && (
+                        <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md border border-red-400/60 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                          <EqualizerBars isPlaying={true} size="sm" bars={3} />
+                        </div>
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1 space-y-0.5">
@@ -2374,7 +2408,7 @@ export default function Music() {
             <button
               type="button"
               onClick={() => setShowCreatePlaylistModal(true)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-lg shadow-accentPurple/40 hover:opacity-95 transition active:scale-95 shrink-0 border-2 border-white"
+              className="btn-shimmer flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-lg shadow-accentPurple/40 hover:opacity-95 transition active:scale-95 shrink-0 border-2 border-white"
             >
               <FolderPlus className="w-4 h-4 text-black stroke-[2.5]" />
               <span>Create New Playlist</span>
@@ -2648,6 +2682,11 @@ export default function Music() {
                               <Play className="w-6 h-6 text-white fill-current ml-0.5" />
                             )}
                           </div>
+                          {isCurrentPlaying && (
+                            <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md border border-accentCyan/50 shadow-[0_0_10px_rgba(var(--accent-cyan),0.55)]">
+                              <EqualizerBars isPlaying={true} size="sm" bars={3} />
+                            </div>
+                          )}
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-0.5">

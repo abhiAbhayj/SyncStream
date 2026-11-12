@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
+import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import {
   Search as SearchIcon,
   Film,
@@ -150,6 +151,14 @@ const MANGA_GENRES = [
   { key: 'd_josei', label: 'Josei' }
 ];
 
+const SEARCH_TYPEWRITER_HINTS = {
+  movie: ['Search Interstellar...', 'Search Dune: Part Two...', 'Search Avengers: Endgame...', 'Search Oppenheimer...'],
+  tv: ['Search Stranger Things...', 'Search Breaking Bad...', 'Search Peaky Blinders...', 'Search House of the Dragon...'],
+  anime: ['Search Demon Slayer...', 'Search Jujutsu Kaisen...', 'Search Solo Leveling...', 'Search Attack on Titan...'],
+  manga: ['Search Chainsaw Man...', 'Search One Piece...', 'Search Berserk...', 'Search Jujutsu Kaisen...'],
+  music: ['Search Arijit Singh...', 'Search Anirudh...', 'Search Hanumankind...', 'Search Blue Bird Naruto...']
+};
+
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -175,6 +184,36 @@ export default function Search() {
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState(1);
   const MAX_PAGES = 30;
+
+  // Smart Typewriter Placeholder Animation State
+  const [hintText, setHintText] = useState('');
+  const [hintIndex, setHintIndex] = useState(0);
+  const [isDeletingHint, setIsDeletingHint] = useState(false);
+
+  useEffect(() => {
+    setHintText('');
+    setHintIndex(0);
+    setIsDeletingHint(false);
+  }, [type]);
+
+  useEffect(() => {
+    if (query.trim() !== '') return;
+    const hints = SEARCH_TYPEWRITER_HINTS[type] || SEARCH_TYPEWRITER_HINTS.movie;
+    const targetWord = hints[hintIndex % hints.length];
+    let timer;
+
+    if (!isDeletingHint && hintText.length < targetWord.length) {
+      timer = setTimeout(() => setHintText(targetWord.slice(0, hintText.length + 1)), 65);
+    } else if (!isDeletingHint && hintText.length === targetWord.length) {
+      timer = setTimeout(() => setIsDeletingHint(true), 1600);
+    } else if (isDeletingHint && hintText.length > 0) {
+      timer = setTimeout(() => setHintText(targetWord.slice(0, hintText.length - 1)), 30);
+    } else if (isDeletingHint && hintText.length === 0) {
+      setIsDeletingHint(false);
+      setHintIndex((prev) => (prev + 1) % hints.length);
+    }
+    return () => clearTimeout(timer);
+  }, [query, type, hintText, hintIndex, isDeletingHint]);
 
   // React to searchParams updates (e.g. from MediaDetail click or back navigation)
   useEffect(() => {
@@ -440,32 +479,53 @@ export default function Search() {
           </div>
         </div>
 
-        {/* Search Input Row */}
+        {/* Search Input Row (Rotating Neon Beam Search Capsule + Smart Typewriter) */}
         <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3">
-          <div className="relative flex-grow">
-            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accentCyan w-4 sm:w-5 h-4 sm:h-5 pointer-events-none" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Search for ${type === 'movie' ? 'movies' : type === 'tv' ? 'TV shows' : type === 'anime' ? 'anime titles' : type === 'music' ? 'Artist, Movie, Series, Anime, or Song name' : 'manga entries'}...`}
-              className="w-full bg-darkBg/90 border-2 border-white/20 focus:border-accentCyan rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-11 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-accentCyan transition shadow-inner placeholder:text-gray-400 font-semibold"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={handleClearQuery}
-                className="absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer shadow-sm"
-                title="Clear search"
-                aria-label="Clear search"
-              >
-                <X className="w-4 h-4 stroke-[2.5]" />
-              </button>
-            )}
+          <div className="neon-beam-wrapper flex-grow">
+            <div className="neon-beam-inner relative flex items-center">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accentCyan w-4 sm:w-5 h-4 sm:h-5 pointer-events-none z-20" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder=""
+                aria-label={`Search ${type}`}
+                className="relative z-10 w-full bg-transparent pl-10 sm:pl-12 pr-20 sm:pr-24 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none font-semibold"
+              />
+              {/* Smart Typewriter Animated Placeholder */}
+              {query === '' && (
+                <div className="absolute left-10 sm:left-12 right-20 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-sm sm:text-base text-gray-400 font-medium truncate">
+                  <span>{hintText || `Search ${type}...`}</span>
+                  <span className="inline-block w-[2px] h-4 sm:h-5 bg-accentCyan ml-0.5 animate-cursor-blink shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
+                </div>
+              )}
+
+              <div className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1.5">
+                {query && (
+                  <button
+                    type="button"
+                    onClick={handleClearQuery}
+                    className="p-1.5 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer shadow-sm"
+                    title="Clear search"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-spotlight-search', { detail: { query, type } }))}
+                  className="hidden sm:inline-flex items-center px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-accentCyan hover:text-black border border-white/10 text-[10px] font-mono font-bold text-gray-300 transition cursor-pointer"
+                  title="Open Spotlight Command Palette (Ctrl+K)"
+                >
+                  ⌘K
+                </button>
+              </div>
+            </div>
           </div>
           <button
             type="submit"
-            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-accentCyan hover:opacity-90 text-black font-black shadow-lg shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+            className="btn-shimmer px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-accentCyan hover:opacity-90 text-black font-black shadow-lg shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
           >
             Search
           </button>
@@ -748,9 +808,8 @@ export default function Search() {
 
       {/* Results Display */}
       {loading && results.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-accentCyan" />
-          <p className="text-gray-400 font-medium">Searching catalog...</p>
+        <div className="py-4 animate-fade-in">
+          <MediaCardSkeleton count={12} titlePlaceholder={true} />
         </div>
       ) : searched && results.length > 0 ? (
         <div className="animate-slide-up space-y-8">

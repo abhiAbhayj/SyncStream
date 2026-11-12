@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -74,6 +74,38 @@ export default function WatchParty() {
   const [inboundSyncEvent, setInboundSyncEvent] = useState(null);
   const [isPlayingState, setIsPlayingState] = useState(true);
   const [lastSyncAction, setLastSyncAction] = useState('Party sync active');
+  const [floatingReactions, setFloatingReactions] = useState([]);
+  const [syncRadarPulse, setSyncRadarPulse] = useState(0);
+  const reactionTimersRef = useRef([]);
+
+  const REACTION_EMOJIS = ['🔥', '❤️', '😂', '🤯', '👏', '🍿'];
+
+  const spawnFloatingReaction = useCallback(({ id, emoji, username }) => {
+    const uid = id || `${Date.now()}-${Math.random()}`;
+    const rightOffset = Math.round(14 + Math.random() * 76);
+    const swayX = `${Math.random() > 0.5 ? '' : '-'}${Math.round(8 + Math.random() * 18)}px`;
+
+    setFloatingReactions((prev) => [
+      ...prev.slice(-22),
+      { id: uid, emoji, username, rightOffset, swayX }
+    ]);
+
+    const t = setTimeout(() => {
+      setFloatingReactions((prev) => prev.filter((item) => item.id !== uid));
+    }, 2650);
+    reactionTimersRef.current.push(t);
+  }, []);
+
+  const triggerRadarPing = useCallback(() => {
+    setSyncRadarPulse((c) => c + 1);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      reactionTimersRef.current.forEach(clearTimeout);
+      reactionTimersRef.current = [];
+    };
+  }, []);
 
   // 1. Fetch Room and Media Info
   useEffect(() => {
@@ -161,12 +193,14 @@ export default function WatchParty() {
       if (state.event === 'play') setIsPlayingState(true);
       if (state.event === 'pause') setIsPlayingState(false);
       if (state.sender) setLastSyncAction(`Stream synced by @${state.sender}`);
+      triggerRadarPing();
     });
 
     socket.on('media_sync', (state) => {
       // Ignore sync events if we are the sender (to prevent loops)
       if (state.sender === user.username) return;
       console.log('[Socket] Media sync request received from', state.sender, state);
+      triggerRadarPing();
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
       if (state.embedServer) setEmbedServer(state.embedServer);
@@ -198,6 +232,10 @@ export default function WatchParty() {
       }
     });
 
+    socket.on('party_reaction', (payload) => {
+      if (payload?.emoji) spawnFloatingReaction(payload);
+    });
+
     socket.on('user_joined', ({ username }) => {
       setParticipantsCount(prev => prev + 1);
       if (username !== user.username) {
@@ -219,6 +257,7 @@ export default function WatchParty() {
       socket.off('media_sync');
       socket.off('user_joined');
       socket.off('user_left');
+      socket.off('party_reaction');
     };
   }, [socket, room, user, code]);
 
@@ -249,6 +288,16 @@ export default function WatchParty() {
     };
     
     socket.emit('media_sync', payload);
+    triggerRadarPing();
+  };
+
+  const sendPartyReaction = (emoji) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    const sender = user?.username || 'You';
+    spawnFloatingReaction({ id, emoji, username: sender });
+    if (socket && code) {
+      socket.emit('party_reaction', { roomCode: code, emoji, username: sender, id });
+    }
   };
 
   const handleTogglePartyPlayPause = () => {
@@ -262,6 +311,7 @@ export default function WatchParty() {
   const handleRequestResync = () => {
     if (socket && code) {
       socket.emit('request_playback_state', { roomCode: code });
+      triggerRadarPing();
       setLastSyncAction(`Re-sync requested`);
       addNotification(`Requested synchronization from room`, 'sync');
     }
@@ -655,9 +705,16 @@ export default function WatchParty() {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Shared Control Active
+              <span className="relative text-[10px] text-accentCyan bg-accentCyan/10 border border-accentCyan/30 px-3 py-1 rounded-lg font-bold uppercase tracking-wider flex items-center gap-2 shadow-[0_0_12px_rgba(var(--accent-cyan),0.15)]">
+                <span className="relative flex items-center justify-center w-2.5 h-2.5 shrink-0">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400/70 animate-sonar-1" />
+                  <span className="absolute inset-0 rounded-full bg-accentCyan/60 animate-sonar-2" />
+                  {syncRadarPulse > 0 && (
+                    <span key={syncRadarPulse} className="absolute -inset-1 rounded-full border border-emerald-400 animate-shockwave" />
+                  )}
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                </span>
+                <span>Shared Control Active</span>
               </span>
             </div>
           </div>
@@ -716,8 +773,33 @@ export default function WatchParty() {
             </div>
           )}
 
-          {/* Players Rendering */}
-          <div className="max-w-5xl mx-auto w-full">
+          {/* Players Rendering + Floating Live Reactions Overlay */}
+          <div className="max-w-5xl mx-auto w-full relative">
+            {/* Floating Livestream Emoji Reactions */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-30"
+            >
+              {floatingReactions.map((r) => (
+                <div
+                  key={r.id}
+                  style={{
+                    right: `${r.rightOffset}px`,
+                    '--sway-x': r.swayX
+                  }}
+                  className="absolute bottom-4 flex flex-col items-center animate-emoji-float select-none"
+                >
+                  <span className="text-2xl sm:text-3xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+                    {r.emoji}
+                  </span>
+                  {r.username && (
+                    <span className="mt-0.5 px-1.5 py-0.5 rounded-full bg-black/80 border border-white/20 text-[9px] font-bold text-white/95 backdrop-blur-md whitespace-nowrap shadow">
+                      {r.username}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
             {playbackMode === 'trailer' && mediaDetail.youtube_trailer && (
               <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl">
                 <iframe
@@ -770,54 +852,81 @@ export default function WatchParty() {
             })()}
           </div>
 
-          {/* Party Live Sync Dashboard Bar */}
-          <div className="bg-gradient-to-r from-darkCard/90 via-black/40 to-darkCard/90 border border-darkBorder/80 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative flex items-center justify-center shrink-0">
-                <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping absolute" />
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative" />
-              </div>
-              <div className="flex flex-col text-left">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-white">Party Live Sync</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    Shared Control
+          {/* Party Live Sync Dashboard Bar + Live Reactions */}
+          <div className="bg-gradient-to-r from-darkCard/90 via-black/40 to-darkCard/90 border border-darkBorder/80 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col gap-3">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                {/* Pulsing Sync Radar Beacon */}
+                <div className="relative flex items-center justify-center w-6 h-6 shrink-0">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400/50 animate-sonar-1" />
+                  <span className="absolute inset-0 rounded-full bg-accentCyan/40 animate-sonar-2" />
+                  {syncRadarPulse > 0 && (
+                    <span
+                      key={syncRadarPulse}
+                      className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-shockwave pointer-events-none"
+                    />
+                  )}
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] relative" />
+                </div>
+
+                <div className="flex flex-col text-left">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-black uppercase tracking-wider text-white">Party Live Sync</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      LIVE SYNC &bull; Shared Control
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-gray-400">
+                    {lastSyncAction || (isPlayingState ? 'Stream playing in sync for everyone' : 'Stream paused in sync')}
                   </span>
                 </div>
-                <span className="text-[11px] text-gray-400">
-                  {lastSyncAction || (isPlayingState ? 'Stream playing in sync for everyone' : 'Stream paused in sync')}
-                </span>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
-              <button
-                type="button"
-                onClick={handleTogglePartyPlayPause}
-                className="px-3.5 py-1.5 rounded-xl bg-accentCyan/15 hover:bg-accentCyan/25 text-accentCyan border border-accentCyan/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm"
-              >
-                {isPlayingState ? (
-                  <>
-                    <Pause className="w-3.5 h-3.5 fill-current" />
-                    <span>Sync Pause</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Sync Play</span>
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                {/* Live Emoji Reactions Launcher */}
+                <div className="flex items-center gap-1 bg-black/50 border border-white/15 px-2 py-1 rounded-xl shadow-inner">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-1 hidden sm:inline">React:</span>
+                  {REACTION_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => sendPartyReaction(emoji)}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/15 active:scale-125 transition-transform text-sm sm:text-base cursor-pointer"
+                      title={`Send ${emoji} reaction`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
 
-              <button
-                type="button"
-                onClick={handleRequestResync}
-                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
-                title="Re-synchronize room state"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Re-sync</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={handleTogglePartyPlayPause}
+                  className="btn-shimmer px-3.5 py-1.5 rounded-xl bg-accentCyan/15 hover:bg-accentCyan/25 text-accentCyan border border-accentCyan/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+                >
+                  {isPlayingState ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 fill-current" />
+                      <span>Sync Pause</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Sync Play</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRequestResync}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                  title="Re-synchronize room state"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Re-sync</span>
+                </button>
+              </div>
             </div>
           </div>
 

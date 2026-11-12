@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
+import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -21,6 +22,30 @@ export default function Home() {
     setActiveTab(tabId);
     sessionStorage.setItem('homeActiveTab', tabId);
   };
+
+  // Sliding Magnetic Tab Pill measurement
+  const tabButtonRefs = useRef({});
+  const [tabPillStyle, setTabPillStyle] = useState({ left: 0, width: 0, ready: false });
+
+  useEffect(() => {
+    const updatePill = () => {
+      const el = tabButtonRefs.current[activeTab];
+      if (el) {
+        setTabPillStyle({
+          left: el.offsetLeft,
+          width: el.offsetWidth,
+          ready: true
+        });
+      }
+    };
+    updatePill();
+    const raf = requestAnimationFrame(updatePill);
+    window.addEventListener('resize', updatePill);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', updatePill);
+    };
+  }, [activeTab]);
 
   const daysOfWeek = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
   const [selectedDay, setSelectedDay] = useState(() => {
@@ -247,7 +272,7 @@ export default function Home() {
           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-1 animate-fade-up stagger-4">
             <Link
               to="/search"
-              className="btn-primary flex items-center gap-2 !text-white text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95"
+              className="btn-primary btn-shimmer flex items-center gap-2 !text-white text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95"
             >
               <Search className="w-4 h-4" />
               <span>Explore Catalog</span>
@@ -255,7 +280,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-join-party'))}
-              className="btn-ghost flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95 cursor-pointer border-accentPurple/40 text-gray-200 hover:text-white hover:border-accentPurple/70"
+              className="btn-ghost btn-shimmer flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95 cursor-pointer border-accentPurple/40 text-gray-200 hover:text-white hover:border-accentPurple/70"
             >
               <Users className="w-4 h-4 text-accentPurple" />
               <span>Join a Party</span>
@@ -312,41 +337,47 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Category Tabs ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isSelected = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`group relative flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black tracking-wide transition-all duration-300 shrink-0 active:scale-95 border-2 cursor-pointer shadow-md ${
-                isSelected
-                  ? 'bg-accentCyan/25 border-accentCyan text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] ring-1 ring-accentCyan'
-                  : 'bg-darkCard/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan hover:bg-darkSurf'
-              }`}
-            >
-              <Icon className={`relative w-4 h-4 transition-all duration-300 ${isSelected ? tab.color : `${tab.color} opacity-80 group-hover:opacity-100 group-hover:scale-110`}`} />
-              <span className="relative text-white font-black">{tab.label}</span>
-            </button>
-          );
-        })}
+      {/* ── Category Tabs (Sliding Magnetic Pill) ── */}
+      <div className="overflow-x-auto pb-1.5 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+        <div className="relative inline-flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-darkCard/70 border border-white/10 backdrop-blur-xl shadow-lg">
+          {/* Gliding Active Neon Pill */}
+          {tabPillStyle.ready && (
+            <div
+              aria-hidden="true"
+              className="absolute top-1.5 bottom-1.5 rounded-xl bg-gradient-to-r from-accentCyan/25 via-accentPurple/20 to-accentCyan/25 border-2 border-accentCyan shadow-[0_0_18px_rgba(var(--accent-cyan),0.45)] pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+              style={{
+                left: `${tabPillStyle.left}px`,
+                width: `${tabPillStyle.width}px`
+              }}
+            />
+          )}
+
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                ref={(el) => { tabButtonRefs.current[tab.id] = el; }}
+                onClick={() => handleTabChange(tab.id)}
+                className={`group relative z-10 flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black tracking-wide transition-colors duration-300 shrink-0 active:scale-95 cursor-pointer ${
+                  isSelected
+                    ? 'text-white'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Icon className={`relative w-4 h-4 transition-all duration-300 ${isSelected ? `${tab.color} scale-110` : `${tab.color} opacity-75 group-hover:opacity-100 group-hover:scale-110`}`} />
+                <span className="relative font-black">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Dashboard Grid Content */}
       {loading ? (
-        <div className="space-y-12 py-8">
-          {[1, 2].map((i) => (
-            <div key={i} className="space-y-5">
-              <div className="h-5 w-48 skeleton rounded-xl" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                {[1, 2, 3, 4, 5].map((j) => (
-                  <div key={j} className="aspect-[2/3] skeleton rounded-2xl" />
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="py-4 animate-fade-in">
+          <MediaCardSkeleton count={10} titlePlaceholder={true} rows={2} />
         </div>
       ) : error ? (
         <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl text-center space-y-4 max-w-md mx-auto">
@@ -381,7 +412,7 @@ export default function Home() {
                 </div>
                 <Link
                   to="/music"
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
+                  className="btn-shimmer flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
                 >
                   <Music className="w-4 h-4" />
                   <span>Open Music Portal</span>

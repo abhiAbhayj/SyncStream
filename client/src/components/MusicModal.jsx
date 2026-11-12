@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
+import EqualizerBars from './EqualizerBars';
 import {
   Play,
   Pause,
@@ -118,6 +119,7 @@ export default function MusicModal() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragTime, setDragTime] = useState(0);
   const [viewStyle, setViewStyle] = useState('poster');
+  const [rippleTrigger, setRippleTrigger] = useState(0);
 
   const [lyricsData, setLyricsData] = useState({
     loading: false,
@@ -214,6 +216,11 @@ export default function MusicModal() {
   };
 
   if (!isExpanded || !currentTrack) return null;
+
+  const handleTogglePlayWithRipple = () => {
+    setRippleTrigger((n) => n + 1);
+    togglePlay();
+  };
 
   const displayTime = isDragging ? dragTime : currentTime;
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
@@ -408,9 +415,10 @@ export default function MusicModal() {
                   }}
                 />
                 <div
-                  className={`w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-68 md:h-68 lg:w-76 lg:h-76 max-h-[25vh] sm:max-h-[32vh] aspect-square rounded-full p-2 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 shadow-[0_0_35px_rgba(var(--accent-cyan),0.35)] transition-all duration-700 relative z-10 ${
-                    isPlaying ? 'animate-spin-slow shadow-[0_0_50px_rgba(var(--accent-cyan),0.55)]' : ''
+                  className={`w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-68 md:h-68 lg:w-76 lg:h-76 max-h-[25vh] sm:max-h-[32vh] aspect-square rounded-full p-2 bg-gradient-to-tr from-accentCyan/40 via-accentPurple/30 to-accentPink/40 transition-shadow duration-700 relative z-10 animate-spin-slow ${
+                    isPlaying ? 'shadow-[0_0_50px_rgba(var(--accent-cyan),0.55)]' : 'shadow-[0_0_25px_rgba(var(--accent-cyan),0.25)]'
                   }`}
+                  style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
                 >
                   <div className="w-full h-full rounded-full vinyl-grooves border-2 border-white/20 relative flex items-center justify-center shadow-2xl overflow-hidden">
                     {/* Concentric Vinyl Grooves */}
@@ -680,9 +688,12 @@ export default function MusicModal() {
                         }}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className={`font-bold text-xs sm:text-sm truncate ${isCurrent ? 'text-accentCyan' : 'text-white'}`}>
-                          {cleanText(t.title)}
-                        </p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} />}
+                          <p className={`font-bold text-xs sm:text-sm truncate ${isCurrent ? 'text-accentCyan' : 'text-white'}`}>
+                            {cleanText(t.title)}
+                          </p>
+                        </div>
                         <p className="text-[11px] text-gray-400 truncate">{cleanText(t.artist)}</p>
                       </div>
                     </div>
@@ -764,11 +775,18 @@ export default function MusicModal() {
 
           <button
             type="button"
-            onClick={togglePlay}
+            onClick={handleTogglePlayWithRipple}
             disabled={isLoading}
-            className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
+            className="relative overflow-visible w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
             title={isPlaying ? 'Pause' : 'Play'}
           >
+            {rippleTrigger > 0 && (
+              <span
+                key={rippleTrigger}
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+              />
+            )}
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (

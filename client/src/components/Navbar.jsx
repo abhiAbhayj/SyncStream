@@ -1,34 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Tv, Search, Music, Heart, User, Users, LogOut, X, Zap, ChevronDown, ArrowLeft } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinCode, setJoinCode] = useState('');
 
+  // Morphing search bar states
+  const [morphOpen, setMorphOpen] = useState(false);
+  const [quickQuery, setQuickQuery] = useState('');
+  const morphInputRef = useRef(null);
+
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 12);
+    const updateScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 12);
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight > 0) {
+        setScrollProgress(Math.min(100, Math.max(0, (y / docHeight) * 100)));
+      } else {
+        setScrollProgress(0);
+      }
+    };
+
     const openPartyHandler = () => setShowJoinModal(true);
-    window.addEventListener('scroll', handler, { passive: true });
+
+    updateScroll();
+    window.addEventListener('scroll', updateScroll, { passive: true });
+    window.addEventListener('resize', updateScroll, { passive: true });
     window.addEventListener('open-join-party', openPartyHandler);
+
     return () => {
-      window.removeEventListener('scroll', handler);
+      window.removeEventListener('scroll', updateScroll);
+      window.removeEventListener('resize', updateScroll);
       window.removeEventListener('open-join-party', openPartyHandler);
     };
-  }, []);
+  }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
     window.dispatchEvent(new CustomEvent('open-logout-confirm'));
     setDropdownOpen(false);
-
   };
 
   const handleJoinSubmit = (e) => {
@@ -38,6 +58,25 @@ export default function Navbar() {
       navigate(`/room/${joinCode.trim()}`);
       setJoinCode('');
     }
+  };
+
+  const handleMorphSearchSubmit = (e) => {
+    e.preventDefault();
+    if (quickQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(quickQuery.trim())}`);
+      setMorphOpen(false);
+      setQuickQuery('');
+    } else {
+      window.dispatchEvent(new CustomEvent('open-spotlight-search'));
+    }
+  };
+
+  const openSpotlight = (e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    window.dispatchEvent(new CustomEvent('open-spotlight-search', {
+      detail: { query: quickQuery }
+    }));
   };
 
   const navLinks = [
@@ -56,7 +95,7 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-3">
 
           {/* ── Brand Logo & Back Navigation ── */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -90,7 +129,7 @@ export default function Navbar() {
           </div>
 
           {/* ── Desktop Nav ── */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = isActive(link.path);
@@ -98,7 +137,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`nav-link relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 font-manrope tracking-wider uppercase text-[12px] font-bold ${
+                  className={`nav-link relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 font-manrope tracking-wider uppercase text-[12px] font-bold ${
                     active
                       ? 'text-white bg-white/[0.07]'
                       : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
@@ -115,14 +154,82 @@ export default function Navbar() {
           </div>
 
           {/* ── Right Actions ── */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
 
-            {/* Join Party */}
+            {/* Mobile Spotlight Quick Trigger */}
+            <button
+              type="button"
+              onClick={openSpotlight}
+              className="sm:hidden w-8 h-8 rounded-full border border-accentCyan/40 bg-accentCyan/10 text-accentCyan flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-cyan),0.25)] active:scale-90 transition"
+              title="Quick Spotlight Search"
+              aria-label="Quick Spotlight Search"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
+            {/* Morphing Search Capsule (Desktop & Tablet) */}
+            <form
+              onSubmit={handleMorphSearchSubmit}
+              onMouseEnter={() => setMorphOpen(true)}
+              onMouseLeave={() => {
+                if (document.activeElement !== morphInputRef.current && !quickQuery) {
+                  setMorphOpen(false);
+                }
+              }}
+              className={`hidden sm:flex items-center rounded-full border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden ${
+                morphOpen || quickQuery
+                  ? 'w-52 lg:w-64 px-3 py-1.5 border-accentCyan/70 bg-darkCard/95 shadow-[0_0_20px_rgba(var(--accent-cyan),0.3)]'
+                  : 'w-9 h-9 px-0 justify-center border-white/15 bg-white/[0.05] hover:border-accentCyan/60 cursor-pointer'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setMorphOpen(true);
+                  setTimeout(() => morphInputRef.current?.focus(), 60);
+                }}
+                className={`shrink-0 flex items-center justify-center text-accentCyan transition-transform duration-300 ${
+                  morphOpen || quickQuery ? 'mr-2' : 'w-full h-full'
+                }`}
+                title="Quick Search (Ctrl+K)"
+                aria-label="Expand Search Bar"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+
+              <input
+                ref={morphInputRef}
+                type="text"
+                value={quickQuery}
+                onFocus={() => setMorphOpen(true)}
+                onBlur={() => {
+                  if (!quickQuery) setMorphOpen(false);
+                }}
+                onChange={(e) => setQuickQuery(e.target.value)}
+                placeholder="Quick search..."
+                className={`bg-transparent text-xs text-white placeholder:text-gray-400 focus:outline-none transition-all duration-300 ${
+                  morphOpen || quickQuery ? 'w-full opacity-100' : 'w-0 opacity-0 pointer-events-none'
+                }`}
+              />
+
+              {(morphOpen || quickQuery) && (
+                <button
+                  type="button"
+                  onClick={openSpotlight}
+                  className="shrink-0 ml-1 px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-accentCyan hover:text-black text-[9px] font-mono font-bold text-gray-300 transition border border-white/10"
+                  title="Open Spotlight Modal (Ctrl+K)"
+                >
+                  ⌘K
+                </button>
+              )}
+            </form>
+
+            {/* Join Party (Sweep-Shimmer CTA) */}
             <button
               onClick={() => setShowJoinModal(true)}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300
-                         border-accentPurple/40 text-accentPurple bg-accentPurple/[0.10]
-                         hover:bg-accentPurple/[0.22] hover:border-accentPurple/60 hover:shadow-[0_0_20px_rgba(149,100,255,0.25)] active:scale-95"
+              className="btn-shimmer flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300
+                         border-accentPurple/40 text-accentPurple bg-accentPurple/[0.12]
+                         hover:bg-accentPurple/[0.24] hover:border-accentPurple/70 active:scale-95"
               title="Join Watch Party by Code"
             >
               <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
@@ -220,13 +327,21 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-primary text-sm !py-2 !px-4 !text-white"
+                  className="btn-primary btn-shimmer text-sm !py-2 !px-4 !text-white"
                 >
                   Register
                 </Link>
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── Top Scroll Progress Neon Thread ── */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.04] pointer-events-none">
+          <div
+            className="h-full bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink shadow-[0_0_10px_rgba(var(--accent-cyan),0.85)] transition-[width] duration-75"
+            style={{ width: `${scrollProgress}%` }}
+          />
         </div>
       </nav>
 
@@ -276,7 +391,7 @@ export default function Navbar() {
                 <button
                   type="submit"
                   disabled={!joinCode.trim()}
-                  className="btn-primary flex-[2] !py-3 !text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="btn-primary btn-shimmer flex-[2] !py-3 !text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <Zap className="w-4 h-4 inline mr-1.5 text-yellow-400 fill-yellow-400" />
                   Enter Room

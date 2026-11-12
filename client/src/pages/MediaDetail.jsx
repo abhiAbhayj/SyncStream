@@ -465,7 +465,7 @@ export default function MediaDetail() {
           {type !== 'manga' && (
             <button
               onClick={handleCreateWatchParty}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
+              className="btn-shimmer flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
             >
               <Users className="w-3.5 h-3.5 fill-accentCyan/30" />
               <span>Watch Party</span>

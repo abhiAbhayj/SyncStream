@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   User,
@@ -301,11 +302,64 @@ export default function Profile() {
   const [aiPreviewUrl, setAiPreviewUrl] = useState(null);
   const [editingAvatarTarget, setEditingAvatarTarget] = useState(null); // { category, id, name }
 
-  // Live preview theme selection and apply to DOM immediately
-  const handleThemeChange = (newTheme) => {
-    setTheme(newTheme);
-    ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    document.body.classList.add(`theme-${newTheme}`);
+  const [themeRipple, setThemeRipple] = useState(null);
+  const rippleTimerRef = useRef(null);
+
+  // Live preview theme selection with expanding Radial Theme Ripple Switch
+  const handleThemeChange = (newTheme, e) => {
+    const rect = e?.currentTarget?.getBoundingClientRect?.();
+    const x = e?.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth / 2);
+    const y = e?.clientY || (rect ? rect.top + rect.height / 2 : window.innerHeight / 2);
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const matchedOption = THEME_OPTIONS.find((t) => t.id === newTheme);
+    const rippleColor = matchedOption?.swatch?.[1] || matchedOption?.swatch?.[0] || '#00f5ff';
+
+    setThemeRipple({ id: Date.now(), x, y, color: rippleColor });
+    if (rippleTimerRef.current) clearTimeout(rippleTimerRef.current);
+    rippleTimerRef.current = setTimeout(() => setThemeRipple(null), 820);
+
+    const applyThemeDom = () => {
+      flushSync(() => {
+        setTheme(newTheme);
+      });
+      ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
+      document.body.classList.add(`theme-${newTheme}`);
+    };
+
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion && typeof document.startViewTransition === 'function') {
+      try {
+        const transition = document.startViewTransition(() => {
+          applyThemeDom();
+        });
+        transition.ready
+          .then(() => {
+            document.documentElement.animate(
+              {
+                clipPath: [
+                  `circle(0px at ${x}px ${y}px)`,
+                  `circle(${endRadius}px at ${x}px ${y}px)`
+                ]
+              },
+              {
+                duration: 620,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                pseudoElement: '::view-transition-new(root)'
+              }
+            );
+          })
+          .catch(() => {});
+        return;
+      } catch {
+        // Fallback to instant application + radial shockwave
+      }
+    }
+
+    applyThemeDom();
   };
 
   React.useEffect(() => {
@@ -904,7 +958,7 @@ export default function Profile() {
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => handleThemeChange(t.id)}
+                    onClick={(e) => handleThemeChange(t.id, e)}
                     className={`relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] ${
                       isSelected
                         ? 'border-accentCyan/80 bg-accentCyan/[0.08] shadow-[0_0_20px_rgba(var(--accent-cyan),0.25)] ring-1 ring-accentCyan/50'
@@ -948,7 +1002,7 @@ export default function Profile() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-accentPurple/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-4 active:scale-95 cursor-pointer"
+            className="btn-shimmer w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-accentPurple/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-4 active:scale-95 cursor-pointer"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : 'Save Profile & Dashboard Changes'}
           </button>
@@ -1148,6 +1202,22 @@ export default function Profile() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Radial Theme Switch Shockwave Flash Overlay */}
+      {themeRipple && (
+        <div
+          key={themeRipple.id}
+          aria-hidden="true"
+          className="fixed w-72 h-72 rounded-full pointer-events-none z-[9999] animate-theme-shockwave"
+          style={{
+            left: `${themeRipple.x}px`,
+            top: `${themeRipple.y}px`,
+            background: `radial-gradient(circle, ${themeRipple.color}55 0%, ${themeRipple.color}22 45%, transparent 72%)`,
+            boxShadow: `0 0 60px ${themeRipple.color}88`,
+            border: `2px solid ${themeRipple.color}`
+          }}
+        />
       )}
     </div>
   );

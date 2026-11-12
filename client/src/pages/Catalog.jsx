@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate, useNavigationType } from 'react-router-dom';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
+import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import { Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
 
 const CACHE_TTL = 10 * 60 * 1000; // 10 min — discard stale session cache
@@ -194,9 +195,8 @@ export default function Catalog() {
 
       {/* Grid Content */}
       {loading && items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-32 gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-accentCyan" />
-          <p className="text-gray-400 font-medium">Loading live catalog...</p>
+        <div className="py-4 animate-fade-in">
+          <MediaCardSkeleton count={12} />
         </div>
       ) : (
         <div className="animate-fade-in space-y-8">

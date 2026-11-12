@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useMusic } from '../context/MusicContext';
+import EqualizerBars from './EqualizerBars';
 import {
   Play,
   Pause,
@@ -10,9 +11,6 @@ import {
   Volume2,
   VolumeX,
   Volume1,
-  Repeat,
-  Repeat1,
-  Shuffle,
   Maximize2,
   ListMusic,
   FileText,
@@ -61,14 +59,11 @@ export default function MusicPlayerBar() {
   const {
     currentTrack,
     queue,
-    queueIndex,
     isPlaying,
     currentTime,
     duration,
     volume,
     isMuted,
-    isLooping,
-    isShuffling,
     isLoading,
     isExpanded,
     isFavorite,
@@ -82,9 +77,6 @@ export default function MusicPlayerBar() {
     prevTrack,
     setVolume,
     toggleMute,
-    toggleLoop,
-    toggleShuffle,
-    setIsExpanded,
     openPlayerModal,
     openLyricsModal,
     removeFromQueue,
@@ -96,6 +88,7 @@ export default function MusicPlayerBar() {
   const [dragTime, setDragTime] = useState(0);
   const [showQueueDrawer, setShowQueueDrawer] = useState(false);
   const [hoverPosition, setHoverPosition] = useState(null);
+  const [rippleTrigger, setRippleTrigger] = useState(0);
   const progressBarRef = useRef(null);
 
   const calculateSeekTime = useCallback((e) => {
@@ -141,6 +134,12 @@ export default function MusicPlayerBar() {
   const displayTime = isDragging ? dragTime : currentTime;
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
 
+  const trackTitle = cleanText(currentTrack.title);
+  const trackArtist = cleanArtist(currentTrack.artist, currentTrack);
+  const isLongTitleMobile = trackTitle.length > 18;
+  const isLongTitleDesktop = trackTitle.length > 24;
+  const isLongArtist = trackArtist.length > 24;
+
   const handleMouseDown = (e) => {
     setIsDragging(true);
     const target = calculateSeekTime(e);
@@ -158,6 +157,11 @@ export default function MusicPlayerBar() {
     });
   };
 
+  const handleTogglePlayWithRipple = () => {
+    setRippleTrigger((n) => n + 1);
+    togglePlay();
+  };
+
   return (
     <>
       {/* Floating Music Player Bar */}
@@ -165,8 +169,8 @@ export default function MusicPlayerBar() {
         aria-label="Floating Music Player"
         className="fixed left-2 right-2 sm:left-4 sm:right-4 bottom-[56px] xs:bottom-[58px] md:bottom-3 z-40 max-w-5xl mx-auto transition-all duration-300 pointer-events-auto select-none"
       >
-        <div className="relative rounded-xl sm:rounded-2xl border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl bg-[#0e1329]/95 overflow-hidden">
-          
+        <div className="relative rounded-xl sm:rounded-2xl border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl bg-[#0e1329]/95 overflow-visible">
+
           {/* Top Edge Neon Progress Bar */}
           <div
             ref={progressBarRef}
@@ -174,10 +178,10 @@ export default function MusicPlayerBar() {
             onTouchStart={handleMouseDown}
             onMouseMove={handleProgressBarHover}
             onMouseLeave={() => setHoverPosition(null)}
-            className="relative w-full h-1 sm:h-1.5 bg-white/10 cursor-pointer overflow-visible group/bar transition-all"
+            className="relative w-full h-1 sm:h-1.5 bg-white/10 cursor-pointer overflow-visible group/bar transition-all rounded-t-xl sm:rounded-t-2xl"
           >
             <div
-              className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink shadow-[0_0_8px_rgba(var(--accent-cyan),0.8)]"
+              className="absolute top-0 bottom-0 left-0 rounded-tl-xl sm:rounded-tl-2xl bg-gradient-to-r from-accentCyan via-accentPurple to-accentPink shadow-[0_0_8px_rgba(var(--accent-cyan),0.8)]"
               style={{ width: `${progressPercent}%` }}
             />
             <div
@@ -198,44 +202,77 @@ export default function MusicPlayerBar() {
               1. MOBILE VIEW (< sm / < 640px) — Ultra Compact & Clean 2-Tier Dock
              ══════════════════════════════════════════════════════════════════════ */}
           <div className="flex sm:hidden flex-col gap-1 px-2.5 py-1.5 w-full">
-            {/* Row 1: Track Metadata (Left) + Timestamps / Quick Actions (Right) */}
+            {/* Row 1: Spinning Vinyl + Kinetic Marquee Metadata + Timestamp / Close */}
             <div className="flex items-center justify-between gap-1.5 min-w-0">
-              {/* Left: Artwork + Title + Language Badge + Artist */}
               <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                {/* Circular Spinning Vinyl Record (Mobile) */}
                 <div
                   onClick={openPlayerModal}
-                  className="relative w-7 h-7 xs:w-8 xs:h-8 rounded-lg overflow-hidden shrink-0 border border-white/25 shadow-md cursor-pointer group bg-black/40"
+                  className={`relative w-8 h-8 xs:w-9 xs:h-9 rounded-full shrink-0 p-[3px] vinyl-grooves border cursor-pointer group transition-shadow duration-500 ${
+                    isPlaying
+                      ? 'border-accentCyan/80 shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
+                      : 'border-white/25 shadow-md'
+                  }`}
                   title="Tap to open full player"
                 >
-                  <img
-                    src={currentTrack.image || FALLBACK_COVER}
-                    alt={cleanText(currentTrack.title)}
-                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
-                      isPlaying ? 'animate-spin-slow' : ''
-                    }`}
-                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
-                  />
-                  {isPlaying && (
-                    <div className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_4px_#fff]" />
-                  )}
+                  <div
+                    className="relative w-full h-full rounded-full overflow-hidden animate-spin-slow"
+                    style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+                  >
+                    <img
+                      src={currentTrack.image || FALLBACK_COVER}
+                      alt={trackTitle}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                    />
+                    {/* Spindle Hole */}
+                    <div className="absolute inset-0 m-auto w-2 h-2 rounded-full bg-[#090d1c] border border-white/80 shadow-inner" />
+                  </div>
                 </div>
 
+                {/* Title (Kinetic Marquee if long) + Equalizer + Artist */}
                 <div className="min-w-0 flex-1 overflow-hidden">
                   <div className="flex items-center gap-1 min-w-0">
-                    <h4
-                      onClick={openPlayerModal}
-                      className="text-[11px] xs:text-xs font-bold text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors leading-tight"
-                      title={cleanText(currentTrack.title)}
-                    >
-                      {cleanText(currentTrack.title)}
-                    </h4>
+                    {isPlaying && (
+                      <EqualizerBars isPlaying={true} size="sm" bars={3} className="shrink-0 mr-0.5" />
+                    )}
+                    {isLongTitleMobile ? (
+                      <div
+                        onClick={openPlayerModal}
+                        className="marquee-mask min-w-0 flex-1 cursor-pointer"
+                        title={trackTitle}
+                      >
+                        <div className="animate-kinetic-marquee text-[11px] xs:text-xs font-bold text-white font-outfit hover:text-accentCyan transition-colors leading-tight">
+                          <span className="pr-8">{trackTitle}</span>
+                          <span aria-hidden="true" className="pr-8 opacity-90">{trackTitle}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <h4
+                        onClick={openPlayerModal}
+                        className="text-[11px] xs:text-xs font-bold text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors leading-tight"
+                        title={trackTitle}
+                      >
+                        {trackTitle}
+                      </h4>
+                    )}
                     <span className="uppercase text-[7px] xs:text-[7.5px] font-black px-1 py-0.2 rounded bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
                       {currentTrack.language || currentTrack.category || 'GLOBAL'}
                     </span>
                   </div>
-                  <p className="text-[9.5px] text-slate-300 font-medium truncate leading-tight">
-                    {cleanArtist(currentTrack.artist, currentTrack)}
-                  </p>
+
+                  {isLongArtist ? (
+                    <div className="marquee-mask min-w-0">
+                      <div className="animate-kinetic-marquee text-[9.5px] text-slate-300 font-medium leading-tight">
+                        <span className="pr-8">{trackArtist}</span>
+                        <span aria-hidden="true" className="pr-8 opacity-90">{trackArtist}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[9.5px] text-slate-300 font-medium truncate leading-tight">
+                      {trackArtist}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -267,10 +304,8 @@ export default function MusicPlayerBar() {
               </div>
             </div>
 
-            {/* Row 2: Library/Fav (Left) + Centered 5 Controls + Volume (Right) */}
+            {/* Row 2: Library/Fav + Centered 5 Controls + Volume */}
             <div className="flex items-center justify-between gap-1 pt-0.5 pb-0.5">
-              
-              {/* Left: Add to Library & Favorite Heart */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <button
                   type="button"
@@ -295,7 +330,6 @@ export default function MusicPlayerBar() {
                 </button>
               </div>
 
-              {/* Center: 5 Playback Controls */}
               <div className="flex items-center justify-center gap-1.5 xs:gap-2">
                 <button
                   type="button"
@@ -318,13 +352,21 @@ export default function MusicPlayerBar() {
                   </span>
                 </button>
 
+                {/* Play/Pause with Shockwave Ripple */}
                 <button
                   type="button"
-                  onClick={togglePlay}
+                  onClick={handleTogglePlayWithRipple}
                   disabled={isLoading}
-                  className="relative w-7 h-7 xs:w-8 xs:h-8 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 border border-white/30 shrink-0"
+                  className="relative overflow-visible w-7 h-7 xs:w-8 xs:h-8 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 border border-white/30 shrink-0"
                   title={isPlaying ? 'Pause' : 'Play'}
                 >
+                  {rippleTrigger > 0 && (
+                    <span
+                      key={rippleTrigger}
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                    />
+                  )}
                   {isLoading ? (
                     <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : isPlaying ? (
@@ -356,7 +398,6 @@ export default function MusicPlayerBar() {
                 </button>
               </div>
 
-              {/* Right: Mini Volume Control */}
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
@@ -386,7 +427,6 @@ export default function MusicPlayerBar() {
                   title={`Volume: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
                 />
               </div>
-
             </div>
           </div>
 
@@ -394,42 +434,89 @@ export default function MusicPlayerBar() {
               2. TABLET & DESKTOP VIEW (>= sm / >= 640px) — Studio Row Layout
              ══════════════════════════════════════════════════════════════════════ */}
           <div className="hidden sm:flex items-center justify-between gap-2 md:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 w-full">
-            {/* 1. Track Info & Actions (Left) */}
-            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1 overflow-hidden">
+            {/* 1. Track Info & Vinyl Disc (Left) */}
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 overflow-hidden">
+              {/* Circular Spinning Vinyl Record (Desktop) */}
               <div
                 onClick={openPlayerModal}
-                className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-xl overflow-hidden shrink-0 border border-white/25 shadow-md cursor-pointer group bg-black/40"
+                className={`relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shrink-0 p-[4px] vinyl-grooves border cursor-pointer group transition-shadow duration-500 ${
+                  isPlaying
+                    ? 'border-accentCyan/80 shadow-[0_0_18px_rgba(var(--accent-cyan),0.45)]'
+                    : 'border-white/25 shadow-md'
+                }`}
                 title="Tap to open full player"
               >
-                <img
-                  src={currentTrack.image || FALLBACK_COVER}
-                  alt={cleanText(currentTrack.title)}
-                  className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
-                    isPlaying ? 'animate-spin-slow' : ''
-                  }`}
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                {/* Vinyl sheen overlay */}
+                <div
+                  className="absolute inset-0 rounded-full pointer-events-none opacity-35"
+                  style={{
+                    background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.22) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.22) 225deg, transparent 270deg)'
+                  }}
                 />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                {/* Rotating center disc */}
+                <div
+                  className="relative w-full h-full rounded-full overflow-hidden border border-white/30 animate-spin-slow"
+                  style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+                >
+                  <img
+                    src={currentTrack.image || FALLBACK_COVER}
+                    alt={trackTitle}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+                  />
+                  {/* Center Spindle */}
+                  <div className="absolute inset-0 m-auto w-2.5 h-2.5 rounded-full bg-[#0a0d1a] border border-white/85 shadow-inner flex items-center justify-center">
+                    <div className="w-0.5 h-0.5 rounded-full bg-white/50" />
+                  </div>
+                </div>
+                <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                 </div>
               </div>
 
+              {/* Title + Equalizer + Kinetic Marquee + Artist */}
               <div className="min-w-0 flex-1 overflow-hidden pr-0.5">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <h4
-                    onClick={openPlayerModal}
-                    className="text-xs sm:text-[13px] md:text-sm font-bold text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors leading-tight"
-                    title={cleanText(currentTrack.title)}
-                  >
-                    {cleanText(currentTrack.title)}
-                  </h4>
+                  {isPlaying && (
+                    <EqualizerBars isPlaying={true} size="sm" bars={4} className="shrink-0" />
+                  )}
+                  {isLongTitleDesktop ? (
+                    <div
+                      onClick={openPlayerModal}
+                      className="marquee-mask min-w-0 flex-1 cursor-pointer"
+                      title={trackTitle}
+                    >
+                      <div className="animate-kinetic-marquee text-xs sm:text-[13px] md:text-sm font-bold text-white font-outfit hover:text-accentCyan transition-colors leading-tight">
+                        <span className="pr-10">{trackTitle}</span>
+                        <span aria-hidden="true" className="pr-10 opacity-90">{trackTitle}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <h4
+                      onClick={openPlayerModal}
+                      className="text-xs sm:text-[13px] md:text-sm font-bold text-white truncate font-outfit cursor-pointer hover:text-accentCyan transition-colors leading-tight"
+                      title={trackTitle}
+                    >
+                      {trackTitle}
+                    </h4>
+                  )}
                   <span className="uppercase text-[7.5px] sm:text-[8px] md:text-[8.5px] font-black px-1.5 py-0.2 rounded-md bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
                     {currentTrack.language || currentTrack.category || 'GLOBAL'}
                   </span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] md:text-xs text-slate-300 truncate font-medium leading-tight hover:text-white transition-colors">
-                  {cleanArtist(currentTrack.artist, currentTrack)}
-                </p>
+
+                {isLongArtist ? (
+                  <div className="marquee-mask min-w-0">
+                    <div className="animate-kinetic-marquee text-[10px] sm:text-[11px] md:text-xs text-slate-300 font-medium leading-tight hover:text-white transition-colors">
+                      <span className="pr-10">{trackArtist}</span>
+                      <span aria-hidden="true" className="pr-10 opacity-90">{trackArtist}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[10px] sm:text-[11px] md:text-xs text-slate-300 truncate font-medium leading-tight hover:text-white transition-colors">
+                    {trackArtist}
+                  </p>
+                )}
               </div>
 
               {/* Add to Playlist & Favorite Heart on Tablet/Desktop */}
@@ -480,13 +567,21 @@ export default function MusicPlayerBar() {
                 </span>
               </button>
 
+              {/* Play/Pause with Shockwave Ripple */}
               <button
                 type="button"
-                onClick={togglePlay}
+                onClick={handleTogglePlayWithRipple}
                 disabled={isLoading}
-                className="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_14px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_22px_rgba(var(--accent-cyan),0.8)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 sm:mx-1 border border-white/30 shrink-0"
+                className="relative overflow-visible w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_14px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_22px_rgba(var(--accent-cyan),0.8)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 mx-0.5 sm:mx-1 border border-white/30 shrink-0"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
+                {rippleTrigger > 0 && (
+                  <span
+                    key={rippleTrigger}
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                  />
+                )}
                 {isLoading ? (
                   <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : isPlaying ? (

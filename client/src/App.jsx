@@ -27,6 +27,7 @@ import Register from './pages/Register';
 import Catalog from './pages/Catalog';
 import ForgotPassword from './pages/ForgotPassword';
 import LogoutConfirmModal from './components/LogoutConfirmModal';
+import SpotlightSearchModal from './components/SpotlightSearchModal';
 
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -162,6 +163,7 @@ function AppContent() {
       <VoiceAssistant />
       <ServerWakeup />
       <LogoutConfirmModal />
+      <SpotlightSearchModal />
     </div>
   );
 }
