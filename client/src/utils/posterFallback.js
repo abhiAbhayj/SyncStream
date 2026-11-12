@@ -187,6 +187,12 @@ export const formatMediaPoster = (item) => {
 
   if (raw && typeof raw === 'string' && raw.trim() !== '') {
     const trimmed = raw.trim();
+    if (
+      trimmed.includes('uploads.mangadex.org/covers/') ||
+      /\/default\.(jpg|jpeg|png|webp)(\?|$)/i.test(trimmed)
+    ) {
+      return generateFallbackPoster(title, type, date);
+    }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
       return trimmed;
     }

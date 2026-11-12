@@ -361,6 +361,7 @@ export default function SpotlightSearchModal() {
                     <img
                       src={posterUrl}
                       alt={item.title || item.name}
+                      referrerPolicy="no-referrer"
                       onError={(e) => handlePosterError(e, item)}
                       className="w-11 h-14 rounded-xl object-cover shrink-0 border border-white/10 shadow-md"
                     />

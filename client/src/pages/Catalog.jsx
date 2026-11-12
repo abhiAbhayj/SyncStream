@@ -64,7 +64,10 @@ export default function Catalog() {
         try {
           const parsed = JSON.parse(cachedData);
           const age = Date.now() - (parsed.fetchedAt || 0);
-          if (age < CACHE_TTL) {
+          const hasBlockedMangaDexPoster = (parsed.items || []).some(
+            item => typeof item?.poster_path === 'string' && item.poster_path.includes('uploads.mangadex.org')
+          );
+          if (age < CACHE_TTL && !hasBlockedMangaDexPoster) {
             setItems(parsed.items);
             setPage(parsed.page);
             setLastUpdated(new Date(parsed.fetchedAt));

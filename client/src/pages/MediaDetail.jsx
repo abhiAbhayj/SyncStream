@@ -155,10 +155,21 @@ export default function MediaDetail() {
           setPlaybackMode('solo-embed');
         }
 
-        // If manga, fetch chapters list
+        // If manga, fetch chapters list (supporting mapped MangaDex ID if entered via AniList relation/upcoming ID)
         if (type === 'manga') {
-          const chaptersRes = await axios.get(`/api/media/manga/chapters/${id}`);
-          setChapters(chaptersRes.data || []);
+          const chapterSourceId = detailData.mangadex_id || id;
+          const isMangaDexUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(chapterSourceId));
+          if (isMangaDexUuid) {
+            try {
+              const chaptersRes = await axios.get(`/api/media/manga/chapters/${chapterSourceId}`);
+              setChapters(chaptersRes.data || []);
+            } catch (chErr) {
+              console.warn('Failed to load manga chapters list:', chErr.message);
+              setChapters([]);
+            }
+          } else {
+            setChapters([]);
+          }
         }
 
         // If logged in, check watchlist

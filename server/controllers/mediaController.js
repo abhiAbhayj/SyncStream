@@ -2,6 +2,14 @@ import axios from 'axios';
 import { db } from '../config/db.js';
 import dotenv from 'dotenv';
 import { getSongDetails, getTrendingMusicDirect } from './musicController.js';
+import {
+  resolveMangaCovers,
+  formatMangaDexItems,
+  getAniListMangaDetail,
+  healMangaWatchlistCovers,
+  isValidCoverUrl,
+  fetchMangaFeedWithCovers
+} from '../utils/mangaCovers.js';
 
 dotenv.config();
 
@@ -902,41 +910,39 @@ export const getTrending = async (req, res) => {
       // No mock fallback — leave arrays empty
     }
 
-    // C. Fetch Manga (MangaDex API)
+    // C. Fetch Manga (MangaDex API metadata + browser-safe AniList/Kitsu/MU covers)
     let trendingManga = [];
     let ongoingManga = [];
     let latestManga = [];
 
-    const mapManga = m => {
-      const coverRel = m.relationships?.find(r => r.type === 'cover_art');
-      const coverFile = coverRel?.attributes?.fileName;
-      const posterUrl = coverFile
-        ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}`
-        : null;
-
-      const title = m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || 'Unknown Manga';
-      const overview = m.attributes?.description?.en || 'No description available.';
-
-      return {
-        id: m.id,
-        title,
-        overview,
-        poster_path: posterUrl,
-        release_date: m.attributes?.createdAt || '',
-        vote_average: 8.0,
-        media_type: 'manga'
-      };
-    };
-
     try {
-      const trendingMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[followedCount]=desc');
-      trendingManga = trendingMangaRes.data.data.map(mapManga);
+      const [trendingMangaRes, ongoingMangaRes, latestMangaRes] = await Promise.all([
+        axios.get('https://api.mangadex.org/manga?limit=25&order[followedCount]=desc'),
+        axios.get('https://api.mangadex.org/manga?limit=25&status[]=ongoing&order[followedCount]=desc'),
+        axios.get('https://api.mangadex.org/manga?limit=25&availableTranslatedLanguage[]=en&order[latestUploadedChapter]=desc')
+      ]);
 
-      const ongoingMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&status[]=ongoing&order[followedCount]=desc');
-      ongoingManga = ongoingMangaRes.data.data.map(mapManga);
+      const trendingRaw = trendingMangaRes.data?.data || [];
+      const ongoingRaw = ongoingMangaRes.data?.data || [];
+      const latestRaw = latestMangaRes.data?.data || [];
 
-      const latestMangaRes = await axios.get('https://api.mangadex.org/manga?limit=20&includes[]=cover_art&order[latestUploadedChapter]=desc');
-      latestManga = latestMangaRes.data.data.map(mapManga);
+      // Warm cover cache across all 3 lists in a single batched lookup
+      await resolveMangaCovers([...trendingRaw, ...ongoingRaw, ...latestRaw]);
+
+      const [tAll, oAll, lAll] = await Promise.all([
+        formatMangaDexItems(trendingRaw, { dateMode: 'created' }),
+        formatMangaDexItems(ongoingRaw, { dateMode: 'created' }),
+        formatMangaDexItems(latestRaw, { dateMode: 'latest' })
+      ]);
+
+      const keepCovered = (arr) => {
+        const covered = arr.filter((item) => isValidCoverUrl(item.poster_path));
+        return (covered.length > 0 ? covered : arr).slice(0, 20);
+      };
+
+      trendingManga = keepCovered(tAll);
+      ongoingManga = keepCovered(oAll);
+      latestManga = keepCovered(lAll);
     } catch (err) {
       console.error('MangaDex API dashboard query error:', err.message);
       const fallback = [
@@ -1281,66 +1287,16 @@ export const searchMedia = async (req, res) => {
       }
     } else if (type === 'manga') {
       try {
-        const limit = 20;
-        const offset = (page - 1) * limit;
-
-        let mangaOrder = 'order[followedCount]=desc';
-        let extraParams = '';
-
-        if (sort === 'trending') {
-          mangaOrder = 'order[followedCount]=desc';
-        } else if (sort === 'ongoing') {
-          mangaOrder = 'order[followedCount]=desc';
-          extraParams += '&status[]=ongoing';
-        } else if (sort === 'upcoming') {
-          mangaOrder = 'order[createdAt]=desc';
-          extraParams += '&status[]=ongoing';
-        } else if (sort === 'top_rated') {
-          mangaOrder = 'order[rating]=desc';
-        } else {
-          // 'latest'
-          mangaOrder = 'order[latestUploadedChapter]=desc';
-        }
-
-        let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art&${mangaOrder}${extraParams}`;
-        if (query && query.trim() !== '') endpoint += `&title=${encodeURIComponent(query.trim())}`;
-        
-        if (genre) {
-          if (genre.startsWith('d_')) {
-            endpoint += `&publicationDemographic[]=${genre.replace('d_', '')}`;
-          } else {
-            endpoint += `&includedTags[]=${genre}`;
-          }
-        }
-        
-        if (year && !isNaN(parseInt(year, 10))) {
-          endpoint += `&year=${parseInt(year, 10)}`;
-        }
-        
-        const mangaRes = await axios.get(endpoint);
-        results = (mangaRes.data.data || []).map(m => {
-          const coverRel = m.relationships?.find(r => r.type === 'cover_art');
-          const coverFile = coverRel?.attributes?.fileName;
-          const posterUrl = coverFile
-            ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}`
-            : null;
-
-          const title = m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || 'Unknown Manga';
-          const overview = m.attributes?.description?.en || 'No description available.';
-          const lastChapterDate = m.attributes?.updatedAt || m.attributes?.createdAt || null;
-
-          return {
-            id: m.id,
-            title,
-            overview,
-            poster_path: posterUrl,
-            release_date: lastChapterDate,
-            vote_average: 8.0,
-            media_type: 'manga'
-          };
+        results = await fetchMangaFeedWithCovers({
+          query,
+          mode: sort || 'latest',
+          genre,
+          year,
+          page,
+          dateMode: 'latest'
         });
       } catch (err) {
-        console.error('MangaDex search error:', err.message);
+        console.error('Manga search error:', err.message);
         results = [];
       }
     }
@@ -1608,22 +1564,31 @@ export const getMediaDetail = async (req, res) => {
       }
     } else if (type === 'manga') {
       try {
-        // Check cache first
+        // Check cache first (ignore stale entries without valid browser-accessible covers)
         if (mangadexCache.has(id)) {
-          return res.json(mangadexCache.get(id));
+          const cached = mangadexCache.get(id);
+          if (!cached?.poster_path || isValidCoverUrl(cached.poster_path)) {
+            return res.json(cached);
+          }
         }
 
-        const mangaRes = await axios.get(`https://api.mangadex.org/manga/${id}?includes[]=cover_art`);
-        const m = mangaRes.data.data;
-        
-        const coverRel = m.relationships.find(r => r.type === 'cover_art');
-        const coverFile = coverRel?.attributes?.fileName;
-        const posterUrl = coverFile
-          ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}`
-          : null;
+        // If numeric AniList ID (e.g. linked from Anime related_franchise), resolve via AniList Manga API
+        if (/^\d+$/.test(String(id))) {
+          const alMangaDetail = await getAniListMangaDetail(id);
+          if (alMangaDetail) {
+            mangadexCache.set(id, alMangaDetail);
+            return res.json(alMangaDetail);
+          }
+        }
 
-        const title = m.attributes.title.en || Object.values(m.attributes.title)[0] || 'Unknown Manga';
-        const overview = m.attributes.description.en || 'No description available.';
+        const mangaRes = await axios.get(`https://api.mangadex.org/manga/${id}?includes[]=cover_art&includes[]=author`);
+        const m = mangaRes.data.data;
+
+        const coverMap = await resolveMangaCovers([m]);
+        const resolved = coverMap.get(m.id) || { poster_path: null, backdrop_path: null };
+
+        const title = m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || 'Unknown Manga';
+        const overview = m.attributes?.description?.en || 'No description available.';
 
         const mangaGenres = (m.attributes.tags || []).map(t => ({
           id: t.id,
@@ -1639,13 +1604,15 @@ export const getMediaDetail = async (req, res) => {
           id: m.id,
           title,
           overview,
-          poster_path: posterUrl,
-          backdrop_path: posterUrl,
+          poster_path: resolved.poster_path,
+          backdrop_path: resolved.backdrop_path,
           release_date: m.attributes.createdAt?.split('T')[0],
           vote_average: 8.0,
           genres: mangaGenres,
           youtube_trailer: null,
-          cast: m.relationships.filter(r => r.type === 'author').map(a => ({ name: 'Author', character: a.id })),
+          cast: (m.relationships || [])
+            .filter(r => r.type === 'author')
+            .map(a => ({ name: 'Author', character: a.attributes?.name || a.id })),
           recommendations: [],
           media_type: 'manga'
         };
@@ -1737,6 +1704,11 @@ export const getTvSeason = async (req, res) => {
 export const getMangaChapters = async (req, res) => {
   const { id } = req.params;
 
+  // Non-UUID IDs (e.g., AniList upcoming manga with no MangaDex entry yet) have no chapter feed
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''))) {
+    return res.json([]);
+  }
+
   try {
     // Fetch all English chapters natively using pagination to bypass the 500 limit
     let allFeedData = [];
@@ -1751,9 +1723,14 @@ export const getMangaChapters = async (req, res) => {
           'offset': offset,
           'order[chapter]': 'asc',
           'order[volume]': 'asc'
-        }
+        },
+        validateStatus: (s) => s < 500
       });
-      
+
+      if (feedRes.status === 400 || feedRes.status === 404 || !feedRes.data?.data) {
+        break;
+      }
+
       allFeedData.push(...feedRes.data.data);
       
       if (offset + limit >= feedRes.data.total) {
@@ -1816,7 +1793,8 @@ export const getWatchlist = async (req, res) => {
       'SELECT id, external_media_id, media_type, title, poster_path, saved_at FROM user_watchlists WHERE user_id = ? ORDER BY saved_at DESC',
       [req.user.id]
     );
-    res.json(list);
+    const healedList = await healMangaWatchlistCovers(list);
+    res.json(healedList);
   } catch (error) {
     console.error('[Watchlist GET Error]:', error);
     res.status(500).json({ error: 'Failed to retrieve watchlist.' });
@@ -1832,9 +1810,10 @@ export const addToWatchlist = async (req, res) => {
   }
 
   try {
+    const safePoster = (media_type !== 'manga' || isValidCoverUrl(poster_path)) ? (poster_path || null) : null;
     await db.query(
       'INSERT INTO user_watchlists (user_id, external_media_id, media_type, title, poster_path) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title = title',
-      [req.user.id, external_media_id, media_type, title, poster_path]
+      [req.user.id, external_media_id, media_type, title, safePoster]
     );
 
     res.status(201).json({ message: 'Added to watchlist.' });
@@ -1991,25 +1970,12 @@ export const getCatalog = async (req, res) => {
       }
     } 
     else if (type === 'manga') {
-      const limit = 20;
-      const offset = (page - 1) * limit;
-      let endpoint = `https://api.mangadex.org/manga?limit=${limit}&offset=${offset}&includes[]=cover_art`;
-      if (category === 'trending' || category === 'latest') endpoint += '&order[rating]=desc';
-      
-      const mangaRes = await axios.get(endpoint);
-      results = mangaRes.data.data.map(m => {
-        const coverRel = m.relationships.find(r => r.type === 'cover_art');
-        const coverFile = coverRel?.attributes?.fileName;
-        const posterUrl = coverFile ? `https://uploads.mangadex.org/covers/${m.id}/${coverFile}` : null;
-        return {
-          id: m.id,
-          title: m.attributes.title.en || Object.values(m.attributes.title)[0],
-          overview: m.attributes.description.en || '',
-          poster_path: posterUrl,
-          release_date: m.attributes.year?.toString() || '',
-          vote_average: null,
-          media_type: 'manga'
-        };
+      const yearParam = req.query.year && !isNaN(parseInt(req.query.year, 10)) ? parseInt(req.query.year, 10) : '';
+      results = await fetchMangaFeedWithCovers({
+        mode: category || 'trending',
+        year: yearParam,
+        page,
+        dateMode: 'year'
       });
     } else if (type === 'music') {
       const musicItems = await getTrendingMusicDirect(24);
