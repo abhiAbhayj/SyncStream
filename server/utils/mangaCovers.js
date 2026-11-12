@@ -815,10 +815,14 @@ export const getAniListMangaDetail = async (alId) => {
           genres
           averageScore
           startDate { year month day }
-          staff(perPage: 4) {
+          staff(perPage: 6) {
             edges {
               role
-              node { name { full } }
+              node {
+                id
+                name { full }
+                image { large medium }
+              }
             }
           }
           recommendations(sort: RATING_DESC, perPage: 6) {
@@ -879,8 +883,12 @@ export const getAniListMangaDetail = async (alId) => {
       genres: (m.genres || []).map((g) => ({ id: g, name: g })),
       youtube_trailer: null,
       cast: (m.staff?.edges || []).map((s) => ({
-        name: s.role || 'Creator',
-        character: s.node?.name?.full || ''
+        id: s.node?.id ? String(s.node.id) : null,
+        source: 'anilist_staff',
+        name: s.node?.name?.full || 'Creator',
+        character: s.role || 'Creator',
+        role_type: 'Creator',
+        profile_path: s.node?.image?.large || s.node?.image?.medium || null
       })),
       recommendations: (m.recommendations?.nodes || [])
         .filter((r) => r.mediaRecommendation && isValidCoverUrl(r.mediaRecommendation.coverImage?.extraLarge || r.mediaRecommendation.coverImage?.large))

@@ -12,7 +12,7 @@ import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User } from 'lucide-react';
 
-function CastAvatarCard({ member, isActive, onSelect }) {
+function CastAvatarCard({ member, onSelect }) {
   const [imgFailed, setImgFailed] = useState(false);
   const initials = (member?.name || '?')
     .split(/\s+/)
@@ -21,28 +21,25 @@ function CastAvatarCard({ member, isActive, onSelect }) {
     .map((part) => part[0]?.toUpperCase() || '')
     .join('') || '?';
 
+  const avatarSrc = member.person_avatar || member.profile_path;
+
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`group snap-start shrink-0 w-[106px] xs:w-[116px] sm:w-[132px] p-2.5 sm:p-3 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-2 cursor-pointer active:scale-95 ${
-        isActive
-          ? 'border-accentCyan/80 bg-accentCyan/12 shadow-[0_0_20px_rgba(var(--accent-cyan),0.28)] -translate-y-0.5'
-          : 'border-darkBorder bg-darkCard/55 hover:border-accentCyan/45 hover:bg-darkCard/90 hover:-translate-y-1'
-      }`}
+      title={`View all movies & series for ${member.name}`}
+      className="group snap-start shrink-0 w-[108px] xs:w-[118px] sm:w-[136px] p-2.5 sm:p-3 rounded-2xl border border-darkBorder bg-darkCard/55 hover:border-accentCyan/70 hover:bg-accentCyan/10 hover:shadow-[0_0_20px_rgba(var(--accent-cyan),0.25)] hover:-translate-y-1 text-center transition-all duration-300 flex flex-col items-center gap-2 cursor-pointer active:scale-95"
     >
       {/* Avatar with animated orbital conic glint */}
       <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full p-[2px] flex items-center justify-center overflow-hidden">
         <div
           aria-hidden="true"
-          className={`absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,rgba(var(--accent-cyan),0.95),rgba(var(--accent-purple),0.9),rgba(var(--accent-pink),0.85),rgba(var(--accent-cyan),0.95))] transition-opacity duration-300 animate-orbit-cw ${
-            isActive ? 'opacity-100' : 'opacity-45 group-hover:opacity-100'
-          }`}
+          className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,rgba(var(--accent-cyan),0.95),rgba(var(--accent-purple),0.9),rgba(var(--accent-pink),0.85),rgba(var(--accent-cyan),0.95))] transition-opacity duration-300 animate-orbit-cw opacity-50 group-hover:opacity-100"
         />
         <div className="relative z-10 w-full h-full rounded-full overflow-hidden bg-darkBg border border-black/60 flex items-center justify-center">
-          {member.profile_path && !imgFailed ? (
+          {avatarSrc && !imgFailed ? (
             <img
-              src={member.profile_path}
+              src={avatarSrc}
               alt={member.name}
               loading="lazy"
               referrerPolicy="no-referrer"
@@ -73,6 +70,9 @@ function CastAvatarCard({ member, isActive, onSelect }) {
             {member.character}
           </p>
         )}
+        <span className="inline-block text-[8px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-accentCyan transition-colors">
+          Filmography &rarr;
+        </span>
       </div>
     </button>
   );
@@ -138,7 +138,6 @@ export default function MediaDetail() {
   const [upNextCounting, setUpNextCounting] = useState(false);
   const [upNextSeconds, setUpNextSeconds] = useState(8);
   const [upNextDismissed, setUpNextDismissed] = useState(false);
-  const [activeCastIdx, setActiveCastIdx] = useState(0);
 
   // Playback modes for Video Content
   // 'trailer' | 'solo-html5' | 'solo-embed'
@@ -1272,10 +1271,17 @@ export default function MediaDetail() {
           <div className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
             {detail.cast.map((member, idx) => (
               <CastAvatarCard
-                key={`${member.name}-${idx}`}
+                key={`${member.id || member.name}-${idx}`}
                 member={member}
-                isActive={activeCastIdx === idx}
-                onSelect={() => setActiveCastIdx(idx)}
+                onSelect={() => {
+                  const defaultSource = type === 'manga' ? 'mangadex' : (String(id).startsWith('al_') ? 'anilist_staff' : 'tmdb');
+                  const targetSource = member.source || defaultSource;
+                  const targetId = member.id || 'search';
+                  const targetName = member.name || member.character || '';
+                  navigate(`/person/${encodeURIComponent(targetSource)}/${encodeURIComponent(targetId)}?name=${encodeURIComponent(targetName)}`, {
+                    state: { member }
+                  });
+                }}
               />
             ))}
           </div>

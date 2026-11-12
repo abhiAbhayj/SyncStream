@@ -25,6 +25,7 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Catalog from './pages/Catalog';
+import PersonDetail from './pages/PersonDetail';
 import ForgotPassword from './pages/ForgotPassword';
 import LogoutConfirmModal from './components/LogoutConfirmModal';
 import SpotlightSearchModal from './components/SpotlightSearchModal';
@@ -114,6 +115,7 @@ function AppContent() {
           <Route path="/search" element={<Search />} />
           <Route path="/music" element={<Music />} />
           <Route path="/media/:type/:id" element={<MediaDetail />} />
+          <Route path="/person/:source/:id" element={<PersonDetail />} />
           <Route path="/catalog/:category/:type" element={<Catalog />} />
           
           {/* Protected Routes */}

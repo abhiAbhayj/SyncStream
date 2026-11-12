@@ -316,10 +316,26 @@ export const getAniListMediaDetail = async (alId) => {
         genres
         trailer { id site }
         studios(isMain: true) { nodes { name } }
-        characters(role: MAIN) {
+        characters(role: MAIN, perPage: 10) {
+          edges {
+            role
+            voiceActors(language: JAPANESE, sort: RELEVANCE) {
+              id
+              name { full }
+              image { large medium }
+            }
+            node {
+              id
+              name { full }
+              image { large medium }
+            }
+          }
+        }
+        staff(perPage: 6, sort: RELEVANCE) {
           edges {
             role
             node {
+              id
               name { full }
               image { large medium }
             }
@@ -485,11 +501,50 @@ export const getAniListMediaDetail = async (alId) => {
 
     const seasons = Array.from(seasonsMap.values()).sort((a, b) => a.season_number - b.season_number);
 
-    const cast = (m.characters?.edges || []).slice(0, 12).map(c => ({
-      name: c.node?.name?.full || 'Actor',
-      character: c.role || 'Main',
-      profile_path: c.node?.image?.large || c.node?.image?.medium || null
-    }));
+    const cast = [];
+    const seenPersonKeys = new Set();
+
+    (m.characters?.edges || []).slice(0, 10).forEach(c => {
+      const va = c.voiceActors?.[0] || null;
+      const charName = c.node?.name?.full || 'Character';
+      if (va?.id) {
+        const key = `al_staff_${va.id}`;
+        seenPersonKeys.add(key);
+        cast.push({
+          id: String(va.id),
+          source: 'anilist_staff',
+          name: va.name?.full || charName,
+          character: va.name?.full ? `Voice of ${charName}` : (c.role || 'Voice Actor'),
+          role_type: 'Voice',
+          profile_path: c.node?.image?.large || va.image?.large || c.node?.image?.medium || null,
+          person_avatar: va.image?.large || va.image?.medium || null
+        });
+      } else if (c.node?.id) {
+        cast.push({
+          id: String(c.node.id),
+          source: 'anilist_char',
+          name: charName,
+          character: c.role || 'Main',
+          role_type: 'Character',
+          profile_path: c.node?.image?.large || c.node?.image?.medium || null
+        });
+      }
+    });
+
+    (m.staff?.edges || []).forEach(s => {
+      if (!s.node?.id) return;
+      const key = `al_staff_${s.node.id}`;
+      if (seenPersonKeys.has(key)) return;
+      seenPersonKeys.add(key);
+      cast.push({
+        id: String(s.node.id),
+        source: 'anilist_staff',
+        name: s.node.name?.full || 'Staff',
+        character: s.role || 'Staff',
+        role_type: 'Crew',
+        profile_path: s.node.image?.large || s.node.image?.medium || null
+      });
+    });
 
     const recommendations = (m.recommendations?.nodes || [])
       .filter(r => r.mediaRecommendation)
@@ -1352,11 +1407,43 @@ export const getMediaDetail = async (req, res) => {
           const d = detailRes.data;
           
           const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key;
-          const cast = d.credits?.cast?.slice(0, 12).map(c => ({
-            name: c.name,
-            character: c.character,
-            profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-          })) || [];
+          const seenTmdbPeople = new Set();
+          const tmdbCast = (d.credits?.cast || []).slice(0, 14).map(c => {
+            seenTmdbPeople.add(String(c.id));
+            return {
+              id: String(c.id),
+              source: 'tmdb',
+              name: c.name,
+              character: c.character || 'Actor',
+              role_type: 'Cast',
+              profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+            };
+          });
+
+          const crewCandidates = [
+            ...(d.created_by || []).map(cr => ({ ...cr, job: 'Creator' })),
+            ...(d.credits?.crew || []).filter(cr =>
+              ['Director', 'Screenplay', 'Writer', 'Story', 'Original Music Composer', 'Executive Producer'].includes(cr.job)
+            )
+          ];
+          const tmdbCrew = [];
+          for (const cr of crewCandidates) {
+            if (!cr?.id) continue;
+            const pid = String(cr.id);
+            if (seenTmdbPeople.has(pid)) continue;
+            seenTmdbPeople.add(pid);
+            tmdbCrew.push({
+              id: pid,
+              source: 'tmdb',
+              name: cr.name,
+              character: cr.job || 'Crew',
+              role_type: 'Crew',
+              profile_path: cr.profile_path ? `https://image.tmdb.org/t/p/w185${cr.profile_path}` : null
+            });
+            if (tmdbCrew.length >= 6) break;
+          }
+
+          const cast = [...tmdbCast, ...tmdbCrew];
           const recommendations = d.recommendations?.results?.slice(0, 5).map(r => ({
             id: r.id.toString(),
             title: r.title || r.name,
@@ -1587,7 +1674,7 @@ export const getMediaDetail = async (req, res) => {
           }
         }
 
-        const mangaRes = await axios.get(`https://api.mangadex.org/manga/${id}?includes[]=cover_art&includes[]=author`);
+        const mangaRes = await axios.get(`https://api.mangadex.org/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist`);
         const m = mangaRes.data.data;
 
         const coverMap = await resolveMangaCovers([m]);
@@ -1616,9 +1703,24 @@ export const getMediaDetail = async (req, res) => {
           vote_average: 8.0,
           genres: mangaGenres,
           youtube_trailer: null,
-          cast: (m.relationships || [])
-            .filter(r => r.type === 'author')
-            .map(a => ({ name: 'Author', character: a.attributes?.name || a.id })),
+          cast: (() => {
+            const seenMdPeople = new Set();
+            return (m.relationships || [])
+              .filter(r => r.type === 'author' || r.type === 'artist')
+              .reduce((acc, a) => {
+                if (!a?.id || seenMdPeople.has(a.id)) return acc;
+                seenMdPeople.add(a.id);
+                acc.push({
+                  id: a.id,
+                  source: 'mangadex',
+                  name: a.attributes?.name || (a.type === 'artist' ? 'Artist' : 'Author'),
+                  character: a.type === 'artist' ? 'Artist' : 'Author',
+                  role_type: 'Creator',
+                  profile_path: null
+                });
+                return acc;
+              }, []);
+          })(),
           recommendations: [],
           media_type: 'manga'
         };
@@ -1997,5 +2099,331 @@ export const getCatalog = async (req, res) => {
   } catch (err) {
     console.error(`Catalog fetch error for ${category}/${type}:`, err.message);
     res.status(500).json({ error: 'Failed to fetch catalog', results: [] });
+  }
+};
+
+const personCreditsCache = new Map();
+
+// 8. Get Cast / Crew / Creator Filmography & All Related Credits
+export const getPersonCredits = async (req, res) => {
+  const { source, personId } = req.params;
+  const fallbackName = (req.query.name || '').trim();
+  const cacheKey = `${source}:${personId}:${fallbackName.toLowerCase()}`;
+
+  try {
+    if (personCreditsCache.has(cacheKey)) {
+      const cached = personCreditsCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < 10 * 60 * 1000) {
+        return res.json(cached.data);
+      }
+    }
+
+    let person = {
+      id: personId,
+      source,
+      name: fallbackName || 'Cast & Crew',
+      known_for_department: 'Artist',
+      biography: '',
+      birthday: '',
+      place_of_birth: '',
+      profile_path: null
+    };
+    let credits = [];
+
+    if (source === 'tmdb' && isTmdbConfigured()) {
+      let resolvedId = /^\d+$/.test(String(personId)) ? String(personId) : null;
+
+      if (!resolvedId && fallbackName) {
+        const searchRes = await axios.get(
+          `${TMDB_BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(fallbackName)}`,
+          { timeout: 5000 }
+        );
+        const firstHit = searchRes.data?.results?.[0];
+        if (firstHit?.id) resolvedId = String(firstHit.id);
+      }
+
+      if (resolvedId) {
+        const pRes = await axios.get(
+          `${TMDB_BASE_URL}/person/${resolvedId}?api_key=${TMDB_API_KEY}&append_to_response=combined_credits`,
+          { timeout: 6500 }
+        );
+        const d = pRes.data;
+        person = {
+          id: String(d.id),
+          source: 'tmdb',
+          name: d.name || fallbackName || 'Cast & Crew',
+          known_for_department: d.known_for_department || 'Acting',
+          biography: d.biography || '',
+          birthday: d.birthday || '',
+          place_of_birth: d.place_of_birth || '',
+          profile_path: d.profile_path ? `https://image.tmdb.org/t/p/w500${d.profile_path}` : null
+        };
+
+        const creditMap = new Map();
+        const addCredit = (item, roleLabel) => {
+          if (!item || (item.media_type !== 'movie' && item.media_type !== 'tv')) return;
+          const mType = item.media_type === 'tv' && isAnimeItem(item) ? 'anime' : item.media_type;
+          const key = `${mType}_${item.id}`;
+          const existing = creditMap.get(key);
+          if (existing) {
+            if (roleLabel && !existing.roles.includes(roleLabel)) {
+              existing.roles.push(roleLabel);
+            }
+            return;
+          }
+          creditMap.set(key, {
+            id: String(item.id),
+            title: item.title || item.name || 'Untitled',
+            overview: item.overview || '',
+            poster_path: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : (item.backdrop_path ? `https://image.tmdb.org/t/p/w500${item.backdrop_path}` : null),
+            backdrop_path: item.backdrop_path ? `https://image.tmdb.org/t/p/w500${item.backdrop_path}` : null,
+            release_date: item.release_date || item.first_air_date || '',
+            vote_average: item.vote_average || 0,
+            media_type: mType,
+            popularity: item.popularity || 0,
+            roles: roleLabel ? [roleLabel] : []
+          });
+        };
+
+        (d.combined_credits?.cast || []).forEach(c => addCredit(c, c.character || 'Cast'));
+        (d.combined_credits?.crew || []).forEach(cr => addCredit(cr, cr.job || cr.department || 'Crew'));
+
+        credits = Array.from(creditMap.values())
+          .map(entry => ({
+            ...entry,
+            credit_role: entry.roles.slice(0, 2).join(' • ')
+          }))
+          .sort((a, b) => {
+            const posterScore = (b.poster_path ? 1 : 0) - (a.poster_path ? 1 : 0);
+            if (posterScore !== 0) return posterScore;
+            return (b.popularity || 0) - (a.popularity || 0);
+          });
+      }
+    } else if (source === 'anilist_staff') {
+      const alId = parseInt(personId, 10);
+      if (!isNaN(alId)) {
+        const query = `
+          query ($id: Int) {
+            Staff(id: $id) {
+              id
+              name { full native }
+              image { large }
+              description(asHtml: false)
+              primaryOccupations
+              staffMedia(page: 1, perPage: 30, sort: POPULARITY_DESC) {
+                edges {
+                  staffRole
+                  node {
+                    id
+                    type
+                    title { english romaji }
+                    coverImage { extraLarge large }
+                    bannerImage
+                    seasonYear
+                    averageScore
+                    episodes
+                    format
+                    description(asHtml: false)
+                  }
+                }
+              }
+              characterMedia(page: 1, perPage: 30, sort: POPULARITY_DESC) {
+                edges {
+                  characterRole
+                  characters { name { full } }
+                  node {
+                    id
+                    type
+                    title { english romaji }
+                    coverImage { extraLarge large }
+                    bannerImage
+                    seasonYear
+                    averageScore
+                    episodes
+                    format
+                    description(asHtml: false)
+                  }
+                }
+              }
+            }
+          }
+        `;
+        const alRes = await axios.post(
+          'https://graphql.anilist.co',
+          { query, variables: { id: alId } },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 6500 }
+        );
+        const s = alRes.data?.data?.Staff;
+        if (s) {
+          person = {
+            id: String(s.id),
+            source: 'anilist_staff',
+            name: s.name?.full || fallbackName || 'Staff & Voice Actor',
+            known_for_department: (s.primaryOccupations || []).join(', ') || 'Anime Staff',
+            biography: s.description || '',
+            birthday: '',
+            place_of_birth: '',
+            profile_path: s.image?.large || null
+          };
+
+          const mediaMap = new Map();
+          const pushAlNode = (node, roleLabel) => {
+            if (!node?.id) return;
+            const isManga = node.type === 'MANGA';
+            const mappedId = isManga ? String(node.id) : `al_${node.id}`;
+            const mappedType = isManga ? 'manga' : 'anime';
+            const key = `${mappedType}_${mappedId}`;
+            const existing = mediaMap.get(key);
+            if (existing) {
+              if (roleLabel && !existing.roles.includes(roleLabel)) existing.roles.push(roleLabel);
+              return;
+            }
+            mediaMap.set(key, {
+              id: mappedId,
+              title: node.title?.english || node.title?.romaji || 'Untitled',
+              overview: node.description ? node.description.replace(/<[^>]*>/g, '') : '',
+              poster_path: node.coverImage?.extraLarge || node.coverImage?.large || null,
+              backdrop_path: node.bannerImage || node.coverImage?.large || null,
+              release_date: node.seasonYear ? `${node.seasonYear}-01-01` : '',
+              vote_average: node.averageScore ? (node.averageScore / 10).toFixed(1) : 8.0,
+              media_type: mappedType,
+              episodes: node.episodes || null,
+              format: node.format || (isManga ? 'Manga' : 'Anime'),
+              roles: roleLabel ? [roleLabel] : []
+            });
+          };
+
+          (s.characterMedia?.edges || []).forEach(e => {
+            const charNames = (e.characters || []).map(c => c?.name?.full).filter(Boolean).join(', ');
+            pushAlNode(e.node, charNames ? `Voice: ${charNames}` : e.characterRole || 'Voice Actor');
+          });
+          (s.staffMedia?.edges || []).forEach(e => {
+            pushAlNode(e.node, e.staffRole || 'Staff');
+          });
+
+          credits = Array.from(mediaMap.values()).map(entry => ({
+            ...entry,
+            credit_role: entry.roles.slice(0, 2).join(' • ')
+          }));
+        }
+      }
+    } else if (source === 'anilist_char') {
+      const charId = parseInt(personId, 10);
+      if (!isNaN(charId)) {
+        const query = `
+          query ($id: Int) {
+            Character(id: $id) {
+              id
+              name { full native }
+              image { large }
+              description(asHtml: false)
+              media(page: 1, perPage: 28, sort: POPULARITY_DESC) {
+                edges {
+                  characterRole
+                  node {
+                    id
+                    type
+                    title { english romaji }
+                    coverImage { extraLarge large }
+                    bannerImage
+                    seasonYear
+                    averageScore
+                    episodes
+                    format
+                    description(asHtml: false)
+                  }
+                }
+              }
+            }
+          }
+        `;
+        const alRes = await axios.post(
+          'https://graphql.anilist.co',
+          { query, variables: { id: charId } },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 6500 }
+        );
+        const c = alRes.data?.data?.Character;
+        if (c) {
+          person = {
+            id: String(c.id),
+            source: 'anilist_char',
+            name: c.name?.full || fallbackName || 'Character',
+            known_for_department: 'Featured Character',
+            biography: c.description || '',
+            birthday: '',
+            place_of_birth: '',
+            profile_path: c.image?.large || null
+          };
+          const seen = new Set();
+          credits = (c.media?.edges || []).reduce((acc, e) => {
+            const node = e.node;
+            if (!node?.id) return acc;
+            const isManga = node.type === 'MANGA';
+            const mappedId = isManga ? String(node.id) : `al_${node.id}`;
+            const mappedType = isManga ? 'manga' : 'anime';
+            const key = `${mappedType}_${mappedId}`;
+            if (seen.has(key)) return acc;
+            seen.add(key);
+            acc.push({
+              id: mappedId,
+              title: node.title?.english || node.title?.romaji || 'Untitled',
+              overview: node.description ? node.description.replace(/<[^>]*>/g, '') : '',
+              poster_path: node.coverImage?.extraLarge || node.coverImage?.large || null,
+              backdrop_path: node.bannerImage || node.coverImage?.large || null,
+              release_date: node.seasonYear ? `${node.seasonYear}-01-01` : '',
+              vote_average: node.averageScore ? (node.averageScore / 10).toFixed(1) : 8.0,
+              media_type: mappedType,
+              episodes: node.episodes || null,
+              format: node.format || (isManga ? 'Manga' : 'Anime'),
+              credit_role: e.characterRole || 'Character'
+            });
+            return acc;
+          }, []);
+        }
+      }
+    } else if (source === 'mangadex') {
+      const [authorInfoRes, authoredRes, artistRes] = await Promise.all([
+        axios.get(`https://api.mangadex.org/author/${personId}`, { timeout: 5000 }).catch(() => null),
+        axios.get(`https://api.mangadex.org/manga?authors[]=${personId}&limit=24&includes[]=cover_art&order[followedCount]=desc`, { timeout: 6000 }).catch(() => ({ data: { data: [] } })),
+        axios.get(`https://api.mangadex.org/manga?artists[]=${personId}&limit=24&includes[]=cover_art&order[followedCount]=desc`, { timeout: 6000 }).catch(() => ({ data: { data: [] } }))
+      ]);
+
+      const aData = authorInfoRes?.data?.data;
+      if (aData) {
+        person = {
+          id: aData.id,
+          source: 'mangadex',
+          name: aData.attributes?.name || fallbackName || 'Manga Creator',
+          known_for_department: 'Author & Mangaka',
+          biography: aData.attributes?.biography?.en || '',
+          birthday: '',
+          place_of_birth: '',
+          profile_path: null
+        };
+      }
+
+      const rawMap = new Map();
+      [...(authoredRes.data?.data || []), ...(artistRes.data?.data || [])].forEach(item => {
+        if (item?.id && !rawMap.has(item.id)) {
+          rawMap.set(item.id, item);
+        }
+      });
+      const rawManga = Array.from(rawMap.values());
+      if (rawManga.length > 0) {
+        await resolveMangaCovers(rawManga);
+        credits = await formatMangaDexItems(rawManga, { dateMode: 'created' });
+      }
+    }
+
+    const payload = { person, credits };
+    personCreditsCache.set(cacheKey, { data: payload, timestamp: Date.now() });
+    res.json(payload);
+  } catch (err) {
+    console.error('[Media Controller Person Credits Error]:', err.message);
+    res.status(500).json({
+      error: 'Failed to load person filmography.',
+      person: { id: personId, source, name: fallbackName || 'Cast & Crew', profile_path: null },
+      credits: []
+    });
   }
 };

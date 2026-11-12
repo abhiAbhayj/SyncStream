@@ -12,6 +12,8 @@ import {
   Volume2,
   VolumeX,
   Volume1,
+  Minus,
+  Plus,
   Repeat,
   Repeat1,
   Shuffle,
@@ -1022,16 +1024,35 @@ export default function MusicModal() {
           </button>
         </div>
 
-        {/* Volume Slider */}
-        <div className="hidden sm:flex items-center justify-center gap-2.5 pt-0.5">
-          <button type="button" onClick={toggleMute} className="text-gray-400 hover:text-white">
+        {/* Volume Slider (Mobile, Tablet & Desktop) */}
+        <div className="flex items-center justify-center gap-2 sm:gap-2.5 pt-0.5">
+          <button
+            type="button"
+            onClick={toggleMute}
+            className="p-1 text-gray-300 hover:text-white rounded-md hover:bg-white/10 transition active:scale-90"
+            title={isMuted ? 'Unmute' : 'Mute'}
+          >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-3.5 h-3.5 text-red-400" />
+              <VolumeX className="w-4 h-4 text-red-400" />
             ) : volume < 0.5 ? (
-              <Volume1 className="w-3.5 h-3.5" />
+              <Volume1 className="w-4 h-4 text-accentCyan" />
             ) : (
-              <Volume2 className="w-3.5 h-3.5 text-accentCyan" />
+              <Volume2 className="w-4 h-4 text-accentCyan" />
             )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const base = isMuted ? 0 : volume;
+              const next = Math.max(0, Math.round((base - 0.1) * 100) / 100);
+              if (isMuted && next > 0) toggleMute();
+              setVolume(next);
+            }}
+            className="p-1 text-gray-300 hover:text-accentCyan rounded-md hover:bg-white/10 transition active:scale-90"
+            title="Decrease Volume"
+            aria-label="Decrease volume"
+          >
+            <Minus className="w-3.5 h-3.5" />
           </button>
           <input
             type="range"
@@ -1039,9 +1060,30 @@ export default function MusicModal() {
             max="1"
             step="0.01"
             value={isMuted ? 0 : volume}
-            onChange={(e) => setVolume(parseFloat(e.target.value))}
-            className="w-24 sm:w-28 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
+            onChange={(e) => {
+              if (isMuted) toggleMute();
+              setVolume(parseFloat(e.target.value));
+            }}
+            aria-label="Volume"
+            className="w-28 xs:w-36 sm:w-32 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
           />
+          <button
+            type="button"
+            onClick={() => {
+              const base = isMuted ? 0 : volume;
+              const next = Math.min(1, Math.round((base + 0.1) * 100) / 100);
+              if (isMuted) toggleMute();
+              setVolume(next);
+            }}
+            className="p-1 text-gray-300 hover:text-accentCyan rounded-md hover:bg-white/10 transition active:scale-90"
+            title="Increase Volume"
+            aria-label="Increase volume"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-[10px] font-mono font-bold text-gray-400 w-8 text-right shrink-0">
+            {Math.round((isMuted ? 0 : volume) * 100)}%
+          </span>
         </div>
 
       </footer>

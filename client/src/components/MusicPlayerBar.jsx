@@ -11,6 +11,8 @@ import {
   Volume2,
   VolumeX,
   Volume1,
+  Minus,
+  Plus,
   Maximize2,
   ListMusic,
   FileText,
@@ -476,7 +478,7 @@ export default function MusicPlayerBar() {
                 </button>
               </div>
 
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 xs:gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={toggleMute}
@@ -488,8 +490,22 @@ export default function MusicPlayerBar() {
                   ) : volume < 0.5 ? (
                     <Volume1 className="w-3.5 h-3.5" />
                   ) : (
-                    <Volume2 className="w-3.5 h-3.5" />
+                    <Volume2 className="w-3.5 h-3.5 text-accentCyan" />
                   )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const base = isMuted ? 0 : volume;
+                    const next = Math.max(0, Math.round((base - 0.1) * 100) / 100);
+                    if (isMuted && next > 0) toggleMute();
+                    setVolume(next);
+                  }}
+                  className="p-0.5 text-slate-300 hover:text-accentCyan hover:bg-white/10 rounded transition active:scale-90"
+                  title="Decrease Volume"
+                  aria-label="Decrease volume"
+                >
+                  <Minus className="w-3 h-3" />
                 </button>
                 <input
                   type="range"
@@ -501,9 +517,24 @@ export default function MusicPlayerBar() {
                     if (isMuted) toggleMute();
                     setVolume(parseFloat(e.target.value));
                   }}
-                  className="hidden xs:block w-12 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
+                  aria-label="Volume"
+                  className="w-9 xs:w-14 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
                   title={`Volume: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const base = isMuted ? 0 : volume;
+                    const next = Math.min(1, Math.round((base + 0.1) * 100) / 100);
+                    if (isMuted) toggleMute();
+                    setVolume(next);
+                  }}
+                  className="p-0.5 text-slate-300 hover:text-accentCyan hover:bg-white/10 rounded transition active:scale-90"
+                  title="Increase Volume"
+                  aria-label="Increase volume"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
