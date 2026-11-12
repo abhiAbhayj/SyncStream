@@ -345,7 +345,7 @@ export default function MusicModal() {
       onMouseUp={isDragging ? handleMouseUp : undefined}
       onTouchMove={isDragging ? handleMouseMove : undefined}
       onTouchEnd={isDragging ? handleMouseUp : undefined}
-      className="fixed inset-0 z-[9999] flex flex-col justify-between bg-gradient-to-b from-[#090b16] via-[#0f142b] to-[#070812] text-white p-3 sm:p-5 md:p-6 select-none overflow-hidden animate-fade-in"
+      className="fixed inset-0 z-[9999] flex flex-col justify-between bg-gradient-to-b from-[#090b16] via-[#0f142b] to-[#070812] text-white p-2.5 xs:p-3 sm:p-5 md:p-6 select-none overflow-hidden animate-fade-in"
     >
       {/* Ambient Blurred Artwork Background */}
       <div
@@ -377,13 +377,13 @@ export default function MusicModal() {
       />
 
       {/* ── TOP BAR: Navigation & Tabs ── */}
-      <header className="relative z-20 flex items-center justify-between max-w-2xl mx-auto w-full shrink-0 gap-2 pt-[env(safe-area-inset-top,0.25rem)] pb-1">
+      <header className="relative z-20 flex items-center justify-between max-w-2xl mx-auto w-full shrink-0 gap-1 xs:gap-2 pt-[env(safe-area-inset-top,0.25rem)] pb-1">
         
         {/* Minimize Button */}
         <button
           type="button"
           onClick={handleMinimizeModal}
-          className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/15 shadow-md"
+          className="flex items-center gap-1.5 px-2 xs:px-3 sm:px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition font-bold text-xs backdrop-blur-xl shrink-0 border border-white/15 shadow-md"
           title="Minimize to Floating Bar"
         >
           <ChevronDown className="w-4 h-4 text-accentCyan" />
@@ -391,43 +391,43 @@ export default function MusicModal() {
         </button>
 
         {/* Center Tab Switcher */}
-        <div className="flex items-center gap-1 bg-black/60 border border-white/20 p-1 rounded-full backdrop-blur-2xl shadow-xl">
+        <div className="flex items-center gap-0.5 xs:gap-1 bg-black/60 border border-white/20 p-0.5 xs:p-1 rounded-full backdrop-blur-2xl shadow-xl">
           <button
             type="button"
             onClick={() => setModalTab('player')}
-            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1 xs:gap-1.5 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 rounded-full text-[11px] xs:text-xs font-bold transition active:scale-95 ${
               modalTab === 'player'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
-            <Music2 className="w-3.5 h-3.5" />
+            <Music2 className="w-3 h-3 xs:w-3.5 xs:h-3.5 shrink-0" />
             <span>Player</span>
           </button>
           
           <button
             type="button"
             onClick={() => setModalTab('lyrics')}
-            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1 xs:gap-1.5 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 rounded-full text-[11px] xs:text-xs font-bold transition active:scale-95 ${
               modalTab === 'lyrics'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3 h-3 xs:w-3.5 xs:h-3.5 shrink-0" />
             <span>Lyrics</span>
           </button>
 
           <button
             type="button"
             onClick={() => setModalTab('queue')}
-            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1 xs:gap-1.5 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 rounded-full text-[11px] xs:text-xs font-bold transition active:scale-95 whitespace-nowrap ${
               modalTab === 'queue'
                 ? 'bg-gradient-to-r from-accentCyan to-accentPurple text-white shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)]'
                 : 'text-gray-300 hover:text-white'
             }`}
           >
-            <ListMusic className="w-3.5 h-3.5" />
+            <ListMusic className="w-3 h-3 xs:w-3.5 xs:h-3.5 shrink-0" />
             <span>Queue ({queue.length})</span>
           </button>
         </div>
@@ -436,10 +436,10 @@ export default function MusicModal() {
         <button
           type="button"
           onClick={handleCloseModal}
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/15 shadow-md shrink-0"
+          className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/40 active:scale-95 text-white hover:text-red-200 transition border border-white/15 shadow-md shrink-0"
           title="Stop & Close Music"
         >
-          <X className="w-4 h-4 stroke-[2.5]" />
+          <X className="w-3.5 h-3.5 xs:w-4 xs:h-4 stroke-[2.5]" />
         </button>
       </header>
 
@@ -857,11 +857,11 @@ export default function MusicModal() {
         </div>
 
         {/* Playback Controls */}
-        <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-5">
+        <div className="flex items-center justify-center gap-0.5 xs:gap-2 sm:gap-4 md:gap-5">
           <button
             type="button"
             onClick={toggleShuffle}
-            className={`p-2 rounded-full transition active:scale-90 ${
+            className={`p-1.5 xs:p-2 rounded-full transition active:scale-90 ${
               isShuffling ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(var(--accent-cyan),0.4)]' : 'text-gray-400 hover:text-white'
             }`}
             title="Shuffle"
@@ -872,7 +872,7 @@ export default function MusicModal() {
           <button
             type="button"
             onClick={prevTrack}
-            className="p-2 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
+            className="p-1.5 xs:p-2 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
             title="Previous Track"
           >
             <SkipBack className="w-[18px] h-[18px]" />
@@ -881,7 +881,7 @@ export default function MusicModal() {
           <button
             type="button"
             onClick={() => skipBackward(10)}
-            className="relative p-2 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
+            className="relative p-1.5 xs:p-2 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
             title="Rewind 10s"
           >
             <RotateCcw className="w-[18px] h-[18px] transition-transform group-hover:-rotate-45" />
@@ -892,7 +892,7 @@ export default function MusicModal() {
             type="button"
             onClick={handleTogglePlayWithRipple}
             disabled={isLoading}
-            className="relative overflow-visible w-12 h-12 sm:w-[52px] sm:h-[52px] rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
+            className="relative overflow-visible w-11 h-11 xs:w-12 xs:h-12 sm:w-[52px] sm:h-[52px] rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-0.5 xs:mx-1"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {rippleTrigger > 0 && (
@@ -914,7 +914,7 @@ export default function MusicModal() {
           <button
             type="button"
             onClick={() => skipForward(10)}
-            className="relative p-2 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
+            className="relative p-1.5 xs:p-2 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
             title="Forward 10s"
           >
             <RotateCw className="w-[18px] h-[18px] transition-transform group-hover:rotate-45" />
@@ -924,7 +924,7 @@ export default function MusicModal() {
           <button
             type="button"
             onClick={nextTrack}
-            className="p-2 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
+            className="p-1.5 xs:p-2 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
             title="Next Track"
           >
             <SkipForward className="w-[18px] h-[18px]" />
@@ -933,7 +933,7 @@ export default function MusicModal() {
           <button
             type="button"
             onClick={toggleLoop}
-            className={`p-2 rounded-full transition active:scale-90 ${
+            className={`p-1.5 xs:p-2 rounded-full transition active:scale-90 ${
               isLooping !== 'none' ? 'text-accentCyan bg-accentCyan/20 shadow-[0_0_12px_rgba(var(--accent-cyan),0.4)]' : 'text-gray-400 hover:text-white'
             }`}
             title={`Loop: ${isLooping}`}

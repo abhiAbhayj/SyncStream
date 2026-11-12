@@ -56,14 +56,14 @@ export default function AddToPlaylistModal({ song, isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md glass-panel border border-white/15 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#13172e]/95 backdrop-blur-2xl">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2.5 xs:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-md glass-panel border border-white/15 rounded-3xl p-4 xs:p-5 sm:p-6 space-y-4 shadow-2xl bg-[#13172e]/95 backdrop-blur-2xl">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <FolderPlus className="w-5 h-5 text-accentCyan" />
-            <h3 className="font-extrabold text-base sm:text-lg text-white font-outfit">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <FolderPlus className="w-5 h-5 text-accentCyan shrink-0" />
+            <h3 className="font-extrabold text-sm xs:text-base sm:text-lg text-white font-outfit truncate">
               Add Track to Playlist
             </h3>
           </div>

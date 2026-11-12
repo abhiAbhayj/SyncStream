@@ -95,10 +95,10 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-3">
+        <div className="max-w-7xl mx-auto px-2.5 xs:px-3.5 sm:px-6 md:px-8 h-16 flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-3">
 
           {/* ── Brand Logo & Back Navigation ── */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 min-w-0">
             {location.pathname !== '/' && (
               <button
                 onClick={() => {
@@ -113,7 +113,7 @@ export default function Navbar() {
               </button>
             )}
 
-            <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <Link to="/" className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 group shrink-0">
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 <img
@@ -122,7 +122,7 @@ export default function Navbar() {
                   className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <span className="font-josefin font-extrabold text-base sm:text-xl tracking-wider text-gradient-aurora uppercase">
+              <span className={`${location.pathname !== '/' ? 'hidden xs:inline' : 'inline'} font-josefin font-extrabold text-sm xs:text-base sm:text-xl tracking-wide xs:tracking-wider text-gradient-aurora uppercase`}>
                 SyncStream
               </span>
             </Link>
@@ -154,17 +154,17 @@ export default function Navbar() {
           </div>
 
           {/* ── Right Actions ── */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2.5 shrink-0">
 
             {/* Mobile Spotlight Quick Trigger */}
             <button
               type="button"
               onClick={openSpotlight}
-              className="sm:hidden w-8 h-8 rounded-full border border-accentCyan/40 bg-accentCyan/10 text-accentCyan flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-cyan),0.25)] active:scale-90 transition"
+              className="sm:hidden w-7 h-7 xs:w-8 xs:h-8 rounded-full border border-accentCyan/40 bg-accentCyan/10 text-accentCyan flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-cyan),0.25)] active:scale-90 transition shrink-0"
               title="Quick Spotlight Search"
               aria-label="Quick Spotlight Search"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
             </button>
 
             {/* Morphing Search Capsule (Desktop & Tablet) */}
@@ -227,7 +227,7 @@ export default function Navbar() {
             {/* Join Party (Sweep-Shimmer CTA) */}
             <button
               onClick={() => setShowJoinModal(true)}
-              className="btn-shimmer flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300
+              className="btn-shimmer flex items-center gap-1 sm:gap-1.5 px-2 xs:px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] xs:text-xs sm:text-sm font-bold border transition-all duration-300
                          border-accentPurple/40 text-accentPurple bg-accentPurple/[0.12]
                          hover:bg-accentPurple/[0.24] hover:border-accentPurple/70 active:scale-95 shrink-0"
               title="Join Watch Party by Code"
@@ -241,7 +241,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className={`flex items-center gap-1.5 sm:gap-2 p-1 pr-2 sm:pr-3 rounded-full border transition-all duration-300 ${
+                  className={`flex items-center gap-1 xs:gap-1.5 sm:gap-2 p-0.5 pr-1.5 xs:p-1 xs:pr-2 sm:pr-3 rounded-full border transition-all duration-300 ${
                     dropdownOpen
                       ? 'border-accentPurple/80 bg-accentPurple/15 shadow-[0_0_15px_rgba(149,100,255,0.35)] ring-1 ring-accentPurple/50'
                       : 'border-white/10 hover:border-accentPurple/50 bg-darkCard/80 hover:bg-darkCard'
@@ -327,7 +327,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-primary btn-shimmer text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2 sm:!px-4 !text-white shrink-0"
+                  className="btn-primary btn-shimmer text-[11px] xs:text-xs sm:text-sm !py-1.5 !px-2.5 xs:!px-3 sm:!py-2 sm:!px-4 !text-white shrink-0"
                 >
                   Register
                 </Link>

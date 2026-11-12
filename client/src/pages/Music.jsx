@@ -907,7 +907,7 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-8 overflow-x-clip">
+    <div className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3 xs:px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-8 overflow-x-clip">
       {/* Radiant Background Ambient Aurora Glows (Contained to prevent horizontal scrolling) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-10 left-10 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-cyan-500/15 blur-[100px]" />
@@ -919,7 +919,7 @@ export default function Music() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-3 border-b border-white/20">
         <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
+            <div className="inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[10px] xs:text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
               <Radio className="w-3.5 h-3.5 animate-pulse text-accentCyan" />
               <span>Dual-Engine: YouTube Music + Studio Masters 320kbps</span>
             </div>
@@ -938,7 +938,7 @@ export default function Music() {
               <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
             </button>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white font-outfit tracking-tight drop-shadow-md">
+          <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black text-white font-outfit tracking-tight drop-shadow-md">
             SyncStream Music &amp; Playlists
           </h1>
           <p className="text-xs sm:text-sm text-slate-200 font-medium">
@@ -1262,7 +1262,7 @@ export default function Music() {
                   </button>
                 </div>
 
-                <span className="text-xs font-mono font-black text-white px-3.5 py-1.5 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
+                <span className="text-[11px] xs:text-xs font-mono font-black text-white px-2.5 xs:px-3.5 py-1 xs:py-1.5 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
                   {songs.length} Tracks
                 </span>
               </div>
@@ -1352,8 +1352,8 @@ export default function Music() {
                             <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold">
                               {song.artist}
                             </p>
-                            <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
-                              <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">
+                            <div className="flex items-center justify-end xs:justify-between gap-1 pt-1 mt-auto min-w-0">
+                              <span className="hidden xs:inline text-[9px] font-mono font-bold text-slate-300 shrink-0">
                                 {formatTime(song.duration)}
                               </span>
                               
@@ -1429,18 +1429,18 @@ export default function Music() {
                       return (
                         <div
                           key={`${song.id}-${idx}`}
-                          className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
+                          className={`group flex items-center justify-between gap-1.5 xs:gap-2.5 sm:gap-4 px-2 xs:px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 ${
                             isCurrent
                               ? 'bg-accentCyan/20 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.35)] ring-1 ring-accentCyan/60'
                               : 'bg-[#18203c]/90 border-white/10 hover:border-accentCyan/50 hover:bg-[#202b52] hover:shadow-md'
                           }`}
                         >
                           {/* Left: Index / Play Button + Thumbnail + Title/Artist */}
-                          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 xs:gap-2.5 sm:gap-3.5 min-w-0 flex-1">
                             <button
                               type="button"
                               onClick={() => isCurrent ? togglePlay() : playTrack(song, songs)}
-                              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
+                              className="w-6 h-6 xs:w-7 xs:h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
                             >
                               {isCurrentPlaying ? (
                                 <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-accentCyan animate-pulse" />
@@ -1456,7 +1456,7 @@ export default function Music() {
 
                             <div
                               onClick={() => isCurrent ? togglePlay() : playTrack(song, songs)}
-                              className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
+                              className="relative w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
                             >
                               <img
                                 src={song.image || FALLBACK_COVER}
@@ -1487,7 +1487,7 @@ export default function Music() {
                           </div>
 
                           {/* Right: Duration + Heart + Folder + Play */}
-                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 shrink-0">
                             <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
                               {formatTime(song.duration)}
                             </span>
@@ -1682,7 +1682,7 @@ export default function Music() {
 
                         {/* View Mode 1: Card Carousel View */}
                         {chartsViewMode === 'card' ? (
-                          <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+                          <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-none -mx-3 xs:-mx-3.5 px-3 xs:px-3.5 sm:mx-0 sm:px-0">
                             {chart.songs.map((s, idx) => {
                               const isCur = currentTrack?.id === s.id;
                               const isCurrentPlaying = isCur && isPlaying;
@@ -1793,20 +1793,20 @@ export default function Music() {
                               return (
                                 <div
                                   key={`chart-list-${s.id}-${idx}`}
-                                  className={`group flex items-center justify-between p-2 sm:p-2.5 rounded-xl border-2 transition-all duration-200 ${
+                                  className={`group flex items-center justify-between p-1.5 xs:p-2 sm:p-2.5 rounded-xl border-2 transition-all duration-200 ${
                                     isCur
                                       ? 'bg-accentCyan/20 border-accentCyan shadow-[0_0_15px_rgba(99,210,255,0.35)]'
                                       : 'border-white/15 bg-[#18203c]/90 hover:bg-[#202b52] hover:border-accentCyan/50'
                                   }`}
                                 >
                                   {/* Left: Rank + Thumbnail + Title/Artist */}
-                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <span className="w-5 text-center font-mono font-black text-xs text-slate-400 group-hover:text-accentCyan shrink-0">
+                                  <div className="flex items-center gap-1.5 xs:gap-2.5 min-w-0 flex-1">
+                                    <span className="w-4 xs:w-5 text-center font-mono font-black text-xs text-slate-400 group-hover:text-accentCyan shrink-0">
                                       {idx + 1}
                                     </span>
                                     <div
                                       onClick={() => isCur ? togglePlay() : playTrack(s, chart.songs)}
-                                      className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black cursor-pointer shadow-sm"
+                                      className="relative w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black cursor-pointer shadow-sm"
                                     >
                                       <img
                                         src={s.image || FALLBACK_COVER}
@@ -1845,7 +1845,7 @@ export default function Music() {
                                   </div>
 
                                   {/* Right: Duration + Heart + Folder + Play */}
-                                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
+                                  <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 shrink-0 ml-1.5 xs:ml-2">
                                     <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
                                       {formatTime(s.duration)}
                                     </span>
@@ -2177,8 +2177,8 @@ export default function Music() {
                       <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold" title={song.artist}>
                         {song.artist}
                       </p>
-                      <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
-                        <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">{formatTime(song.duration)}</span>
+                      <div className="flex items-center justify-end xs:justify-between gap-1 pt-1 mt-auto min-w-0">
+                        <span className="hidden xs:inline text-[9px] font-mono font-bold text-slate-300 shrink-0">{formatTime(song.duration)}</span>
                         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                           {/* Heart Button */}
                           <button
@@ -2252,7 +2252,7 @@ export default function Music() {
                     onDragLeave={() => handleFavDragLeave(idx)}
                     onDrop={(e) => handleFavDrop(idx, e)}
                     onDragEnd={handleFavDragEnd}
-                    className={`group flex items-center justify-between gap-2.5 sm:gap-4 px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 select-none ${
+                    className={`group flex items-center justify-between gap-1.5 xs:gap-2.5 sm:gap-4 px-2 xs:px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 select-none ${
                       isDragging
                         ? 'opacity-30 scale-[0.98] border-dashed border-red-400'
                         : isDragOver
@@ -2263,13 +2263,13 @@ export default function Music() {
                     }`}
                   >
                     {/* Left: Drag Handle + Index / Play Button + Thumbnail + Title/Artist */}
-                    <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3.5 min-w-0 flex-1">
                       {isReorderable && (
                         <div
                           onTouchStart={() => handleFavTouchStart(idx)}
                           onTouchMove={handleFavTouchMove}
                           onTouchEnd={handleFavTouchEnd}
-                          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 text-slate-400 hover:text-red-400 transition shrink-0 touch-none"
+                          className="cursor-grab active:cursor-grabbing p-0.5 xs:p-1 rounded hover:bg-white/10 text-slate-400 hover:text-red-400 transition shrink-0 touch-none"
                           title="Touch & drag to reorder"
                         >
                           <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400/80 group-hover:text-red-400" />
@@ -2279,7 +2279,7 @@ export default function Music() {
                       <button
                         type="button"
                         onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedFavorites)}
-                        className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
+                        className="w-6 h-6 xs:w-7 xs:h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
                       >
                         {isCurrentPlaying ? (
                           <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 fill-red-400 animate-pulse" />
@@ -2295,7 +2295,7 @@ export default function Music() {
 
                       <div
                         onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedFavorites)}
-                        className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
+                        className="relative w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
                       >
                         <img
                           src={song.image || FALLBACK_COVER}
@@ -2323,7 +2323,7 @@ export default function Music() {
                     </div>
 
                     {/* Right: Duration + Heart + Folder + Play */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 shrink-0">
                       <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
                         {formatTime(song.duration)}
                       </span>
@@ -2427,13 +2427,13 @@ export default function Music() {
                   &larr; Back to all playlists
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 xs:gap-2">
                   {playlistSongs.length > 0 && (
                     <>
                       <button
                         type="button"
                         onClick={() => playQueue(displayedPlaylistSongs, 0)}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
+                        className="flex items-center gap-1.5 px-3 xs:px-4 py-2 rounded-xl bg-accentCyan text-black font-black text-xs transition active:scale-95 shadow-lg border border-white"
                       >
                         <Play className="w-3.5 h-3.5 fill-current" />
                         <span>Play All ({displayedPlaylistSongs.length})</span>
@@ -2446,7 +2446,7 @@ export default function Music() {
                           const shuffled = [...listToShuffle].sort(() => Math.random() - 0.5);
                           playQueue(shuffled, 0);
                         }}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border-2 border-white/25 text-xs font-black transition active:scale-95 shadow-md"
+                        className="flex items-center gap-1.5 px-3 xs:px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border-2 border-white/25 text-xs font-black transition active:scale-95 shadow-md"
                         title="Shuffle Playlist"
                       >
                         <Shuffle className="w-3.5 h-3.5 text-accentCyan" />
@@ -2458,7 +2458,7 @@ export default function Music() {
                   <button
                     type="button"
                     onClick={(e) => handleOpenEditPlaylist(selectedPlaylistDetails, e)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border-2 border-white/25 text-xs font-black transition active:scale-95 shadow-md"
+                    className="flex items-center gap-1.5 px-3 xs:px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border-2 border-white/25 text-xs font-black transition active:scale-95 shadow-md"
                     title="Edit Playlist Name & Details"
                   >
                     <Edit3 className="w-3.5 h-3.5 text-accentCyan" />
@@ -2803,7 +2803,7 @@ export default function Music() {
                         onDragLeave={() => handleDragLeave(idx)}
                         onDrop={(e) => handleDrop(idx, e)}
                         onDragEnd={handleDragEnd}
-                        className={`group flex items-center justify-between gap-2 sm:gap-4 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 select-none ${
+                        className={`group flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-4 px-2 xs:px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 select-none ${
                           isDragging
                             ? 'opacity-30 scale-[0.98] border-dashed border-accentCyan'
                             : isDragOver
@@ -2814,13 +2814,13 @@ export default function Music() {
                         }`}
                       >
                         {/* Left: Drag Handle + Index / Play Button + Thumbnail + Title/Artist */}
-                        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-1 xs:gap-2 sm:gap-3.5 min-w-0 flex-1">
                           {isReorderable && (
                             <div
                               onTouchStart={() => handleTouchStart(idx)}
                               onTouchMove={handleTouchMove}
                               onTouchEnd={handleTouchEnd}
-                              className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 text-slate-400 hover:text-accentCyan transition shrink-0"
+                              className="cursor-grab active:cursor-grabbing p-0.5 xs:p-1 rounded hover:bg-white/10 text-slate-400 hover:text-accentCyan transition shrink-0"
                               title="Touch & drag to reorder"
                             >
                               <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan/80 group-hover:text-accentCyan" />
@@ -2830,7 +2830,7 @@ export default function Music() {
                           <button
                             type="button"
                             onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
-                            className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
+                            className="w-6 h-6 xs:w-7 xs:h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-xs font-mono font-bold cursor-pointer transition active:scale-90"
                           >
                             {isCurrentPlaying ? (
                               <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan fill-accentCyan animate-pulse" />
@@ -2846,7 +2846,7 @@ export default function Music() {
 
                           <div
                             onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
-                            className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
+                            className="relative w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-black/40 cursor-pointer shadow-sm group-hover:scale-105 transition-transform"
                           >
                             <img
                               src={song.image || FALLBACK_COVER}
@@ -2874,7 +2874,7 @@ export default function Music() {
                         </div>
 
                         {/* Right: Duration + Actions (Heart, Folder, Remove, Play) */}
-                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        <div className="flex items-center gap-0.5 xs:gap-1.5 sm:gap-2 shrink-0">
                           <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-300 hidden xs:inline-block">
                             {formatTime(song.duration)}
                           </span>
@@ -2886,7 +2886,7 @@ export default function Music() {
                               e.stopPropagation();
                               toggleFavorite(song);
                             }}
-                            className={`p-1.5 rounded-lg border transition active:scale-90 ${
+                            className={`p-1 xs:p-1.5 rounded-lg border transition active:scale-90 ${
                               isFav
                                 ? 'bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.35)]'
                                 : 'bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/15 hover:border-red-400/40'
@@ -2904,7 +2904,7 @@ export default function Music() {
                               e.stopPropagation();
                               setSongToAddToPlaylist(song);
                             }}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/25 border border-white/10 hover:border-purple-400/60 text-purple-300 hover:text-purple-200 transition active:scale-90 shadow-sm"
+                            className="p-1 xs:p-1.5 rounded-lg bg-white/5 hover:bg-purple-500/25 border border-white/10 hover:border-purple-400/60 text-purple-300 hover:text-purple-200 transition active:scale-90 shadow-sm"
                             title="Add to Another Playlist"
                             aria-label="Add to Playlist"
                           >
@@ -2915,7 +2915,7 @@ export default function Music() {
                           <button
                             type="button"
                             onClick={(e) => handleRemoveSongFromCurrentPlaylist(song, e)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/25 border border-white/10 hover:border-red-400/50 text-slate-300 hover:text-red-400 transition active:scale-90"
+                            className="p-1 xs:p-1.5 rounded-lg bg-white/5 hover:bg-red-500/25 border border-white/10 hover:border-red-400/50 text-slate-300 hover:text-red-400 transition active:scale-90"
                             title="Remove from playlist"
                           >
                             <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -2931,7 +2931,7 @@ export default function Music() {
                                 playTrack(song, displayedPlaylistSongs);
                               }
                             }}
-                            className={`p-1.5 rounded-full transition active:scale-90 border ${
+                            className={`p-1 xs:p-1.5 rounded-full transition active:scale-90 border ${
                               isCurrentPlaying
                                 ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
                                 : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
@@ -3045,8 +3045,8 @@ export default function Music() {
           MODAL 1: CREATE PLAYLIST
          ══════════════════════════════════════════════════════════════════════ */}
       {showCreatePlaylistModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#141a33]">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-2.5 xs:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-4 xs:p-5 sm:p-7 space-y-4 shadow-2xl bg-[#141a33]">
             <div className="flex items-center justify-between pb-3 border-b-2 border-white/20">
               <div className="flex items-center gap-2">
                 <FolderPlus className="w-5 h-5 text-accentCyan stroke-[2.5]" />
@@ -3105,8 +3105,8 @@ export default function Music() {
           MODAL 2: EDIT PLAYLIST (NAME & DESCRIPTION)
          ══════════════════════════════════════════════════════════════════════ */}
       {editingPlaylist && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-5 sm:p-7 space-y-4 shadow-2xl bg-[#141a33]">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-2.5 xs:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-4 xs:p-5 sm:p-7 space-y-4 shadow-2xl bg-[#141a33]">
             <div className="flex items-center justify-between pb-3 border-b-2 border-white/20">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-accentCyan" />
@@ -3184,8 +3184,8 @@ export default function Music() {
           MODAL 3: IN-APP CONFIRMATION MODAL ("ARE YOU SURE?")
          ══════════════════════════════════════════════════════════════════════ */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm border-2 border-white/25 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33] text-center">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-2.5 xs:p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-sm border-2 border-white/25 rounded-3xl p-4 xs:p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33] text-center">
             <div className="w-12 h-12 rounded-2xl bg-red-500/25 border-2 border-red-500/50 text-red-400 flex items-center justify-center mx-auto shadow-lg shadow-red-500/35">
               <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
             </div>
@@ -3227,8 +3227,8 @@ export default function Music() {
           MODAL 4: ADD TO PLAYLIST
          ══════════════════════════════════════════════════════════════════════ */}
       {songToAddToPlaylist && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33]">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-2.5 xs:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md border-2 border-white/25 rounded-3xl p-4 xs:p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33]">
             <div className="flex items-center justify-between pb-3 border-b-2 border-white/20">
               <div className="flex items-center gap-2">
                 <Plus className="w-5 h-5 text-accentCyan stroke-[2.5]" />

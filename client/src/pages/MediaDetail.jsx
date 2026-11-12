@@ -477,7 +477,7 @@ export default function MediaDetail() {
           <button
             onClick={handleWatchlistToggle}
             disabled={watchlistLoading}
-            className={`relative overflow-visible flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border cursor-pointer active:scale-95 ${
+            className={`relative overflow-visible flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 xs:px-3 sm:px-4 py-2 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition-all duration-300 border cursor-pointer active:scale-95 ${
               inWatchlist
                 ? 'border-accentPink text-accentPink bg-accentPink/20 hover:bg-accentPink/30 shadow-[0_0_20px_rgba(var(--accent-pink),0.4)]'
                 : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5 hover:border-white/25'
@@ -516,7 +516,7 @@ export default function MediaDetail() {
           {type !== 'manga' && (
             <button
               onClick={handleCreateWatchParty}
-              className="btn-shimmer flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
+              className="btn-shimmer flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 xs:px-3 sm:px-4 py-2 rounded-xl text-[11px] xs:text-xs font-bold whitespace-nowrap transition border border-accentCyan/40 bg-accentCyan/15 text-accentCyan hover:bg-accentCyan hover:text-black shadow-lg shadow-accentCyan/10 cursor-pointer active:scale-95"
             >
               <Users className="w-3.5 h-3.5 fill-accentCyan/30" />
               <span>Watch Party</span>
@@ -550,9 +550,9 @@ export default function MediaDetail() {
 
         <div className="relative z-10 flex-grow space-y-3 sm:space-y-4 text-left w-full min-w-0">
           <div className="space-y-1.5 sm:space-y-2">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-2 xs:gap-3">
               <div className="flex flex-wrap items-center gap-2 min-w-0">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-outfit break-words">
+                <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-outfit break-words">
                   {detail.title}
                 </h2>
                 {(type === 'tv' || type === 'anime') && activeSeason && (
@@ -1028,9 +1028,9 @@ export default function MediaDetail() {
                     }}
                     className="bg-[#12182f] border-2 border-accentCyan/50 hover:border-accentCyan hover:bg-accentCyan/20 text-left p-3 sm:p-4 rounded-xl flex items-center justify-between group shadow-lg transition active:scale-95 cursor-pointer"
                   >
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0 flex-1 pr-2">
                       <p className="text-xs font-black text-accentCyan">Chapter {ch.chapter}</p>
-                      <p className="text-xs sm:text-sm font-bold text-white truncate max-w-[180px]">
+                      <p className="text-xs sm:text-sm font-bold text-white truncate">
                         {ch.title}
                       </p>
                     </div>

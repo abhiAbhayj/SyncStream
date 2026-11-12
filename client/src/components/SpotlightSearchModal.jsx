@@ -218,7 +218,7 @@ export default function SpotlightSearchModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[140] flex items-start justify-center pt-14 sm:pt-20 px-3 sm:px-6 overflow-hidden">
+    <div className="fixed inset-0 z-[140] flex items-start justify-center pt-10 xs:pt-14 sm:pt-20 px-2.5 xs:px-3 sm:px-6 overflow-hidden">
       {/* Blurred dark backdrop */}
       <div
         className="fixed inset-0 bg-black/75 backdrop-blur-xl animate-fade-in"
@@ -233,10 +233,10 @@ export default function SpotlightSearchModal() {
         className="relative z-10 w-full max-w-2xl glass-panel border border-white/15 rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.9),0_0_45px_rgba(var(--accent-cyan),0.2)] overflow-hidden animate-scale-in bg-[#0b1022]/95"
       >
         {/* Rotating Neon Beam Search Input Header */}
-        <div className="p-3.5 sm:p-4 border-b border-white/10 space-y-3">
+        <div className="p-3 xs:p-3.5 sm:p-4 border-b border-white/10 space-y-2.5 sm:space-y-3">
           <div className="neon-beam-wrapper">
-            <div className="neon-beam-inner flex items-center gap-3 px-3.5 py-2.5 sm:py-3">
-              <Search className="w-5 h-5 text-accentCyan shrink-0 animate-pulse" />
+            <div className="neon-beam-inner flex items-center gap-2 xs:gap-3 px-2.5 xs:px-3.5 py-2 sm:py-3">
+              <Search className="w-4 h-4 xs:w-5 xs:h-5 text-accentCyan shrink-0 animate-pulse" />
               <div className="relative flex-1 min-w-0 flex items-center">
                 <input
                   ref={inputRef}
@@ -261,7 +261,7 @@ export default function SpotlightSearchModal() {
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition"
+                  className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition shrink-0"
                   title="Clear"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -270,7 +270,16 @@ export default function SpotlightSearchModal() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="hidden sm:inline-flex items-center px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400 hover:text-white transition"
+                className="sm:hidden p-1 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition shrink-0"
+                title="Close"
+                aria-label="Close Search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="hidden sm:inline-flex items-center px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400 hover:text-white transition shrink-0"
               >
                 ESC
               </button>

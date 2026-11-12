@@ -201,7 +201,7 @@ export default function MusicPlayerBar() {
           {/* ══════════════════════════════════════════════════════════════════════
               1. MOBILE VIEW (< sm / < 640px) — Ultra Compact & Clean 2-Tier Dock
              ══════════════════════════════════════════════════════════════════════ */}
-          <div className="flex sm:hidden flex-col gap-1 px-2.5 py-1.5 w-full">
+          <div className="flex sm:hidden flex-col gap-1 px-2 xs:px-2.5 py-1.5 w-full">
             {/* Row 1: Spinning Vinyl + Kinetic Marquee Metadata + Timestamp / Close */}
             <div className="flex items-center justify-between gap-1.5 min-w-0">
               <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
@@ -277,8 +277,8 @@ export default function MusicPlayerBar() {
               </div>
 
               {/* Right: Timestamp, Lyrics, Close */}
-              <div className="flex items-center gap-1 shrink-0">
-                <div className="text-[8.5px] font-mono font-medium text-slate-300 px-1.5 py-0.5 rounded bg-white/10 border border-white/15 shrink-0">
+              <div className="flex items-center gap-0.5 xs:gap-1 shrink-0">
+                <div className="text-[8px] xs:text-[8.5px] font-mono font-medium text-slate-300 px-1 xs:px-1.5 py-0.5 rounded bg-white/10 border border-white/15 shrink-0">
                   <span className="text-white">{formatTime(displayTime)}</span>
                   <span className="text-slate-400 mx-0.5">/</span>
                   <span className="text-slate-300">{formatTime(duration)}</span>
@@ -305,7 +305,7 @@ export default function MusicPlayerBar() {
             </div>
 
             {/* Row 2: Library/Fav + Centered 5 Controls + Volume */}
-            <div className="flex items-center justify-between gap-1 pt-0.5 pb-0.5">
+            <div className="flex items-center justify-between gap-0.5 xs:gap-1 pt-0.5 pb-0.5">
               <div className="flex items-center gap-0.5 shrink-0">
                 <button
                   type="button"
@@ -330,7 +330,7 @@ export default function MusicPlayerBar() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 xs:gap-2">
+              <div className="flex items-center justify-center gap-0.5 xs:gap-2">
                 <button
                   type="button"
                   onClick={prevTrack}
@@ -423,7 +423,7 @@ export default function MusicPlayerBar() {
                     if (isMuted) toggleMute();
                     setVolume(parseFloat(e.target.value));
                   }}
-                  className="w-10 xs:w-12 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
+                  className="hidden xs:block w-12 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accentCyan"
                   title={`Volume: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
                 />
               </div>

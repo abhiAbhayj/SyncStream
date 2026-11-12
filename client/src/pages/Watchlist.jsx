@@ -151,7 +151,7 @@ export default function Watchlist() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 xs:px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[75vh]">
       
       {/* ── Header with Library Title & Stats ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-4">
@@ -296,7 +296,7 @@ export default function Watchlist() {
             return (
               <section
                 key={sec.id}
-                className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#0b0f24]/90 border border-white/10 p-4 sm:p-6 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-white/20"
+                className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#0b0f24]/90 border border-white/10 p-3 xs:p-4 sm:p-6 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-white/20"
               >
                 {/* Ambient glow matching category color in background */}
                 <div className={`absolute -top-12 -right-12 w-64 h-48 ${sec.glowBg} blur-3xl pointer-events-none rounded-full`} />

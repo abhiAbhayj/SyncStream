@@ -569,7 +569,7 @@ export default function WatchParty() {
       )}
 
       {/* Top Controls Header Info */}
-      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl transition-opacity duration-500 ${
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3 xs:p-3.5 sm:p-4 rounded-2xl shadow-xl transition-opacity duration-500 ${
         lightsOut ? 'opacity-25 pointer-events-none' : 'opacity-100'
       }`}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -584,9 +584,9 @@ export default function WatchParty() {
         </div>
 
         {/* Action Widgets */}
-        <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10 shrink-0 flex-wrap">
+        <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-1.5 xs:gap-2 sm:gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10 shrink-0 flex-wrap">
           {/* Active Participants count */}
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-darkBg border border-darkBorder px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs text-gray-400 font-semibold shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-darkBg border border-darkBorder px-2 xs:px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[10.5px] xs:text-[11px] sm:text-xs text-gray-400 font-semibold shrink-0">
             <Users className="w-3.5 h-3.5 text-accentPurple shrink-0" />
             <span>{participantsCount} in Room</span>
           </div>
@@ -595,7 +595,7 @@ export default function WatchParty() {
           <button
             type="button"
             onClick={() => setLightsOut(v => !v)}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition border cursor-pointer shrink-0 active:scale-95 ${
+            className={`flex items-center gap-1.5 px-2 xs:px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[10.5px] xs:text-[11px] sm:text-xs font-bold transition border cursor-pointer shrink-0 active:scale-95 ${
               lightsOut
                 ? 'border-amber-400/50 bg-amber-500/20 text-amber-300 shadow-[0_0_16px_rgba(251,191,36,0.35)]'
                 : 'border-darkBorder bg-darkCard/50 text-gray-300 hover:text-amber-300 hover:border-amber-400/40'
@@ -609,7 +609,7 @@ export default function WatchParty() {
           {/* Share Room Code Button with Copy Celebration */}
           <button
             onClick={handleCopyCode}
-            className={`relative overflow-visible flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-300 border cursor-pointer shrink-0 active:scale-95 ${
+            className={`relative overflow-visible flex items-center gap-1.5 sm:gap-2 px-2.5 xs:px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10.5px] xs:text-[11px] sm:text-xs font-bold transition-all duration-300 border cursor-pointer shrink-0 active:scale-95 ${
               copied
                 ? 'border-emerald-400/60 text-emerald-300 bg-emerald-500/20 shadow-[0_0_18px_rgba(52,211,153,0.4)]'
                 : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5 hover:border-accentCyan/40'
@@ -940,7 +940,7 @@ export default function WatchParty() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+              <div className="flex items-center gap-1.5 xs:gap-2 w-full md:w-auto justify-between md:justify-end flex-wrap">
                 {/* Live Emoji Reactions Launcher */}
                 <div className="flex items-center gap-1 bg-black/50 border border-white/15 px-2 py-1 rounded-xl shadow-inner">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-1 hidden sm:inline">React:</span>

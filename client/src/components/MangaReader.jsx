@@ -200,10 +200,10 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
       )}
 
       {/* Floating Reader Settings Bar */}
-      <div className="sticky top-[68px] sm:top-20 z-40 w-full max-w-4xl glass-panel border border-darkBorder rounded-2xl px-2.5 sm:px-4 pt-2 sm:pt-3 pb-2 flex flex-col gap-2 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 w-full">
-          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold">
-            <span className="text-accentCyan bg-accentCyan/10 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-accentCyan/20 whitespace-nowrap">
+      <div className="sticky top-[68px] sm:top-20 z-40 w-full max-w-4xl glass-panel border border-darkBorder rounded-2xl px-2 xs:px-2.5 sm:px-4 pt-2 sm:pt-3 pb-2 flex flex-col gap-2 shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 xs:gap-2.5 sm:gap-4 w-full">
+          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 text-xs sm:text-sm font-semibold min-w-0">
+            <span className="text-accentCyan bg-accentCyan/10 px-2 xs:px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-accentCyan/20 whitespace-nowrap text-[11px] xs:text-xs">
               {isVerticalMode ? `Scroll • ${scrollProgress}%` : `Page ${currentPage + 1} / ${pages.length}`}
             </span>
             
@@ -217,7 +217,7 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
                     onChapterSelect(selectedChId, `Chapter ${ch.chapter}: ${ch.title}`);
                   }
                 }}
-                className="bg-darkCard text-[11px] sm:text-xs font-bold text-gray-200 border border-darkBorder rounded-lg px-2.5 sm:px-3 py-1.5 focus:outline-none focus:border-accentCyan cursor-pointer transition max-w-[130px] sm:max-w-[180px] md:max-w-[220px]"
+                className="bg-darkCard text-[11px] sm:text-xs font-bold text-gray-200 border border-darkBorder rounded-lg px-2 xs:px-2.5 sm:px-3 py-1.5 focus:outline-none focus:border-accentCyan cursor-pointer transition max-w-[115px] xs:max-w-[140px] sm:max-w-[180px] md:max-w-[220px]"
               >
                 {chapters.map(ch => (
                   <option key={ch.id} value={ch.id} className="bg-darkBg">
@@ -229,11 +229,11 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-wrap">
             {/* Layout Toggle */}
             <button
               onClick={() => setIsVerticalMode(!isVerticalMode)}
-              className="px-2.5 py-1.5 sm:p-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 border border-darkBorder transition flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold cursor-pointer active:scale-95"
+              className="px-2 xs:px-2.5 py-1.5 sm:p-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 border border-darkBorder transition flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold cursor-pointer active:scale-95"
               title="Toggle Reader Mode"
             >
               <Layout className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan" />
@@ -241,7 +241,7 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
             </button>
 
             {/* Zoom Controls */}
-            <div className="flex items-center gap-0.5 sm:gap-1 border border-darkBorder rounded-xl p-1 bg-black/25">
+            <div className="flex items-center gap-0.5 sm:gap-1 border border-darkBorder rounded-xl p-0.5 xs:p-1 bg-black/25">
               <button
                 onClick={() => adjustZoom(-15)}
                 className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
@@ -249,7 +249,7 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[11px] sm:text-xs px-1 text-gray-300 min-w-[34px] text-center font-bold">{zoom}%</span>
+              <span className="text-[10px] xs:text-[11px] sm:text-xs px-0.5 xs:px-1 text-gray-300 min-w-[30px] xs:min-w-[34px] text-center font-bold">{zoom}%</span>
               <button
                 onClick={() => adjustZoom(15)}
                 className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"

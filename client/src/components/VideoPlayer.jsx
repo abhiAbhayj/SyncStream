@@ -273,17 +273,17 @@ export default function VideoPlayer({
       )}
 
       {/* Party Sync Status label */}
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-black/75 backdrop-blur-md text-accentCyan border border-accentCyan/30 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-lg">
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/75 backdrop-blur-md text-accentCyan border border-accentCyan/30 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold shadow-lg">
+        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse" />
         <span>Shared Party Sync</span>
       </div>
 
       {/* Custom Control Bar overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300 flex flex-col gap-3 z-20">
+      <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300 flex flex-col gap-1.5 sm:gap-3 z-20">
         
         {/* Progress seek slider */}
-        <div className="flex items-center gap-3 w-full">
-          <span className="text-xs font-bold text-gray-300 font-mono">{formatTime(currentTime)}</span>
+        <div className="flex items-center gap-2 sm:gap-3 w-full">
+          <span className="text-[10px] sm:text-xs font-bold text-gray-300 font-mono">{formatTime(currentTime)}</span>
           <input
             type="range"
             min={0}
@@ -293,28 +293,28 @@ export default function VideoPlayer({
             onChange={handleSeekChange}
             className="flex-grow h-1.5 rounded-lg appearance-none bg-white/20 transition-all cursor-pointer hover:h-2 accent-accentCyan"
           />
-          <span className="text-xs font-bold text-gray-300 font-mono">{formatTime(duration)}</span>
+          <span className="text-[10px] sm:text-xs font-bold text-gray-300 font-mono">{formatTime(duration)}</span>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Play/Pause */}
             <button
               onClick={handlePlayPause}
-              className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/15 hover:border-white/25 active:scale-95 text-white transition cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/15 hover:border-white/25 active:scale-95 text-white transition cursor-pointer"
               title="Play / Pause stream (Syncs with all party members)"
             >
-              {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+              {isPlaying ? <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" /> : <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />}
             </button>
 
             {/* Volume Control */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={toggleMute}
-                className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white transition"
+                className="p-1.5 sm:p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white transition"
               >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </button>
               <input
                 type="range"
@@ -323,17 +323,17 @@ export default function VideoPlayer({
                 step={0.05}
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-16 h-1 rounded-lg cursor-pointer bg-white/20 accent-accentCyan"
+                className="hidden xs:block w-14 sm:w-16 h-1 rounded-lg cursor-pointer bg-white/20 accent-accentCyan"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Playback speed selector */}
             <div className="relative">
               <button
                 onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] sm:text-xs font-bold text-gray-300 transition"
               >
                 <Gauge className="w-3.5 h-3.5" />
                 {playbackSpeed}x
@@ -367,9 +367,9 @@ export default function VideoPlayer({
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
-              className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white transition"
+              className="p-1.5 sm:p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white transition"
             >
-              <Maximize className="w-4 h-4" />
+              <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

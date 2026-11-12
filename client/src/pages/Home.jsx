@@ -324,14 +324,14 @@ export default function Home() {
         <div className="noise-overlay rounded-2xl sm:rounded-3xl pointer-events-none" />
 
         {/* Content */}
-        <div className="relative z-10 py-8 px-4 sm:py-16 sm:px-8 md:py-20 md:px-16 space-y-4 sm:space-y-6 hero-gradient">
+        <div className="relative z-10 py-7 px-3 xs:py-8 xs:px-4 sm:py-16 sm:px-8 md:py-20 md:px-16 space-y-4 sm:space-y-6 hero-gradient">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] border border-white/[0.1] rounded-full text-[11px] font-semibold text-gray-300 backdrop-blur-md animate-fade-up font-mono tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1 bg-white/[0.06] border border-white/[0.1] rounded-full text-[10px] xs:text-[11px] font-semibold text-gray-300 backdrop-blur-md animate-fade-up font-mono tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
             <span>THE ULTIMATE STREAMING HUB</span>
           </div>
 
-          <h1 className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-josefin font-bold tracking-wider leading-tight sm:leading-none uppercase animate-fade-up stagger-2">
+          <h1 className="text-[26px] xs:text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-josefin font-bold tracking-wide xs:tracking-wider leading-tight sm:leading-none uppercase animate-fade-up stagger-2">
             Discover, Stream &amp;
             <br />
             <span className="text-gradient-aurora title-glow">Watch Together</span>
@@ -384,7 +384,7 @@ export default function Home() {
           <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider font-josefin">
             Discovery Feed
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
+          <span className="inline-flex items-center gap-1.5 px-2 xs:px-3 py-0.5 xs:py-1 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-[10px] xs:text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span>Live Catalog</span>
           </span>
