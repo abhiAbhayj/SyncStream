@@ -326,9 +326,12 @@ export default function Navbar() {
                 >
                   <div className="relative">
                     <img
-                      src={user.avatar_url}
+                      src={user.avatar_url || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png'}
                       alt={user.username}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover bg-darkBg ring-1 ring-white/20 shadow-md"
+                      referrerPolicy="no-referrer"
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-accentCyan/15 via-darkBg to-accentPurple/20 ring-1 ring-white/20 shadow-md ${
+                        user.avatar_url?.includes('emoji-datasource-apple') ? 'object-contain p-1' : 'object-cover'
+                      }`}
                     />
                     <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-darkBg" />
                   </div>
@@ -352,9 +355,12 @@ export default function Navbar() {
                       {/* User Info Header Card */}
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-2">
                         <img
-                          src={user.avatar_url}
+                          src={user.avatar_url || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png'}
                           alt={user.username}
-                          className="w-10 h-10 rounded-full object-cover bg-darkBg border border-accentPurple/40 shadow-inner"
+                          referrerPolicy="no-referrer"
+                          className={`w-10 h-10 rounded-full bg-gradient-to-br from-accentCyan/15 via-darkBg to-accentPurple/20 border border-accentPurple/40 shadow-inner ${
+                            user.avatar_url?.includes('emoji-datasource-apple') ? 'object-contain p-1.5' : 'object-cover'
+                          }`}
                         />
                         <div className="min-w-0 flex-1">
                           <p className="text-[10px] uppercase font-bold tracking-wider text-accentCyan">Signed in as</p>

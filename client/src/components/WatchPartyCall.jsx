@@ -549,9 +549,12 @@ export default function WatchPartyCall({ roomCode }) {
                 </>
               )}
               <img
-                src={peerUser?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=Party'}
+                src={peerUser?.avatar_url || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png'}
                 alt={peerUser?.username || 'User'}
-                className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 object-cover bg-darkBg shadow-lg transition-all duration-300 ${
+                referrerPolicy="no-referrer"
+                className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 bg-darkBg shadow-lg transition-all duration-300 ${
+                  (peerUser?.avatar_url || 'emoji-datasource-apple').includes('emoji-datasource-apple') ? 'object-contain p-1.5' : 'object-cover'
+                } ${
                   activeVoice
                     ? 'border-emerald-400 scale-105 shadow-[0_0_18px_rgba(52,211,153,0.7)]'
                     : 'border-white/20'

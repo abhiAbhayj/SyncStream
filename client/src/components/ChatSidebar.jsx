@@ -219,9 +219,12 @@ export default function ChatSidebar({ roomCode }) {
                 className="flex gap-3 items-start animate-msg-pop group"
               >
                 <img
-                  src={msg.avatar_url}
+                  src={msg.avatar_url || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png'}
                   alt={msg.username}
-                  className="w-8 h-8 rounded-full bg-darkBg border border-darkBorder object-cover cursor-pointer hover:border-accentCyan transition"
+                  referrerPolicy="no-referrer"
+                  className={`w-8 h-8 rounded-full bg-darkBg border border-darkBorder cursor-pointer hover:border-accentCyan transition ${
+                    msg.avatar_url?.includes('emoji-datasource-apple') ? 'object-contain p-1' : 'object-cover'
+                  }`}
                   onClick={() => handleMention(msg.username)}
                   title={`Mention ${msg.username}`}
                 />

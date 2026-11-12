@@ -2481,3 +2481,85 @@ export const getPersonCredits = async (req, res) => {
     });
   }
 };
+
+const animeCharactersCache = new Map();
+
+// 9. Get Iconic & Live-Searchable Anime Character Avatars (AniList GraphQL)
+export const getAnimeCharacters = async (req, res) => {
+  const q = (req.query.q || '').trim();
+  const cacheKey = q ? `search:${q.toLowerCase()}` : 'popular_iconic';
+
+  try {
+    if (animeCharactersCache.has(cacheKey)) {
+      const cached = animeCharactersCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < 30 * 60 * 1000) {
+        return res.json(cached.data);
+      }
+    }
+
+    const gqlQuery = q
+      ? `
+        query ($search: String) {
+          Page(page: 1, perPage: 20) {
+            characters(search: $search, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+              id
+              name { full native }
+              favourites
+              image { large medium }
+              media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
+                nodes { title { english romaji } }
+              }
+            }
+          }
+        }
+      `
+      : `
+        query {
+          Page(page: 1, perPage: 24) {
+            characters(sort: FAVOURITES_DESC) {
+              id
+              name { full native }
+              favourites
+              image { large medium }
+              media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
+                nodes { title { english romaji } }
+              }
+            }
+          }
+        }
+      `;
+
+    const alRes = await axios.post(
+      'https://graphql.anilist.co',
+      { query: gqlQuery, variables: q ? { search: q } : {} },
+      { headers: { 'Content-Type': 'application/json' }, timeout: 6500 }
+    );
+
+    const rawChars = alRes.data?.data?.Page?.characters || [];
+    const formatted = rawChars
+      .filter((c) => {
+        const imgUrl = c?.image?.large || c?.image?.medium || '';
+        return Boolean(imgUrl && !imgUrl.includes('default.jpg'));
+      })
+      .map((c) => {
+        const series =
+          c.media?.nodes?.[0]?.title?.english ||
+          c.media?.nodes?.[0]?.title?.romaji ||
+          'Anime';
+        const fullName = c.name?.full || 'Anime Character';
+        return {
+          id: `al-char-${c.id}`,
+          name: fullName,
+          series,
+          prompt: `Anime character ${fullName} from ${series}, studio anime portrait`,
+          url: c.image.large || c.image.medium
+        };
+      });
+
+    animeCharactersCache.set(cacheKey, { data: formatted, timestamp: Date.now() });
+    res.json(formatted);
+  } catch (err) {
+    console.warn('[Media Controller Anime Characters Error]:', err.message);
+    res.json([]);
+  }
+};

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { flushSync } from 'react-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import {
   User,
@@ -12,8 +13,6 @@ import {
   RefreshCw,
   X,
   Palette,
-  Bot,
-  Gamepad2,
   Smile,
   Wand2,
   Plus,
@@ -29,7 +28,9 @@ import {
   Moon,
   Layers,
   Compass,
-  Rocket
+  Search,
+  Film,
+  Cat
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -146,87 +147,96 @@ const THEME_OPTIONS = [
   },
 ];
 
+const EMOJI_CDN = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64';
+const DEFAULT_EMOJI_AVATAR = `${EMOJI_CDN}/1f60e.png`;
+
+const isEmojiAvatarUrl = (url) =>
+  typeof url === 'string' && url.includes('emoji-datasource-apple');
+
 const DEFAULT_AVATAR_COLLECTIONS = {
-  bots: {
-    label: 'Cyber Bots',
-    icon: Bot,
-    iconColor: 'text-cyan-400 fill-cyan-400/30',
-    items: [
-      { id: 'bot-optimus', name: 'Optimus', prompt: 'Cyberpunk mecha robot Optimus with neon cyan optics', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus' },
-      { id: 'bot-shadow', name: 'Shadow', prompt: 'Stealth black ninja bot with violet visor', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Shadow' },
-      { id: 'bot-ruby', name: 'Ruby', prompt: 'Crimson red armored combat droid', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ruby' },
-      { id: 'bot-spike', name: 'Spike', prompt: 'Heavy mecha mech robot with gold antenna', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Spike' },
-      { id: 'bot-alpha', name: 'Alpha', prompt: 'Futuristic AI command unit with laser core', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Alpha' },
-      { id: 'bot-matrix', name: 'Matrix', prompt: 'Terminal cyber bot with emerald code matrix stream', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Matrix' },
-      { id: 'bot-nexus', name: 'Nexus', prompt: 'High-tech cyber android with holographic visor', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Nexus' },
-      { id: 'bot-titan', name: 'Titan', prompt: 'Heavy armored titanium war machine', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Titan' }
-    ]
-  },
-  anime: {
-    label: 'Anime Personas',
-    icon: Wand2,
-    iconColor: 'text-pink-400 fill-pink-400/30',
-    items: [
-      { id: 'ani-aoi', name: 'Aoi', prompt: 'Anime hero with electric blue hair and glowing katana', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aoi' },
-      { id: 'ani-ren', name: 'Ren', prompt: 'Cool anime rogue with dark crimson cloak', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ren' },
-      { id: 'ani-sakura', name: 'Sakura', prompt: 'Kawaii anime blossom mage with pink aura', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sakura' },
-      { id: 'ani-ryu', name: 'Ryu', prompt: 'Anime martial artist with dragon aura', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ryu' },
-      { id: 'ani-kenji', name: 'Kenji', prompt: 'Cyberpunk samurai with neon headband', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kenji' },
-      { id: 'ani-kaori', name: 'Kaori', prompt: 'Anime priestess with sacred star staff', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kaori' },
-      { id: 'ani-yuki', name: 'Yuki', prompt: 'Frost anime warrior with silver hair', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Yuki' },
-      { id: 'ani-hikaru', name: 'Hikaru', prompt: 'Golden sun anime paladin with solar armor', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Hikaru' }
-    ]
-  },
-  pixel: {
-    label: 'Retro Pixel',
-    icon: Gamepad2,
-    iconColor: 'text-emerald-400 fill-emerald-400/40',
-    items: [
-      { id: 'pix-hero', name: 'Pixel Hero', prompt: '16-bit retro arcade hero with blue sword', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelHero' },
-      { id: 'pix-arcade', name: 'Arcade84', prompt: 'Classic 80s arcade pilot with helmet', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Arcade84' },
-      { id: 'pix-knight', name: 'Retro Knight', prompt: 'Pixel art paladin with shining armor', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=RetroKnight' },
-      { id: 'pix-byte', name: 'Byte', prompt: 'Cyber pixel hacker sprite with green visor', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Byte' },
-      { id: 'pix-voxel', name: 'Voxel', prompt: 'Blocky voxel explorer with torch', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Voxel' },
-      { id: 'pix-mage', name: 'Pixel Mage', prompt: 'Purple wizard sprite with glowing orb', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelMage' },
-      { id: 'pix-ninja', name: 'Pixel Ninja', prompt: 'Shadow stealth ninja with dual blades', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=PixelNinja' },
-      { id: 'pix-chiptune', name: 'Chiptune', prompt: 'Synthwave pixel DJ with headphones', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Chiptune' }
-    ]
-  },
   emojis: {
-    label: '3D Avatars',
+    label: 'WhatsApp Emojis',
     icon: Smile,
     iconColor: 'text-amber-400 fill-amber-400/40',
     items: [
-      { id: 'emo-sparky', name: 'Sparky', prompt: 'Cute 3D cartoon emoji smiling with star eyes', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Sparky' },
-      { id: 'emo-cosmo', name: 'Cosmo', prompt: 'Cute 3D astronaut emoji with bubble helmet', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Cosmo' },
-      { id: 'emo-nova', name: 'Nova', prompt: 'Cool 3D sunglasses emoji with gold chains', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Nova' },
-      { id: 'emo-blaze', name: 'Blaze', prompt: 'Fiery 3D flame emoji with cheeky grin', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Blaze' },
-      { id: 'emo-aurora', name: 'Aurora', prompt: 'Sweet 3D angel emoji with glowing halo', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Aurora' },
-      { id: 'emo-eclipse', name: 'Eclipse', prompt: 'Dark 3D moon emoji with mysterious smile', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Eclipse' },
-      { id: 'emo-zenith', name: 'Zenith', prompt: '3D golden crown king emoji with royal robe', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Zenith' },
-      { id: 'emo-pulse', name: 'Pulse', prompt: '3D neon gaming emoji with cyber headset', url: 'https://api.dicebear.com/7.x/thumbs/svg?seed=Pulse' }
+      { id: 'wa-cool', name: 'Cool 😎', prompt: '3D glossy sunglasses emoji smiling cool vibe', url: `${EMOJI_CDN}/1f60e.png` },
+      { id: 'wa-fireheart', name: 'Fire ❤️‍🔥', prompt: '3D glossy glowing heart on fire emoji', url: `${EMOJI_CDN}/2764-fe0f-200d-1f525.png` },
+      { id: 'wa-starstruck', name: 'Star-Struck 🤩', prompt: '3D star-struck excited smiley emoji', url: `${EMOJI_CDN}/1f929.png` },
+      { id: 'wa-laugh', name: 'LOL 😂', prompt: '3D laughing with tears of joy emoji', url: `${EMOJI_CDN}/1f602.png` },
+      { id: 'wa-ghost', name: 'Ghost 👻', prompt: '3D playful glowing ghost emoji', url: `${EMOJI_CDN}/1f47b.png` },
+      { id: 'wa-devil', name: 'Devil 😈', prompt: '3D cheeky purple devil grin emoji', url: `${EMOJI_CDN}/1f608.png` },
+      { id: 'wa-headphones', name: 'Music 🎧', prompt: '3D studio headphones neon music vibe emoji', url: `${EMOJI_CDN}/1f3a7.png` },
+      { id: 'wa-alien', name: 'Arcade 👾', prompt: '3D cosmic purple alien gamer emoji', url: `${EMOJI_CDN}/1f47e.png` },
+      { id: 'wa-cat', name: 'Kitty 🐱', prompt: '3D cute cat face emoji sticker', url: `${EMOJI_CDN}/1f431.png` },
+      { id: 'wa-party', name: 'Party 🥳', prompt: '3D party popper celebration face emoji', url: `${EMOJI_CDN}/1f973.png` },
+      { id: 'wa-crown', name: 'King 👑', prompt: '3D golden royal crown emoji', url: `${EMOJI_CDN}/1f451.png` },
+      { id: 'wa-flame', name: 'Lit 🔥', prompt: '3D vibrant orange neon flame emoji', url: `${EMOJI_CDN}/1f525.png` }
+    ]
+  },
+  anime: {
+    label: 'Anime Characters',
+    icon: Wand2,
+    iconColor: 'text-pink-400 fill-pink-400/30',
+    items: [
+      { id: 'ani-seed-gojo', name: 'Satoru Gojo', series: 'Jujutsu Kaisen', prompt: 'Anime character Satoru Gojo Jujutsu Kaisen portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Gojo' },
+      { id: 'ani-seed-luffy', name: 'Monkey D. Luffy', series: 'One Piece', prompt: 'Anime character Luffy One Piece portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Luffy' },
+      { id: 'ani-seed-naruto', name: 'Naruto Uzumaki', series: 'Naruto', prompt: 'Anime character Naruto Uzumaki portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Naruto' },
+      { id: 'ani-seed-levi', name: 'Levi Ackerman', series: 'Attack on Titan', prompt: 'Anime character Levi Ackerman portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Levi' },
+      { id: 'ani-seed-tanjiro', name: 'Tanjiro', series: 'Demon Slayer', prompt: 'Anime character Tanjiro Kamado portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Tanjiro' },
+      { id: 'ani-seed-nezuko', name: 'Nezuko', series: 'Demon Slayer', prompt: 'Anime character Nezuko Kamado portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Nezuko' },
+      { id: 'ani-seed-zoro', name: 'Roronoa Zoro', series: 'One Piece', prompt: 'Anime character Roronoa Zoro portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Zoro' },
+      { id: 'ani-seed-anya', name: 'Anya Forger', series: 'Spy x Family', prompt: 'Anime character Anya Forger portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Anya' }
+    ]
+  },
+  mascots: {
+    label: 'Cute Mascots',
+    icon: Cat,
+    iconColor: 'text-emerald-400 fill-emerald-400/30',
+    items: [
+      { id: 'mas-fox', name: 'Fox 🦊', prompt: '3D cute kitsune fox mascot avatar', url: `${EMOJI_CDN}/1f98a.png` },
+      { id: 'mas-panda', name: 'Panda 🐼', prompt: '3D adorable fluffy panda avatar', url: `${EMOJI_CDN}/1f43c.png` },
+      { id: 'mas-dog', name: 'Shiba 🐶', prompt: '3D playful shiba puppy avatar', url: `${EMOJI_CDN}/1f436.png` },
+      { id: 'mas-lion', name: 'Lion 🦁', prompt: '3D bold golden lion mascot avatar', url: `${EMOJI_CDN}/1f981.png` },
+      { id: 'mas-unicorn', name: 'Unicorn 🦄', prompt: '3D pastel cosmic unicorn mascot avatar', url: `${EMOJI_CDN}/1f984.png` },
+      { id: 'mas-octopus', name: 'Octo 🐙', prompt: '3D neon coral octopus mascot avatar', url: `${EMOJI_CDN}/1f419.png` },
+      { id: 'mas-frog', name: 'Froggy 🐸', prompt: '3D chill green frog mascot avatar', url: `${EMOJI_CDN}/1f438.png` },
+      { id: 'mas-owl', name: 'Night Owl 🦉', prompt: '3D midnight movie owl mascot avatar', url: `${EMOJI_CDN}/1f989.png` }
+    ]
+  },
+  cinema: {
+    label: 'Cinema & Music',
+    icon: Film,
+    iconColor: 'text-cyan-400 fill-cyan-400/30',
+    items: [
+      { id: 'cin-clapper', name: 'Director 🎬', prompt: 'Cinema film clapperboard glossy 3D icon', url: `${EMOJI_CDN}/1f3ac.png` },
+      { id: 'cin-popcorn', name: 'Popcorn 🍿', prompt: 'Watch party butter popcorn glossy 3D icon', url: `${EMOJI_CDN}/1f37f.png` },
+      { id: 'cin-mic', name: 'Vocalist 🎤', prompt: 'Concert stage microphone glossy 3D icon', url: `${EMOJI_CDN}/1f3a4.png` },
+      { id: 'cin-note', name: 'Beats 🎵', prompt: 'Glowing neon music note glossy 3D icon', url: `${EMOJI_CDN}/1f3b5.png` },
+      { id: 'cin-gamepad', name: 'Player 🎮', prompt: 'Esports console controller glossy 3D icon', url: `${EMOJI_CDN}/1f3ae.png` },
+      { id: 'cin-rocket', name: 'Rocket 🚀', prompt: 'Sci-fi space shuttle launch glossy 3D icon', url: `${EMOJI_CDN}/1f680.png` },
+      { id: 'cin-galaxy', name: 'Nebula 🌌', prompt: 'Milky way aurora galaxy night glossy 3D icon', url: `${EMOJI_CDN}/1f30c.png` },
+      { id: 'cin-gem', name: 'VIP Gem 💎', prompt: 'Cyan glowing crystal diamond glossy 3D icon', url: `${EMOJI_CDN}/1f48e.png` }
     ]
   }
 };
 
-const MAX_AVATARS_PER_CATEGORY = 16;
+const MAX_AVATARS_PER_CATEGORY = 24;
 const MIN_AVATARS_PER_CATEGORY = 1;
 
 const AI_STYLE_PRESETS = [
-  { id: 'bots', label: 'Cyber Bot', icon: Bot, iconColor: 'text-cyan-400 fill-cyan-400/40', suffix: 'cyberpunk mecha robot bot avatar, futuristic neon lighting, crisp vector icon style, dark background' },
-  { id: 'anime', label: 'Anime Persona', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'vibrant anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
-  { id: 'pixel', label: 'Retro Pixel', icon: Gamepad2, iconColor: 'text-emerald-400 fill-emerald-400/40', suffix: '16-bit retro pixel art character avatar, clean pixelated sprite, arcade game style' },
-  { id: 'emojis', label: '3D Character', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'cute 3D cartoon character avatar, Pixar 3D render, glossy studio lighting, fun expression' },
-  { id: 'scifi', label: 'Sci-Fi Hero', icon: Rocket, iconColor: 'text-purple-400 fill-purple-400', suffix: 'futuristic space hero profile avatar, glowing visor, cinematic concept art, octane render' }
+  { id: 'emojis', label: '3D Emoji', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'glossy 3D WhatsApp Apple-style emoji reaction sticker, studio rim lighting, crisp icon, dark neon background' },
+  { id: 'anime', label: 'Anime Character', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'vibrant iconic anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
+  { id: 'mascots', label: 'Cute Mascot', icon: Cat, iconColor: 'text-emerald-400 fill-emerald-400/40', suffix: 'adorable chibi animal mascot character avatar, glossy 3D Pixar style, vibrant studio glow' },
+  { id: 'cinema', label: 'Cinema & Music', icon: Film, iconColor: 'text-cyan-400 fill-cyan-400/40', suffix: 'cinematic movie & music hero portrait avatar, neon stage spotlight, dramatic color grading' }
 ];
 
 const PROMPT_SUGGESTIONS = [
-  'Neon Cyber Samurai with katana',
-  'Kawaii Anime Mage with cat ears',
-  '16-Bit Arcade Knight with shield',
-  'Golden Crown 3D Emoji King',
-  'Cyberpunk Hacker with glowing visor',
-  'Cosmic Galaxy Astronaut with star reflections'
+  'Gojo Satoru infinity glow anime portrait',
+  '3D Cool Sunglasses Emoji with neon cyan aura',
+  'Cute Shiba Inu mascot wearing studio headphones',
+  'Spider-Verse comic style cyberpunk hero',
+  'Kawaii cat spirit sipping boba tea anime',
+  'Midnight cinema director with golden clapperboard'
 ];
 
 export default function Profile() {
@@ -235,8 +245,14 @@ export default function Profile() {
   const fileInputRef = useRef(null);
 
   const [username, setUsername] = useState(user?.username || '');
-  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus');
-  const [activeAvatarTab, setActiveAvatarTab] = useState('bots');
+  const [selectedAvatar, setSelectedAvatar] = useState(() => {
+    const current = user?.avatar_url;
+    if (!current || current.includes('dicebear.com/7.x/bottts') || current.includes('dicebear.com/7.x/pixel-art')) {
+      return DEFAULT_EMOJI_AVATAR;
+    }
+    return current;
+  });
+  const [activeAvatarTab, setActiveAvatarTab] = useState('emojis');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [avatarBurstKey, setAvatarBurstKey] = useState(0);
   const [isCustomUploaded, setIsCustomUploaded] = useState(() => {
@@ -269,7 +285,7 @@ export default function Profile() {
   // ── Universal Avatar Collections State (Supports Add / Edit / Delete in all categories) ──
   const [avatarCollections, setAvatarCollections] = useState(() => {
     try {
-      const saved = localStorage.getItem(`syncstream_avatar_collections_${user?.id || 'guest'}`);
+      const saved = localStorage.getItem(`syncstream_avatar_collections_v2_${user?.id || 'guest'}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Ensure icon components are re-attached
@@ -289,15 +305,69 @@ export default function Profile() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`syncstream_avatar_collections_${user?.id || 'guest'}`, JSON.stringify(avatarCollections));
+      localStorage.setItem(`syncstream_avatar_collections_v2_${user?.id || 'guest'}`, JSON.stringify(avatarCollections));
     } catch (e) {}
   }, [avatarCollections, user?.id]);
+
+  // ── Live AniList Anime Character Search & Iconic Preload ──
+  const [animeSearchQuery, setAnimeSearchQuery] = useState('');
+  const [animeSearchResults, setAnimeSearchResults] = useState([]);
+  const [animeSearchLoading, setAnimeSearchLoading] = useState(false);
+  const [animeSearchTouched, setAnimeSearchTouched] = useState(false);
+  const [animeIconicLoading, setAnimeIconicLoading] = useState(false);
+  const animePreloadedRef = useRef(false);
+
+  useEffect(() => {
+    if (animePreloadedRef.current) return;
+    animePreloadedRef.current = true;
+
+    let cancelled = false;
+    const loadIconicAnimeCharacters = async () => {
+      try {
+        setAnimeIconicLoading(true);
+        const res = await axios.get('/api/media/anime/characters');
+        if (cancelled || !Array.isArray(res.data) || res.data.length === 0) return;
+
+        const iconicPicks = res.data.slice(0, 12);
+        setAvatarCollections((prev) => {
+          const currentItems = prev.anime?.items || [];
+          const hasOnlySeedsOrFewReal =
+            currentItems.every((it) => String(it.id).startsWith('ani-seed-')) ||
+            currentItems.filter((it) => String(it.id).startsWith('al-char-')).length < 4;
+
+          if (!hasOnlySeedsOrFewReal) return prev;
+
+          const customOrPinned = currentItems.filter(
+            (it) => !String(it.id).startsWith('ani-seed-') && !iconicPicks.some((p) => p.id === it.id)
+          );
+          const mergedItems = [...customOrPinned, ...iconicPicks].slice(0, MAX_AVATARS_PER_CATEGORY);
+
+          return {
+            ...prev,
+            anime: {
+              ...prev.anime,
+              items: mergedItems
+            }
+          };
+        });
+      } catch (err) {
+        // Silently keep offline seed fallback items if AniList is unavailable
+      } finally {
+        if (!cancelled) setAnimeIconicLoading(false);
+      }
+    };
+
+    loadIconicAnimeCharacters();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ── AI Prompt Generation State ──
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
-  const [aiStyle, setAiStyle] = useState('bots');
-  const [aiTargetCategory, setAiTargetCategory] = useState('bots');
+  const [aiStyle, setAiStyle] = useState('emojis');
+  const [aiTargetCategory, setAiTargetCategory] = useState('emojis');
   const [aiEngineMode, setAiEngineMode] = useState('turbo'); // 'turbo' (2s) | 'instant' (0.1s)
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiPreviewUrl, setAiPreviewUrl] = useState(null);
@@ -489,7 +559,7 @@ export default function Profile() {
   // Open AI Prompt Modal to generate or edit avatar in target category
   const openAiGeneratorForCategory = (categoryKey, existingAvatar = null) => {
     setAiTargetCategory(categoryKey || activeAvatarTab);
-    setAiStyle(categoryKey || 'bots');
+    setAiStyle(categoryKey || 'emojis');
     if (existingAvatar) {
       setEditingAvatarTarget({ category: categoryKey, id: existingAvatar.id });
       setAiPrompt(existingAvatar.prompt || existingAvatar.name);
@@ -500,6 +570,70 @@ export default function Profile() {
       setAiPreviewUrl(null);
     }
     setShowAiModal(true);
+  };
+
+  // Live AniList Anime Character Search
+  const runAnimeCharacterSearch = async (queryText) => {
+    const trimmed = (queryText || '').trim();
+    if (!trimmed) {
+      setAnimeSearchResults([]);
+      setAnimeSearchTouched(false);
+      return;
+    }
+
+    setAnimeSearchLoading(true);
+    setAnimeSearchTouched(true);
+    try {
+      const res = await axios.get(`/api/media/anime/characters?q=${encodeURIComponent(trimmed)}`);
+      setAnimeSearchResults(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setAnimeSearchResults([]);
+    } finally {
+      setAnimeSearchLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeAvatarTab !== 'anime') return;
+    const trimmed = animeSearchQuery.trim();
+    if (!trimmed) {
+      setAnimeSearchResults([]);
+      setAnimeSearchTouched(false);
+      return;
+    }
+    if (trimmed.length < 2) return;
+
+    const timer = setTimeout(() => {
+      runAnimeCharacterSearch(trimmed);
+    }, 380);
+    return () => clearTimeout(timer);
+  }, [animeSearchQuery, activeAvatarTab]);
+
+  // Select and/or Pin a live-searched anime character to the Anime Characters collection
+  const handlePinAnimeCharacter = (charItem, e) => {
+    e?.stopPropagation?.();
+    if (!charItem?.url) return;
+
+    const existing = avatarCollections.anime?.items || [];
+    const alreadyPinned = existing.some((it) => it.id === charItem.id || it.url === charItem.url);
+    if (alreadyPinned) {
+      handleSelectAvatar(charItem.url);
+      return;
+    }
+
+    if (existing.length >= MAX_AVATARS_PER_CATEGORY) {
+      setError(`Anime Characters limit reached (${MAX_AVATARS_PER_CATEGORY} max). Delete an avatar slot first or click the card to use directly.`);
+      return;
+    }
+
+    setAvatarCollections((prev) => ({
+      ...prev,
+      anime: {
+        ...prev.anime,
+        items: [charItem, ...(prev.anime?.items || [])]
+      }
+    }));
+    handleSelectAvatar(charItem.url);
   };
 
   // Generate avatar through AI Prompt (Turbo Speed with Fast Watchdog)
@@ -516,11 +650,9 @@ export default function Profile() {
     const fallbackSeed = encodeURIComponent(aiPrompt.trim());
     const dicebearFallback = aiStyle === 'anime'
       ? `https://api.dicebear.com/7.x/adventurer/svg?seed=${fallbackSeed}`
-      : aiStyle === 'pixel'
-      ? `https://api.dicebear.com/7.x/pixel-art/svg?seed=${fallbackSeed}`
-      : aiStyle === 'emojis'
-      ? `https://api.dicebear.com/7.x/thumbs/svg?seed=${fallbackSeed}`
-      : `https://api.dicebear.com/7.x/bottts/svg?seed=${fallbackSeed}`;
+      : aiStyle === 'cinema'
+      ? `https://api.dicebear.com/7.x/notionists/svg?seed=${fallbackSeed}`
+      : `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${fallbackSeed}`;
 
     // Instant Vector Mode
     if (aiEngineMode === 'instant') {
@@ -637,29 +769,53 @@ export default function Profile() {
     }
 
     if (window.confirm('Delete this avatar from your collection?')) {
+      const remaining = catItems.filter((it) => it.id !== avatarId);
       setAvatarCollections((prev) => {
         const updatedCat = { ...prev[categoryKey] };
-        updatedCat.items = updatedCat.items.filter((it) => it.id !== avatarId);
+        updatedCat.items = remaining;
         return { ...prev, [categoryKey]: updatedCat };
       });
 
-      if (selectedAvatar.includes(avatarId)) {
-        const fallback = avatarCollections[categoryKey]?.items[0]?.url || 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus';
+      const deletedItem = catItems.find((it) => it.id === avatarId);
+      if (selectedAvatar.includes(avatarId) || (deletedItem && selectedAvatar === deletedItem.url)) {
+        const fallback = remaining[0]?.url || DEFAULT_EMOJI_AVATAR;
         setSelectedAvatar(fallback);
       }
     }
   };
 
   // Restore Default Avatars for current category
-  const handleRestoreDefaults = (categoryKey) => {
-    if (window.confirm(`Reset "${avatarCollections[categoryKey]?.label}" back to original defaults?`)) {
-      setAvatarCollections((prev) => ({
-        ...prev,
-        [categoryKey]: { ...prev[categoryKey], items: DEFAULT_AVATAR_COLLECTIONS[categoryKey].items }
-      }));
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 2500);
+  const handleRestoreDefaults = async (categoryKey) => {
+    if (!window.confirm(`Reset "${avatarCollections[categoryKey]?.label}" back to original defaults?`)) {
+      return;
     }
+
+    if (categoryKey === 'anime') {
+      try {
+        setAnimeIconicLoading(true);
+        const res = await axios.get('/api/media/anime/characters');
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setAvatarCollections((prev) => ({
+            ...prev,
+            anime: { ...prev.anime, items: res.data.slice(0, 12) }
+          }));
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 2500);
+          return;
+        }
+      } catch (err) {
+        // Fallback below
+      } finally {
+        setAnimeIconicLoading(false);
+      }
+    }
+
+    setAvatarCollections((prev) => ({
+      ...prev,
+      [categoryKey]: { ...prev[categoryKey], items: DEFAULT_AVATAR_COLLECTIONS[categoryKey].items }
+    }));
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 2500);
   };
 
   const handleSelectAvatar = (avatarUrl) => {
@@ -700,7 +856,7 @@ export default function Profile() {
 
   };
 
-  const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.bots;
+  const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.emojis;
 
   return (
     <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-8 sm:pb-12">
@@ -751,7 +907,12 @@ export default function Profile() {
             <img
               src={selectedAvatar}
               alt="Profile avatar preview"
-              className="relative z-10 w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-accentCyan bg-darkBg object-cover mx-auto p-1 shadow-2xl transition-transform duration-300"
+              referrerPolicy="no-referrer"
+              className={`relative z-10 w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-accentCyan mx-auto shadow-2xl transition-transform duration-300 ${
+                isEmojiAvatarUrl(selectedAvatar)
+                  ? 'bg-gradient-to-br from-accentCyan/20 via-[#0d142c] to-accentPurple/25 object-contain p-3 sm:p-4 shadow-[inset_0_0_24px_rgba(var(--accent-cyan),0.22),0_0_28px_rgba(var(--accent-purple),0.28)]'
+                  : 'bg-darkBg object-cover p-1'
+              }`}
             />
             <div className="z-20 absolute bottom-2 right-2 bg-accentPurple text-white p-1.5 sm:p-2 rounded-full shadow-lg border border-white/20">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
@@ -903,6 +1064,152 @@ export default function Profile() {
               })}
             </div>
 
+            {/* Live AniList Character Search Bar (Anime Tab Only) */}
+            {activeAvatarTab === 'anime' && (
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-br from-pink-500/[0.08] via-black/40 to-accentPurple/[0.08] border border-pink-500/25 space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <span className="text-[11px] font-bold text-pink-300 flex items-center gap-1.5 font-mono">
+                    <Sparkles className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                    <span>Live AniList Character Search</span>
+                  </span>
+                  {animeIconicLoading && (
+                    <span className="text-[10px] text-accentCyan flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Syncing iconic picks...
+                    </span>
+                  )}
+                </div>
+
+                {/* Search Input Row (using div + Enter key handler to avoid nested form) */}
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={animeSearchQuery}
+                      onChange={(e) => setAnimeSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          runAnimeCharacterSearch(animeSearchQuery);
+                        }
+                      }}
+                      placeholder="Search any anime character (Itachi, Mikasa, Gojo)..."
+                      className="w-full bg-darkBg/90 border border-white/15 rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400/50 transition"
+                    />
+                    {animeSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAnimeSearchQuery('');
+                          setAnimeSearchResults([]);
+                          setAnimeSearchTouched(false);
+                        }}
+                        title="Clear search"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-0.5 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={animeSearchLoading || !animeSearchQuery.trim()}
+                    onClick={() => runAnimeCharacterSearch(animeSearchQuery)}
+                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-accentPurple text-white font-bold text-xs shrink-0 hover:opacity-90 active:scale-95 disabled:opacity-45 transition cursor-pointer flex items-center gap-1"
+                  >
+                    {animeSearchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                    <span className="hidden xs:inline">Find</span>
+                  </button>
+                </div>
+
+                {/* Quick Popular Character Queries */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                  {['Itachi', 'Mikasa', 'Sung Jin-Woo', 'Levi', 'Goku', 'Killua', 'Gojo'].map((quickName) => (
+                    <button
+                      key={quickName}
+                      type="button"
+                      onClick={() => {
+                        setAnimeSearchQuery(quickName);
+                        runAnimeCharacterSearch(quickName);
+                      }}
+                      className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-pink-500/20 border border-white/10 hover:border-pink-400/40 text-[10px] font-semibold text-gray-300 hover:text-pink-200 whitespace-nowrap shrink-0 transition active:scale-95 cursor-pointer"
+                    >
+                      {quickName}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Live Search Results */}
+                {animeSearchLoading ? (
+                  <div className="flex items-center justify-center gap-2 py-4 text-xs text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin text-pink-400" />
+                    <span>Searching AniList characters...</span>
+                  </div>
+                ) : animeSearchTouched && animeSearchResults.length === 0 ? (
+                  <p className="text-[11px] text-gray-400 text-center py-2">
+                    No anime characters found for &quot;{animeSearchQuery}&quot;. Try another name!
+                  </p>
+                ) : animeSearchResults.length > 0 ? (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                      <span>Found {animeSearchResults.length} characters — tap to use or + Pin</span>
+                    </div>
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-60 overflow-y-auto pr-0.5">
+                      {animeSearchResults.map((char) => {
+                        const isSelected = selectedAvatar === char.url;
+                        const isPinned = (avatarCollections.anime?.items || []).some(
+                          (it) => it.id === char.id || it.url === char.url
+                        );
+                        return (
+                          <div
+                            key={char.id}
+                            onClick={() => handleSelectAvatar(char.url)}
+                            className={`group relative rounded-xl overflow-hidden border p-1 bg-darkBg/90 transition-all cursor-pointer active:scale-95 ${
+                              isSelected
+                                ? 'border-accentCyan ring-2 ring-accentCyan/55 shadow-[0_0_14px_rgba(var(--accent-cyan),0.45)]'
+                                : 'border-white/10 hover:border-pink-400/50'
+                            }`}
+                          >
+                            <div className="aspect-square w-full overflow-hidden rounded-lg bg-darkBg relative">
+                              <img
+                                src={char.url}
+                                alt={char.name}
+                                referrerPolicy="no-referrer"
+                                loading="lazy"
+                                className="w-full h-full object-cover"
+                              />
+                              {isSelected && (
+                                <div className="absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow">
+                                  <Check className="w-2.5 h-2.5 stroke-[4]" />
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => handlePinAnimeCharacter(char, e)}
+                                title={isPinned ? 'Saved in Anime Characters' : 'Pin to Anime Characters'}
+                                className={`absolute top-1 left-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition shadow ${
+                                  isPinned
+                                    ? 'bg-emerald-500/90 text-black'
+                                    : 'bg-black/80 hover:bg-pink-500 text-pink-200 hover:text-white border border-pink-400/30'
+                                }`}
+                              >
+                                {isPinned ? 'Pinned' : '+ Pin'}
+                              </button>
+                            </div>
+                            <div className="pt-1 px-0.5">
+                              <p className="text-[10px] font-bold text-white truncate">{char.name}</p>
+                              <p className="text-[9px] text-gray-400 truncate">{char.series}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
             {/* Category Avatar Grid with Add, Edit, Delete Actions */}
             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-black/40 border border-white/10">
               {/* Add New AI Avatar Tile in this category */}
@@ -924,11 +1231,16 @@ export default function Profile() {
               {/* Avatar Cards */}
               {currentCategory.items.map((item) => {
                 const isSelected = selectedAvatar === item.url;
+                const isEmoji = isEmojiAvatarUrl(item.url);
                 return (
                   <div
                     key={item.id}
                     onClick={() => handleSelectAvatar(item.url)}
-                    className={`group relative aspect-square rounded-xl overflow-hidden border p-1 bg-darkBg/90 transition-all duration-300 active:scale-95 cursor-pointer ${
+                    className={`group relative aspect-square rounded-xl overflow-hidden border p-1 transition-all duration-300 active:scale-95 cursor-pointer ${
+                      isEmoji
+                        ? 'bg-gradient-to-br from-accentCyan/15 via-[#0e1530] to-accentPurple/20'
+                        : 'bg-darkBg/90'
+                    } ${
                       isSelected
                         ? 'border-accentCyan shadow-[0_0_18px_rgba(var(--accent-cyan),0.48)] ring-2 ring-accentCyan/55 scale-[1.02]'
                         : 'border-white/10 hover:border-white/30'
@@ -944,7 +1256,12 @@ export default function Profile() {
                     <img
                       src={item.url}
                       alt={item.name}
-                      className="relative z-10 w-full h-full object-cover rounded-lg bg-darkBg"
+                      referrerPolicy="no-referrer"
+                      className={`relative z-10 w-full h-full rounded-lg transition-transform duration-300 group-hover:scale-105 ${
+                        isEmoji
+                          ? 'object-contain p-2.5 sm:p-3 bg-black/35 border border-white/10 shadow-[inset_0_0_16px_rgba(var(--accent-cyan),0.14)]'
+                          : 'object-cover bg-darkBg'
+                      }`}
                       loading="lazy"
                     />
 
@@ -956,7 +1273,7 @@ export default function Profile() {
                     )}
 
                     {/* Quick Edit & Delete Action Pill */}
-                    <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 p-0.5 rounded-lg bg-black/80 backdrop-blur-xs opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <div className="z-20 absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 p-0.5 rounded-lg bg-black/80 backdrop-blur-xs opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         type="button"
                         title="Edit Avatar via Prompt"
@@ -1225,7 +1542,7 @@ export default function Profile() {
                       required
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
-                      placeholder="e.g. Cyberpunk samurai robot with glowing katana..."
+                      placeholder="e.g. Gojo Satoru neon glow or 3D sunglasses emoji..."
                       className="w-full bg-darkBg border border-white/15 rounded-xl px-3.5 py-3 text-xs sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition"
                     />
                   </div>
@@ -1274,7 +1591,12 @@ export default function Profile() {
                   <img
                     src={aiPreviewUrl}
                     alt="AI Avatar Preview"
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] shrink-0 bg-darkBg"
+                    referrerPolicy="no-referrer"
+                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] shrink-0 ${
+                      isEmojiAvatarUrl(aiPreviewUrl)
+                        ? 'object-contain p-2.5 bg-gradient-to-br from-accentCyan/15 via-[#0e1530] to-accentPurple/20'
+                        : 'object-cover bg-darkBg'
+                    }`}
                   />
                   <div className="space-y-2 flex-1 w-full text-center sm:text-left min-w-0">
                     <div>

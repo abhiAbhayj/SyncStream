@@ -30,8 +30,8 @@ export const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // 3. Define a default avatar
-    const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+    // 3. Define a default WhatsApp/3D Emoji avatar
+    const avatarUrl = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png';
 
     // 4. Insert into DB
     const [result] = await db.query(
