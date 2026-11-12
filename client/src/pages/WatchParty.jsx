@@ -942,14 +942,14 @@ export default function WatchParty() {
 
               <div className="flex items-center gap-1.5 xs:gap-2 w-full md:w-auto justify-between md:justify-end flex-wrap">
                 {/* Live Emoji Reactions Launcher */}
-                <div className="flex items-center gap-1 bg-black/50 border border-white/15 px-2 py-1 rounded-xl shadow-inner">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-1 hidden sm:inline">React:</span>
+                <div className="flex items-center gap-0.5 xs:gap-1 bg-black/50 border border-white/15 px-1.5 xs:px-2 py-1 rounded-xl shadow-inner max-w-full overflow-x-auto scrollbar-none">
+                  <span className="text-[9.5px] xs:text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-0.5 xs:mr-1 hidden xs:inline shrink-0">React:</span>
                   {REACTION_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => sendPartyReaction(emoji)}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/15 active:scale-125 transition-transform text-sm sm:text-base cursor-pointer"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/15 active:scale-125 transition-transform text-sm sm:text-base cursor-pointer shrink-0"
                       title={`Send ${emoji} reaction`}
                     >
                       {emoji}

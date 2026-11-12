@@ -261,6 +261,7 @@ export default function Home() {
       <section
         ref={heroRef}
         onMouseMove={handleHeroPointerMove}
+        onTouchStart={handleHeroPointerMove}
         onTouchMove={handleHeroPointerMove}
         onMouseLeave={() => setHeroSpot((prev) => ({ ...prev, active: false }))}
         className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.08] text-center bg-aurora group/hero"
@@ -287,10 +288,10 @@ export default function Home() {
           const dx = (heroSpot.x - 50) * 0.22;
           const dy = (heroSpot.y - 50) * 0.22;
           const slotClasses = [
-            { pos: 'hidden sm:block -top-4 left-3 md:left-8 w-20 sm:w-24 md:w-28', rot: '-8deg', mult: -1 },
-            { pos: 'hidden sm:block top-6 right-3 md:right-10 w-20 sm:w-24 md:w-28', rot: '7deg', mult: 1 },
-            { pos: 'hidden md:block bottom-4 left-12 lg:left-20 w-24 md:w-28', rot: '6deg', mult: 0.7 },
-            { pos: 'hidden md:block -bottom-2 right-12 lg:right-24 w-24 md:w-28', rot: '-7deg', mult: -0.8 },
+            { pos: 'block -top-2 -left-2 w-14 xs:w-16 sm:-top-4 sm:left-3 md:left-8 sm:w-24 md:w-28', rot: '-8deg', mult: -1 },
+            { pos: 'block top-3 -right-2 w-14 xs:w-16 sm:top-6 sm:right-3 md:right-10 sm:w-24 md:w-28', rot: '7deg', mult: 1 },
+            { pos: 'hidden sm:block bottom-4 left-6 md:left-12 lg:left-20 w-20 sm:w-24 md:w-28', rot: '6deg', mult: 0.7 },
+            { pos: 'hidden sm:block -bottom-2 right-6 md:right-12 lg:right-24 w-20 sm:w-24 md:w-28', rot: '-7deg', mult: -0.8 },
           ];
           return (
             <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden z-0">

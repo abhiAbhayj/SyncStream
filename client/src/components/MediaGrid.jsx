@@ -79,28 +79,45 @@ function useHoloTilt() {
   const cardRef = useRef(null);
   const glareRef = useRef(null);
 
-  const handleMouseMove = (e) => {
-    if (typeof window !== 'undefined' && window.matchMedia && !window.matchMedia('(pointer: fine)').matches) {
-      return;
-    }
+  const applyTilt = (clientX, clientY, isTouch = false) => {
     const card = cardRef.current;
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    if (!rect.width || !rect.height) return;
+    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = ((centerY - y) / centerY) * 8;
-    const rotateY = ((x - centerX) / centerX) * 8;
+    const maxTilt = isTouch ? 7 : 8;
+    const rotateX = ((centerY - y) / centerY) * maxTilt;
+    const rotateY = ((x - centerX) / centerX) * maxTilt;
 
     card.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.03, 1.03, 1.03)`;
 
     if (glareRef.current) {
       const px = (x / rect.width) * 100;
       const py = (y / rect.height) * 100;
-      glareRef.current.style.background = `radial-gradient(circle at ${px.toFixed(1)}% ${py.toFixed(1)}%, rgba(255,255,255,0.26) 0%, rgba(var(--accent-cyan),0.14) 30%, transparent 70%)`;
+      glareRef.current.style.opacity = '1';
+      glareRef.current.style.background = `radial-gradient(circle at ${px.toFixed(1)}% ${py.toFixed(1)}%, rgba(255,255,255,0.28) 0%, rgba(var(--accent-cyan),0.16) 32%, transparent 72%)`;
     }
+  };
+
+  const handleMouseMove = (e) => {
+    if (typeof window !== 'undefined' && window.matchMedia && !window.matchMedia('(pointer: fine)').matches) {
+      return;
+    }
+    applyTilt(e.clientX, e.clientY, false);
+  };
+
+  const handleTouchStart = (e) => {
+    const touch = e.touches?.[0];
+    if (touch) applyTilt(touch.clientX, touch.clientY, true);
+  };
+
+  const handleTouchMove = (e) => {
+    const touch = e.touches?.[0];
+    if (touch) applyTilt(touch.clientX, touch.clientY, true);
   };
 
   const handleMouseLeave = () => {
@@ -108,17 +125,32 @@ function useHoloTilt() {
       cardRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     }
     if (glareRef.current) {
+      glareRef.current.style.opacity = '';
       glareRef.current.style.background = 'transparent';
     }
   };
 
-  return { cardRef, glareRef, handleMouseMove, handleMouseLeave };
+  return {
+    cardRef,
+    glareRef,
+    handleMouseMove,
+    handleTouchStart,
+    handleTouchMove,
+    handleMouseLeave
+  };
 }
 
 function HoloMediaItem({ item, index, cfg, showTimings }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { cardRef, glareRef, handleMouseMove, handleMouseLeave } = useHoloTilt();
+  const {
+    cardRef,
+    glareRef,
+    handleMouseMove,
+    handleTouchStart,
+    handleTouchMove,
+    handleMouseLeave
+  } = useHoloTilt();
 
   const [savedToWatchlist, setSavedToWatchlist] = useState(false);
   const [savingWatchlist, setSavingWatchlist] = useState(false);
@@ -228,7 +260,14 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
         to={mediaLink}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{ transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleMouseLeave}
+        onTouchCancel={handleMouseLeave}
+        style={{
+          touchAction: 'pan-y',
+          transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease'
+        }}
         className={`group media-card h-full will-change-transform ${cfg.hoverGlow}`}
       >
         {/* ── Poster Image ── */}
@@ -256,8 +295,8 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
 
-          {/* Center Play button */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 pointer-events-none">
+          {/* Center Play button (Hover Desktop) */}
+          <div className="hidden [@media(hover:hover)]:lg:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 pointer-events-none">
             <div
               className={`${cfg.playBg} text-black p-3.5 rounded-full shadow-2xl transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-75 -translate-y-3`}
               style={{ boxShadow: '0 0 30px currentColor' }}
@@ -271,13 +310,13 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
 
           {/* Rating Pill */}
           {rating && parseFloat(rating) > 0 && (
-            <div className="absolute top-2 right-2 rating-pill opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300 z-10">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
+            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 rating-pill opacity-95 [@media(hover:hover)]:lg:opacity-0 [@media(hover:hover)]:lg:group-hover:opacity-100 [@media(hover:hover)]:lg:translate-y-1 [@media(hover:hover)]:lg:group-hover:translate-y-0 transition-all duration-300 z-10">
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
               {rating}
             </div>
           )}
 
-          {/* Format / Type badge (fades softly up on hover to reveal Rising Action Drawer) */}
+          {/* Format / Type badge */}
           <div
             className={`badge ${
               isSeasonBadge
@@ -287,39 +326,39 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
                 : isMovieBadge && mediaType === 'anime'
                 ? 'bg-amber-500/80 text-black font-extrabold border-amber-400/50'
                 : cfg.badge
-            } absolute bottom-2 left-2 backdrop-blur-md text-[10px] font-bold px-2 py-0.5 shadow-md transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-2 z-10`}
+            } absolute top-1.5 left-1.5 sm:top-2 sm:left-2 [@media(hover:hover)]:lg:top-auto [@media(hover:hover)]:lg:bottom-2 backdrop-blur-md text-[9.5px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 shadow-md transition-all duration-200 [@media(hover:hover)]:lg:group-hover:opacity-0 [@media(hover:hover)]:lg:group-hover:translate-y-2 z-10`}
           >
             {formatLabel}
           </div>
 
-          {/* Duration / Episode count pill */}
+          {/* Duration / Episode count pill (Desktop hover idle) */}
           {item.episodes ? (
-            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-2 z-10">
+            <div className="hidden [@media(hover:hover)]:lg:block absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-2 z-10">
               {item.episodes} {item.episodes === 1 ? 'EP' : 'EPS'}
             </div>
           ) : moviePillDuration ? (
-            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-2 z-10">
+            <div className="hidden [@media(hover:hover)]:lg:block absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/80 text-accentCyan border border-accentCyan/30 backdrop-blur-md shadow-md transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-2 z-10">
               {moviePillDuration}
             </div>
           ) : null}
 
-          {/* ── Rising Frosted Quick-Action Drawer ── */}
-          <div className="hidden md:flex absolute bottom-0 inset-x-0 z-20 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] bg-black/75 backdrop-blur-xl border-t border-white/15 items-center justify-between gap-1.5">
+          {/* ── Rising Frosted Quick-Action Drawer (All Devices) ── */}
+          <div className="flex absolute bottom-0 inset-x-0 z-20 p-1.5 sm:p-2 translate-y-0 [@media(hover:hover)]:lg:translate-y-full [@media(hover:hover)]:lg:group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] bg-black/75 backdrop-blur-xl border-t border-white/15 items-center justify-between gap-1 sm:gap-1.5">
             <button
               type="button"
               onClick={handleQuickPlay}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-accentCyan hover:opacity-90 text-black text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm"
+              className="flex-1 flex items-center justify-center gap-1 py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-md sm:rounded-lg bg-accentCyan hover:opacity-90 text-black text-[9.5px] sm:text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm min-w-0"
               title={mediaType === 'manga' ? 'Read Now' : 'Play Now'}
             >
-              {mediaType === 'manga' ? <BookOpen className="w-3 h-3" /> : <Play className="w-3 h-3 fill-current" />}
-              <span>{mediaType === 'manga' ? 'Read' : 'Play'}</span>
+              {mediaType === 'manga' ? <BookOpen className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current shrink-0" />}
+              <span className="truncate">{mediaType === 'manga' ? 'Read' : 'Play'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleQuickWatchlist}
               disabled={savingWatchlist}
-              className={`p-1.5 rounded-lg border text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center ${
+              className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg border text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0 ${
                 savedToWatchlist
                   ? 'bg-emerald-500/25 border-emerald-400/60 text-emerald-300'
                   : 'bg-white/10 hover:bg-white/20 border-white/15 text-white'
@@ -327,11 +366,11 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
               title={savedToWatchlist ? 'Saved to Watchlist' : 'Add to Watchlist'}
             >
               {savingWatchlist ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
               ) : savedToWatchlist ? (
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
               ) : (
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
               )}
             </button>
 
@@ -340,13 +379,13 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
                 type="button"
                 onClick={handleQuickParty}
                 disabled={creatingParty}
-                className="p-1.5 rounded-lg bg-accentPurple/20 hover:bg-accentPurple hover:text-white border border-accentPurple/40 text-accentPurple text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center"
+                className="p-1 sm:p-1.5 rounded-md sm:rounded-lg bg-accentPurple/20 hover:bg-accentPurple hover:text-white border border-accentPurple/40 text-accentPurple text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
                 title="Host Instant Watch Party"
               >
                 {creatingParty ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                 ) : (
-                  <Users className="w-3.5 h-3.5" />
+                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 )}
               </button>
             )}
@@ -387,7 +426,14 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
 }
 
 function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardClick, openAddToPlaylist }) {
-  const { cardRef, glareRef, handleMouseMove, handleMouseLeave } = useHoloTilt();
+  const {
+    cardRef,
+    glareRef,
+    handleMouseMove,
+    handleTouchStart,
+    handleTouchMove,
+    handleMouseLeave
+  } = useHoloTilt();
   const posterSrc = formatMediaPoster(item);
 
   return (
@@ -400,7 +446,14 @@ function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardCl
         onClick={onCardClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{ transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleMouseLeave}
+        onTouchCancel={handleMouseLeave}
+        style={{
+          touchAction: 'pan-y',
+          transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease'
+        }}
         className={`group media-card h-full rounded-2xl overflow-hidden cursor-pointer border will-change-transform ${cfg.hoverGlow} ${
           isCurrentPlaying
             ? 'border-accentCyan shadow-[0_0_24px_rgba(var(--accent-cyan),0.35)] bg-accentCyan/10'
@@ -426,8 +479,8 @@ function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardCl
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
 
-          {/* Play / Pause button overlay */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
+          {/* Play / Pause button overlay (Desktop hover) */}
+          <div className="hidden [@media(hover:hover)]:lg:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
             <div className="bg-accentCyan text-black p-3 rounded-full shadow-[0_0_20px_rgba(var(--accent-cyan),0.8)] transform scale-90 group-hover:scale-100 transition-transform">
               {isCurrentPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
             </div>
@@ -438,7 +491,7 @@ function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardCl
             <span>Music</span>
           </div>
 
-          {/* Add to playlist button overlay */}
+          {/* Add to playlist button overlay (Always visible on mobile & touch tablets) */}
           <button
             type="button"
             onClick={(e) => {
@@ -446,25 +499,32 @@ function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardCl
               e.stopPropagation();
               openAddToPlaylist(item);
             }}
-            className="absolute top-2 left-2 p-1.5 rounded-lg bg-black/70 hover:bg-accentCyan hover:text-black text-gray-200 border border-white/15 backdrop-blur-md opacity-95 md:opacity-0 md:group-hover:opacity-100 transition-all shadow-md z-20"
+            className="absolute top-2 left-2 p-1.5 rounded-lg bg-black/70 hover:bg-accentCyan hover:text-black text-gray-200 border border-white/15 backdrop-blur-md opacity-95 [@media(hover:hover)]:lg:opacity-0 [@media(hover:hover)]:lg:group-hover:opacity-100 transition-all shadow-md z-20"
             title="Add to Playlist"
           >
             <FolderPlus className="w-3.5 h-3.5" />
           </button>
 
-          {/* Live Equalizer Bars when track is active */}
-          {isCurrent && (
+          {/* Compact Play / Equalizer Badge (Bottom-right) */}
+          {isCurrent ? (
             <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-black/75 border border-accentCyan/40 backdrop-blur-md flex items-center gap-1 z-10 shadow-md">
               <EqualizerBars isPlaying={isCurrentPlaying} size="sm" bars={4} />
+            </div>
+          ) : (
+            <div className="flex [@media(hover:hover)]:lg:hidden absolute bottom-2 right-2 w-7 h-7 rounded-full bg-accentCyan text-black items-center justify-center shadow-[0_0_14px_rgba(var(--accent-cyan),0.75)] z-10">
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             </div>
           )}
         </div>
 
         {/* ── Info ── */}
         <div className="p-2.5 sm:p-3 flex flex-col gap-0.5">
-          <h3 className={`font-bold text-xs sm:text-sm leading-snug truncate transition-colors text-white group-hover:text-accentCyan ${isCurrentPlaying ? 'text-accentCyan' : ''}`}>
-            {item.title || item.name}
-          </h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            {isCurrent && <EqualizerBars isPlaying={isCurrentPlaying} size="sm" bars={3} className="shrink-0" />}
+            <h3 className={`font-bold text-xs sm:text-sm leading-snug truncate transition-colors text-white group-hover:text-accentCyan ${isCurrentPlaying ? 'text-accentCyan' : ''}`}>
+              {item.title || item.name}
+            </h3>
+          </div>
           {item.artist && (
             <p className="text-[11px] text-gray-400 truncate font-medium">{item.artist}</p>
           )}

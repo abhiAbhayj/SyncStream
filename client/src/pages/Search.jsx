@@ -490,32 +490,32 @@ export default function Search() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder=""
                 aria-label={`Search ${type}`}
-                className="relative z-10 w-full bg-transparent pl-10 sm:pl-12 pr-11 sm:pr-24 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none font-semibold"
+                className="relative z-10 w-full bg-transparent pl-10 sm:pl-12 pr-20 sm:pr-24 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none font-semibold"
               />
               {/* Smart Typewriter Animated Placeholder */}
               {query === '' && (
-                <div className="absolute left-10 sm:left-12 right-10 sm:right-20 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-sm sm:text-base text-gray-400 font-medium truncate">
+                <div className="absolute left-10 sm:left-12 right-16 sm:right-20 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-sm sm:text-base text-gray-400 font-medium truncate">
                   <span>{hintText || `Search ${type}...`}</span>
                   <span className="inline-block w-[2px] h-4 sm:h-5 bg-accentCyan ml-0.5 animate-cursor-blink shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
                 </div>
               )}
 
-              <div className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1.5">
+              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1 sm:gap-1.5">
                 {query && (
                   <button
                     type="button"
                     onClick={handleClearQuery}
-                    className="p-1.5 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer shadow-sm"
+                    className="p-1 sm:p-1.5 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer shadow-sm"
                     title="Clear search"
                     aria-label="Clear search"
                   >
-                    <X className="w-4 h-4 stroke-[2.5]" />
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new CustomEvent('open-spotlight-search', { detail: { query, type } }))}
-                  className="hidden sm:inline-flex items-center px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-accentCyan hover:text-black border border-white/10 text-[10px] font-mono font-bold text-gray-300 transition cursor-pointer"
+                  className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg bg-white/[0.08] hover:bg-accentCyan hover:text-black border border-white/15 text-[10px] font-mono font-bold text-gray-200 transition active:scale-95 cursor-pointer"
                   title="Open Spotlight Command Palette (Ctrl+K)"
                 >
                   ⌘K

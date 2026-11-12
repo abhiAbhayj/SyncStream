@@ -136,9 +136,9 @@ export default function MusicPlayerBar() {
 
   const trackTitle = cleanText(currentTrack.title);
   const trackArtist = cleanArtist(currentTrack.artist, currentTrack);
-  const isLongTitleMobile = trackTitle.length > 18;
-  const isLongTitleDesktop = trackTitle.length > 24;
-  const isLongArtist = trackArtist.length > 24;
+  const isLongTitleMobile = trackTitle.length > 15;
+  const isLongTitleDesktop = trackTitle.length > 17;
+  const isLongArtist = trackArtist.length > 18;
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -215,6 +215,13 @@ export default function MusicPlayerBar() {
                   }`}
                   title="Tap to open full player"
                 >
+                  {/* Vinyl sheen overlay */}
+                  <div
+                    className="absolute inset-0 rounded-full pointer-events-none opacity-35"
+                    style={{
+                      background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.22) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.22) 225deg, transparent 270deg)'
+                    }}
+                  />
                   <div
                     className="relative w-full h-full rounded-full overflow-hidden animate-spin-slow"
                     style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}

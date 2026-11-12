@@ -308,8 +308,9 @@ export default function Profile() {
   // Live preview theme selection with expanding Radial Theme Ripple Switch
   const handleThemeChange = (newTheme, e) => {
     const rect = e?.currentTarget?.getBoundingClientRect?.();
-    const x = e?.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth / 2);
-    const y = e?.clientY || (rect ? rect.top + rect.height / 2 : window.innerHeight / 2);
+    const touchPoint = e?.touches?.[0] || e?.changedTouches?.[0];
+    const x = e?.clientX || touchPoint?.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth / 2);
+    const y = e?.clientY || touchPoint?.clientY || (rect ? rect.top + rect.height / 2 : window.innerHeight / 2);
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
@@ -317,8 +318,10 @@ export default function Profile() {
 
     const matchedOption = THEME_OPTIONS.find((t) => t.id === newTheme);
     const rippleColor = matchedOption?.swatch?.[1] || matchedOption?.swatch?.[0] || '#00f5ff';
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const supportsViewTransition = !reduceMotion && typeof document.startViewTransition === 'function';
 
-    setThemeRipple({ id: Date.now(), x, y, color: rippleColor });
+    setThemeRipple({ id: Date.now(), x, y, color: rippleColor, fallbackCurtain: !supportsViewTransition && !reduceMotion });
     if (rippleTimerRef.current) clearTimeout(rippleTimerRef.current);
     rippleTimerRef.current = setTimeout(() => setThemeRipple(null), 820);
 
@@ -330,8 +333,7 @@ export default function Profile() {
       document.body.classList.add(`theme-${newTheme}`);
     };
 
-    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!reduceMotion && typeof document.startViewTransition === 'function') {
+    if (supportsViewTransition) {
       try {
         const transition = document.startViewTransition(() => {
           applyThemeDom();
@@ -1204,20 +1206,34 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Radial Theme Switch Shockwave Flash Overlay */}
+      {/* Radial Theme Switch Shockwave Flash & Mobile Fallback Curtain Overlay */}
       {themeRipple && (
-        <div
-          key={themeRipple.id}
-          aria-hidden="true"
-          className="fixed w-72 h-72 rounded-full pointer-events-none z-[9999] animate-theme-shockwave"
-          style={{
-            left: `${themeRipple.x}px`,
-            top: `${themeRipple.y}px`,
-            background: `radial-gradient(circle, ${themeRipple.color}55 0%, ${themeRipple.color}22 45%, transparent 72%)`,
-            boxShadow: `0 0 60px ${themeRipple.color}88`,
-            border: `2px solid ${themeRipple.color}`
-          }}
-        />
+        <>
+          {themeRipple.fallbackCurtain && (
+            <div
+              key={`curtain-${themeRipple.id}`}
+              aria-hidden="true"
+              className="fixed inset-0 pointer-events-none z-[9998] animate-theme-curtain"
+              style={{
+                '--wipe-x': `${themeRipple.x}px`,
+                '--wipe-y': `${themeRipple.y}px`,
+                background: `radial-gradient(circle at ${themeRipple.x}px ${themeRipple.y}px, ${themeRipple.color}44 0%, ${themeRipple.color}18 48%, rgba(4, 7, 18, 0.55) 100%)`
+              }}
+            />
+          )}
+          <div
+            key={themeRipple.id}
+            aria-hidden="true"
+            className="fixed w-72 h-72 rounded-full pointer-events-none z-[9999] animate-theme-shockwave"
+            style={{
+              left: `${themeRipple.x}px`,
+              top: `${themeRipple.y}px`,
+              background: `radial-gradient(circle, ${themeRipple.color}55 0%, ${themeRipple.color}22 45%, transparent 72%)`,
+              boxShadow: `0 0 60px ${themeRipple.color}88`,
+              border: `2px solid ${themeRipple.color}`
+            }}
+          />
+        </>
       )}
     </div>
   );

@@ -1524,23 +1524,24 @@ export default function Music() {
                               <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
                             </button>
 
-                            {/* Play / Pause button in list view */}
+                            {/* Play / Pause button in list view with Shockwave Ripple */}
                             <button
                               type="button"
-                              onClick={() => {
-                                if (currentTrack?.id === song.id) {
-                                  togglePlay();
-                                } else {
-                                  playTrack(song, songs);
-                                }
-                              }}
-                              className={`p-1.5 rounded-full transition active:scale-90 border ${
+                              onClick={() => handleSongPlayClick(song, songs)}
+                              className={`relative overflow-visible p-1.5 rounded-full transition active:scale-90 border ${
                                 isCurrentPlaying
                                   ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
                                   : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
                               }`}
                               title={isCurrentPlaying ? 'Pause' : 'Play'}
                             >
+                              {playRipple.id === song.id && (
+                                <span
+                                  key={playRipple.seq}
+                                  aria-hidden="true"
+                                  className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                                />
+                              )}
                               {isCurrentPlaying ? (
                                 <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                               ) : (
@@ -1695,13 +1696,7 @@ export default function Music() {
                                   }`}
                                 >
                                   <div
-                                    onClick={() => {
-                                      if (isCur) {
-                                        togglePlay();
-                                      } else {
-                                        playTrack(s, chart.songs);
-                                      }
-                                    }}
+                                    onClick={() => handleSongPlayClick(s, chart.songs)}
                                     className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-md bg-black cursor-pointer"
                                   >
                                     <img
@@ -1722,21 +1717,18 @@ export default function Music() {
                                     )}
                                   </div>
                                   <div className="space-y-0.5 min-w-0">
-                                    <p
-                                      onClick={() => {
-                                        if (isCur) {
-                                          togglePlay();
-                                        } else {
-                                          playTrack(s, chart.songs);
-                                        }
-                                      }}
-                                      className={`text-xs font-black truncate font-outfit cursor-pointer transition-colors ${
-                                        isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                                      }`}
-                                      title={s.title}
-                                    >
-                                      {s.title}
-                                    </p>
+                                    <div className="flex items-center gap-1 min-w-0">
+                                      {isCur && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} className="shrink-0" />}
+                                      <p
+                                        onClick={() => handleSongPlayClick(s, chart.songs)}
+                                        className={`text-xs font-black truncate font-outfit cursor-pointer transition-colors ${
+                                          isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                        }`}
+                                        title={s.title}
+                                      >
+                                        {s.title}
+                                      </p>
+                                    </div>
                                     <p className="text-[10px] text-slate-200 truncate font-semibold" title={s.artist}>{s.artist}</p>
 
                                     {/* Action Row: Clock + Heart + Playlist */}
@@ -1829,15 +1821,18 @@ export default function Music() {
                                       )}
                                     </div>
                                     <div className="min-w-0 flex-1 space-y-0.5">
-                                      <h4
-                                        onClick={() => isCur ? togglePlay() : playTrack(s, chart.songs)}
-                                        className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
-                                          isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                                        }`}
-                                        title={s.title}
-                                      >
-                                        {s.title}
-                                      </h4>
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        {isCur && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} className="shrink-0" />}
+                                        <h4
+                                          onClick={() => handleSongPlayClick(s, chart.songs)}
+                                          className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                                            isCur ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                          }`}
+                                          title={s.title}
+                                        >
+                                          {s.title}
+                                        </h4>
+                                      </div>
                                       <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold" title={s.artist}>
                                         {s.artist}
                                       </p>
@@ -1882,23 +1877,24 @@ export default function Music() {
                                       <FolderPlus className="w-3.5 h-3.5 stroke-[2.2]" />
                                     </button>
 
-                                    {/* Play / Pause button */}
+                                    {/* Play / Pause button with Shockwave Ripple */}
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        if (isCur) {
-                                          togglePlay();
-                                        } else {
-                                          playTrack(s, chart.songs);
-                                        }
-                                      }}
-                                      className={`p-1.5 rounded-full transition active:scale-90 border ${
+                                      onClick={() => handleSongPlayClick(s, chart.songs)}
+                                      className={`relative overflow-visible p-1.5 rounded-full transition active:scale-90 border ${
                                         isCurrentPlaying
                                           ? 'bg-accentCyan text-black border-white shadow-[0_0_10px_rgba(99,210,255,0.7)]'
                                           : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
                                       }`}
                                       title={isCurrentPlaying ? 'Pause' : 'Play'}
                                     >
+                                      {playRipple.id === s.id && (
+                                        <span
+                                          key={playRipple.seq}
+                                          aria-hidden="true"
+                                          className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                                        />
+                                      )}
                                       {isCurrentPlaying ? (
                                         <Pause className="w-3 h-3 fill-current" />
                                       ) : (
@@ -2129,13 +2125,7 @@ export default function Music() {
                     )}
 
                     <div
-                      onClick={() => {
-                        if (currentTrack?.id === song.id) {
-                          togglePlay();
-                        } else {
-                          playTrack(song, displayedFavorites);
-                        }
-                      }}
+                      onClick={() => handleSongPlayClick(song, displayedFavorites)}
                       className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
                     >
                       <img
@@ -2159,21 +2149,18 @@ export default function Music() {
                     </div>
 
                     <div className="min-w-0 flex-1 space-y-0.5">
-                      <h4
-                        onClick={() => {
-                          if (currentTrack?.id === song.id) {
-                            togglePlay();
-                          } else {
-                            playTrack(song, displayedFavorites);
-                          }
-                        }}
-                        className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
-                          isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
-                        }`}
-                        title={song.title}
-                      >
-                        {song.title}
-                      </h4>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} className="shrink-0" />}
+                        <h4
+                          onClick={() => handleSongPlayClick(song, displayedFavorites)}
+                          className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
+                            isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
+                          }`}
+                          title={song.title}
+                        >
+                          {song.title}
+                        </h4>
+                      </div>
                       <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold" title={song.artist}>
                         {song.artist}
                       </p>
@@ -2206,23 +2193,24 @@ export default function Music() {
                             <FolderPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
                           </button>
 
-                          {/* Play / Pause button */}
+                          {/* Play / Pause button with Shockwave Ripple */}
                           <button
                             type="button"
-                            onClick={() => {
-                              if (currentTrack?.id === song.id) {
-                                togglePlay();
-                              } else {
-                                playTrack(song, displayedFavorites);
-                              }
-                            }}
-                            className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
+                            onClick={() => handleSongPlayClick(song, displayedFavorites)}
+                            className={`relative overflow-visible p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                               isCurrentPlaying
                                 ? 'bg-red-500 text-white border-white shadow-[0_0_12px_rgba(239,68,68,0.7)] font-black'
                                 : 'bg-white/20 border-white/25 text-white hover:bg-red-500 hover:border-red-500'
                             }`}
                             title={isCurrentPlaying ? 'Pause' : 'Play'}
                           >
+                            {playRipple.id === song.id && (
+                              <span
+                                key={playRipple.seq}
+                                aria-hidden="true"
+                                className="absolute inset-0 rounded-full border-2 border-red-400 animate-shockwave pointer-events-none"
+                              />
+                            )}
                             {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />}
                           </button>
                         </div>
@@ -2307,15 +2295,18 @@ export default function Music() {
                       </div>
 
                       <div className="min-w-0 flex-1 space-y-0.5">
-                        <h4
-                          onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedFavorites)}
-                          className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
-                            isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
-                          }`}
-                          title={song.title}
-                        >
-                          {song.title}
-                        </h4>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} className="shrink-0" />}
+                          <h4
+                            onClick={() => handleSongPlayClick(song, displayedFavorites)}
+                            className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                              isCurrent ? 'text-red-400' : 'text-white group-hover:text-red-300'
+                            }`}
+                            title={song.title}
+                          >
+                            {song.title}
+                          </h4>
+                        </div>
                         <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold">
                           {song.artist}
                         </p>
@@ -2356,23 +2347,24 @@ export default function Music() {
                         <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
                       </button>
 
-                      {/* Play / Pause button in list view */}
+                      {/* Play / Pause button in list view with Shockwave Ripple */}
                       <button
                         type="button"
-                        onClick={() => {
-                          if (currentTrack?.id === song.id) {
-                            togglePlay();
-                          } else {
-                            playTrack(song, displayedFavorites);
-                          }
-                        }}
-                        className={`p-1.5 rounded-full transition active:scale-90 border ${
+                        onClick={() => handleSongPlayClick(song, displayedFavorites)}
+                        className={`relative overflow-visible p-1.5 rounded-full transition active:scale-90 border ${
                           isCurrentPlaying
                             ? 'bg-red-500 text-white border-white shadow-[0_0_12px_rgba(239,68,68,0.7)] font-black'
                             : 'bg-white/15 border-white/20 text-white hover:bg-red-500 hover:text-white hover:border-red-500'
                         }`}
                         title={isCurrentPlaying ? 'Pause' : 'Play'}
                       >
+                        {playRipple.id === song.id && (
+                          <span
+                            key={playRipple.seq}
+                            aria-hidden="true"
+                            className="absolute inset-0 rounded-full border-2 border-red-400 animate-shockwave pointer-events-none"
+                          />
+                        )}
                         {isCurrentPlaying ? (
                           <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                         ) : (
@@ -2660,13 +2652,7 @@ export default function Music() {
                         )}
 
                         <div
-                          onClick={() => {
-                            if (currentTrack?.id === song.id) {
-                              togglePlay();
-                            } else {
-                              playTrack(song, displayedPlaylistSongs);
-                            }
-                          }}
+                          onClick={() => handleSongPlayClick(song, displayedPlaylistSongs)}
                           className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black"
                         >
                           <img
@@ -2690,21 +2676,18 @@ export default function Music() {
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-0.5">
-                          <h4
-                            onClick={() => {
-                              if (currentTrack?.id === song.id) {
-                                togglePlay();
-                              } else {
-                                playTrack(song, displayedPlaylistSongs);
-                              }
-                            }}
-                            className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
-                              isCurrent ? 'text-accentCyan' : 'text-white'
-                            }`}
-                            title={song.title}
-                          >
-                            {song.title}
-                          </h4>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} className="shrink-0" />}
+                            <h4
+                              onClick={() => handleSongPlayClick(song, displayedPlaylistSongs)}
+                              className={`text-xs sm:text-sm font-black truncate font-outfit cursor-pointer ${
+                                isCurrent ? 'text-accentCyan' : 'text-white'
+                              }`}
+                              title={song.title}
+                            >
+                              {song.title}
+                            </h4>
+                          </div>
                           <p className="text-[10px] sm:text-[11px] text-slate-200 truncate font-semibold" title={song.artist}>
                             {song.artist}
                           </p>
@@ -2755,17 +2738,11 @@ export default function Music() {
                                 <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               </button>
 
-                              {/* Play / Pause button */}
+                              {/* Play / Pause button with Shockwave Ripple */}
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (currentTrack?.id === song.id) {
-                                    togglePlay();
-                                  } else {
-                                    playTrack(song, displayedPlaylistSongs);
-                                  }
-                                }}
-                                className={`p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
+                                onClick={() => handleSongPlayClick(song, displayedPlaylistSongs)}
+                                className={`relative overflow-visible p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                                   isCurrentPlaying
                                     ? 'bg-accentCyan text-black border-white shadow-[0_0_10px_rgba(99,210,255,0.7)] font-black'
                                     : 'bg-white/20 border-white/25 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
@@ -2773,6 +2750,13 @@ export default function Music() {
                                 title={isCurrentPlaying ? 'Pause' : 'Play'}
                                 aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
                               >
+                                {playRipple.id === song.id && (
+                                  <span
+                                    key={playRipple.seq}
+                                    aria-hidden="true"
+                                    className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                                  />
+                                )}
                                 {isCurrentPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" /> : <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />}
                               </button>
                             </div>
@@ -2858,15 +2842,18 @@ export default function Music() {
                           </div>
 
                           <div className="min-w-0 flex-1 space-y-0.5">
-                            <h4
-                              onClick={() => isCurrent ? togglePlay() : playTrack(song, displayedPlaylistSongs)}
-                              className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
-                                isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
-                              }`}
-                              title={song.title}
-                            >
-                              {song.title}
-                            </h4>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {isCurrent && <EqualizerBars isPlaying={isPlaying} size="sm" bars={3} className="shrink-0" />}
+                              <h4
+                                onClick={() => handleSongPlayClick(song, displayedPlaylistSongs)}
+                                className={`text-xs sm:text-sm font-black truncate cursor-pointer transition-colors ${
+                                  isCurrent ? 'text-accentCyan' : 'text-white group-hover:text-accentCyan'
+                                }`}
+                                title={song.title}
+                              >
+                                {song.title}
+                              </h4>
+                            </div>
                             <p className="text-[10px] sm:text-xs text-slate-300 truncate font-semibold">
                               {song.artist}
                             </p>
@@ -2921,23 +2908,24 @@ export default function Music() {
                             <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
 
-                          {/* Play / Pause button in list view */}
+                          {/* Play / Pause button in list view with Shockwave Ripple */}
                           <button
                             type="button"
-                            onClick={() => {
-                              if (currentTrack?.id === song.id) {
-                                togglePlay();
-                              } else {
-                                playTrack(song, displayedPlaylistSongs);
-                              }
-                            }}
-                            className={`p-1 xs:p-1.5 rounded-full transition active:scale-90 border ${
+                            onClick={() => handleSongPlayClick(song, displayedPlaylistSongs)}
+                            className={`relative overflow-visible p-1 xs:p-1.5 rounded-full transition active:scale-90 border ${
                               isCurrentPlaying
                                 ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
                                 : 'bg-white/15 border-white/20 text-white hover:bg-accentCyan hover:text-black hover:border-accentCyan'
                             }`}
                             title={isCurrentPlaying ? 'Pause' : 'Play'}
                           >
+                            {playRipple.id === song.id && (
+                              <span
+                                key={playRipple.seq}
+                                aria-hidden="true"
+                                className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
+                              />
+                            )}
                             {isCurrentPlaying ? (
                               <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                             ) : (

@@ -16,7 +16,58 @@ export default function Navbar() {
   // Morphing search bar states
   const [morphOpen, setMorphOpen] = useState(false);
   const [quickQuery, setQuickQuery] = useState('');
+  const [morphHint, setMorphHint] = useState('Stranger Things...');
   const morphInputRef = useRef(null);
+  const morphFormRef = useRef(null);
+
+  useEffect(() => {
+    if (!morphOpen || quickQuery) return;
+    const phrases = ['Stranger Things...', 'Demon Slayer...', 'Arijit Singh...', 'Solo Leveling...'];
+    let pIdx = 0;
+    let cIdx = 0;
+    let deleting = false;
+    let timer;
+    const step = () => {
+      const target = phrases[pIdx];
+      if (!deleting) {
+        cIdx += 1;
+        setMorphHint(target.slice(0, cIdx));
+        if (cIdx >= target.length) {
+          deleting = true;
+          timer = setTimeout(step, 1200);
+          return;
+        }
+        timer = setTimeout(step, 70);
+      } else {
+        cIdx -= 1;
+        setMorphHint(target.slice(0, Math.max(0, cIdx)));
+        if (cIdx <= 0) {
+          deleting = false;
+          pIdx = (pIdx + 1) % phrases.length;
+          timer = setTimeout(step, 260);
+          return;
+        }
+        timer = setTimeout(step, 35);
+      }
+    };
+    timer = setTimeout(step, 180);
+    return () => clearTimeout(timer);
+  }, [morphOpen, quickQuery]);
+
+  useEffect(() => {
+    if (!morphOpen) return;
+    const handleOutside = (e) => {
+      if (morphFormRef.current && !morphFormRef.current.contains(e.target) && !quickQuery) {
+        setMorphOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('touchstart', handleOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+    };
+  }, [morphOpen, quickQuery]);
 
   useEffect(() => {
     const updateScroll = () => {
@@ -156,19 +207,9 @@ export default function Navbar() {
           {/* ── Right Actions ── */}
           <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2.5 shrink-0">
 
-            {/* Mobile Spotlight Quick Trigger */}
-            <button
-              type="button"
-              onClick={openSpotlight}
-              className="sm:hidden w-7 h-7 xs:w-8 xs:h-8 rounded-full border border-accentCyan/40 bg-accentCyan/10 text-accentCyan flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-cyan),0.25)] active:scale-90 transition shrink-0"
-              title="Quick Spotlight Search"
-              aria-label="Quick Spotlight Search"
-            >
-              <Search className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
-            </button>
-
-            {/* Morphing Search Capsule (Desktop & Tablet) */}
+            {/* Morphing Search Icon Capsule (All Screens: 320px Mobile, Tablet & Desktop) */}
             <form
+              ref={morphFormRef}
               onSubmit={handleMorphSearchSubmit}
               onMouseEnter={() => setMorphOpen(true)}
               onMouseLeave={() => {
@@ -176,17 +217,21 @@ export default function Navbar() {
                   setMorphOpen(false);
                 }
               }}
-              className={`hidden sm:flex items-center rounded-full border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden ${
+              className={`flex items-center rounded-full border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden shrink-0 ${
                 morphOpen || quickQuery
-                  ? 'w-52 lg:w-64 px-3 py-1.5 border-accentCyan/70 bg-darkCard/95 shadow-[0_0_20px_rgba(var(--accent-cyan),0.3)]'
-                  : 'w-9 h-9 px-0 justify-center border-white/15 bg-white/[0.05] hover:border-accentCyan/60 cursor-pointer'
+                  ? 'max-sm:absolute max-sm:inset-x-2.5 max-sm:top-2.5 max-sm:h-11 max-sm:z-40 sm:w-56 md:w-64 lg:w-72 px-3 py-1.5 border-accentCyan/80 bg-[#0b1022]/98 backdrop-blur-2xl shadow-[0_0_24px_rgba(var(--accent-cyan),0.38)]'
+                  : 'w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 px-0 justify-center border-accentCyan/40 sm:border-white/15 bg-accentCyan/10 sm:bg-white/[0.05] hover:border-accentCyan/70 cursor-pointer shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)] sm:shadow-none'
               }`}
             >
               <button
                 type="button"
                 onClick={() => {
-                  setMorphOpen(true);
-                  setTimeout(() => morphInputRef.current?.focus(), 60);
+                  if (morphOpen && quickQuery.trim()) {
+                    handleMorphSearchSubmit({ preventDefault: () => {} });
+                  } else {
+                    setMorphOpen(true);
+                    setTimeout(() => morphInputRef.current?.focus(), 60);
+                  }
                 }}
                 className={`shrink-0 flex items-center justify-center text-accentCyan transition-transform duration-300 ${
                   morphOpen || quickQuery ? 'mr-2' : 'w-full h-full'
@@ -194,33 +239,63 @@ export default function Navbar() {
                 title="Quick Search (Ctrl+K)"
                 aria-label="Expand Search Bar"
               >
-                <Search className="w-4 h-4" />
+                <Search className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
               </button>
 
-              <input
-                ref={morphInputRef}
-                type="text"
-                value={quickQuery}
-                onFocus={() => setMorphOpen(true)}
-                onBlur={() => {
-                  if (!quickQuery) setMorphOpen(false);
-                }}
-                onChange={(e) => setQuickQuery(e.target.value)}
-                placeholder="Quick search..."
-                className={`bg-transparent text-xs text-white placeholder:text-gray-400 focus:outline-none transition-all duration-300 ${
-                  morphOpen || quickQuery ? 'w-full opacity-100' : 'w-0 opacity-0 pointer-events-none'
-                }`}
-              />
+              <div className={`relative flex-1 min-w-0 flex items-center transition-all duration-300 ${
+                morphOpen || quickQuery ? 'w-full opacity-100' : 'w-0 opacity-0 pointer-events-none'
+              }`}>
+                <input
+                  ref={morphInputRef}
+                  type="text"
+                  value={quickQuery}
+                  onFocus={() => setMorphOpen(true)}
+                  onChange={(e) => setQuickQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setMorphOpen(false);
+                      morphInputRef.current?.blur();
+                    }
+                  }}
+                  placeholder=""
+                  aria-label="Quick search"
+                  className="relative z-10 w-full bg-transparent text-xs text-white focus:outline-none py-0.5"
+                />
+                {!quickQuery && (morphOpen) && (
+                  <div className="absolute inset-0 flex items-center pointer-events-none text-xs text-gray-400 truncate pr-1">
+                    <span className="truncate">{morphHint ? `Search ${morphHint}` : 'Quick search...'}</span>
+                    <span className="inline-block w-[1.5px] h-3.5 bg-accentCyan ml-0.5 animate-cursor-blink shrink-0" />
+                  </div>
+                )}
+              </div>
 
               {(morphOpen || quickQuery) && (
-                <button
-                  type="button"
-                  onClick={openSpotlight}
-                  className="shrink-0 ml-1 px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-accentCyan hover:text-black text-[9px] font-mono font-bold text-gray-300 transition border border-white/10"
-                  title="Open Spotlight Modal (Ctrl+K)"
-                >
-                  ⌘K
-                </button>
+                <div className="flex items-center gap-1 shrink-0 ml-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      setMorphOpen(false);
+                      openSpotlight(e);
+                    }}
+                    className="px-1.5 py-0.5 rounded-md bg-accentCyan/15 hover:bg-accentCyan hover:text-black text-[9px] font-mono font-bold text-accentCyan transition border border-accentCyan/35 cursor-pointer"
+                    title="Open Spotlight Modal (Ctrl+K)"
+                  >
+                    ⌘K
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickQuery('');
+                      setMorphOpen(false);
+                      morphInputRef.current?.blur();
+                    }}
+                    className="p-0.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                    title="Close Search"
+                    aria-label="Close Search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               )}
             </form>
 
