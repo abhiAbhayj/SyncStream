@@ -87,7 +87,7 @@ export default function Watchlist() {
       tagShadow: 'shadow-[0_0_20px_rgba(6,182,212,0.25)]',
       badgeBg: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300',
       glowBg: 'bg-cyan-500/5',
-      exploreLink: '/catalog?type=movie',
+      exploreLink: '/catalog/trending/movies',
       exploreLabel: 'Explore Movies',
       emptyTitle: 'No Saved Movies',
       emptyDesc: "You haven't bookmarked any movies yet. Explore trending and popular movies to build your library.",
@@ -105,7 +105,7 @@ export default function Watchlist() {
       tagShadow: 'shadow-[0_0_20px_rgba(16,185,129,0.25)]',
       badgeBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
       glowBg: 'bg-emerald-500/5',
-      exploreLink: '/catalog?type=tv',
+      exploreLink: '/catalog/trending/tv',
       exploreLabel: 'Explore TV Series',
       emptyTitle: 'No Saved TV Series',
       emptyDesc: "You haven't bookmarked any TV shows yet. Browse binge-worthy series to track your episodes.",
@@ -123,7 +123,7 @@ export default function Watchlist() {
       tagShadow: 'shadow-[0_0_20px_rgba(168,85,247,0.25)]',
       badgeBg: 'bg-purple-500/15 border-purple-500/30 text-purple-300',
       glowBg: 'bg-purple-500/5',
-      exploreLink: '/catalog?type=anime',
+      exploreLink: '/catalog/trending/anime',
       exploreLabel: 'Explore Anime',
       emptyTitle: 'No Saved Anime',
       emptyDesc: "You haven't bookmarked any anime series yet. Find top broadcast and seasonal anime titles.",
@@ -141,7 +141,7 @@ export default function Watchlist() {
       tagShadow: 'shadow-[0_0_20px_rgba(236,72,153,0.25)]',
       badgeBg: 'bg-pink-500/15 border-pink-500/30 text-pink-300',
       glowBg: 'bg-pink-500/5',
-      exploreLink: '/catalog?type=manga',
+      exploreLink: '/catalog/trending/manga',
       exploreLabel: 'Explore Manga',
       emptyTitle: 'No Saved Manga',
       emptyDesc: "You haven't bookmarked any manga volumes yet. Explore Japanese manga, manhwa, and manhua.",
@@ -151,7 +151,7 @@ export default function Watchlist() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 md:px-8 space-y-5 sm:space-y-6 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[75vh]">
       
       {/* ── Header with Library Title & Stats ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-4">

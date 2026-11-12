@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Rocket, X, Check } from 'lucide-react';
+import { useMusic } from '../context/MusicContext';
 
 const WAKE_STEPS = [
   'Connecting',
@@ -13,6 +14,7 @@ const WAKE_STEPS = [
  * Never blocks the user. Auto-dismisses when server is ready.
  */
 export default function ServerWakeup() {
+  const { currentTrack } = useMusic();
   const [show, setShow] = useState(false);
   const [ready, setReady] = useState(false);
   const [wakeStage, setWakeStage] = useState(0);
@@ -59,7 +61,13 @@ export default function ServerWakeup() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-1.5rem)] max-w-sm p-3.5 sm:p-4 rounded-2xl border shadow-[0_18px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl flex items-center gap-3.5 bg-[#0b1024]/95 border-accentCyan/40 text-gray-200 animate-spring-toast overflow-hidden">
+    <div
+      className={`fixed left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-1.5rem)] max-w-sm p-3.5 sm:p-4 rounded-2xl border shadow-[0_18px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl flex items-center gap-3.5 bg-[#0b1024]/95 border-accentCyan/40 text-gray-200 animate-spring-toast overflow-hidden transition-all duration-300 ${
+        currentTrack
+          ? 'bottom-[calc(9.75rem+env(safe-area-inset-bottom,0px))] md:bottom-24'
+          : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6'
+      }`}
+    >
       {/* Subtle orbital glow backdrop */}
       <div
         aria-hidden="true"

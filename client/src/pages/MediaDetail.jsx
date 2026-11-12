@@ -444,7 +444,7 @@ export default function MediaDetail() {
   })();
 
   return (
-    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 md:px-8 space-y-4 sm:space-y-6 relative">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3.5 sm:px-6 md:px-8 space-y-4 sm:space-y-6 relative">
       
       {/* Top Controls Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl">
@@ -571,7 +571,7 @@ export default function MediaDetail() {
                 const ringStroke = rawScore >= 7.5 ? '#22d3ee' : rawScore >= 6 ? '#facc15' : '#fb7185';
                 return (
                   <div
-                    className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center rounded-full bg-black/55 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] backdrop-blur-md group/rating"
+                    className="relative w-11 h-11 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center rounded-full bg-black/55 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] backdrop-blur-md group/rating"
                     title={`User Score: ${rawScore.toFixed(1)} / 10`}
                   >
                     <svg className="w-full h-full -rotate-90 p-0.5" viewBox="0 0 46 46">
@@ -744,18 +744,18 @@ export default function MediaDetail() {
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Paste Direct Video URL (.mp4, .m3u8) or Custom Embed URL:
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   placeholder="e.g. https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
                   value={customUrl}
                   onChange={(e) => setCustomUrl(e.target.value)}
-                  className="flex-grow px-3 sm:px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs sm:text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
+                  className="flex-grow min-w-0 px-3 sm:px-4 py-2 bg-darkCard border border-darkBorder rounded-xl text-xs sm:text-sm text-gray-200 focus:outline-none focus:border-accentCyan transition"
                 />
                 {customUrl && (
                   <button
                     onClick={() => setCustomUrl('')}
-                    className="px-3 py-2 bg-darkCard border border-darkBorder hover:border-red-500/30 hover:text-red-400 rounded-xl text-xs font-bold transition cursor-pointer"
+                    className="px-3 py-2 bg-darkCard border border-darkBorder hover:border-red-500/30 hover:text-red-400 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 self-end sm:self-auto"
                   >
                     Clear
                   </button>
@@ -984,7 +984,7 @@ export default function MediaDetail() {
             /* Render Reader inline */
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-2">
-                <h3 className="font-semibold text-base sm:text-lg text-accentCyan truncate">
+                <h3 className="font-semibold text-base sm:text-lg text-accentCyan truncate min-w-0 flex-1">
                   Reading: {activeChapterTitle}
                 </h3>
                 <button
@@ -992,9 +992,9 @@ export default function MediaDetail() {
                     setActiveChapterId(null);
                     setActiveChapterTitle('');
                   }}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-darkCard border border-darkBorder hover:border-white/20 rounded-xl text-xs font-semibold text-gray-200 transition"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-darkCard border border-darkBorder hover:border-white/20 rounded-xl text-xs font-semibold text-gray-200 transition shrink-0"
                 >
-                  Close Reader & View Chapters
+                  Close Reader &amp; View Chapters
                 </button>
               </div>
               

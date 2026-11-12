@@ -605,7 +605,7 @@ export default function WatchPartyCall({ roomCode }) {
               Party Voice &amp; Video
             </span>
             {inCall && (
-              <span className="text-[10px] font-mono font-extrabold px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
                 {activePeerCount} in call
               </span>
             )}
@@ -840,10 +840,10 @@ export default function WatchPartyCall({ roomCode }) {
           </div>
 
           {/* Modal Bottom Controls */}
-          <div className="flex items-center justify-center gap-3 pt-4 border-t border-white/15 max-w-xl mx-auto w-full">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-4 border-t border-white/15 max-w-xl mx-auto w-full pb-[env(safe-area-inset-bottom,0px)]">
             <button
               onClick={toggleMic}
-              className={`px-4 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-2 transition active:scale-95 ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition active:scale-95 ${
                 micEnabled ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-red-500/20 text-red-400 border border-red-500/30'
               }`}
             >
@@ -853,7 +853,7 @@ export default function WatchPartyCall({ roomCode }) {
 
             <button
               onClick={toggleVideo}
-              className={`px-4 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-2 transition active:scale-95 ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition active:scale-95 ${
                 videoEnabled ? 'bg-accentPurple/20 text-accentPurple border border-accentPurple/40' : 'bg-white/10 text-gray-300'
               }`}
             >
@@ -863,7 +863,7 @@ export default function WatchPartyCall({ roomCode }) {
 
             <button
               onClick={toggleDeafen}
-              className={`p-3 rounded-2xl font-bold text-sm flex items-center gap-2 transition active:scale-95 ${
+              className={`p-2.5 sm:p-3 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition active:scale-95 ${
                 !isDeafened ? 'bg-white/10 text-gray-300' : 'bg-red-500/20 text-red-400 border border-red-500/30'
               }`}
               title="Deafen Audio"
@@ -873,7 +873,7 @@ export default function WatchPartyCall({ roomCode }) {
 
             <button
               onClick={handleLeaveCall}
-              className="px-5 py-2.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-extrabold text-sm flex items-center gap-2 shadow-lg active:scale-95 transition"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-extrabold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shadow-lg active:scale-95 transition"
             >
               <PhoneOff className="w-4 h-4" />
               <span>Leave Call</span>

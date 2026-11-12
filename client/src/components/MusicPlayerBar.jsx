@@ -167,7 +167,7 @@ export default function MusicPlayerBar() {
       {/* Floating Music Player Bar */}
       <aside
         aria-label="Floating Music Player"
-        className="fixed left-2 right-2 sm:left-4 sm:right-4 bottom-[56px] xs:bottom-[58px] md:bottom-3 z-40 max-w-5xl mx-auto transition-all duration-300 pointer-events-auto select-none"
+        className="fixed left-2 right-2 sm:left-4 sm:right-4 bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] md:bottom-3 z-40 max-w-5xl mx-auto transition-all duration-300 pointer-events-auto select-none"
       >
         <div className="relative rounded-xl sm:rounded-2xl border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl bg-[#0e1329]/95 overflow-visible">
 
@@ -256,7 +256,7 @@ export default function MusicPlayerBar() {
                         {trackTitle}
                       </h4>
                     )}
-                    <span className="uppercase text-[7px] xs:text-[7.5px] font-black px-1 py-0.2 rounded bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
+                    <span className="hidden xs:inline-block uppercase text-[7.5px] font-black px-1.5 py-0.5 rounded bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
                       {currentTrack.language || currentTrack.category || 'GLOBAL'}
                     </span>
                   </div>
@@ -500,7 +500,7 @@ export default function MusicPlayerBar() {
                       {trackTitle}
                     </h4>
                   )}
-                  <span className="uppercase text-[7.5px] sm:text-[8px] md:text-[8.5px] font-black px-1.5 py-0.2 rounded-md bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
+                  <span className="uppercase text-[7.5px] sm:text-[8px] md:text-[8.5px] font-black px-1.5 py-0.5 rounded-md bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shrink-0">
                     {currentTrack.language || currentTrack.category || 'GLOBAL'}
                   </span>
                 </div>
@@ -552,7 +552,7 @@ export default function MusicPlayerBar() {
                 className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition active:scale-90"
                 title="Previous Track"
               >
-                <SkipBack className="w-4 h-4 md:w-4.5 md:h-4.5" />
+                <SkipBack className="w-4 h-4 md:w-[18px] md:h-[18px]" />
               </button>
 
               <button
@@ -561,7 +561,7 @@ export default function MusicPlayerBar() {
                 className="group relative p-1.5 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition active:scale-90 flex items-center justify-center"
                 title="Rewind 10 Seconds"
               >
-                <RotateCcw className="w-4 h-4 md:w-4.5 md:h-4.5 transition-transform group-hover:-rotate-45" />
+                <RotateCcw className="w-4 h-4 md:w-[18px] md:h-[18px] transition-transform group-hover:-rotate-45" />
                 <span className="absolute text-[7px] font-black text-accentCyan font-mono pointer-events-none">
                   10
                 </span>
@@ -597,7 +597,7 @@ export default function MusicPlayerBar() {
                 className="group relative p-1.5 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition active:scale-90 flex items-center justify-center"
                 title="Forward 10 Seconds"
               >
-                <RotateCw className="w-4 h-4 md:w-4.5 md:h-4.5 transition-transform group-hover:rotate-45" />
+                <RotateCw className="w-4 h-4 md:w-[18px] md:h-[18px] transition-transform group-hover:rotate-45" />
                 <span className="absolute text-[7px] font-black text-accentCyan font-mono pointer-events-none">
                   10
                 </span>
@@ -609,7 +609,7 @@ export default function MusicPlayerBar() {
                 className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition active:scale-90"
                 title="Next Track"
               >
-                <SkipForward className="w-4 h-4 md:w-4.5 md:h-4.5" />
+                <SkipForward className="w-4 h-4 md:w-[18px] md:h-[18px]" />
               </button>
             </div>
 
@@ -627,7 +627,7 @@ export default function MusicPlayerBar() {
                 className="p-1.5 md:p-2 text-slate-300 hover:text-accentCyan hover:bg-accentCyan/15 rounded-lg transition active:scale-90"
                 title="Lyrics"
               >
-                <FileText className="w-4 h-4 md:w-4.5 md:h-4.5" />
+                <FileText className="w-4 h-4 md:w-[18px] md:h-[18px]" />
               </button>
 
               {/* Volume Slider */}
@@ -667,7 +667,7 @@ export default function MusicPlayerBar() {
                 className="p-1.5 md:p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/15 rounded-lg transition active:scale-90"
                 title="Close / Dismiss"
               >
-                <X className="w-4 h-4 md:w-4.5 md:h-4.5" />
+                <X className="w-4 h-4 md:w-[18px] md:h-[18px]" />
               </button>
             </div>
           </div>
@@ -676,7 +676,7 @@ export default function MusicPlayerBar() {
 
       {/* Queue Drawer Popup (Desktop & Mobile) */}
       {showQueueDrawer && (
-        <div className="fixed bottom-36 md:bottom-24 left-3 right-3 sm:left-auto sm:right-4 z-50 w-auto sm:w-96 max-h-[60vh] rounded-3xl border-2 border-white/20 bg-[#141a33]/98 backdrop-blur-2xl shadow-2xl p-4 flex flex-col gap-3 animate-slide-up">
+        <div className="fixed bottom-[calc(9.5rem+env(safe-area-inset-bottom,0px))] md:bottom-24 left-2 right-2 sm:left-auto sm:right-4 z-50 w-auto sm:w-96 max-h-[60vh] rounded-3xl border-2 border-white/20 bg-[#141a33]/98 backdrop-blur-2xl shadow-2xl p-4 flex flex-col gap-3 animate-slide-up">
           <div className="flex items-center justify-between pb-2 border-b border-white/15">
             <div className="flex items-center gap-2">
               <ListMusic className="w-4 h-4 text-accentCyan" />

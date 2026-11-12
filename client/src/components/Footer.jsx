@@ -7,10 +7,10 @@ export default function Footer() {
 
   return (
     <footer
-      className={`relative z-10 border-t border-accentCyan/20 bg-[#0a0e1e]/90 backdrop-blur-xl px-4 sm:px-6 md:px-8 mt-auto transition-all duration-300 ${
+      className={`relative z-10 border-t border-accentCyan/20 bg-[#0a0e1e]/90 backdrop-blur-xl px-3.5 sm:px-6 md:px-8 mt-auto transition-all duration-300 ${
         currentTrack
-          ? 'pt-6 pb-28 sm:pb-24'
-          : 'py-6 sm:py-8'
+          ? 'pt-6 pb-40 md:pb-24'
+          : 'pt-6 pb-20 md:py-8'
       }`}
     >
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
@@ -40,16 +40,16 @@ export default function Footer() {
 
           {/* Quick Nav Links */}
           <nav className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-5 gap-y-2 text-xs font-semibold text-gray-300">
-            <Link to="/catalog?type=movie" className="hover:text-accentCyan transition-colors">
+            <Link to="/catalog/trending/movies" className="hover:text-accentCyan transition-colors">
               Movies
             </Link>
-            <Link to="/catalog?type=tv" className="hover:text-[#10b981] transition-colors">
+            <Link to="/catalog/trending/tv" className="hover:text-[#10b981] transition-colors">
               TV Series
             </Link>
-            <Link to="/catalog?type=anime" className="hover:text-accentPurple transition-colors">
+            <Link to="/catalog/trending/anime" className="hover:text-accentPurple transition-colors">
               Anime
             </Link>
-            <Link to="/catalog?type=manga" className="hover:text-accentPink transition-colors">
+            <Link to="/catalog/trending/manga" className="hover:text-accentPink transition-colors">
               Manga
             </Link>
             <Link to="/music" className="hover:text-accentCyan transition-colors">

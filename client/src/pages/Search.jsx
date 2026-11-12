@@ -408,7 +408,7 @@ export default function Search() {
     : MANGA_GENRES;
 
   return (
-    <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
       {/* ── Title, Live Status & Live Refresh Icon (Only Icon) ── */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
@@ -444,7 +444,7 @@ export default function Search() {
       </div>
 
       {/* Search and Filters Console (with integrated category tabs) */}
-      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/90 border-2 border-accentCyan/40 p-4 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl shadow-2xl">
+      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/90 border-2 border-accentCyan/40 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl shadow-2xl">
         
         {/* Category Selector Tabs (Movies, TV Shows, Anime, Manga, Music) */}
         <div className="space-y-1.5 border-b-2 border-white/10 pb-3">
@@ -456,7 +456,7 @@ export default function Search() {
               Currently searching: <strong className="text-white capitalize">{type}</strong>
             </span>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-2 px-2 sm:mx-0 sm:px-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none">
             {filterTabs.map((tab) => {
               const Icon = tab.icon;
               const isSelected = type === tab.key;
@@ -465,7 +465,7 @@ export default function Search() {
                   key={tab.key}
                   type="button"
                   onClick={() => handleTypeChange(tab.key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-200 active:scale-95 shrink-0 border-2 cursor-pointer shadow-md ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-200 active:scale-95 shrink-0 border-2 cursor-pointer shadow-md ${
                     isSelected
                       ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_16px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan'
                       : 'text-white border-2 border-accentCyan/50 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
@@ -490,11 +490,11 @@ export default function Search() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder=""
                 aria-label={`Search ${type}`}
-                className="relative z-10 w-full bg-transparent pl-10 sm:pl-12 pr-20 sm:pr-24 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none font-semibold"
+                className="relative z-10 w-full bg-transparent pl-10 sm:pl-12 pr-11 sm:pr-24 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none font-semibold"
               />
               {/* Smart Typewriter Animated Placeholder */}
               {query === '' && (
-                <div className="absolute left-10 sm:left-12 right-20 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-sm sm:text-base text-gray-400 font-medium truncate">
+                <div className="absolute left-10 sm:left-12 right-10 sm:right-20 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-sm sm:text-base text-gray-400 font-medium truncate">
                   <span>{hintText || `Search ${type}...`}</span>
                   <span className="inline-block w-[2px] h-4 sm:h-5 bg-accentCyan ml-0.5 animate-cursor-blink shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
                 </div>
@@ -600,19 +600,19 @@ export default function Search() {
         )}
 
         {/* Filter controls row */}
-        <div className="flex flex-wrap gap-4 items-center justify-start text-xs pt-1">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:flex-wrap gap-2.5 sm:gap-4 items-center text-xs pt-1">
 
           {/* 1. MUSIC: Show Languages Dropdown */}
           {type === 'music' ? (
-            <div className="flex items-center gap-2">
-              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1">
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
                 <Globe className="w-3.5 h-3.5 text-accentCyan" />
                 <span>Language:</span>
               </span>
               <select
                 value={language}
                 onChange={(e) => handleLanguageChange(e.target.value)}
-                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
+                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md truncate"
               >
                 <option value="">All Hits</option>
                 {MUSIC_LANGUAGES.map(lang => (
@@ -624,15 +624,15 @@ export default function Search() {
             </div>
           ) : (
             /* 2. MOVIES/TV/ANIME/MANGA: Show Genre Dropdown */
-            <div className="flex items-center gap-2">
-              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1">
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
                 <Filter className="w-3.5 h-3.5 text-accentCyan" />
                 <span>Genre:</span>
               </span>
               <select
                 value={genre}
                 onChange={(e) => handleGenreChange(e.target.value)}
-                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black max-w-[200px] truncate shadow-md"
+                className="flex-1 sm:flex-initial min-w-0 sm:max-w-[200px] px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black truncate shadow-md"
               >
                 <option value="">All Genres</option>
                 {currentGenres.map(g => (
@@ -644,12 +644,12 @@ export default function Search() {
 
           {/* Country select (only for Movie/TV) */}
           {(type === 'movie' || type === 'tv') && (
-            <div className="flex items-center gap-2">
-              <span className="text-accentCyan font-black uppercase tracking-wider">Country:</span>
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <span className="text-accentCyan font-black uppercase tracking-wider shrink-0">Country:</span>
               <select
                 value={country}
                 onChange={(e) => handleCountryChange(e.target.value)}
-                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
+                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md truncate"
               >
                 <option value="">All Countries</option>
                 {[
@@ -675,12 +675,12 @@ export default function Search() {
 
           {/* Year filter (for movie/tv/anime/manga, not music) */}
           {(type === 'movie' || type === 'tv' || type === 'anime' || type === 'manga') && (
-            <div className="flex items-center gap-2">
-              <span className="text-accentCyan font-black uppercase tracking-wider">Year:</span>
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <span className="text-accentCyan font-black uppercase tracking-wider shrink-0">Year:</span>
               <select
                 value={year}
                 onChange={(e) => handleYearChange(e.target.value)}
-                className="px-4 py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
+                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
               >
                 <option value="">All Years</option>
                 {Array.from({ length: new Date().getFullYear() - 1949 }, (_, i) => new Date().getFullYear() - i).map(y => (
@@ -695,7 +695,7 @@ export default function Search() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="text-xs font-bold text-accentPink hover:underline ml-auto"
+              className="col-span-full text-xs font-bold text-accentPink hover:underline sm:ml-auto text-right justify-self-end"
             >
               Clear Filters
             </button>

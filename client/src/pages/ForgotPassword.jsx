@@ -112,9 +112,9 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 max-w-md mx-auto space-y-4">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-3.5 py-6 sm:p-6 max-w-md mx-auto space-y-4">
       <div className="w-full animate-slide-up">
-        <div className="glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500">
+        <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500">
           
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentCyan to-accentPurple"></div>
           

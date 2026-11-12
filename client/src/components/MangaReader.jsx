@@ -181,7 +181,7 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
 
       {/* ── Chapter Complete Floating Toast Notification ── */}
       {reachedEndToast && (
-        <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[140] px-4 py-2.5 rounded-2xl bg-[#0e1429]/95 border border-accentCyan/50 shadow-[0_0_28px_rgba(var(--accent-cyan),0.4)] backdrop-blur-xl flex items-center gap-2.5 animate-spring-toast pointer-events-auto">
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-8 left-1/2 -translate-x-1/2 z-[140] max-w-[calc(100vw-1.5rem)] px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-[#0e1429]/95 border border-accentCyan/50 shadow-[0_0_28px_rgba(var(--accent-cyan),0.4)] backdrop-blur-xl flex items-center gap-2 sm:gap-2.5 animate-spring-toast pointer-events-auto">
           <Sparkles className="w-4 h-4 text-accentCyan animate-pulse shrink-0" />
           <span className="text-xs font-extrabold text-white whitespace-nowrap">
             Chapter Finished! 🎉
@@ -190,7 +190,7 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
             <button
               type="button"
               onClick={() => onChapterSelect(nextChapter.id, `Chapter ${nextChapter.chapter}: ${nextChapter.title}`)}
-              className="ml-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-accentCyan to-accentPurple text-black text-[11px] font-black flex items-center gap-1 hover:opacity-90 active:scale-95 transition"
+              className="ml-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-accentCyan to-accentPurple text-black text-[11px] font-black flex items-center gap-1 hover:opacity-90 active:scale-95 transition shrink-0"
             >
               <span>Next Ch. {nextChapter.chapter}</span>
               <ArrowRight className="w-3 h-3" />
@@ -200,7 +200,7 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
       )}
 
       {/* Floating Reader Settings Bar */}
-      <div className="sticky top-16 sm:top-20 z-40 w-full max-w-4xl glass-panel border border-darkBorder rounded-2xl px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 flex flex-col gap-2 shadow-xl">
+      <div className="sticky top-[68px] sm:top-20 z-40 w-full max-w-4xl glass-panel border border-darkBorder rounded-2xl px-2.5 sm:px-4 pt-2 sm:pt-3 pb-2 flex flex-col gap-2 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 w-full">
           <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold">
             <span className="text-accentCyan bg-accentCyan/10 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-accentCyan/20 whitespace-nowrap">

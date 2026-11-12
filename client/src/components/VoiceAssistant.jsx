@@ -864,7 +864,13 @@ export default function VoiceAssistant() {
   }
 
   return (
-    <div className="fixed bottom-[145px] xs:bottom-[150px] sm:bottom-[84px] md:bottom-20 right-3 sm:right-5 z-40 flex flex-col items-end gap-2 pointer-events-none select-none">
+    <div
+      className={`fixed right-3 sm:right-5 z-40 flex flex-col items-end gap-2 pointer-events-none select-none transition-all duration-300 ${
+        currentTrack
+          ? 'bottom-[calc(9.75rem+env(safe-area-inset-bottom,0px))] sm:bottom-[6.25rem] md:bottom-24'
+          : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6'
+      }`}
+    >
       
       {/* Status bubbles with Siri-style Waveform */}
       {(transcript || statusText || errorMsg) && (
@@ -942,7 +948,7 @@ export default function VoiceAssistant() {
           {isListening ? (
             <span className="flex items-center justify-center relative">
               <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-accentCyan/40 via-accentPurple/40 to-accentPink/40 animate-ping" />
-              <Mic className="relative w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5] text-accentCyan drop-shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
+              <Mic className="relative w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[2.5] text-accentCyan drop-shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
             </span>
           ) : (
             <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />

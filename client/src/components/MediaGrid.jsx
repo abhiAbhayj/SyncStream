@@ -354,7 +354,7 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
         </div>
 
         {/* ── Info ── */}
-        <div className="p-3 flex flex-col gap-1">
+        <div className="p-2.5 sm:p-3 flex flex-col gap-1">
           <h3 className={`font-dmsans font-semibold text-sm leading-snug line-clamp-2 transition-all duration-300 text-gray-200
                          group-hover:bg-gradient-to-r ${cfg.titleHover}
                          group-hover:bg-clip-text group-hover:text-transparent`}>
@@ -446,7 +446,7 @@ function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardCl
               e.stopPropagation();
               openAddToPlaylist(item);
             }}
-            className="absolute top-2 left-2 p-1.5 rounded-lg bg-black/60 hover:bg-accentCyan hover:text-black text-gray-200 border border-white/10 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all shadow-md z-20"
+            className="absolute top-2 left-2 p-1.5 rounded-lg bg-black/70 hover:bg-accentCyan hover:text-black text-gray-200 border border-white/15 backdrop-blur-md opacity-95 md:opacity-0 md:group-hover:opacity-100 transition-all shadow-md z-20"
             title="Add to Playlist"
           >
             <FolderPlus className="w-3.5 h-3.5" />
@@ -486,16 +486,16 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {title && (
-        <div className="flex items-center justify-between">
-          <h2 className="section-title text-xl font-display font-bold text-white">
+        <div className="flex items-center justify-between gap-2.5">
+          <h2 className="section-title text-base sm:text-xl font-display font-bold text-white min-w-0">
             {title}
           </h2>
           {seeMoreLink && (
             <Link
               to={seeMoreLink}
-              className="group flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-accentCyan transition-all duration-300"
+              className="group flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-accentCyan transition-all duration-300 shrink-0 whitespace-nowrap"
             >
               View All
               <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />

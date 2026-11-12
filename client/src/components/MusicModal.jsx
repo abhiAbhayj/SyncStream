@@ -549,7 +549,7 @@ export default function MusicModal() {
                       />
 
                       {/* Centered Album Label */}
-                      <div className="w-14 h-14 xs:w-18 xs:h-18 sm:w-22 sm:h-22 md:w-26 md:h-26 rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
+                      <div className="w-14 h-14 xs:w-[72px] xs:h-[72px] sm:w-[88px] sm:h-[88px] md:w-[104px] md:h-[104px] rounded-full overflow-hidden border-2 border-white/40 relative shadow-2xl shrink-0 flex items-center justify-center">
                         <img
                           src={trackImageUrl}
                           alt={cleanSongTitle(currentTrack.title)}
@@ -875,7 +875,7 @@ export default function MusicModal() {
             className="p-2 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
             title="Previous Track"
           >
-            <SkipBack className="w-4.5 h-4.5" />
+            <SkipBack className="w-[18px] h-[18px]" />
           </button>
 
           <button
@@ -884,7 +884,7 @@ export default function MusicModal() {
             className="relative p-2 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
             title="Rewind 10s"
           >
-            <RotateCcw className="w-4.5 h-4.5 transition-transform group-hover:-rotate-45" />
+            <RotateCcw className="w-[18px] h-[18px] transition-transform group-hover:-rotate-45" />
             <span className="absolute text-[7px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
           </button>
 
@@ -892,7 +892,7 @@ export default function MusicModal() {
             type="button"
             onClick={handleTogglePlayWithRipple}
             disabled={isLoading}
-            className="relative overflow-visible w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
+            className="relative overflow-visible w-12 h-12 sm:w-[52px] sm:h-[52px] rounded-full bg-gradient-to-tr from-accentCyan via-accentPurple to-accentPink text-white flex items-center justify-center shadow-[0_0_25px_rgba(var(--accent-cyan),0.5)] hover:shadow-[0_0_35px_rgba(var(--accent-cyan),0.8)] active:scale-95 transition-all disabled:opacity-50 mx-1"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {rippleTrigger > 0 && (
@@ -917,7 +917,7 @@ export default function MusicModal() {
             className="relative p-2 text-gray-200 hover:text-accentCyan rounded-full hover:bg-accentCyan/10 transition active:scale-90 flex items-center justify-center group"
             title="Forward 10s"
           >
-            <RotateCw className="w-4.5 h-4.5 transition-transform group-hover:rotate-45" />
+            <RotateCw className="w-[18px] h-[18px] transition-transform group-hover:rotate-45" />
             <span className="absolute text-[7px] font-extrabold text-accentCyan font-mono pointer-events-none">10</span>
           </button>
 
@@ -927,7 +927,7 @@ export default function MusicModal() {
             className="p-2 text-gray-200 hover:text-white rounded-full hover:bg-white/10 transition active:scale-90"
             title="Next Track"
           >
-            <SkipForward className="w-4.5 h-4.5" />
+            <SkipForward className="w-[18px] h-[18px]" />
           </button>
 
           <button

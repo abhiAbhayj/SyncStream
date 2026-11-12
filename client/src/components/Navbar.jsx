@@ -95,7 +95,7 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-3">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 h-16 flex items-center justify-between gap-2 sm:gap-3">
 
           {/* ── Brand Logo & Back Navigation ── */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -229,11 +229,11 @@ export default function Navbar() {
               onClick={() => setShowJoinModal(true)}
               className="btn-shimmer flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300
                          border-accentPurple/40 text-accentPurple bg-accentPurple/[0.12]
-                         hover:bg-accentPurple/[0.24] hover:border-accentPurple/70 active:scale-95"
+                         hover:bg-accentPurple/[0.24] hover:border-accentPurple/70 active:scale-95 shrink-0"
               title="Join Watch Party by Code"
             >
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-              <span>Join Party</span>
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)] shrink-0" />
+              <span className="hidden xs:inline">Join </span><span>Party</span>
             </button>
 
             {/* Auth */}
@@ -241,7 +241,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className={`flex items-center gap-2 p-1 pr-2.5 sm:pr-3 rounded-full border transition-all duration-300 ${
+                  className={`flex items-center gap-1.5 sm:gap-2 p-1 pr-2 sm:pr-3 rounded-full border transition-all duration-300 ${
                     dropdownOpen
                       ? 'border-accentPurple/80 bg-accentPurple/15 shadow-[0_0_15px_rgba(149,100,255,0.35)] ring-1 ring-accentPurple/50'
                       : 'border-white/10 hover:border-accentPurple/50 bg-darkCard/80 hover:bg-darkCard'
@@ -257,7 +257,7 @@ export default function Navbar() {
                     />
                     <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-darkBg" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-white max-w-[90px] sm:max-w-[120px] truncate">
+                  <span className="hidden sm:inline text-xs sm:text-sm font-bold text-white max-w-[90px] sm:max-w-[120px] truncate">
                     {user.username}
                   </span>
                   <ChevronDown
@@ -273,7 +273,7 @@ export default function Navbar() {
                     <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
 
                     {/* Prominent High-Contrast Dropdown Menu */}
-                    <div className="absolute right-0 top-full mt-2.5 w-64 rounded-2xl p-2.5 z-50 animate-scale-in shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_25px_rgba(0,0,0,0.8)] border border-white/20 bg-[#0e1222] bg-opacity-98 backdrop-blur-2xl ring-1 ring-white/10">
+                    <div className="absolute right-0 top-full mt-2.5 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl p-2.5 z-50 animate-scale-in shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_25px_rgba(0,0,0,0.8)] border border-white/20 bg-[#0e1222] bg-opacity-98 backdrop-blur-2xl ring-1 ring-white/10">
                       {/* User Info Header Card */}
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-2">
                         <img
@@ -318,16 +318,16 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white transition"
+                  className="hidden sm:inline-flex px-3.5 py-2 text-sm font-semibold text-gray-400 hover:text-white transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-primary btn-shimmer text-sm !py-2 !px-4 !text-white"
+                  className="btn-primary btn-shimmer text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2 sm:!px-4 !text-white shrink-0"
                 >
                   Register
                 </Link>
@@ -352,7 +352,7 @@ export default function Navbar() {
             className="absolute inset-0 bg-black/70 backdrop-blur-xl"
             onClick={() => setShowJoinModal(false)}
           />
-          <div className="relative w-full max-w-sm glass-panel rounded-3xl p-8 shadow-[0_40px_100px_rgba(0,0,0,0.8)] animate-slide-up border border-white/[0.08]">
+          <div className="relative w-full max-w-sm glass-panel rounded-3xl p-5 sm:p-8 shadow-[0_40px_100px_rgba(0,0,0,0.8)] animate-slide-up border border-white/[0.08]">
             <button
               onClick={() => setShowJoinModal(false)}
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl bg-white/[0.05] hover:bg-white/10 text-gray-400 hover:text-white transition"

@@ -907,7 +907,7 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-24 overflow-x-hidden">
+    <div className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-8 overflow-x-clip">
       {/* Radiant Background Ambient Aurora Glows (Contained to prevent horizontal scrolling) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-10 left-10 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-cyan-500/15 blur-[100px]" />
@@ -956,13 +956,13 @@ export default function Music() {
                 value={searchQuery}
                 onChange={(e) => handleSearchInputChange(e.target.value)}
                 placeholder="Search by Artist, Movie, Anime, Series or Song..."
-                className="w-full bg-transparent pl-10 pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none placeholder:text-slate-300 font-semibold"
+                className="w-full bg-transparent pl-10 pr-[5.75rem] sm:pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none placeholder:text-slate-300 font-semibold"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="absolute right-20 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition z-10"
+                  className="absolute right-[4.75rem] sm:right-20 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition z-10"
                   title="Clear search"
                 >
                   <X className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -1050,7 +1050,7 @@ export default function Music() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-6 gap-2">
               {SEARCH_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = searchCategory === cat.id;
@@ -1654,19 +1654,19 @@ export default function Music() {
                     if (!chart.songs || chart.songs.length === 0) return null;
                     return (
                       <div key={chart.id} className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
                               {getChartIcon(chart.id)}
-                              <h4 className="text-sm sm:text-base font-black text-white font-outfit">{chart.title}</h4>
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
+                              <h4 className="text-sm sm:text-base font-black text-white font-outfit truncate">{chart.title}</h4>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono shrink-0">
                                 <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
                                 Live Chart
                               </span>
                             </div>
-                            {chart.subtitle && <p className="text-[11px] text-slate-300 font-semibold">{chart.subtitle}</p>}
+                            {chart.subtitle && <p className="text-[11px] text-slate-300 font-semibold truncate">{chart.subtitle}</p>}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 shrink-0">
                             <span className="text-[10px] font-mono font-bold text-slate-400 hidden xs:inline-block">
                               {chart.songs.length} tracks
                             </span>
@@ -1967,7 +1967,7 @@ export default function Music() {
             /* ── Favorites Controls Toolbar: Search Songs, Sort Options, View Mode ── */
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-[#18203c]/90 border border-white/15 shadow-xl">
               {/* Search Inside Favorites */}
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative w-full sm:flex-1 min-w-0">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400 pointer-events-none" />
                 <input
                   type="text"
@@ -2004,13 +2004,13 @@ export default function Music() {
                 )}
 
                 {/* Sort Options Dropdown */}
-                <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20">
+                <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20 flex-1 sm:flex-initial min-w-0">
                   <ArrowUpDown className="w-3.5 h-3.5 text-red-400 shrink-0" />
                   <span className="text-xs font-bold text-slate-300 hidden md:inline">Sort:</span>
                   <select
                     value={favoriteSort}
                     onChange={(e) => setFavoriteSort(e.target.value)}
-                    className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer"
+                    className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer w-full min-w-0"
                   >
                     <option value="default" className="bg-[#18203c] text-white">Default (Custom)</option>
                     <option value="newest" className="bg-[#18203c] text-white">Recently Liked</option>
@@ -2511,7 +2511,7 @@ export default function Music() {
               {/* Playlist Controls Toolbar: Search Songs, Sort Options, View Mode */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-[#18203c]/90 border border-white/15 shadow-xl">
                 {/* Search Inside Playlist */}
-                <div className="relative flex-1 min-w-[200px]">
+                <div className="relative w-full sm:flex-1 min-w-0">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-accentCyan pointer-events-none" />
                   <input
                     type="text"
@@ -2542,13 +2542,13 @@ export default function Music() {
                   )}
 
                   {/* Manual Sort Options Dropdown */}
-                  <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20">
+                  <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20 flex-1 sm:flex-initial min-w-0">
                     <ArrowUpDown className="w-3.5 h-3.5 text-accentCyan shrink-0" />
                     <span className="text-xs font-bold text-slate-300 hidden md:inline">Sort:</span>
                     <select
                       value={playlistSort}
                       onChange={(e) => setPlaylistSort(e.target.value)}
-                      className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer"
+                      className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer w-full min-w-0"
                     >
                       <option value="default" className="bg-[#18203c] text-white">Default (Custom)</option>
                       <option value="title_asc" className="bg-[#18203c] text-white">Title (A &rarr; Z)</option>
@@ -2709,7 +2709,7 @@ export default function Music() {
                             {song.artist}
                           </p>
                           <div className="flex items-center justify-between gap-1 pt-1 mt-auto min-w-0">
-                            <span className="text-[9px] font-mono font-bold text-slate-300 shrink-0">{formatTime(song.duration)}</span>
+                            <span className="hidden xs:inline text-[9px] font-mono font-bold text-slate-300 shrink-0">{formatTime(song.duration)}</span>
                             
                             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                               {/* Always Visible Heart Icon */}

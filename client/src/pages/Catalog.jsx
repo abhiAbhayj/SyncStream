@@ -32,6 +32,7 @@ export default function Catalog() {
 
   const getTypeLabel = (t) => {
     switch (t) {
+      case 'movie':
       case 'movies': return 'Movies';
       case 'tv': return 'TV Shows';
       case 'anime': return 'Anime';
@@ -157,7 +158,7 @@ export default function Catalog() {
   const IconComponent = categoryConfig.icon;
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 space-y-8 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-5 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
       
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-darkBorder pb-5 sm:pb-6">

@@ -77,7 +77,7 @@ export default function BottomNav() {
               }`}
             >
               <div className={`p-1 rounded-lg transition-all duration-300 ${active ? 'animate-nav-bounce' : ''}`}>
-                <Icon className={`w-4 h-4 xs:w-4.5 xs:h-4.5 transition-transform duration-200 ${active ? 'scale-110 drop-shadow-[0_0_10px_currentColor]' : ''} ${link.iconClass}`} />
+                <Icon className={`w-4 h-4 xs:w-[18px] xs:h-[18px] transition-transform duration-200 ${active ? 'scale-110 drop-shadow-[0_0_10px_currentColor]' : ''} ${link.iconClass}`} />
               </div>
               <span className={`text-[9px] xs:text-[10px] font-semibold tracking-tight truncate max-w-full text-center ${active ? 'font-black text-accentCyan' : ''}`}>
                 {link.label}

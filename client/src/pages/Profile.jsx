@@ -697,7 +697,7 @@ export default function Profile() {
   const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.bots;
 
   return (
-    <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-6 md:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-28 sm:pb-12">
+    <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-8 sm:pb-12">
       {/* Title */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
@@ -869,7 +869,7 @@ export default function Profile() {
             </div>
 
             {/* Category Avatar Grid with Add, Edit, Delete Actions */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 p-3 rounded-2xl bg-black/40 border border-white/10">
+            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-black/40 border border-white/10">
               {/* Add New AI Avatar Tile in this category */}
               <button
                 type="button"

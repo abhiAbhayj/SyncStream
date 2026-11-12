@@ -104,11 +104,11 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-x-hidden w-full max-w-full">
+    <div className="flex flex-col min-h-screen relative overflow-x-clip w-full max-w-full">
       <ThemeBackground />
       <ScrollRestoration />
       <Navbar />
-      <main className={`flex-grow transition-all duration-300 ${currentTrack ? 'pb-36 md:pb-24' : 'pb-20 md:pb-0'}`}>
+      <main className="flex-grow transition-all duration-300">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />

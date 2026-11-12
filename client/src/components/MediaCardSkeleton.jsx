@@ -22,7 +22,7 @@ export default function MediaCardSkeleton({ count = 10, titlePlaceholder = false
               <div className="absolute bottom-2.5 left-2.5 h-4 w-14 rounded-full bg-white/[0.06]" />
             </div>
             {/* Metadata Skeleton */}
-            <div className="p-3 space-y-2 border-t border-white/[0.04]">
+            <div className="p-2.5 sm:p-3 space-y-2 border-t border-white/[0.04]">
               <div className="h-3.5 w-4/5 skeleton-neon rounded-md" />
               <div className="flex items-center justify-between gap-2">
                 <div className="h-2.5 w-1/3 skeleton-neon rounded-md" />
@@ -36,7 +36,7 @@ export default function MediaCardSkeleton({ count = 10, titlePlaceholder = false
   );
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {Array.from({ length: rows }, (_, rIdx) => renderGrid(rIdx))}
     </div>
   );

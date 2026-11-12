@@ -462,29 +462,29 @@ export default function Home() {
           </button>
         </div>
       ) : media ? (
-        <div className="space-y-12 transition-opacity duration-300">
+        <div className="space-y-9 sm:space-y-12 transition-opacity duration-300">
           {activeTab === 'trending' && (
-            <div className="space-y-16 animate-fade-in">
+            <div className="space-y-10 sm:space-y-16 animate-fade-in">
               <MediaGrid items={media.trending?.movies?.slice(0, 10)} title="Trending Blockbuster Movies" seeMoreLink="/catalog/trending/movie" />
               <MediaGrid items={media.trending?.tv?.slice(0, 10)} title="Trending TV Shows" seeMoreLink="/catalog/trending/tv" />
 
               {/* ── Music Streaming Showcase Card ── */}
-              <div className="relative rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-6 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-6 group">
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-accentCyan/30 bg-gradient-to-r from-darkCard via-darkBg to-accentCyan/10 p-5 sm:p-8 shadow-[0_0_40px_rgba(99,210,255,0.15)] flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 group">
                 <div className="space-y-2 text-center md:text-left max-w-xl">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accentCyan/10 border border-accentCyan/20 text-accentCyan text-xs font-bold uppercase tracking-wider font-mono">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accentCyan/10 border border-accentCyan/20 text-accentCyan text-[11px] sm:text-xs font-bold uppercase tracking-wider font-mono">
                     <Radio className="w-3.5 h-3.5 animate-pulse" />
                     <span>New Feature: 320kbps Music Portal</span>
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-outfit tracking-tight">
+                  <h3 className="text-xl sm:text-3xl font-extrabold text-white font-outfit tracking-tight">
                     Stream Songs Across All Languages
                   </h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-400">
                     Full-duration audio in Hindi, English, K-Pop, Tamil, Telugu, Malayalam, Kannada, & Punjabi with zero interruption.
                   </p>
                 </div>
                 <Link
                   to="/music"
-                  className="btn-shimmer flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
+                  className="btn-shimmer flex items-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(99,210,255,0.4)] hover:shadow-[0_0_30px_rgba(99,210,255,0.7)] transition active:scale-95 shrink-0"
                 >
                   <Music className="w-4 h-4" />
                   <span>Open Music Portal</span>
@@ -502,7 +502,7 @@ export default function Home() {
           )}
 
           {activeTab === 'ongoing' && (
-            <div className="space-y-16 animate-fade-in">
+            <div className="space-y-10 sm:space-y-16 animate-fade-in">
               <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink="/catalog/ongoing/movie" />
               <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink="/catalog/ongoing/tv" showTimings={true} />
               <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Currently Airing Anime (MAL)" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
@@ -511,18 +511,18 @@ export default function Home() {
           )}
 
           {activeTab === 'schedule' && (
-            <div className="space-y-8 animate-fade-in">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2 border-l-4 border-accentCyan pl-3 font-outfit">
+            <div className="space-y-6 sm:space-y-8 animate-fade-in">
+              <div className="space-y-1.5 sm:space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2 border-l-4 border-accentCyan pl-3 font-outfit">
                   Weekly Release Schedules
                 </h2>
-                <p className="text-sm text-gray-400 pl-4">
+                <p className="text-xs sm:text-sm text-gray-400 pl-4">
                   Select a day of the week to view TV and Anime releases scheduled for that day.
                 </p>
               </div>
 
               {/* Day selection calendar row */}
-              <div className="grid grid-cols-7 gap-2 max-w-2xl mx-auto p-1.5 bg-darkCard/50 border border-darkBorder rounded-2xl shadow-xl">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 max-w-2xl mx-auto p-1 sm:p-1.5 bg-darkCard/50 border border-darkBorder rounded-2xl shadow-xl">
                 {[
                   { key: 'Mondays', label: 'Mon' },
                   { key: 'Tuesdays', label: 'Tue' },
@@ -540,15 +540,15 @@ export default function Home() {
                     <button
                       key={day.key}
                       onClick={() => setSelectedDay(day.key)}
-                      className={`flex flex-col items-center justify-center py-3 rounded-xl transition-all duration-300 relative ${
+                      className={`flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl transition-all duration-300 relative ${
                         isSelected
                           ? 'bg-gradient-to-br from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentCyan/15 scale-102'
                           : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <span className="text-xs uppercase tracking-wider font-semibold">{day.label}</span>
+                      <span className="text-[10px] xs:text-xs uppercase tracking-wider font-semibold">{day.label}</span>
                       {isToday && (
-                        <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-black' : 'bg-accentCyan'}`}></span>
+                        <span className={`absolute bottom-0.5 sm:bottom-1 w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full ${isSelected ? 'bg-black' : 'bg-accentCyan'}`}></span>
                       )}
                     </button>
                   );
@@ -556,30 +556,30 @@ export default function Home() {
               </div>
 
               {/* Airing Lists for selected day */}
-              <div className="space-y-8 pt-4">
+              <div className="space-y-8 pt-2 sm:pt-4">
                 {/* TV Shows Airing on Selected Day */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-gray-200 flex items-center gap-2 pl-2 border-l-2 border-cyan-400 font-outfit">
-                    <Tv className="w-4 h-4 text-cyan-400" />
-                    TV Series Releasing on {selectedDay}
+                  <h3 className="text-base sm:text-lg font-bold text-gray-200 flex items-center gap-2 pl-2 border-l-2 border-cyan-400 font-outfit">
+                    <Tv className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>TV Series Releasing on {selectedDay}</span>
                   </h3>
                   
                   {getTvSchedulesByDay(getCombinedTvSchedules())[selectedDay]?.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {getTvSchedulesByDay(getCombinedTvSchedules())[selectedDay].map(show => (
                         <Link
                           key={`schedule-tv-${show.id}`}
                           to={`/media/tv/${show.id}`}
-                          className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentCyan/30 rounded-2xl hover:bg-darkCard/60 transition group"
+                          className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentCyan/30 rounded-2xl hover:bg-darkCard/60 transition group min-w-0 overflow-hidden"
                         >
                           <img
                             src={formatMediaPoster({ ...show, media_type: 'tv' })}
                             alt={show.title}
-                            className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                            className="w-12 sm:w-14 h-[72px] object-cover rounded-xl border border-white/5 shrink-0"
                             referrerPolicy="no-referrer"
                             onError={(e) => handlePosterError(e, { ...show, media_type: 'tv' })}
                           />
-                          <div className="space-y-1">
+                          <div className="space-y-1 min-w-0 flex-1">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{show.title}</h4>
                             <p className="text-xs text-gray-500 line-clamp-1">{show.overview}</p>
                             <span className="inline-block text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
@@ -590,7 +590,7 @@ export default function Home() {
                       ))}
                     </div>
                   ) : (
-                    <div className="glass-panel border border-darkBorder rounded-2xl p-10 text-center text-gray-500">
+                    <div className="glass-panel border border-darkBorder rounded-2xl p-8 sm:p-10 text-center text-gray-500">
                       <p className="text-sm">No TV series releases scheduled for {selectedDay}.</p>
                     </div>
                   )}
@@ -598,65 +598,65 @@ export default function Home() {
 
                 {/* Anime Airing on Selected Day */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-gray-200 flex items-center gap-2 pl-2 border-l-2 border-accentPurple font-outfit">
-                    <Sparkles className="w-4 h-4 text-accentPurple" />
-                    Anime Releasing on {selectedDay}
+                  <h3 className="text-base sm:text-lg font-bold text-gray-200 flex items-center gap-2 pl-2 border-l-2 border-accentPurple font-outfit">
+                    <Sparkles className="w-4 h-4 text-accentPurple shrink-0" />
+                    <span>Anime Releasing on {selectedDay}</span>
                   </h3>
                   
                   {getSchedulesByDay(getCombinedAnimeSchedules())[selectedDay]?.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {getSchedulesByDay(getCombinedAnimeSchedules())[selectedDay].map(anime => (
                         <Link
                           key={`schedule-anime-${anime.id}`}
                           to={`/media/anime/${anime.id}`}
-                          className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPurple/30 rounded-2xl hover:bg-darkCard/60 transition group"
+                          className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPurple/30 rounded-2xl hover:bg-darkCard/60 transition group min-w-0 overflow-hidden"
                         >
                           <img
                             src={formatMediaPoster({ ...anime, media_type: 'anime' })}
                             alt={anime.title}
-                            className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                            className="w-12 sm:w-14 h-[72px] object-cover rounded-xl border border-white/5 shrink-0"
                             referrerPolicy="no-referrer"
                             onError={(e) => handlePosterError(e, { ...anime, media_type: 'anime' })}
                           />
-                          <div className="space-y-1 flex-grow">
+                          <div className="space-y-1 min-w-0 flex-1">
                             <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{anime.title}</h4>
                             <p className="text-xs text-gray-500 line-clamp-1">{anime.overview || 'No synopsis available.'}</p>
-                            <div className="flex items-center gap-1 text-xs text-accentCyan font-semibold">
-                              <Clock className="w-3.5 h-3.5 text-accentCyan" />
-                              <span>{anime.broadcast}</span>
+                            <div className="flex items-center gap-1 text-xs text-accentCyan font-semibold min-w-0">
+                              <Clock className="w-3.5 h-3.5 text-accentCyan shrink-0" />
+                              <span className="truncate">{anime.broadcast}</span>
                             </div>
                           </div>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <div className="glass-panel border border-darkBorder rounded-2xl p-10 text-center text-gray-500">
+                    <div className="glass-panel border border-darkBorder rounded-2xl p-8 sm:p-10 text-center text-gray-500">
                       <p className="text-sm">No anime releases scheduled for {selectedDay}.</p>
                     </div>
                   )}
                 </div>
 
                 {/* Latest Manga Updates */}
-                <div className="space-y-4 pt-8 border-t border-darkBorder/40">
-                  <h3 className="text-lg font-bold text-pink-400 flex items-center gap-2 pl-2 border-l-2 border-pink-500 font-outfit">
-                    <BookOpen className="w-4 h-4" />
-                    Latest Manga Chapters
+                <div className="space-y-4 pt-6 sm:pt-8 border-t border-darkBorder/40">
+                  <h3 className="text-base sm:text-lg font-bold text-pink-400 flex items-center gap-2 pl-2 border-l-2 border-pink-500 font-outfit">
+                    <BookOpen className="w-4 h-4 shrink-0" />
+                    <span>Latest Manga Chapters</span>
                   </h3>
-                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {media.latest?.manga?.slice(0, 10).map(manga => (
                       <Link
                         key={`latest-manga-${manga.id}`}
                         to={`/media/manga/${manga.id}`}
-                        className="flex items-center gap-4 p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPink/30 rounded-2xl hover:bg-darkCard/60 transition group"
+                        className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPink/30 rounded-2xl hover:bg-darkCard/60 transition group min-w-0 overflow-hidden"
                       >
                         <img
                           src={formatMediaPoster({ ...manga, media_type: 'manga' })}
                           alt={manga.title}
-                          className="w-14 h-18 object-cover rounded-xl border border-white/5"
+                          className="w-12 sm:w-14 h-[72px] object-cover rounded-xl border border-white/5 shrink-0"
                           referrerPolicy="no-referrer"
                           onError={(e) => handlePosterError(e, { ...manga, media_type: 'manga' })}
                         />
-                        <div className="space-y-1 flex-grow">
+                        <div className="space-y-1 min-w-0 flex-1">
                           <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentPink transition line-clamp-1">{manga.title}</h4>
                           <p className="text-xs text-gray-500 line-clamp-1">{manga.overview || 'No synopsis available.'}</p>
                           <span className="inline-block text-[10px] bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
@@ -672,7 +672,7 @@ export default function Home() {
           )}
 
           {activeTab === 'upcoming' && (
-            <div className="space-y-16 animate-fade-in">
+            <div className="space-y-10 sm:space-y-16 animate-fade-in">
               <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink="/catalog/upcoming/movie" />
               <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink="/catalog/upcoming/tv" />
               <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink="/catalog/upcoming/anime" />
