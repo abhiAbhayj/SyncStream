@@ -46,6 +46,8 @@ export default function WatchParty() {
   const [error, setError] = useState(null);
   const [participantsCount, setParticipantsCount] = useState(1);
   const [copied, setCopied] = useState(false);
+  const [copyBurstKey, setCopyBurstKey] = useState(0);
+  const [lightsOut, setLightsOut] = useState(false);
   const [partyNotifications, setPartyNotifications] = useState([]);
 
   const addNotification = (text, type = 'join') => {
@@ -53,7 +55,7 @@ export default function WatchParty() {
     setPartyNotifications(prev => [...prev.slice(-3), { id, text, type }]);
     setTimeout(() => {
       setPartyNotifications(prev => prev.filter(n => n.id !== id));
-    }, 4500);
+    }, 3200);
   };
 
   // Streaming console states (Default: VidSrc SU - 100% Sandbox Protected)
@@ -239,7 +241,7 @@ export default function WatchParty() {
     socket.on('user_joined', ({ username }) => {
       setParticipantsCount(prev => prev + 1);
       if (username !== user.username) {
-        addNotification(`${username} joined the watch party!`, 'join');
+        addNotification(`${username} joined the party ✨`, 'join');
       }
     });
 
@@ -264,6 +266,7 @@ export default function WatchParty() {
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
+    setCopyBurstKey(k => k + 1);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -529,22 +532,35 @@ export default function WatchParty() {
   return (
     <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 md:px-8 space-y-5 sm:space-y-6 relative">
       
+      {/* Theater "Lights Out" Cinema Curtain Overlay */}
+      <div
+        aria-hidden={!lightsOut}
+        onClick={() => lightsOut && setLightsOut(false)}
+        className={`fixed inset-0 z-30 bg-black/92 backdrop-blur-md transition-opacity duration-500 ${
+          lightsOut ? 'opacity-100 pointer-events-auto cursor-pointer' : 'opacity-0 pointer-events-none'
+        }`}
+      />
+
       {/* ── Floating Room Join/Leave Toast Notifications ── */}
       {partyNotifications.length > 0 && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] flex flex-col gap-2 pointer-events-none items-center px-4 w-full max-w-md">
           {partyNotifications.map((notif) => (
             <div
               key={notif.id}
-              className={`px-3.5 py-2 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center gap-2.5 text-xs font-bold animate-fade-in pointer-events-auto ${
+              className={`px-4 py-2 rounded-full shadow-2xl backdrop-blur-xl border flex items-center gap-2.5 text-xs font-bold animate-spring-toast pointer-events-auto ${
                 notif.type === 'join'
-                  ? 'bg-darkCard/95 border-emerald-500/40 text-emerald-400 shadow-[0_0_25px_rgba(50,240,160,0.35)]'
-                  : 'bg-darkCard/95 border-amber-500/40 text-amber-400 shadow-[0_0_25px_rgba(255,200,0,0.25)]'
+                  ? 'bg-[#0e152c]/95 border-emerald-400/50 text-emerald-300 shadow-[0_0_28px_rgba(52,211,153,0.4)]'
+                  : notif.type === 'sync'
+                  ? 'bg-[#0e152c]/95 border-accentCyan/45 text-accentCyan shadow-[0_0_22px_rgba(var(--accent-cyan),0.3)]'
+                  : 'bg-[#0e152c]/95 border-amber-400/50 text-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.3)]'
               }`}
             >
               {notif.type === 'join' ? (
-                <UserPlus className="w-4 h-4 text-emerald-400 fill-emerald-400/30 shrink-0" />
+                <UserPlus className="w-4 h-4 text-emerald-400 shrink-0" />
+              ) : notif.type === 'sync' ? (
+                <Radio className="w-4 h-4 text-accentCyan shrink-0 animate-pulse" />
               ) : (
-                <LogOut className="w-4 h-4 text-amber-400 fill-amber-400/30 shrink-0" />
+                <LogOut className="w-4 h-4 text-amber-400 shrink-0" />
               )}
               <span className="truncate">{notif.text}</span>
             </div>
@@ -553,7 +569,9 @@ export default function WatchParty() {
       )}
 
       {/* Top Controls Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-panel border border-darkBorder p-3.5 sm:p-4 rounded-2xl shadow-xl transition-opacity duration-500 ${
+        lightsOut ? 'opacity-25 pointer-events-none' : 'opacity-100'
+      }`}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="space-y-0.5 min-w-0 flex-1">
             <h1 className="font-extrabold text-base sm:text-lg md:text-xl text-white font-outfit truncate">
@@ -566,24 +584,52 @@ export default function WatchParty() {
         </div>
 
         {/* Action Widgets */}
-        <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10 shrink-0">
+        <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10 shrink-0 flex-wrap">
           {/* Active Participants count */}
           <div className="flex items-center gap-1.5 sm:gap-2 bg-darkBg border border-darkBorder px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs text-gray-400 font-semibold shrink-0">
             <Users className="w-3.5 h-3.5 text-accentPurple shrink-0" />
             <span>{participantsCount} in Room</span>
           </div>
 
-          {/* Share Room Code Button */}
+          {/* Lights Out Cinema Toggle */}
+          <button
+            type="button"
+            onClick={() => setLightsOut(v => !v)}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition border cursor-pointer shrink-0 active:scale-95 ${
+              lightsOut
+                ? 'border-amber-400/50 bg-amber-500/20 text-amber-300 shadow-[0_0_16px_rgba(251,191,36,0.35)]'
+                : 'border-darkBorder bg-darkCard/50 text-gray-300 hover:text-amber-300 hover:border-amber-400/40'
+            }`}
+            title="Toggle Lights Out Theater Mode"
+          >
+            <Lightbulb className={`w-3.5 h-3.5 shrink-0 ${lightsOut ? 'text-amber-300 fill-amber-300' : 'text-amber-400'}`} />
+            <span className="hidden xs:inline">{lightsOut ? 'Lights On' : 'Lights Out'}</span>
+          </button>
+
+          {/* Share Room Code Button with Copy Celebration */}
           <button
             onClick={handleCopyCode}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition border cursor-pointer shrink-0 ${
+            className={`relative overflow-visible flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-300 border cursor-pointer shrink-0 active:scale-95 ${
               copied
-                ? 'border-green-500/30 text-green-400 bg-green-500/10'
-                : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5'
+                ? 'border-emerald-400/60 text-emerald-300 bg-emerald-500/20 shadow-[0_0_18px_rgba(52,211,153,0.4)]'
+                : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5 hover:border-accentCyan/40'
             }`}
           >
-            <Copy className="w-3.5 h-3.5 shrink-0" />
-            <span>{copied ? 'Code Copied!' : `Share Code: ${code}`}</span>
+            {copyBurstKey > 0 && copied && (
+              <span
+                key={copyBurstKey}
+                aria-hidden="true"
+                className="absolute -top-2 left-1/2 px-2.5 py-0.5 rounded-full bg-emerald-500 text-black font-black text-[10px] shadow-[0_0_16px_rgba(52,211,153,0.8)] pointer-events-none whitespace-nowrap animate-copied-float"
+              >
+                Copied! ✨
+              </span>
+            )}
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-300 shrink-0 animate-heart-spring" strokeWidth={3} />
+            ) : (
+              <Copy className="w-3.5 h-3.5 shrink-0" />
+            )}
+            <span>{copied ? 'Invite Copied!' : `Share Code: ${code}`}</span>
           </button>
         </div>
       </div>
@@ -774,7 +820,19 @@ export default function WatchParty() {
           )}
 
           {/* Players Rendering + Floating Live Reactions Overlay */}
-          <div className="max-w-5xl mx-auto w-full relative">
+          <div className={`max-w-5xl mx-auto w-full relative transition-all duration-500 ${
+            lightsOut ? 'z-40 ring-1 ring-white/15 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.95)]' : ''
+          }`}>
+            {lightsOut && (
+              <button
+                type="button"
+                onClick={() => setLightsOut(false)}
+                className="absolute -top-9 right-1 z-50 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-200 text-[11px] font-bold flex items-center gap-1.5 backdrop-blur-md hover:bg-amber-400/30 transition cursor-pointer shadow-lg"
+              >
+                <Lightbulb className="w-3 h-3 fill-amber-300 text-amber-300" />
+                <span>Turn Lights On</span>
+              </button>
+            )}
             {/* Floating Livestream Emoji Reactions */}
             <div
               aria-hidden="true"

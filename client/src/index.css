@@ -1155,3 +1155,229 @@ input[type="range"] { accent-color: rgb(var(--accent-purple)); }
   animation: radialShockwaveWipe 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ─────────────────────────────────────────────
+   7. MEDIA DETAIL: GLOW BLEED, HEART BURST, EPISODE SCANNER & RATING
+   ───────────────────────────────────────────── */
+@keyframes ambientBreathe {
+  0%, 100% { transform: scale(1.12); opacity: 0.28; }
+  50%      { transform: scale(1.22); opacity: 0.44; }
+}
+.animate-ambient-breathe {
+  animation: ambientBreathe 8s ease-in-out infinite;
+}
+
+@keyframes heartSpringPop {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.42) rotate(-8deg); }
+  55%  { transform: scale(0.9) rotate(4deg); }
+  80%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.animate-heart-spring {
+  animation: heartSpringPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes heartParticleBurst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px))) scale(0.15);
+  }
+}
+.animate-heart-particle {
+  animation: heartParticleBurst 0.68s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes epScannerSweep {
+  0%   { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  30%  { opacity: 0.45; }
+  70%  { opacity: 0.45; }
+  100% { transform: translateX(240%) skewX(-18deg); opacity: 0; }
+}
+.ep-scanner-glint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-cyan), 0.3), rgba(255,255,255,0.22), transparent);
+  pointer-events: none;
+  animation: epScannerSweep 2.6s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────
+   8. MANGA READER: PAGE FLIP, ZOOM HUD & TAP FLASH
+   ───────────────────────────────────────────── */
+@keyframes pageCurlNext {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-8deg) translateX(28px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+  }
+}
+@keyframes pageCurlPrev {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(8deg) translateX(-28px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+  }
+}
+.animate-page-next {
+  animation: pageCurlNext 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-page-prev {
+  animation: pageCurlPrev 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes zoomHudFade {
+  0%   { opacity: 0; transform: translate(-50%, -40%) scale(0.82); }
+  18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+  28%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(0.94); }
+}
+.animate-zoom-hud {
+  animation: zoomHudFade 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tapChevronRipple {
+  0%   { opacity: 0; transform: scale(0.75); }
+  25%  { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+.animate-tap-flash {
+  animation: tapChevronRipple 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─────────────────────────────────────────────
+   9. VOICE ORB WAVEFORM & MUSIC NEBULA BLOBS
+   ───────────────────────────────────────────── */
+@keyframes siriWaveRibbon {
+  0%, 100% { transform: scaleY(0.35); opacity: 0.6; }
+  50%      { transform: scaleY(1); opacity: 1; }
+}
+.voice-bar-1 { animation: siriWaveRibbon 0.52s ease-in-out infinite 0s; }
+.voice-bar-2 { animation: siriWaveRibbon 0.66s ease-in-out infinite 0.12s; }
+.voice-bar-3 { animation: siriWaveRibbon 0.44s ease-in-out infinite 0.24s; }
+.voice-bar-4 { animation: siriWaveRibbon 0.58s ease-in-out infinite 0.08s; }
+.voice-bar-5 { animation: siriWaveRibbon 0.72s ease-in-out infinite 0.18s; }
+
+@keyframes nebulaDriftA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(28px, -22px) scale(1.14); }
+}
+@keyframes nebulaDriftB {
+  0%, 100% { transform: translate(0, 0) scale(1.06); }
+  50%      { transform: translate(-30px, 24px) scale(0.94); }
+}
+.animate-nebula-a { animation: nebulaDriftA 11s ease-in-out infinite; }
+.animate-nebula-b { animation: nebulaDriftB 13s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────
+   10. WATCH PARTY: VOICE HALO, COPIED BADGE & TOASTS
+   ───────────────────────────────────────────── */
+@keyframes voiceHaloRing {
+  0%   { transform: scale(0.95); opacity: 0.85; }
+  70%  { transform: scale(1.35); opacity: 0.15; }
+  100% { transform: scale(1.48); opacity: 0; }
+}
+.animate-voice-halo-1 { animation: voiceHaloRing 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+.animate-voice-halo-2 { animation: voiceHaloRing 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite 0.55s; }
+
+@keyframes copiedFloatBadge {
+  0%   { opacity: 0; transform: translate(-50%, 6px) scale(0.7); }
+  20%  { opacity: 1; transform: translate(-50%, -10px) scale(1.08); }
+  75%  { opacity: 1; transform: translate(-50%, -22px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -32px) scale(0.9); }
+}
+.animate-copied-float {
+  animation: copiedFloatBadge 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes springToastSlide {
+  0%   { opacity: 0; transform: translateY(-18px) scale(0.88); }
+  65%  { opacity: 1; transform: translateY(3px) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-spring-toast {
+  animation: springToastSlide 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ─────────────────────────────────────────────
+   11. DOCK BOUNCE, HERO FLOATERS, EMPTY LEVITATE & ORBITS
+   ───────────────────────────────────────────── */
+@keyframes navIconBounce {
+  0%   { transform: translateY(0) scale(1); }
+  40%  { transform: translateY(-4px) scale(1.18); }
+  70%  { transform: translateY(1px) scale(0.96); }
+  100% { transform: translateY(-1px) scale(1.08); }
+}
+.animate-nav-bounce {
+  animation: navIconBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes heroFloatSlow {
+  0%, 100% { transform: translateY(0px) rotate(var(--base-rot, -6deg)); }
+  50%      { transform: translateY(-12px) rotate(calc(var(--base-rot, -6deg) + 3deg)); }
+}
+.animate-hero-float {
+  animation: heroFloatSlow 7s ease-in-out infinite;
+}
+
+@keyframes emptyStateLevitate {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+.animate-levitate {
+  animation: emptyStateLevitate 3.4s ease-in-out infinite;
+}
+
+@keyframes orbitSpinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes orbitSpinReverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+.animate-orbit-cw  { animation: orbitSpinSlow 4.5s linear infinite; }
+.animate-orbit-ccw { animation: orbitSpinReverse 6.5s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ambient-breathe,
+  .animate-heart-spring,
+  .animate-heart-particle,
+  .ep-scanner-glint::after,
+  .animate-page-next,
+  .animate-page-prev,
+  .animate-zoom-hud,
+  .animate-tap-flash,
+  .voice-bar-1,
+  .voice-bar-2,
+  .voice-bar-3,
+  .voice-bar-4,
+  .voice-bar-5,
+  .animate-nebula-a,
+  .animate-nebula-b,
+  .animate-voice-halo-1,
+  .animate-voice-halo-2,
+  .animate-copied-float,
+  .animate-spring-toast,
+  .animate-nav-bounce,
+  .animate-hero-float,
+  .animate-levitate,
+  .animate-orbit-cw,
+  .animate-orbit-ccw {
+    animation: none !important;
+  }
+}
+
+

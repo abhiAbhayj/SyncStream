@@ -12,6 +12,32 @@ export default function Watchlist() {
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [displayCount, setDisplayCount] = useState(0);
+
+  // Smooth Count-Up Animation for Total Bookmarks
+  useEffect(() => {
+    const target = watchlist.length;
+    if (target === 0) {
+      setDisplayCount(0);
+      return;
+    }
+    let rafId = null;
+    const duration = 750;
+    const startTime = performance.now();
+
+    const step = (now) => {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayCount(Math.round(target * eased));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(step);
+      }
+    };
+    rafId = requestAnimationFrame(step);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [watchlist.length]);
 
   useEffect(() => {
     if (!user) {
@@ -145,10 +171,12 @@ export default function Watchlist() {
 
         {/* Total Bookmarks Counter Pill */}
         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-          <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300 flex items-center gap-2 shadow-inner">
+          <div className="px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 text-xs font-bold text-gray-300 flex items-center gap-2 shadow-inner backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-accentCyan animate-pulse shadow-[0_0_8px_#00e5ff]" />
             <span>Total Bookmarks:</span>
-            <span className="font-extrabold text-white font-outfit">{watchlist.length}</span>
+            <span className="font-extrabold text-accentCyan font-outfit tabular-nums text-sm">
+              {displayCount}
+            </span>
           </div>
         </div>
       </div>
@@ -187,21 +215,37 @@ export default function Watchlist() {
           <p className="text-gray-300 font-medium text-sm">Loading your library...</p>
         </div>
       ) : watchlist.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-5 max-w-md mx-auto bg-[#0b0f24]/90 border border-white/10 p-8 rounded-3xl shadow-2xl backdrop-blur-md">
-          <div className="p-4 bg-accentPink/15 border border-accentPink/30 rounded-2xl text-accentPink shadow-[0_0_30px_rgba(255,85,173,0.3)]">
-            <Heart className="w-10 h-10 fill-current" />
+        <div className="relative overflow-hidden flex flex-col items-center justify-center py-14 sm:py-16 text-center space-y-5 max-w-md mx-auto bg-[#0b0f24]/90 border border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-md">
+          <div className="relative flex items-center justify-center pt-2">
+            <span aria-hidden="true" className="absolute -inset-4 rounded-full bg-accentPink/20 blur-2xl animate-pulse" />
+            <div className="relative p-4 sm:p-5 bg-gradient-to-br from-accentPink/20 via-accentPurple/15 to-accentCyan/15 border border-accentPink/40 rounded-3xl text-accentPink shadow-[0_0_35px_rgba(var(--accent-pink),0.35)] animate-levitate">
+              {/* Custom Bookmark Heart SVG Illustration */}
+              <svg className="w-11 h-11 sm:w-12 sm:h-12 drop-shadow-[0_0_10px_rgba(var(--accent-pink),0.7)]" viewBox="0 0 48 48" fill="none">
+                <path
+                  d="M12 8C12 5.79086 13.7909 4 16 4H32C34.2091 4 36 5.79086 36 8V42L24 34L12 42V8Z"
+                  fill="rgba(255,42,133,0.18)"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M24 25.5C24 25.5 17.5 21.4 17.5 16.9C17.5 14.9 19.1 13.3 21.1 13.3C22.4 13.3 23.5 14 24 15C24.5 14 25.6 13.3 26.9 13.3C28.9 13.3 30.5 14.9 30.5 16.9C30.5 21.4 24 25.5 24 25.5Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
           </div>
           <div className="space-y-1.5">
-            <h3 className="font-extrabold text-lg text-white font-outfit">Your Library is Empty</h3>
+            <h3 className="font-extrabold text-lg sm:text-xl text-white font-outfit">Your Library is Empty</h3>
             <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
               You haven't bookmarked any titles yet. Explore movies, series, anime, and manga to start tracking your favorites!
             </p>
           </div>
           <Link
             to="/search"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-accentPurple/25 hover:opacity-95 transition"
+            className="btn-shimmer flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-accentPurple/25 hover:opacity-95 transition active:scale-95"
           >
-            <Search className="w-4 h-4 text-black fill-current" />
+            <Search className="w-4 h-4 text-black" />
             Discover Titles Now
           </Link>
         </div>
@@ -225,8 +269,11 @@ export default function Watchlist() {
                   key={sec.id}
                   className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#0b0f24]/90 border border-white/10 p-8 sm:p-12 shadow-2xl backdrop-blur-md text-center max-w-lg mx-auto"
                 >
-                  <div className={`p-4 rounded-2xl w-fit mx-auto border ${sec.tagBorder} bg-gradient-to-b ${sec.tagBg} ${sec.tagText} ${sec.tagShadow} mb-4`}>
-                    <Icon className="w-8 h-8 stroke-[2.2]" />
+                  <div className="relative w-fit mx-auto mb-5">
+                    <span aria-hidden="true" className={`absolute -inset-4 rounded-full blur-2xl ${sec.glowBg} animate-pulse`} />
+                    <div className={`relative p-4 rounded-2xl border ${sec.tagBorder} bg-gradient-to-b ${sec.tagBg} ${sec.tagText} ${sec.tagShadow} animate-levitate`}>
+                      <Icon className="w-9 h-9 stroke-[2.2]" />
+                    </div>
                   </div>
                   <h3 className="font-outfit font-extrabold text-white text-lg sm:text-xl mb-1.5">
                     {sec.emptyTitle}
@@ -236,7 +283,7 @@ export default function Watchlist() {
                   </p>
                   <Link
                     to={sec.exploreLink}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accentCyan text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 transition shadow-lg shadow-accentCyan/25"
+                    className="btn-shimmer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accentCyan text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 transition shadow-lg shadow-accentCyan/25 active:scale-95"
                   >
                     <Search className="w-3.5 h-3.5 stroke-[2.5]" />
                     {sec.exploreLabel}

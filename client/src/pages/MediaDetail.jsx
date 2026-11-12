@@ -7,6 +7,7 @@ import MediaGrid from '../components/MediaGrid';
 import MangaReader from '../components/MangaReader';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
+import EqualizerBars from '../components/EqualizerBars';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock } from 'lucide-react';
@@ -63,6 +64,8 @@ export default function MediaDetail() {
   const [watchlist, setWatchlist] = useState([]);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [heartBurstKey, setHeartBurstKey] = useState(0);
+  const [ratingSweepReady, setRatingSweepReady] = useState(false);
   
   const [seasonEpisodes, setSeasonEpisodes] = useState([]);
   const [currentSeasonData, setCurrentSeasonData] = useState(null);
@@ -233,6 +236,7 @@ export default function MediaDetail() {
           poster_path: detail.poster_path
         });
         setInWatchlist(true);
+        setHeartBurstKey((k) => k + 1);
       }
     } catch (err) {
       console.error('Failed to toggle watchlist:', err);
@@ -240,6 +244,16 @@ export default function MediaDetail() {
       setWatchlistLoading(false);
     }
   };
+
+  useEffect(() => {
+    setRatingSweepReady(false);
+    if (!loading && detail) {
+      const raf = requestAnimationFrame(() => {
+        setTimeout(() => setRatingSweepReady(true), 60);
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [loading, detail?.id]);
 
   const handleCreateWatchParty = async () => {
     if (!user) {
@@ -463,13 +477,39 @@ export default function MediaDetail() {
           <button
             onClick={handleWatchlistToggle}
             disabled={watchlistLoading}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+            className={`relative overflow-visible flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border cursor-pointer active:scale-95 ${
               inWatchlist
-                ? 'border-accentPink text-accentPink bg-accentPink/15 hover:bg-accentPink/25'
-                : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5'
+                ? 'border-accentPink text-accentPink bg-accentPink/20 hover:bg-accentPink/30 shadow-[0_0_20px_rgba(var(--accent-pink),0.4)]'
+                : 'border-darkBorder text-gray-300 bg-darkCard/50 hover:bg-white/5 hover:border-white/25'
             }`}
           >
-            <Heart className={`w-3.5 h-3.5 ${inWatchlist ? 'fill-current' : ''}`} />
+            {/* Heart-Burst Radial Particles on Save */}
+            {heartBurstKey > 0 && inWatchlist && (
+              <span key={heartBurstKey} aria-hidden="true" className="pointer-events-none absolute left-4 sm:left-5 top-1/2 -translate-y-1/2">
+                <span className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 border-accentPink animate-shockwave" />
+                {[
+                  { px: '-16px', py: '-16px', color: 'bg-accentPink' },
+                  { px: '0px', py: '-22px', color: 'bg-accentCyan' },
+                  { px: '16px', py: '-16px', color: 'bg-accentPurple' },
+                  { px: '20px', py: '2px', color: 'bg-accentPink' },
+                  { px: '14px', py: '16px', color: 'bg-amber-400' },
+                  { px: '-14px', py: '16px', color: 'bg-accentCyan' },
+                  { px: '-20px', py: '2px', color: 'bg-accentPurple' }
+                ].map((pt, idx) => (
+                  <span
+                    key={idx}
+                    style={{ '--px': pt.px, '--py': pt.py }}
+                    className={`absolute left-0 top-0 w-1.5 h-1.5 rounded-full ${pt.color} animate-heart-particle`}
+                  />
+                ))}
+              </span>
+            )}
+            <Heart
+              key={`heart-icon-${heartBurstKey}`}
+              className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                inWatchlist ? 'fill-current animate-heart-spring drop-shadow-[0_0_8px_rgba(var(--accent-pink),0.8)]' : ''
+              }`}
+            />
             <span>{inWatchlist ? 'Saved in Library' : 'Add to Library'}</span>
           </button>
 
@@ -485,9 +525,20 @@ export default function MediaDetail() {
         </div>
       </div>
 
-      {/* ── Media Overview Card AT THE TOP (Requested by User) ── */}
-      <div className="glass-panel border border-darkBorder p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
-        <div className="w-[120px] sm:w-[150px] md:w-[200px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-darkCard shrink-0 mx-auto sm:mx-0">
+      {/* ── Media Overview Card AT THE TOP (with Ambient Backdrop Glow Bleed + Animated Star Meter) ── */}
+      <div className="relative overflow-hidden glass-panel border border-darkBorder p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
+        {/* Ambient Backdrop Glow Bleed */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-center blur-3xl saturate-150 pointer-events-none animate-ambient-breathe"
+          style={{ backgroundImage: `url(${activePoster})` }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-br from-darkBg/92 via-[#090d1e]/85 to-darkBg/95 pointer-events-none"
+        />
+
+        <div className="relative z-10 w-[125px] sm:w-[155px] md:w-[200px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] bg-darkCard shrink-0 mx-auto sm:mx-0">
           <img 
             src={activePoster} 
             alt={detail?.title || 'Poster'}
@@ -497,17 +548,66 @@ export default function MediaDetail() {
           />
         </div>
 
-        <div className="flex-grow space-y-3 sm:space-y-4 text-left w-full min-w-0">
+        <div className="relative z-10 flex-grow space-y-3 sm:space-y-4 text-left w-full min-w-0">
           <div className="space-y-1.5 sm:space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-outfit break-words">
-                {detail.title}
-              </h2>
-              {(type === 'tv' || type === 'anime') && activeSeason && (
-                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
-                  {activeSeasonName}
-                </span>
-              )}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-outfit break-words">
+                  {detail.title}
+                </h2>
+                {(type === 'tv' || type === 'anime') && activeSeason && (
+                  <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
+                    {activeSeasonName}
+                  </span>
+                )}
+              </div>
+
+              {/* Interactive Animated SVG Star Rating Meter */}
+              {detail.vote_average && (() => {
+                const rawScore = Math.min(10, Math.max(0, parseFloat(detail.vote_average) || 0));
+                const radius = 19;
+                const circumference = 2 * Math.PI * radius;
+                const offset = ratingSweepReady ? circumference * (1 - rawScore / 10) : circumference;
+                const ringStroke = rawScore >= 7.5 ? '#22d3ee' : rawScore >= 6 ? '#facc15' : '#fb7185';
+                return (
+                  <div
+                    className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center rounded-full bg-black/55 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] backdrop-blur-md group/rating"
+                    title={`User Score: ${rawScore.toFixed(1)} / 10`}
+                  >
+                    <svg className="w-full h-full -rotate-90 p-0.5" viewBox="0 0 46 46">
+                      <circle
+                        cx="23"
+                        cy="23"
+                        r={radius}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.12)"
+                        strokeWidth="3.5"
+                      />
+                      <circle
+                        cx="23"
+                        cy="23"
+                        r={radius}
+                        fill="none"
+                        stroke={ringStroke}
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        style={{
+                          transition: 'stroke-dashoffset 1.05s cubic-bezier(0.22, 1, 0.36, 1)',
+                          filter: `drop-shadow(0 0 5px ${ringStroke})`
+                        }}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                      <span className="text-[11px] sm:text-xs font-black text-white font-mono">
+                        {rawScore.toFixed(1)}
+                      </span>
+                      <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400 mt-0.5 group-hover/rating:scale-125 transition-transform" />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 font-semibold">
@@ -529,11 +629,6 @@ export default function MediaDetail() {
               )}
               {detail.episodes_count && (
                 <span>• {detail.episodes_count} Eps</span>
-              )}
-              {detail.vote_average && (
-                <span className="flex items-center gap-1 text-yellow-400">
-                  • <Star className="w-3.5 h-3.5 fill-current" /> {parseFloat(detail.vote_average).toFixed(1)}
-                </span>
               )}
             </div>
 
@@ -773,16 +868,30 @@ export default function MediaDetail() {
                           setActiveEpisode(epNum);
                           setPlaybackMode('solo-embed');
                         }}
-                        className={`p-2 sm:p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 group cursor-pointer ${
+                        className={`relative overflow-hidden p-2 sm:p-2.5 rounded-xl border text-left transition-all duration-300 flex flex-col gap-1 group cursor-pointer active:scale-95 ${
                           isSelected
-                            ? 'border-accentCyan bg-accentCyan/15 text-accentCyan shadow-md shadow-accentCyan/10 ring-1 ring-accentCyan/30'
-                            : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white hover:border-white/20'
+                            ? 'ep-scanner-glint border-accentCyan bg-accentCyan/15 text-accentCyan shadow-[0_0_20px_rgba(var(--accent-cyan),0.3)] ring-1 ring-accentCyan/50'
+                            : 'border-darkBorder bg-darkCard/30 text-gray-400 hover:text-white hover:border-accentCyan/40 hover:bg-darkCard/70 hover:-translate-y-0.5'
                         }`}
                       >
-                        <span className="text-[9px] uppercase font-bold text-accentPurple group-hover:text-accentCyan transition">
-                          Episode {epNum}
-                        </span>
-                        <span className="text-[11px] sm:text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
+                        <div className="relative z-10 flex items-center justify-between gap-1.5 w-full">
+                          <span className={`text-[9px] uppercase font-bold transition ${
+                            isSelected ? 'text-accentCyan' : 'text-accentPurple group-hover:text-accentCyan'
+                          }`}>
+                            Episode {epNum}
+                          </span>
+                          {isSelected ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accentCyan/20 border border-accentCyan/40 text-[8px] font-black uppercase tracking-wider text-accentCyan shrink-0">
+                              <EqualizerBars isPlaying={true} size="sm" bars={3} className="!h-2.5" />
+                              <span className="hidden xs:inline">Playing</span>
+                            </span>
+                          ) : (
+                            <span className="opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-[8px] font-bold uppercase tracking-wider text-accentCyan">
+                              Watch
+                            </span>
+                          )}
+                        </div>
+                        <span className="relative z-10 text-[11px] sm:text-xs font-semibold truncate w-full text-gray-200 group-hover:text-white" title={epTitle}>
                           {epTitle}
                         </span>
                       </button>

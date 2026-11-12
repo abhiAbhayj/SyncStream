@@ -132,7 +132,22 @@ export default function VoiceAssistant() {
   const [transcript, setTranscript] = useState('');
   const [statusText, setStatusText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [speechCadenceActive, setSpeechCadenceActive] = useState(false);
+  const cadenceTimerRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!transcript) {
+      setSpeechCadenceActive(false);
+      return;
+    }
+    setSpeechCadenceActive(true);
+    if (cadenceTimerRef.current) clearTimeout(cadenceTimerRef.current);
+    cadenceTimerRef.current = setTimeout(() => setSpeechCadenceActive(false), 650);
+    return () => {
+      if (cadenceTimerRef.current) clearTimeout(cadenceTimerRef.current);
+    };
+  }, [transcript]);
 
   const recognitionRef = useRef(null);
   const timeoutRef = useRef(null);
@@ -849,39 +864,91 @@ export default function VoiceAssistant() {
   }
 
   return (
-    <div className="fixed bottom-[145px] xs:bottom-[150px] sm:bottom-[84px] md:bottom-20 right-3 sm:right-5 z-40 flex flex-col items-end gap-1.5 pointer-events-none select-none">
+    <div className="fixed bottom-[145px] xs:bottom-[150px] sm:bottom-[84px] md:bottom-20 right-3 sm:right-5 z-40 flex flex-col items-end gap-2 pointer-events-none select-none">
       
-      {/* Status bubbles */}
+      {/* Status bubbles with Siri-style Waveform */}
       {(transcript || statusText || errorMsg) && (
-        <div className="bg-[#0f142b]/95 border border-white/20 backdrop-blur-xl px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl shadow-xl max-w-[220px] sm:max-w-xs animate-fade-in pointer-events-auto flex flex-col gap-0.5">
+        <div className="bg-[#0f142b]/95 border border-white/20 backdrop-blur-xl px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-2xl shadow-[0_12px_35px_rgba(0,0,0,0.65)] max-w-[230px] sm:max-w-xs animate-spring-toast pointer-events-auto flex flex-col gap-1">
           {errorMsg ? (
             <span className="text-[11px] text-red-400 font-semibold">{errorMsg}</span>
           ) : (
             <>
               {transcript && <span className="text-[11px] sm:text-xs text-white italic truncate">"{transcript}"</span>}
               {statusText && (
-                <span className="text-[10px] sm:text-xs text-accentCyan font-bold flex items-center gap-1">
-                  {statusText === 'Listening...' && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
-                  {statusText}
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] sm:text-xs text-accentCyan font-bold flex items-center gap-1.5">
+                    {statusText.startsWith('Listening') && <Loader2 className="w-3 h-3 animate-spin" />}
+                    {statusText}
+                  </span>
+                  {isListening && (
+                    <span
+                      aria-hidden="true"
+                      className={`inline-flex items-center gap-[2.5px] h-4 transition-transform duration-200 ${
+                        speechCadenceActive ? 'scale-125' : 'scale-100'
+                      }`}
+                    >
+                      <span className="w-[2.5px] h-3 rounded-full bg-accentCyan voice-bar-1" />
+                      <span className="w-[2.5px] h-4 rounded-full bg-accentPurple voice-bar-2" />
+                      <span className="w-[2.5px] h-3.5 rounded-full bg-accentPink voice-bar-3" />
+                      <span className="w-[2.5px] h-4 rounded-full bg-accentCyan voice-bar-4" />
+                      <span className="w-[2.5px] h-2.5 rounded-full bg-accentPurple voice-bar-5" />
+                    </span>
+                  )}
+                </div>
               )}
             </>
           )}
         </div>
       )}
 
-      {/* FAB Button */}
-      <button
-        onClick={toggleListening}
-        className={`pointer-events-auto w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-all duration-300 flex items-center justify-center border border-white/20 active:scale-90 ${
-          isListening 
-            ? 'bg-gradient-to-r from-red-500 to-red-600 scale-105 animate-pulse text-white shadow-red-500/50' 
-            : 'bg-gradient-to-r from-accentCyan to-accentPurple hover:scale-105 text-black shadow-accentPurple/25'
-        }`}
-        title="Voice Assistant"
-      >
-        {isListening ? <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] fill-white" /> : <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />}
-      </button>
+      {/* Reactive Voice Siri-Orb FAB Container */}
+      <div className="relative flex items-center justify-center">
+        {isListening && (
+          <>
+            {/* Multi-layered Organic Waveform Halos */}
+            <span
+              aria-hidden="true"
+              className={`absolute -inset-3 rounded-full border border-accentCyan/70 pointer-events-none animate-voice-halo-1 ${
+                speechCadenceActive ? 'border-2 shadow-[0_0_16px_rgba(var(--accent-cyan),0.7)]' : ''
+              }`}
+            />
+            <span
+              aria-hidden="true"
+              className="absolute -inset-2.5 rounded-full border border-accentPink/60 pointer-events-none animate-voice-halo-2"
+            />
+            {/* Spinning Iridescent Siri-Orb Aurora Aura */}
+            <span
+              aria-hidden="true"
+              className={`absolute -inset-1.5 rounded-full blur-sm pointer-events-none animate-orbit-cw transition-transform duration-200 ${
+                speechCadenceActive ? 'scale-125 opacity-95' : 'scale-105 opacity-75'
+              }`}
+              style={{
+                background: 'conic-gradient(from 0deg, rgb(var(--accent-cyan)), rgb(var(--accent-purple)), rgb(var(--accent-pink)), rgb(var(--accent-cyan)))'
+              }}
+            />
+          </>
+        )}
+
+        {/* FAB Button */}
+        <button
+          onClick={toggleListening}
+          className={`relative z-10 pointer-events-auto w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.6)] transition-all duration-300 flex items-center justify-center border active:scale-90 cursor-pointer ${
+            isListening 
+              ? 'border-white/50 bg-[#0b1024] text-white scale-110 shadow-[0_0_24px_rgba(var(--accent-cyan),0.6)]' 
+              : 'border-white/20 bg-gradient-to-r from-accentCyan to-accentPurple hover:scale-105 text-black shadow-accentPurple/25'
+          }`}
+          title="Voice Assistant"
+        >
+          {isListening ? (
+            <span className="flex items-center justify-center relative">
+              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-accentCyan/40 via-accentPurple/40 to-accentPink/40 animate-ping" />
+              <Mic className="relative w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5] text-accentCyan drop-shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
+            </span>
+          ) : (
+            <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+          )}
+        </button>
+      </div>
     </div>
   );
 }

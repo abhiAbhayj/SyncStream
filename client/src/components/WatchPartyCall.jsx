@@ -495,31 +495,68 @@ export default function WatchPartyCall({ roomCode }) {
 
   // Render Video Grid Tile
   const renderTile = (socketId, peerUser, stream, hasVideo, isMicOn, isTalking, isLocal = false) => {
+    const activeVoice = isTalking && isMicOn;
     return (
       <div
         key={socketId}
         className={`relative aspect-video rounded-2xl overflow-hidden border bg-[#0d1020] shadow-xl transition-all duration-300 flex items-center justify-center group ${
-          isTalking 
-            ? 'border-emerald-400 shadow-[0_0_20px_rgba(50,240,160,0.5)] ring-2 ring-emerald-400/50' 
+          activeVoice
+            ? 'border-emerald-400 shadow-[0_0_26px_rgba(52,211,153,0.6),0_0_42px_rgba(var(--accent-cyan),0.25)] ring-2 ring-emerald-400/70 scale-[1.015]'
+            : isMicOn
+            ? 'border-white/20 hover:border-accentCyan/40'
             : 'border-white/15 hover:border-white/30'
         }`}
       >
+        {/* Subtle Perimeter Neon Voice Pulse for Video & Audio Tiles */}
+        {activeVoice && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 rounded-2xl border-2 border-emerald-400/80 shadow-[inset_0_0_20px_rgba(52,211,153,0.35)] pointer-events-none z-10 animate-pulse"
+          />
+        )}
+
+        {/* Active Speaker Voice Badge (top-left) */}
+        {activeVoice && (
+          <div className="absolute top-1.5 left-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/60 backdrop-blur-md shadow-[0_0_10px_rgba(52,211,153,0.5)]">
+            <span className="inline-flex items-end gap-[2px] h-2.5">
+              <span className="w-[2px] h-2 rounded-full bg-emerald-300 voice-bar-1" />
+              <span className="w-[2px] h-2.5 rounded-full bg-accentCyan voice-bar-2" />
+              <span className="w-[2px] h-2 rounded-full bg-emerald-300 voice-bar-3" />
+            </span>
+            <span className="text-[8px] font-black uppercase tracking-wider text-emerald-200 hidden xs:inline">
+              Speaking
+            </span>
+          </div>
+        )}
+
         {/* Video stream rendering */}
         {hasVideo && stream ? (
           <StreamVideoTile stream={stream} isLocal={isLocal} />
         ) : (
           <div className="flex flex-col items-center justify-center gap-1.5 p-3">
-            <div className="relative">
+            <div className="relative flex items-center justify-center">
+              {/* Multi-Ring Active Speaker Neon Voice Halo */}
+              {activeVoice && (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -inset-2 rounded-full border-2 border-emerald-400/80 animate-voice-halo-1 pointer-events-none"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="absolute -inset-2 rounded-full border border-accentCyan/75 animate-voice-halo-2 pointer-events-none"
+                  />
+                </>
+              )}
               <img
                 src={peerUser?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=Party'}
                 alt={peerUser?.username || 'User'}
-                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white/20 object-cover bg-darkBg shadow-lg ${
-                  isTalking ? 'animate-bounce-subtle' : ''
+                className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 object-cover bg-darkBg shadow-lg transition-all duration-300 ${
+                  activeVoice
+                    ? 'border-emerald-400 scale-105 shadow-[0_0_18px_rgba(52,211,153,0.7)]'
+                    : 'border-white/20'
                 }`}
               />
-              {isTalking && (
-                <span className="absolute -inset-1.5 rounded-full border-2 border-emerald-400 animate-ping opacity-75 pointer-events-none" />
-              )}
             </div>
           </div>
         )}
@@ -538,7 +575,7 @@ export default function WatchPartyCall({ roomCode }) {
         )}
 
         {/* Badges & Name Tag */}
-        <div className="absolute bottom-1.5 left-2 right-2 flex items-center justify-between text-[11px] font-bold text-white bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 shadow-md">
+        <div className="absolute bottom-1.5 left-2 right-2 z-20 flex items-center justify-between text-[11px] font-bold text-white bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 shadow-md">
           <span className="truncate max-w-[100px]">
             {isLocal ? `You (${peerUser?.username || 'Me'})` : (peerUser?.username || 'Member')}
           </span>

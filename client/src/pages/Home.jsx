@@ -27,6 +27,22 @@ export default function Home() {
   const tabButtonRefs = useRef({});
   const [tabPillStyle, setTabPillStyle] = useState({ left: 0, width: 0, ready: false });
 
+  // Floating Parallax Spotlight Hero state
+  const heroRef = useRef(null);
+  const [heroSpot, setHeroSpot] = useState({ x: 50, y: 45, active: false });
+
+  const handleHeroPointerMove = (e) => {
+    const el = heroRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0]?.clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0]?.clientY : e.clientY;
+    if (typeof clientX !== 'number' || typeof clientY !== 'number') return;
+    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+    setHeroSpot({ x, y, active: true });
+  };
+
   useEffect(() => {
     const updatePill = () => {
       const el = tabButtonRefs.current[activeTab];
@@ -241,12 +257,68 @@ export default function Home() {
   return (
     <div className="space-y-8 sm:space-y-14 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto">
 
-      {/* ── Hero Banner ── */}
-      <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.06] text-center bg-aurora">
+      {/* ── Hero Banner (Floating Parallax Spotlight Hero) ── */}
+      <section
+        ref={heroRef}
+        onMouseMove={handleHeroPointerMove}
+        onTouchMove={handleHeroPointerMove}
+        onMouseLeave={() => setHeroSpot((prev) => ({ ...prev, active: false }))}
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.08] text-center bg-aurora group/hero"
+      >
         {/* Ambient orbs */}
         <div className="orb orb-purple w-80 h-80 -top-20 -left-20 opacity-60 pointer-events-none" />
         <div className="orb orb-cyan w-64 h-64 -bottom-16 -right-16 opacity-50 pointer-events-none" />
         <div className="orb orb-pink w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none" />
+
+        {/* Pointer-Tracked Radial Spotlight Glow */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none transition-opacity duration-500 z-[1]"
+          style={{
+            opacity: heroSpot.active ? 1 : 0.45,
+            background: `radial-gradient(520px circle at ${heroSpot.x}% ${heroSpot.y}%, rgba(var(--accent-cyan), 0.16), rgba(var(--accent-purple), 0.08) 40%, transparent 72%)`
+          }}
+        />
+
+        {/* Gently Drifting Floating Background Poster Cards (Zero overflow, subtle parallax) */}
+        {(() => {
+          const heroPosters = (media?.trending?.movies || []).slice(0, 4);
+          if (heroPosters.length === 0) return null;
+          const dx = (heroSpot.x - 50) * 0.22;
+          const dy = (heroSpot.y - 50) * 0.22;
+          const slotClasses = [
+            { pos: 'hidden sm:block -top-4 left-3 md:left-8 w-20 sm:w-24 md:w-28', rot: '-8deg', mult: -1 },
+            { pos: 'hidden sm:block top-6 right-3 md:right-10 w-20 sm:w-24 md:w-28', rot: '7deg', mult: 1 },
+            { pos: 'hidden md:block bottom-4 left-12 lg:left-20 w-24 md:w-28', rot: '6deg', mult: 0.7 },
+            { pos: 'hidden md:block -bottom-2 right-12 lg:right-24 w-24 md:w-28', rot: '-7deg', mult: -0.8 },
+          ];
+          return (
+            <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+              {heroPosters.map((item, idx) => {
+                const slot = slotClasses[idx];
+                if (!slot) return null;
+                return (
+                  <div
+                    key={item.id || idx}
+                    className={`absolute ${slot.pos} aspect-[2/3] rounded-2xl overflow-hidden border border-white/15 opacity-20 md:opacity-25 blur-[1.5px] shadow-2xl transition-transform duration-300 ease-out`}
+                    style={{
+                      transform: `translate3d(${dx * slot.mult}px, ${dy * slot.mult}px, 0)`
+                    }}
+                  >
+                    <img
+                      src={formatMediaPoster({ ...item, media_type: 'movie' })}
+                      alt=""
+                      className="w-full h-full object-cover animate-hero-float"
+                      style={{ '--base-rot': slot.rot, animationDelay: `${idx * -1.4}s` }}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => handlePosterError(e, { ...item, media_type: 'movie' })}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* Noise grain overlay */}
         <div className="noise-overlay rounded-2xl sm:rounded-3xl pointer-events-none" />
