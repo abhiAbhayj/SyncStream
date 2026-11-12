@@ -17,6 +17,13 @@ export default function Login() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isShaking, setIsShaking] = useState(false);
+
+  const triggerShake = () => {
+    setIsShaking(false);
+    requestAnimationFrame(() => setIsShaking(true));
+    setTimeout(() => setIsShaking(false), 440);
+  };
 
   // If already logged in, redirect to home
   React.useEffect(() => {
@@ -37,6 +44,7 @@ export default function Login() {
       navigate('/');
     } else {
       setError(res.error);
+      triggerShake();
     }
   };
 
@@ -58,11 +66,13 @@ export default function Login() {
           });
         }}
         onMouseLeave={() => setCardSpot((p) => ({ ...p, active: false }))}
-        className="w-full p-[1.5px] rounded-3xl relative shadow-2xl animate-fade-in transition-all duration-300"
+        className={`w-full p-[1.5px] rounded-3xl relative shadow-2xl animate-fade-in transition-all duration-300 ${isShaking ? 'animate-auth-shake' : ''}`}
         style={{
-          background: spotVisible
-            ? `radial-gradient(360px circle at ${spotX}% ${spotY}%, rgba(var(--accent-cyan), 0.72), rgba(var(--accent-purple), 0.36) 42%, rgba(255,255,255,0.1) 80%)`
-            : 'rgba(255,255,255,0.1)'
+          background: isShaking
+            ? 'radial-gradient(400px circle at 50% 45%, rgba(244, 63, 94, 0.85), rgba(244, 63, 94, 0.25) 60%, rgba(255,255,255,0.1))'
+            : spotVisible
+              ? `radial-gradient(360px circle at ${spotX}% ${spotY}%, rgba(var(--accent-cyan), 0.72), rgba(var(--accent-purple), 0.36) 42%, rgba(255,255,255,0.1) 80%)`
+              : 'rgba(255,255,255,0.1)'
         }}
       >
         <div className="w-full glass-panel rounded-[calc(1.5rem-1.5px)] p-6 sm:p-8 relative overflow-hidden space-y-6 bg-[#0a0f22]/95">

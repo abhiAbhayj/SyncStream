@@ -321,6 +321,7 @@ export const getAniListMediaDetail = async (alId) => {
             role
             node {
               name { full }
+              image { large medium }
             }
           }
         }
@@ -484,9 +485,10 @@ export const getAniListMediaDetail = async (alId) => {
 
     const seasons = Array.from(seasonsMap.values()).sort((a, b) => a.season_number - b.season_number);
 
-    const cast = (m.characters?.edges || []).slice(0, 10).map(c => ({
+    const cast = (m.characters?.edges || []).slice(0, 12).map(c => ({
       name: c.node?.name?.full || 'Actor',
-      character: c.role || 'Main'
+      character: c.role || 'Main',
+      profile_path: c.node?.image?.large || c.node?.image?.medium || null
     }));
 
     const recommendations = (m.recommendations?.nodes || [])
@@ -1350,7 +1352,11 @@ export const getMediaDetail = async (req, res) => {
           const d = detailRes.data;
           
           const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key;
-          const cast = d.credits?.cast?.slice(0, 10).map(c => ({ name: c.name, character: c.character })) || [];
+          const cast = d.credits?.cast?.slice(0, 12).map(c => ({
+            name: c.name,
+            character: c.character,
+            profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+          })) || [];
           const recommendations = d.recommendations?.results?.slice(0, 5).map(r => ({
             id: r.id.toString(),
             title: r.title || r.name,

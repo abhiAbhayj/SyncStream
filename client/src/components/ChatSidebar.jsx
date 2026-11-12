@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Send, Hash, MessageSquare } from 'lucide-react';
+import { Send, Hash, MessageSquare, ArrowDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 
@@ -11,7 +11,11 @@ export default function ChatSidebar({ roomCode }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState({});
+  const [unreadCount, setUnreadCount] = useState(0);
   const chatEndRef = useRef(null);
+  const listRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const prevMsgLenRef = useRef(0);
   const lastTypingEmitRef = useRef(0);
   const stopTypingTimerRef = useRef(null);
   const remoteTypingTimeoutsRef = useRef({});
@@ -86,10 +90,42 @@ export default function ChatSidebar({ roomCode }) {
 
   const activeTypers = Object.keys(typingUsers);
 
-  // 3. Scroll to bottom on new messages or typing activity
-  useEffect(() => {
+  // 3. Smart auto-scroll or unread pill tracker
+  const handleListScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 64;
+    isAtBottomRef.current = atBottom;
+    if (atBottom && unreadCount > 0) {
+      setUnreadCount(0);
+    }
+  };
+
+  const scrollToLatest = () => {
+    isAtBottomRef.current = true;
+    setUnreadCount(0);
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeTypers.length]);
+  };
+
+  useEffect(() => {
+    const prevLen = prevMsgLenRef.current;
+    prevMsgLenRef.current = messages.length;
+    const latestMsg = messages[messages.length - 1];
+    const isMyOwnNew = latestMsg && latestMsg.user_id === user?.id && messages.length > prevLen;
+
+    if (prevLen === 0 || isAtBottomRef.current || isMyOwnNew) {
+      setUnreadCount(0);
+      chatEndRef.current?.scrollIntoView({ behavior: prevLen === 0 ? 'auto' : 'smooth' });
+    } else if (messages.length > prevLen) {
+      setUnreadCount((c) => c + (messages.length - prevLen));
+    }
+  }, [messages, user?.id]);
+
+  useEffect(() => {
+    if (activeTypers.length > 0 && isAtBottomRef.current) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeTypers.length]);
 
   // 4. Emit typing signal gracefully while user types
   const handleInputChange = (val) => {
@@ -149,7 +185,7 @@ export default function ChatSidebar({ roomCode }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-darkCard border border-darkBorder rounded-2xl overflow-hidden shadow-2xl">
+    <div className="relative flex flex-col h-full bg-darkCard border border-darkBorder rounded-2xl overflow-hidden shadow-2xl">
       {/* Header */}
       <div className="p-4 border-b border-darkBorder flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
@@ -163,7 +199,11 @@ export default function ChatSidebar({ roomCode }) {
       </div>
 
       {/* Messages List */}
-      <div className="flex-grow p-3.5 sm:p-4 overflow-y-auto space-y-4 max-h-[380px] sm:max-h-[450px] md:max-h-[none]">
+      <div
+        ref={listRef}
+        onScroll={handleListScroll}
+        className="flex-grow p-3.5 sm:p-4 overflow-y-auto space-y-4 max-h-[380px] sm:max-h-[450px] md:max-h-[none]"
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 py-12">
             <MessageSquare className="w-8 h-8 opacity-20 mb-2" />
@@ -232,6 +272,18 @@ export default function ChatSidebar({ roomCode }) {
 
         <div ref={chatEndRef} />
       </div>
+
+      {/* Magnetic New Messages Pill */}
+      {unreadCount > 0 && (
+        <button
+          type="button"
+          onClick={scrollToLatest}
+          className="absolute left-1/2 bottom-[62px] z-20 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-darkBg/95 border border-accentCyan/70 text-accentCyan text-[11px] font-extrabold shadow-[0_0_20px_rgba(var(--accent-cyan),0.45)] backdrop-blur-md animate-pill-bob hover:bg-accentCyan hover:text-black transition-colors cursor-pointer whitespace-nowrap"
+        >
+          <span>{unreadCount} New {unreadCount === 1 ? 'Message' : 'Messages'}</span>
+          <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
+        </button>
+      )}
 
       {/* Input box */}
       <form onSubmit={handleSendMessage} className="p-2.5 sm:p-3 border-t border-darkBorder bg-black/25 flex gap-2">

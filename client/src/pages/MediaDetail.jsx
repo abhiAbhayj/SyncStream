@@ -10,7 +10,73 @@ import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock } from 'lucide-react';
+import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User } from 'lucide-react';
+
+function CastAvatarCard({ member, isActive, onSelect }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const initials = (member?.name || '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || '?';
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`group snap-start shrink-0 w-[106px] xs:w-[116px] sm:w-[132px] p-2.5 sm:p-3 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-2 cursor-pointer active:scale-95 ${
+        isActive
+          ? 'border-accentCyan/80 bg-accentCyan/12 shadow-[0_0_20px_rgba(var(--accent-cyan),0.28)] -translate-y-0.5'
+          : 'border-darkBorder bg-darkCard/55 hover:border-accentCyan/45 hover:bg-darkCard/90 hover:-translate-y-1'
+      }`}
+    >
+      {/* Avatar with animated orbital conic glint */}
+      <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full p-[2px] flex items-center justify-center overflow-hidden">
+        <div
+          aria-hidden="true"
+          className={`absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,rgba(var(--accent-cyan),0.95),rgba(var(--accent-purple),0.9),rgba(var(--accent-pink),0.85),rgba(var(--accent-cyan),0.95))] transition-opacity duration-300 animate-orbit-cw ${
+            isActive ? 'opacity-100' : 'opacity-45 group-hover:opacity-100'
+          }`}
+        />
+        <div className="relative z-10 w-full h-full rounded-full overflow-hidden bg-darkBg border border-black/60 flex items-center justify-center">
+          {member.profile_path && !imgFailed ? (
+            <img
+              src={member.profile_path}
+              alt={member.name}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={() => setImgFailed(true)}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-accentCyan/25 via-accentPurple/25 to-accentPink/20 flex items-center justify-center">
+              {initials ? (
+                <span className="text-xs sm:text-sm font-black text-white font-outfit tracking-wider">
+                  {initials}
+                </span>
+              ) : (
+                <User className="w-5 h-5 text-accentCyan" />
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Name & Character / Role */}
+      <div className="w-full min-w-0 space-y-0.5">
+        <p className="text-[11px] sm:text-xs font-bold text-white truncate group-hover:text-accentCyan transition-colors" title={member.name}>
+          {member.name}
+        </p>
+        {member.character && (
+          <p className="text-[9px] sm:text-[10px] font-semibold text-accentCyan/85 truncate" title={member.character}>
+            {member.character}
+          </p>
+        )}
+      </div>
+    </button>
+  );
+}
 
 const formatDuration = (mins, mediaType, episodesCount) => {
   const m = parseInt(mins, 10);
@@ -69,6 +135,10 @@ export default function MediaDetail() {
   
   const [seasonEpisodes, setSeasonEpisodes] = useState([]);
   const [currentSeasonData, setCurrentSeasonData] = useState(null);
+  const [upNextCounting, setUpNextCounting] = useState(false);
+  const [upNextSeconds, setUpNextSeconds] = useState(8);
+  const [upNextDismissed, setUpNextDismissed] = useState(false);
+  const [activeCastIdx, setActiveCastIdx] = useState(0);
 
   // Playback modes for Video Content
   // 'trailer' | 'solo-html5' | 'solo-embed'
@@ -254,6 +324,26 @@ export default function MediaDetail() {
       return () => cancelAnimationFrame(raf);
     }
   }, [loading, detail?.id]);
+
+  // Reset Up-Next Autoplay state when season/episode/media changes
+  useEffect(() => {
+    setUpNextCounting(false);
+    setUpNextSeconds(8);
+    setUpNextDismissed(false);
+  }, [type, id, activeSeason, activeEpisode]);
+
+  useEffect(() => {
+    if (!upNextCounting) return;
+    if (upNextSeconds <= 0) {
+      setUpNextCounting(false);
+      setUpNextSeconds(8);
+      setActiveEpisode((prev) => prev + 1);
+      setPlaybackMode('solo-embed');
+      return;
+    }
+    const timer = setTimeout(() => setUpNextSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [upNextCounting, upNextSeconds]);
 
   const handleCreateWatchParty = async () => {
     if (!user) {
@@ -816,6 +906,125 @@ export default function MediaDetail() {
             })()}
           </div>
 
+          {/* ── Up-Next Autoplay Countdown Ring (Episodic Series / Anime) ── */}
+          {(() => {
+            const currentSeasonInfo = detail.seasons?.find(s => s.season_number === activeSeason);
+            const totalEps = seasonEpisodes.length > 0
+              ? seasonEpisodes.length
+              : (currentSeasonInfo ? currentSeasonInfo.episode_count : (detail.episodes_count || 12));
+            const nextEpNum = activeEpisode + 1;
+            const hasNext = isEpisodic && playbackMode !== 'trailer' && !upNextDismissed && nextEpNum <= totalEps;
+            if (!hasNext) return null;
+
+            const nextEpDetail = seasonEpisodes.find(e => e.episode_number === nextEpNum);
+            const nextAnimeEp = episodes.find(e => parseInt(e.episode || e.number, 10) === nextEpNum);
+            const nextEpTitle = nextEpDetail?.name || nextAnimeEp?.title || `Episode ${nextEpNum}`;
+            const radius = 15;
+            const circumference = 2 * Math.PI * radius;
+            const ringOffset = upNextCounting ? circumference * (1 - upNextSeconds / 8) : 0;
+
+            return (
+              <div className="max-w-5xl mx-auto w-full rounded-2xl border border-accentCyan/35 bg-gradient-to-r from-[#071124]/95 via-[#0d1633]/90 to-[#110c24]/95 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_0_24px_rgba(var(--accent-cyan),0.14)] backdrop-blur-md">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Animated Circular Countdown Ring */}
+                  <div className="relative w-10 h-10 shrink-0 flex items-center justify-center rounded-full bg-black/50 border border-white/10">
+                    <svg className="w-full h-full -rotate-90 p-0.5" viewBox="0 0 38 38">
+                      <circle
+                        cx="19"
+                        cy="19"
+                        r={radius}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.12)"
+                        strokeWidth="2.8"
+                      />
+                      <circle
+                        cx="19"
+                        cy="19"
+                        r={radius}
+                        fill="none"
+                        stroke="rgb(var(--accent-cyan))"
+                        strokeWidth="2.8"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={ringOffset}
+                        style={{
+                          transition: 'stroke-dashoffset 0.85s linear',
+                          filter: 'drop-shadow(0 0 5px rgba(var(--accent-cyan),0.8))'
+                        }}
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black font-mono text-accentCyan">
+                      {upNextCounting ? `${upNextSeconds}` : <SkipForward className="w-3.5 h-3.5 fill-current" />}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-accentCyan">
+                        {upNextCounting ? `Auto-Playing Next in ${upNextSeconds}s` : 'Up Next Queue'}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-gray-200 font-bold">
+                        Ep {nextEpNum}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-white truncate">
+                      {nextEpTitle}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (upNextCounting) {
+                        setUpNextCounting(false);
+                        setUpNextSeconds(8);
+                      } else {
+                        setUpNextSeconds(8);
+                        setUpNextCounting(true);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
+                      upNextCounting
+                        ? 'border-amber-400/50 bg-amber-400/15 text-amber-300 hover:bg-amber-400/25'
+                        : 'border-white/15 bg-white/5 text-gray-200 hover:border-accentCyan/50 hover:text-accentCyan'
+                    }`}
+                  >
+                    {upNextCounting ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 fill-current" />}
+                    <span>{upNextCounting ? 'Pause Timer' : '8s Auto-Next'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUpNextCounting(false);
+                      setUpNextSeconds(8);
+                      setActiveEpisode(nextEpNum);
+                      setPlaybackMode('solo-embed');
+                    }}
+                    className="btn-shimmer px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-[11px] flex items-center gap-1.5 transition shadow-md cursor-pointer active:scale-95"
+                  >
+                    <SkipForward className="w-3.5 h-3.5 fill-current" />
+                    <span>Play Ep {nextEpNum}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUpNextCounting(false);
+                      setUpNextDismissed(true);
+                    }}
+                    aria-label="Dismiss Up Next banner"
+                    className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Season and Episode selector Directory for TV/Anime ONLY - NEVER FOR MOVIES */}
           {isEpisodic && (
             <div className="border border-darkBorder bg-black/10 rounded-2xl p-3 sm:p-4 space-y-3 sm:space-y-4">
@@ -1040,6 +1249,36 @@ export default function MediaDetail() {
               )}
             </div>
           )}
+        </section>
+      )}
+
+      {/* ── Interactive Cast & Crew Avatar Carousel Glint ── */}
+      {detail.cast && detail.cast.length > 0 && (
+        <section className="glass-panel border border-darkBorder p-3.5 sm:p-5 rounded-2xl shadow-xl space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between gap-2 border-b border-darkBorder/60 pb-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="p-1.5 rounded-lg bg-accentPurple/20 text-accentPurple flex items-center justify-center shrink-0">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </span>
+              <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-white font-outfit truncate">
+                {type === 'manga' ? 'Creators & Authors' : type === 'anime' ? 'Featured Characters & Voice' : 'Featured Cast & Crew'}
+              </h3>
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-accentCyan bg-accentCyan/10 border border-accentCyan/25 px-2 py-0.5 rounded-full font-mono shrink-0">
+              {detail.cast.length} Featured
+            </span>
+          </div>
+
+          <div className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
+            {detail.cast.map((member, idx) => (
+              <CastAvatarCard
+                key={`${member.name}-${idx}`}
+                member={member}
+                isActive={activeCastIdx === idx}
+                onSelect={() => setActiveCastIdx(idx)}
+              />
+            ))}
+          </div>
         </section>
       )}
 

@@ -17,6 +17,8 @@ export default function Catalog() {
   const [page, setPage] = useState(1);
   const [lastUpdated, setLastUpdated] = useState(null);
   const isFetchingRef = useRef(false);
+  const horizonRef = useRef(null);
+  const loadMoreRef = useRef(null);
   const MAX_PAGES = 30;
 
   const getCategoryLabel = (cat) => {
@@ -147,12 +149,29 @@ export default function Catalog() {
   }, [fetchCatalogData]);
 
   const loadMore = () => {
-    if (page < MAX_PAGES) {
+    if (!loading && !loadingMore && page < MAX_PAGES) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchCatalogData(nextPage);
     }
   };
+  loadMoreRef.current = loadMore;
+
+  // Auto-load next page when Infinite Scroll Horizon Beam enters viewport
+  useEffect(() => {
+    const el = horizonRef.current;
+    if (!el || loading || error || items.length === 0 || page >= MAX_PAGES) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMoreRef.current?.();
+        }
+      },
+      { rootMargin: '160px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, error, items.length, page]);
 
   const categoryConfig = getCategoryConfig(category);
   const IconComponent = categoryConfig.icon;
@@ -193,7 +212,13 @@ export default function Catalog() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <span>Showing {items.length} entries</span>
+          <span
+            key={items.length}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] border border-accentCyan/35 text-xs font-bold text-gray-200 tabular-nums animate-badge-pulse"
+          >
+            <span className="animate-digit-roll text-accentCyan font-extrabold">{items.length}</span>
+            <span>entries</span>
+          </span>
         </div>
       </div>
 
@@ -206,21 +231,27 @@ export default function Catalog() {
         <div className="animate-fade-in space-y-8">
           <MediaGrid items={items} showTimings={category === 'ongoing'} />
           
-          {/* Load More Button */}
+          {/* Infinite Scroll Horizon Beam (#4) */}
           {!loading && !error && items.length > 0 && page < MAX_PAGES && (
-            <div className="flex justify-center pt-8 pb-12">
+            <div ref={horizonRef} className="flex flex-col items-center justify-center pt-6 pb-12 space-y-4">
+              <div className="relative w-full max-w-md h-[3px] rounded-full bg-white/10 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-accentCyan to-accentPurple shadow-[0_0_16px_rgba(var(--accent-cyan),0.8)] animate-horizon-beam" />
+              </div>
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full font-bold transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+                className="btn-shimmer px-7 py-2.5 bg-white/[0.06] border border-accentCyan/35 hover:border-accentCyan hover:bg-accentCyan/15 text-white rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer shadow-[0_0_18px_rgba(var(--accent-cyan),0.2)]"
               >
                 {loadingMore ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin text-accentCyan" />
-                    Loading...
+                    <Loader2 className="w-4 h-4 animate-spin text-accentCyan" />
+                    <span>Scanning Next Horizon...</span>
                   </>
                 ) : (
-                  'Load More'
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
+                    <span>Load More Entries</span>
+                  </>
                 )}
               </button>
             </div>

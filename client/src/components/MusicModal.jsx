@@ -120,6 +120,8 @@ export default function MusicModal() {
   const [dragTime, setDragTime] = useState(0);
   const [viewStyle, setViewStyle] = useState('poster');
   const [rippleTrigger, setRippleTrigger] = useState(0);
+  const [seekFlashIdx, setSeekFlashIdx] = useState(null);
+  const [tappedPlainIdx, setTappedPlainIdx] = useState(null);
 
   const [lyricsData, setLyricsData] = useState({
     loading: false,
@@ -516,9 +518,9 @@ export default function MusicModal() {
                 </div>
               )}
 
-              {/* Vinyl Disc View */}
+              {/* Vinyl Disc View + Animated Tonearm Needle Drop */}
               {viewStyle === 'vinyl' && (
-                <div className="relative group shrink-0 flex items-center justify-center z-10">
+                <div className="relative group shrink-0 flex items-center justify-center z-10 px-5 sm:px-8">
                   {/* Ambient background glow */}
                   <div 
                     className="absolute -inset-4 rounded-full blur-2xl opacity-40 scale-95 transition-opacity duration-700 pointer-events-none hidden sm:block"
@@ -565,6 +567,50 @@ export default function MusicModal() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Pivoting Metallic Tonearm / Stylus Assembly */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -top-2 right-0 sm:-right-2 md:right-0 w-12 h-24 xs:w-14 xs:h-28 sm:w-20 sm:h-36 z-20"
+                  >
+                    <svg
+                      viewBox="0 0 80 140"
+                      className="w-full h-full overflow-visible drop-shadow-[0_6px_14px_rgba(0,0,0,0.85)]"
+                      style={{
+                        transformOrigin: '60px 20px',
+                        transform: isPlaying ? 'rotate(24deg)' : 'rotate(-4deg)',
+                        transition: 'transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                      }}
+                    >
+                      {/* Pivot Gimbal Base */}
+                      <circle cx="60" cy="20" r="14" fill="#141a30" stroke="rgba(255,255,255,0.28)" strokeWidth="2" />
+                      <circle cx="60" cy="20" r="6" fill="rgb(var(--accent-cyan))" opacity={isPlaying ? '0.95' : '0.45'} />
+                      {/* Counterweight */}
+                      <rect x="54" y="2" width="12" height="10" rx="2" fill="#2c3554" stroke="rgba(255,255,255,0.25)" />
+                      {/* Tonearm Tube */}
+                      <path
+                        d="M60 22 L54 88 L38 112"
+                        fill="none"
+                        stroke="#cbd5e1"
+                        strokeWidth="4.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      {/* Headshell & Glowing Stylus Tip */}
+                      <path
+                        d="M41 108 L31 124 L37 128 L46 112 Z"
+                        fill="#1e293b"
+                        stroke="rgba(var(--accent-cyan),0.8)"
+                        strokeWidth="1.5"
+                      />
+                      <circle
+                        cx="34"
+                        cy="126"
+                        r="2.8"
+                        fill={isPlaying ? 'rgb(var(--accent-cyan))' : '#64748b'}
+                      />
+                    </svg>
                   </div>
 
                   {isPlaying && (
@@ -703,23 +749,40 @@ export default function MusicModal() {
             ) : lyricsData.synced && lyricsData.syncedLyrics.length > 0 ? (
               <div
                 ref={lyricsContainerRef}
-                className="overflow-y-auto space-y-3 sm:space-y-4 flex-1 min-h-0 pr-1.5 sm:pr-3 custom-scrollbar py-4 select-none"
+                className="overflow-y-auto space-y-2.5 sm:space-y-3.5 flex-1 min-h-0 pr-1.5 sm:pr-3 custom-scrollbar py-4 select-none"
               >
                 {lyricsData.syncedLyrics.map((line, idx) => {
                   const isActive = idx === activeLyricIndex;
+                  const dist = activeLyricIndex >= 0 ? Math.abs(idx - activeLyricIndex) : 2;
+                  const isAdjacent = dist === 1;
+                  const isSeeking = seekFlashIdx === idx;
                   return (
                     <div
                       key={`lyric-${idx}`}
-                      onClick={() => seek(line.time)}
-                      className={`text-center sm:text-left transition-all duration-300 cursor-pointer rounded-xl px-3 py-1.5 sm:py-2 select-none ${
+                      onClick={() => {
+                        setSeekFlashIdx(idx);
+                        seek(line.time);
+                        setTimeout(() => setSeekFlashIdx((cur) => (cur === idx ? null : cur)), 500);
+                      }}
+                      className={`relative overflow-hidden text-center sm:text-left transition-all duration-300 cursor-pointer rounded-xl px-3 py-2 sm:py-2.5 select-none ${
                         isActive
-                          ? 'text-accentCyan font-extrabold text-base sm:text-xl md:text-2xl scale-[1.02] bg-accentCyan/15 border border-accentCyan/40 shadow-[0_0_20px_rgba(var(--accent-cyan),0.35)]'
-                          : 'text-gray-400/80 hover:text-white hover:bg-white/5 text-sm sm:text-base md:text-lg font-semibold'
+                          ? 'text-white font-extrabold text-base sm:text-xl md:text-2xl scale-[1.02] bg-gradient-to-r from-accentCyan/20 via-accentPurple/15 to-transparent border border-accentCyan/50 shadow-[0_0_24px_rgba(var(--accent-cyan),0.35)] opacity-100'
+                          : isSeeking
+                            ? 'text-accentCyan bg-accentCyan/15 border border-accentCyan/40 scale-[1.01] opacity-100'
+                            : isAdjacent
+                              ? 'text-gray-300 opacity-75 hover:opacity-100 hover:bg-white/5 text-sm sm:text-base md:text-lg font-semibold'
+                              : 'text-gray-400 opacity-45 hover:opacity-85 hover:bg-white/5 text-xs sm:text-sm md:text-base font-medium'
                       }`}
                     >
-                      <p className="leading-snug flex items-center justify-center sm:justify-start gap-1.5">
+                      {isActive && (
+                        <span
+                          aria-hidden="true"
+                          className="hidden sm:block absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-gradient-to-b from-accentCyan to-accentPurple shadow-[0_0_10px_rgba(var(--accent-cyan),0.8)]"
+                        />
+                      )}
+                      <p className={`leading-snug flex items-center justify-center sm:justify-start gap-2 ${isActive ? 'sm:pl-2 drop-shadow-[0_0_12px_rgba(var(--accent-cyan),0.55)]' : ''}`}>
                         {line?.text ? (
-                          line.text
+                          <span>{line.text}</span>
                         ) : (
                           <Music className="w-4 h-4 inline-block opacity-60" />
                         )}
@@ -729,10 +792,27 @@ export default function MusicModal() {
                 })}
               </div>
             ) : lyricsData.plainLyrics && !lyricsData.plainLyrics.toLowerCase().includes('no synchronized or plain lyrics') && !lyricsData.plainLyrics.toLowerCase().includes('no lyrics available') ? (
-              <div className="overflow-y-auto space-y-3 flex-1 min-h-0 pr-2 custom-scrollbar py-4 text-center sm:text-left">
-                <pre className="text-xs sm:text-sm md:text-base font-sans text-gray-200 leading-relaxed whitespace-pre-wrap font-medium">
-                  {lyricsData.plainLyrics}
-                </pre>
+              <div className="overflow-y-auto space-y-1.5 flex-1 min-h-0 pr-1.5 sm:pr-3 custom-scrollbar py-4 text-center sm:text-left select-none">
+                {lyricsData.plainLyrics.split(/\r?\n/).map((line, idx) => {
+                  const trimmed = line.trim();
+                  if (!trimmed) {
+                    return <div key={`plain-gap-${idx}`} className="h-3" />;
+                  }
+                  const isHighlighted = tappedPlainIdx === idx;
+                  return (
+                    <p
+                      key={`plain-${idx}`}
+                      onClick={() => setTappedPlainIdx((cur) => (cur === idx ? null : idx))}
+                      className={`px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer leading-relaxed ${
+                        isHighlighted
+                          ? 'text-accentCyan font-bold text-sm sm:text-base md:text-lg bg-accentCyan/15 border border-accentCyan/40 shadow-[0_0_18px_rgba(var(--accent-cyan),0.25)] scale-[1.01]'
+                          : 'text-gray-200/85 hover:text-white hover:bg-white/5 text-xs sm:text-sm md:text-base font-medium'
+                      }`}
+                    >
+                      {trimmed}
+                    </p>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center flex-1 min-h-0 text-center p-4 sm:p-6 space-y-3 my-auto">

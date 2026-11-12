@@ -7,6 +7,13 @@ export default function EmbedPlayer({ embedUrl, title }) {
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Trigger matrix shutter overlay whenever stream source / server changes
+  useEffect(() => {
+    if (embedUrl) {
+      setLoading(true);
+    }
+  }, [embedUrl]);
+
   // Track Fullscreen state changes (ESC key, browser exit, etc.)
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -102,11 +109,33 @@ export default function EmbedPlayer({ embedUrl, title }) {
       ref={containerRef}
       className={`relative w-full ${isFullscreen ? 'h-screen' : 'aspect-video'} rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl transition-all duration-300 group`}
     >
-      {/* Loading Overlay */}
+      {/* Animated Cyber-Shutter Matrix Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-darkBg flex flex-col items-center justify-center gap-3 z-10">
-          <Loader2 className="w-10 h-10 animate-spin text-accentCyan" />
-          <p className="text-sm text-gray-400">Connecting to streaming wrapper...</p>
+        <div className="absolute inset-0 bg-[#050814]/95 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10 overflow-hidden select-none">
+          {/* Subtle matrix grid backdrop */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, rgba(var(--accent-cyan), 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--accent-purple), 0.14) 1px, transparent 1px)',
+              backgroundSize: '28px 28px'
+            }}
+          />
+          {/* Horizontal Cyber-Shutter Scan Beam */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-transparent via-accentCyan/25 to-transparent border-y border-accentCyan/35 animate-cyber-shutter pointer-events-none"
+          />
+          <div className="relative z-10 flex flex-col items-center gap-2.5 px-4 text-center">
+            <div className="relative p-3 rounded-2xl bg-black/70 border border-accentCyan/40 shadow-[0_0_24px_rgba(var(--accent-cyan),0.3)]">
+              <Loader2 className="w-7 h-7 sm:w-9 sm:h-9 animate-spin text-accentCyan" />
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/80 border border-accentCyan/30 text-[11px] sm:text-xs font-mono font-bold text-accentCyan shadow-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-accentCyan animate-ping" />
+              <span>Locking Stream Mirror...</span>
+            </div>
+          </div>
         </div>
       )}
 

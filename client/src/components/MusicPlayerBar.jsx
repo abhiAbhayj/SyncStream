@@ -89,7 +89,50 @@ export default function MusicPlayerBar() {
   const [showQueueDrawer, setShowQueueDrawer] = useState(false);
   const [hoverPosition, setHoverPosition] = useState(null);
   const [rippleTrigger, setRippleTrigger] = useState(0);
+  const [flyingCovers, setFlyingCovers] = useState([]);
+  const [discPulse, setDiscPulse] = useState(false);
   const progressBarRef = useRef(null);
+  const flyTimersRef = useRef([]);
+
+  // Flying Cover-Art Arc Listener (#6)
+  useEffect(() => {
+    const handleFlyCover = (e) => {
+      const { src, fromRect } = e.detail || {};
+      if (!src) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const startX = fromRect ? fromRect.left + fromRect.width / 2 - 24 : vw / 2 - 24;
+      const startY = fromRect ? fromRect.top + fromRect.height / 2 - 24 : vh / 2 - 24;
+      const isMobile = vw < 640;
+      const targetX = isMobile ? 30 : Math.max(40, Math.min(vw * 0.14, 180));
+      const targetY = isMobile ? vh - 96 : vh - 48;
+      const uid = `${Date.now()}-${Math.random()}`;
+
+      setFlyingCovers((prev) => [
+        ...prev.slice(-4),
+        { id: uid, src, startX, startY, dx: targetX - startX, dy: targetY - startY, active: false }
+      ]);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setFlyingCovers((prev) => prev.map((f) => (f.id === uid ? { ...f, active: true } : f)));
+        });
+      });
+
+      const arrivalTimer = setTimeout(() => {
+        setDiscPulse(true);
+        setTimeout(() => setDiscPulse(false), 550);
+        setFlyingCovers((prev) => prev.filter((f) => f.id !== uid));
+      }, 540);
+      flyTimersRef.current.push(arrivalTimer);
+    };
+
+    window.addEventListener('syncstream:fly-cover', handleFlyCover);
+    return () => {
+      window.removeEventListener('syncstream:fly-cover', handleFlyCover);
+      flyTimersRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   const calculateSeekTime = useCallback((e) => {
     if (!progressBarRef.current || duration <= 0) return 0;
@@ -128,8 +171,35 @@ export default function MusicPlayerBar() {
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  const flyingOverlay = flyingCovers.length > 0 ? (
+    <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-[140] overflow-hidden">
+      {flyingCovers.map((fly) => (
+        <div
+          key={fly.id}
+          style={{
+            left: `${fly.startX}px`,
+            top: `${fly.startY}px`,
+            transform: fly.active
+              ? `translate3d(${fly.dx}px, ${fly.dy}px, 0) scale(0.42) rotate(14deg)`
+              : 'translate3d(0, -18px, 0) scale(1.08) rotate(-4deg)',
+            opacity: fly.active ? 0.18 : 1,
+            transition: 'transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms ease-out'
+          }}
+          className="fixed w-12 h-12 rounded-xl overflow-hidden border-2 border-accentCyan shadow-[0_0_24px_rgba(var(--accent-cyan),0.75)] bg-darkBg"
+        >
+          <img
+            src={fly.src}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+          />
+        </div>
+      ))}
+    </div>
+  ) : null;
+
   // ALL hooks are above this line. Conditional returns are safe below.
-  if (!currentTrack || isExpanded) return null;
+  if (!currentTrack || isExpanded) return flyingOverlay;
 
   const displayTime = isDragging ? dragTime : currentTime;
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
@@ -164,6 +234,7 @@ export default function MusicPlayerBar() {
 
   return (
     <>
+      {flyingOverlay}
       {/* Floating Music Player Bar */}
       <aside
         aria-label="Floating Music Player"
@@ -212,7 +283,7 @@ export default function MusicPlayerBar() {
                     isPlaying
                       ? 'border-accentCyan/80 shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
                       : 'border-white/25 shadow-md'
-                  }`}
+                  } ${discPulse ? 'animate-disc-pulse' : ''}`}
                   title="Tap to open full player"
                 >
                   {/* Vinyl sheen overlay */}
@@ -450,7 +521,7 @@ export default function MusicPlayerBar() {
                   isPlaying
                     ? 'border-accentCyan/80 shadow-[0_0_18px_rgba(var(--accent-cyan),0.45)]'
                     : 'border-white/25 shadow-md'
-                }`}
+                } ${discPulse ? 'animate-disc-pulse' : ''}`}
                 title="Tap to open full player"
               >
                 {/* Vinyl sheen overlay */}

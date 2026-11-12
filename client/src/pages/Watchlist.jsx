@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import MediaGrid from '../components/MediaGrid';
-import { Heart, Search, Loader2, Film, Tv, Sparkles, BookOpen, Layers, ArrowRight } from 'lucide-react';
+import { Heart, Search, Loader2, Film, Tv, Sparkles, BookOpen, Layers, ArrowRight, RotateCcw, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Watchlist() {
@@ -13,6 +13,9 @@ export default function Watchlist() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [displayCount, setDisplayCount] = useState(0);
+  const [removingIds, setRemovingIds] = useState(new Set());
+  const [undoToast, setUndoToast] = useState(null); // { key, item }
+  const undoTimerRef = useRef(null);
 
   // Smooth Count-Up Animation for Total Bookmarks
   useEffect(() => {
@@ -58,7 +61,61 @@ export default function Watchlist() {
     };
 
     fetchWatchlist();
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
   }, [user, navigate]);
+
+  // Quick-remove with animated card shrink & 4.5s Undo toast (#13)
+  const handleRemoveWithUndo = (item) => {
+    const extId = String(item.external_media_id || item.id);
+    setRemovingIds((prev) => new Set([...prev, extId]));
+
+    setTimeout(async () => {
+      setWatchlist((prev) => prev.filter((x) => String(x.external_media_id || x.id) !== extId));
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(extId);
+        return next;
+      });
+
+      setUndoToast({ key: Date.now(), item });
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = setTimeout(() => {
+        setUndoToast(null);
+      }, 4500);
+
+      try {
+        await axios.delete(`/api/media/watchlist/${encodeURIComponent(extId)}`);
+      } catch (err) {
+        console.error('Failed to remove from watchlist:', err);
+      }
+    }, 260);
+  };
+
+  const handleUndoRemove = async () => {
+    if (!undoToast?.item) return;
+    const item = undoToast.item;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoToast(null);
+
+    setWatchlist((prev) => {
+      const extId = String(item.external_media_id || item.id);
+      if (prev.some((x) => String(x.external_media_id || x.id) === extId)) return prev;
+      return [item, ...prev];
+    });
+
+    try {
+      await axios.post('/api/media/watchlist', {
+        external_media_id: String(item.external_media_id || item.id),
+        media_type: item.media_type || 'movie',
+        title: (item.title || item.name || 'Untitled').slice(0, 250),
+        poster_path: item.poster_path || null
+      });
+    } catch (err) {
+      console.error('Failed to restore watchlist item:', err);
+    }
+  };
 
   // Separate media by type
   const movies = watchlist.filter(item => item.media_type === 'movie');
@@ -198,9 +255,12 @@ export default function Watchlist() {
             >
               <Icon className={`w-4 h-4 shrink-0 transition-transform ${tab.iconColor}`} />
               <span>{tab.label}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${
-                isActive ? 'bg-white/20 border-white/30 text-white' : 'bg-white/5 border-white/10 text-gray-400'
-              }`}>
+              <span
+                key={`${tab.id}-${tab.count}`}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider tabular-nums animate-digit-roll ${
+                  isActive ? 'bg-white/20 border-white/30 text-white' : 'bg-white/5 border-white/10 text-gray-400'
+                }`}
+              >
                 {tab.count}
               </span>
             </button>
@@ -330,7 +390,11 @@ export default function Watchlist() {
 
                 {/* Media Grid inside the framed card */}
                 <div className="relative z-10">
-                  <MediaGrid items={sec.items} />
+                  <MediaGrid
+                    items={sec.items}
+                    onRemoveItem={handleRemoveWithUndo}
+                    removingIds={removingIds}
+                  />
                 </div>
               </section>
             );
@@ -353,11 +417,55 @@ export default function Watchlist() {
                 </div>
               </div>
               <div className="relative z-10">
-                <MediaGrid items={others} />
+                <MediaGrid
+                  items={others}
+                  onRemoveItem={handleRemoveWithUndo}
+                  removingIds={removingIds}
+                />
               </div>
             </section>
           )}
 
+        </div>
+      )}
+
+      {/* Undo Toast Pill (#13) */}
+      {undoToast && (
+        <div
+          key={undoToast.key}
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-[calc(4.6rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-1/2 -translate-x-1/2 z-[115] w-[calc(100%-1.5rem)] max-w-sm rounded-2xl bg-[#0d142c]/95 border border-accentCyan/50 shadow-[0_12px_36px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden animate-spring-toast"
+        >
+          <div className="flex items-center justify-between gap-2.5 px-3.5 py-2.5">
+            <span className="text-xs font-bold text-gray-100 truncate">
+              Removed <span className="text-accentCyan">{undoToast.item.title || undoToast.item.name}</span>
+            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleUndoRemove}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accentCyan text-black text-xs font-black hover:opacity-90 active:scale-95 transition cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3 stroke-[2.5]" />
+                <span>Undo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setUndoToast(null)}
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
+                aria-label="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+          <div className="h-0.5 w-full bg-white/10">
+            <div
+              className="h-full bg-gradient-to-r from-accentCyan to-accentPurple animate-drain-bar"
+              style={{ '--drain-duration': '4.5s' }}
+            />
+          </div>
         </div>
       )}
 

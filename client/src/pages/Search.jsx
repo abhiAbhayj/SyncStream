@@ -183,6 +183,8 @@ export default function Search() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState(1);
+  const horizonRef = useRef(null);
+  const loadMoreRef = useRef(null);
   const MAX_PAGES = 30;
 
   // Smart Typewriter Placeholder Animation State
@@ -303,12 +305,28 @@ export default function Search() {
   };
 
   const loadMore = () => {
-    if (page < MAX_PAGES) {
+    if (!loading && !loadingMore && page < MAX_PAGES) {
       const nextPage = page + 1;
       setPage(nextPage);
       executeSearch(query, type, genre, language, country, nextPage, sort, musicCategory, year);
     }
   };
+  loadMoreRef.current = loadMore;
+
+  useEffect(() => {
+    const el = horizonRef.current;
+    if (!el || loading || !searched || results.length === 0 || page >= MAX_PAGES) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMoreRef.current?.();
+        }
+      },
+      { rootMargin: '160px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, searched, results.length, page]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -421,6 +439,15 @@ export default function Search() {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               Live
             </span>
+            {searched && (
+              <span
+                key={`${type}-${genre}-${language}-${country}-${year}-${results.length}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#0f162d] border border-accentCyan/50 text-white font-mono tabular-nums animate-badge-pulse"
+              >
+                <span className="text-accentCyan animate-digit-roll">{results.length}</span>
+                <span className="text-gray-300">Matches</span>
+              </span>
+            )}
           </div>
           <p className="text-xs sm:text-sm text-slate-300 hidden sm:block">
             Query multiple global and regional catalogs simultaneously across movies, TV series, anime, manga, and music.
@@ -815,21 +842,27 @@ export default function Search() {
         <div className="animate-slide-up space-y-8">
           <MediaGrid items={results} title={query ? `Matches for "${query}"` : "Discovered Results"} />
           
-          {/* Load More Button */}
+          {/* Infinite Scroll Horizon Beam (#4) */}
           {!loading && page < MAX_PAGES && (
-            <div className="flex justify-center pt-4 pb-12">
+            <div ref={horizonRef} className="flex flex-col items-center justify-center pt-4 pb-12 space-y-4">
+              <div className="relative w-full max-w-md h-[3px] rounded-full bg-white/10 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-accentCyan to-accentPurple shadow-[0_0_16px_rgba(var(--accent-cyan),0.8)] animate-horizon-beam" />
+              </div>
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full font-bold transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+                className="btn-shimmer px-7 py-2.5 bg-white/[0.06] border border-accentCyan/35 hover:border-accentCyan hover:bg-accentCyan/15 text-white rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer shadow-[0_0_18px_rgba(var(--accent-cyan),0.2)]"
               >
                 {loadingMore ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin text-accentCyan" />
-                    Loading...
+                    <Loader2 className="w-4 h-4 animate-spin text-accentCyan" />
+                    <span>Scanning Next Horizon...</span>
                   </>
                 ) : (
-                  'Load More'
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
+                    <span>Load More Results</span>
+                  </>
                 )}
               </button>
             </div>

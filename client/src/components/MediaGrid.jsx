@@ -17,7 +17,10 @@ import {
   Plus,
   Check,
   Users,
-  Loader2
+  Loader2,
+  Info,
+  Trash2,
+  X
 } from 'lucide-react';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 
@@ -140,7 +143,7 @@ function useHoloTilt() {
   };
 }
 
-function HoloMediaItem({ item, index, cfg, showTimings }) {
+function HoloMediaItem({ item, index, cfg, showTimings, onRemoveItem, isRemoving }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const {
@@ -155,6 +158,8 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
   const [savedToWatchlist, setSavedToWatchlist] = useState(false);
   const [savingWatchlist, setSavingWatchlist] = useState(false);
   const [creatingParty, setCreatingParty] = useState(false);
+  const [peekOpen, setPeekOpen] = useState(false);
+  const longPressRef = useRef(null);
 
   const rating = item.vote_average ? parseFloat(item.vote_average).toFixed(1) : null;
   const targetId = item.external_media_id || item.id;
@@ -250,20 +255,50 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
     }
   };
 
+  const taglineText =
+    item.overview?.trim() ||
+    (item.broadcast || item.broadcast_day ? `Airing: ${item.broadcast || item.broadcast_day}` : '') ||
+    (item.release_date || item.first_air_date ? `Released ${(item.release_date || item.first_air_date).substring(0, 4)} • ${formatLabel}` : `Tap Play to watch ${item.title || item.name}`);
+
+  const handleCardTouchStart = (e) => {
+    handleTouchStart(e);
+    if (longPressRef.current) clearTimeout(longPressRef.current);
+    longPressRef.current = setTimeout(() => {
+      setPeekOpen((prev) => !prev);
+    }, 480);
+  };
+
+  const handleCardTouchEnd = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    handleMouseLeave();
+  };
+
   return (
     <div
-      className="animate-cascade-card h-full"
+      className={`animate-cascade-card h-full transition-all duration-300 ${isRemoving ? 'animate-card-shrink pointer-events-none' : ''}`}
       style={{ animationDelay: `${Math.min(index, 16) * 50}ms` }}
     >
       <Link
         ref={cardRef}
         to={mediaLink}
         onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleMouseLeave}
-        onTouchCancel={handleMouseLeave}
+        onMouseLeave={() => {
+          handleMouseLeave();
+          setPeekOpen(false);
+        }}
+        onTouchStart={handleCardTouchStart}
+        onTouchMove={(e) => {
+          if (longPressRef.current) {
+            clearTimeout(longPressRef.current);
+            longPressRef.current = null;
+          }
+          handleTouchMove(e);
+        }}
+        onTouchEnd={handleCardTouchEnd}
+        onTouchCancel={handleCardTouchEnd}
         style={{
           touchAction: 'pan-y',
           transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease'
@@ -342,6 +377,41 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
             </div>
           ) : null}
 
+          {/* ── Split-Card Quick Tagline Preview Panel ── */}
+          <div
+            onClick={(e) => {
+              if (peekOpen) {
+                e.preventDefault();
+                e.stopPropagation();
+                setPeekOpen(false);
+              }
+            }}
+            className={`absolute inset-x-0 top-0 z-30 p-2 sm:p-2.5 bg-[#090e22]/95 border-b border-accentCyan/40 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[0_12px_30px_rgba(0,0,0,0.85)] ${
+              peekOpen ? 'translate-y-0 opacity-100 pointer-events-auto' : '-translate-y-full opacity-0 pointer-events-none'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <span className="text-[9px] font-black uppercase tracking-wider text-accentCyan font-mono truncate">
+                Quick Preview
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setPeekOpen(false);
+                }}
+                className="p-0.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10"
+                aria-label="Close preview"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+            <p className="text-[10px] sm:text-[11px] leading-snug text-gray-200 line-clamp-4 font-medium">
+              {taglineText}
+            </p>
+          </div>
+
           {/* ── Rising Frosted Quick-Action Drawer (All Devices) ── */}
           <div className="flex absolute bottom-0 inset-x-0 z-20 p-1.5 sm:p-2 translate-y-0 [@media(hover:hover)]:lg:translate-y-full [@media(hover:hover)]:lg:group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] bg-black/75 backdrop-blur-xl border-t border-white/15 items-center justify-between gap-1 sm:gap-1.5">
             <button
@@ -356,23 +426,57 @@ function HoloMediaItem({ item, index, cfg, showTimings }) {
 
             <button
               type="button"
-              onClick={handleQuickWatchlist}
-              disabled={savingWatchlist}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setPeekOpen((prev) => !prev);
+              }}
               className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg border text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0 ${
-                savedToWatchlist
-                  ? 'bg-emerald-500/25 border-emerald-400/60 text-emerald-300'
-                  : 'bg-white/10 hover:bg-white/20 border-white/15 text-white'
+                peekOpen
+                  ? 'bg-accentCyan/25 border-accentCyan text-accentCyan'
+                  : 'bg-white/10 hover:bg-white/20 border-white/15 text-gray-200'
               }`}
-              title={savedToWatchlist ? 'Saved to Watchlist' : 'Add to Watchlist'}
+              title="Quick Overview Peek"
+              aria-label="Quick Overview Peek"
             >
-              {savingWatchlist ? (
-                <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
-              ) : savedToWatchlist ? (
-                <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
-              ) : (
-                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
-              )}
+              <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </button>
+
+            {onRemoveItem ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onRemoveItem(item);
+                }}
+                className="p-1 sm:p-1.5 rounded-md sm:rounded-lg bg-rose-500/20 hover:bg-rose-500 border border-rose-500/40 text-rose-300 hover:text-white text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
+                title="Remove from Library"
+                aria-label="Remove from Library"
+              >
+                <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleQuickWatchlist}
+                disabled={savingWatchlist}
+                className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg border text-[10px] font-bold transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0 ${
+                  savedToWatchlist
+                    ? 'bg-emerald-500/25 border-emerald-400/60 text-emerald-300'
+                    : 'bg-white/10 hover:bg-white/20 border-white/15 text-white'
+                }`}
+                title={savedToWatchlist ? 'Saved to Watchlist' : 'Add to Watchlist'}
+              >
+                {savingWatchlist ? (
+                  <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
+                ) : savedToWatchlist ? (
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                ) : (
+                  <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                )}
+              </button>
+            )}
 
             {mediaType !== 'manga' && (
               <button
@@ -534,7 +638,7 @@ function HoloMusicItem({ item, index, cfg, isCurrent, isCurrentPlaying, onCardCl
   );
 }
 
-export default function MediaGrid({ items, title, seeMoreLink, showTimings = false }) {
+export default function MediaGrid({ items, title, seeMoreLink, showTimings = false, onRemoveItem = null, removingIds = null }) {
   const { playTrack, currentTrack, isPlaying, togglePlay, openAddToPlaylist } = useMusic();
   if (!items || items.length === 0) {
     return (
@@ -602,6 +706,9 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
             );
           }
 
+          const itemKeyId = String(item.external_media_id || item.id);
+          const isRemoving = Boolean(removingIds && removingIds.has(itemKeyId));
+
           return (
             <HoloMediaItem
               key={`${item.media_type}-${targetId}-${index}`}
@@ -609,6 +716,8 @@ export default function MediaGrid({ items, title, seeMoreLink, showTimings = fal
               index={index}
               cfg={cfg}
               showTimings={showTimings}
+              onRemoveItem={onRemoveItem}
+              isRemoving={isRemoving}
             />
           );
         })}

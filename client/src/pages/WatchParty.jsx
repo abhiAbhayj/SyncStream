@@ -78,7 +78,25 @@ export default function WatchParty() {
   const [lastSyncAction, setLastSyncAction] = useState('Party sync active');
   const [floatingReactions, setFloatingReactions] = useState([]);
   const [syncRadarPulse, setSyncRadarPulse] = useState(0);
+  const [syncBanner, setSyncBanner] = useState(null); // { key, label }
   const reactionTimersRef = useRef([]);
+  const syncBannerTimerRef = useRef(null);
+
+  const formatSyncClock = (secs) => {
+    const num = Number(secs);
+    if (!Number.isFinite(num) || num <= 0) return null;
+    const mins = Math.floor(num / 60);
+    const rem = Math.floor(num % 60);
+    return `${mins}:${rem < 10 ? '0' : ''}${rem}`;
+  };
+
+  const triggerSyncBanner = useCallback((label) => {
+    setSyncBanner({ key: Date.now(), label });
+    if (syncBannerTimerRef.current) clearTimeout(syncBannerTimerRef.current);
+    syncBannerTimerRef.current = setTimeout(() => {
+      setSyncBanner(null);
+    }, 1850);
+  }, []);
 
   const REACTION_EMOJIS = ['🔥', '❤️', '😂', '🤯', '👏', '🍿'];
 
@@ -213,24 +231,33 @@ export default function WatchParty() {
       if (state.event === 'pause') setIsPlayingState(false);
 
       const senderName = state.sender || 'Party member';
+      const formattedPos = formatSyncClock(state.time);
       if (state.event === 'play') {
         setLastSyncAction(`Played by @${senderName}`);
         addNotification(`${senderName} played the stream`, 'sync');
+        triggerSyncBanner(formattedPos ? `Synced to ${formattedPos} • Playing` : `Synced • Playing (@${senderName})`);
       } else if (state.event === 'pause') {
         setLastSyncAction(`Paused by @${senderName}`);
         addNotification(`${senderName} paused the stream`, 'sync');
+        triggerSyncBanner(formattedPos ? `Synced to ${formattedPos} • Paused` : `Synced • Paused (@${senderName})`);
       } else if (state.event === 'seek') {
         setLastSyncAction(`Jumped by @${senderName}`);
         addNotification(`${senderName} jumped in the stream`, 'sync');
+        triggerSyncBanner(formattedPos ? `Synced to ${formattedPos}` : `Synced Timeline (@${senderName})`);
       } else if (state.activeEpisode && state.activeEpisode !== activeEpisode) {
         setLastSyncAction(`Ep ${state.activeEpisode} selected by @${senderName}`);
         addNotification(`${senderName} switched to Episode ${state.activeEpisode}`, 'sync');
+        triggerSyncBanner(`Synced • Episode ${state.activeEpisode}`);
       } else if (state.embedServer && state.embedServer !== embedServer) {
         setLastSyncAction(`Server switched by @${senderName}`);
         addNotification(`${senderName} switched streaming server`, 'sync');
+        triggerSyncBanner(`Synced • Mirror Updated`);
       } else if (state.playbackMode && state.playbackMode !== playbackMode) {
         setLastSyncAction(`Mode changed by @${senderName}`);
         addNotification(`${senderName} changed playback mode`, 'sync');
+        triggerSyncBanner(`Synced • Player Mode`);
+      } else if (formattedPos) {
+        triggerSyncBanner(`Synced to ${formattedPos}`);
       }
     });
 
@@ -292,6 +319,18 @@ export default function WatchParty() {
     
     socket.emit('media_sync', payload);
     triggerRadarPing();
+    const pos = formatSyncClock(payload.time);
+    if (changes.event === 'seek' && pos) {
+      triggerSyncBanner(`Broadcast Sync • ${pos}`);
+    } else if (changes.event === 'play') {
+      triggerSyncBanner(pos ? `Broadcast Play • ${pos}` : 'Broadcast Play Synced');
+    } else if (changes.event === 'pause') {
+      triggerSyncBanner(pos ? `Broadcast Pause • ${pos}` : 'Broadcast Pause Synced');
+    } else if (changes.activeEpisode) {
+      triggerSyncBanner(`Broadcast Ep ${changes.activeEpisode} Synced`);
+    } else if (changes.embedServer) {
+      triggerSyncBanner('Broadcast Mirror Synced');
+    }
   };
 
   const sendPartyReaction = (emoji) => {
@@ -832,6 +871,23 @@ export default function WatchParty() {
                 <Lightbulb className="w-3 h-3 fill-amber-300 text-amber-300" />
                 <span>Turn Lights On</span>
               </button>
+            )}
+            {/* Live Sync Ripple Lock Banner */}
+            {syncBanner && (
+              <div
+                key={syncBanner.key}
+                aria-live="polite"
+                className="pointer-events-none absolute top-2.5 left-1/2 -translate-x-1/2 z-40 max-w-[90%] overflow-hidden rounded-full bg-[#091224]/90 border border-accentCyan/60 px-3.5 py-1 shadow-[0_0_24px_rgba(var(--accent-cyan),0.45)] backdrop-blur-md animate-spring-toast"
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-accentCyan/40 to-transparent animate-sync-beam"
+                />
+                <div className="relative z-10 flex items-center gap-1.5 text-[10px] sm:text-xs font-extrabold text-white whitespace-nowrap truncate">
+                  <Radio className="w-3 h-3 text-accentCyan animate-pulse shrink-0" />
+                  <span className="truncate">{syncBanner.label}</span>
+                </div>
+              </div>
             )}
             {/* Floating Livestream Emoji Reactions */}
             <div

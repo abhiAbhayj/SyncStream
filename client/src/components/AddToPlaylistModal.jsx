@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useMusic } from '../context/MusicContext';
 import { Plus, Check, X, FolderPlus, Music2 } from 'lucide-react';
 
@@ -9,11 +9,24 @@ export default function AddToPlaylistModal({ song, isOpen, onClose }) {
   const [newPlaylistDesc, setNewPlaylistDesc] = useState('');
   const [addedStatus, setAddedStatus] = useState({}); // { [playlistId]: true }
   const [creating, setCreating] = useState(false);
+  const songCoverRef = useRef(null);
 
   if (!isOpen || !song) return null;
 
+  const triggerCoverFly = () => {
+    window.dispatchEvent(
+      new CustomEvent('syncstream:fly-cover', {
+        detail: {
+          src: song.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music',
+          fromRect: songCoverRef.current?.getBoundingClientRect() || null
+        }
+      })
+    );
+  };
+
   const handleAddToPlaylist = async (playlistId, playlistName) => {
     try {
+      triggerCoverFly();
       await addSongToPlaylist(playlistId, song);
       setAddedStatus(prev => ({ ...prev, [playlistId]: playlistName }));
       setTimeout(() => {
@@ -79,6 +92,7 @@ export default function AddToPlaylistModal({ song, isOpen, onClose }) {
         {/* Selected Song Preview Banner */}
         <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-black/40 border border-white/10 shadow-inner">
           <img
+            ref={songCoverRef}
             src={song.image || 'https://placehold.co/100x100/1e1e24/fff?text=Music'}
             alt={song.title}
             className="w-12 h-12 rounded-xl object-cover border border-white/10 shrink-0"
@@ -157,15 +171,25 @@ export default function AddToPlaylistModal({ song, isOpen, onClose }) {
                 return (
                   <div
                     key={pl.id}
-                    className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition"
+                    className={`playlist-fan-card flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition ${wasAdded ? 'is-fanned' : ''}`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded-lg bg-black/40 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
-                        {pl.cover_image ? (
-                          <img src={pl.cover_image} alt={pl.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Music2 className="w-4 h-4 text-accentCyan" />
-                        )}
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pl-1">
+                      <div className="relative w-8 h-8 shrink-0">
+                        <span
+                          aria-hidden="true"
+                          className="fan-sleeve-left absolute inset-0 rounded-lg bg-accentPurple/35 border border-accentPurple/50"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className="fan-sleeve-right absolute inset-0 rounded-lg bg-accentCyan/35 border border-accentCyan/50"
+                        />
+                        <div className="relative z-10 w-8 h-8 rounded-lg bg-[#0d1226] border border-white/20 overflow-hidden flex items-center justify-center shadow-md">
+                          {pl.cover_image ? (
+                            <img src={pl.cover_image} alt={pl.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Music2 className="w-4 h-4 text-accentCyan" />
+                          )}
+                        </div>
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-white truncate font-outfit">{pl.name}</p>

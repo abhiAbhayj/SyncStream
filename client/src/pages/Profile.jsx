@@ -238,6 +238,7 @@ export default function Profile() {
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=Optimus');
   const [activeAvatarTab, setActiveAvatarTab] = useState('bots');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [avatarBurstKey, setAvatarBurstKey] = useState(0);
   const [isCustomUploaded, setIsCustomUploaded] = useState(() => {
     return Boolean(user?.avatar_url && user.avatar_url.startsWith('data:image/'));
   });
@@ -468,6 +469,7 @@ export default function Profile() {
 
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         setSelectedAvatar(dataUrl);
+        setAvatarBurstKey((k) => k + 1);
         setIsCustomUploaded(true);
         setUploadingImage(false);
       };
@@ -610,6 +612,7 @@ export default function Profile() {
       });
 
       setSelectedAvatar(finalDataUrl);
+      setAvatarBurstKey((k) => k + 1);
       setIsCustomUploaded(true);
       setShowAiModal(false);
       setEditingAvatarTarget(null);
@@ -661,6 +664,7 @@ export default function Profile() {
 
   const handleSelectAvatar = (avatarUrl) => {
     setSelectedAvatar(avatarUrl);
+    setAvatarBurstKey((k) => k + 1);
     setIsCustomUploaded(Boolean(avatarUrl.startsWith('data:image/')));
   };
 
@@ -714,13 +718,42 @@ export default function Profile() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8 items-start">
         {/* Left Side: Active Avatar & Studio Controls */}
         <div className="md:col-span-1 glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-center space-y-3.5 sm:space-y-4 shadow-xl">
-          <div className="relative inline-block">
+          {/* Orbit Aura Studio Preview */}
+          <div className="relative inline-flex items-center justify-center p-2.5 sm:p-3">
+            {/* Ambient radial glow */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-1 rounded-full bg-gradient-to-tr from-accentCyan/25 via-accentPurple/20 to-accentPink/25 blur-xl animate-pulse pointer-events-none"
+            />
+            {/* Outer Orbit Ring (CW) */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full border border-dashed border-accentCyan/55 animate-orbit-cw pointer-events-none"
+            >
+              <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_10px_rgba(var(--accent-cyan),0.95)]" />
+            </div>
+            {/* Inner Orbit Ring (CCW) */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-1.5 rounded-full border border-accentPurple/45 border-t-accentPink/85 animate-orbit-ccw pointer-events-none"
+            >
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentPink shadow-[0_0_8px_rgba(var(--accent-pink),0.9)]" />
+            </div>
+            {/* Selection Shockwave Burst */}
+            {avatarBurstKey > 0 && (
+              <span
+                key={avatarBurstKey}
+                aria-hidden="true"
+                className="absolute inset-2 rounded-full border-2 border-accentCyan/80 animate-shockwave pointer-events-none"
+              />
+            )}
+
             <img
               src={selectedAvatar}
               alt="Profile avatar preview"
-              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-accentCyan bg-darkBg object-cover mx-auto p-1 shadow-2xl"
+              className="relative z-10 w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-accentCyan bg-darkBg object-cover mx-auto p-1 shadow-2xl transition-transform duration-300"
             />
-            <div className="absolute bottom-0 right-0 bg-accentPurple text-white p-1.5 sm:p-2 rounded-full shadow-lg">
+            <div className="z-20 absolute bottom-2 right-2 bg-accentPurple text-white p-1.5 sm:p-2 rounded-full shadow-lg border border-white/20">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
             </div>
           </div>
@@ -897,20 +930,27 @@ export default function Profile() {
                     onClick={() => handleSelectAvatar(item.url)}
                     className={`group relative aspect-square rounded-xl overflow-hidden border p-1 bg-darkBg/90 transition-all duration-300 active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'border-accentCyan shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] ring-2 ring-accentCyan/50'
+                        ? 'border-accentCyan shadow-[0_0_18px_rgba(var(--accent-cyan),0.48)] ring-2 ring-accentCyan/55 scale-[1.02]'
                         : 'border-white/10 hover:border-white/30'
                     }`}
                   >
+                    {/* Orbit Aura Ring around Selected Avatar Tile */}
+                    {isSelected && (
+                      <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -inset-4 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(var(--accent-cyan),0.65)_90deg,transparent_180deg,rgba(var(--accent-purple),0.65)_270deg,transparent_360deg)] animate-orbit-cw opacity-60"
+                      />
+                    )}
                     <img
                       src={item.url}
                       alt={item.name}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="relative z-10 w-full h-full object-cover rounded-lg bg-darkBg"
                       loading="lazy"
                     />
 
                     {/* Selected Badge */}
                     {isSelected && (
-                      <div className="absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow">
+                      <div className="z-20 absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow-[0_0_10px_rgba(var(--accent-cyan),0.9)]">
                         <Check className="w-2.5 h-2.5 stroke-[4]" />
                       </div>
                     )}
@@ -967,12 +1007,65 @@ export default function Profile() {
                         : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/15'
                     }`}
                   >
+                    {/* Animated Theme Preview Mini-Mockup */}
+                    <div
+                      aria-hidden="true"
+                      className="relative mb-2.5 h-12 rounded-xl border border-white/10 bg-[#050814]/95 p-1.5 flex flex-col justify-between overflow-hidden shadow-inner"
+                    >
+                      {/* Subtle theme ambient glow */}
+                      <div
+                        className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-xl opacity-35 transition-opacity duration-500"
+                        style={{ background: t.swatch[1] || t.swatch[0] }}
+                      />
+                      {/* Mini Navbar row */}
+                      <div className="relative z-10 flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full animate-pulse"
+                            style={{ background: t.swatch[0], boxShadow: `0 0 6px ${t.swatch[0]}` }}
+                          />
+                          <span className="h-1 w-6 rounded-full bg-white/20" />
+                        </div>
+                        <div className="flex gap-1">
+                          <span className="h-1 w-3 rounded-full bg-white/15" />
+                          <span
+                            className="h-1 w-4 rounded-full"
+                            style={{ background: t.swatch[2] || t.swatch[1] || t.swatch[0] }}
+                          />
+                        </div>
+                      </div>
+                      {/* Mini Hero + Cards row */}
+                      <div className="relative z-10 flex items-center gap-1.5">
+                        <div
+                          className="h-4 flex-1 rounded-md border border-white/10 relative overflow-hidden"
+                          style={{
+                            background: `linear-gradient(120deg, ${t.swatch[0]}33, ${t.swatch[1] || t.swatch[0]}28)`
+                          }}
+                        >
+                          <div
+                            className="h-full w-1/2 animate-horizon-beam opacity-80"
+                            style={{
+                              background: `linear-gradient(90deg, transparent, ${t.swatch[0]}aa, transparent)`
+                            }}
+                          />
+                        </div>
+                        <div
+                          className="h-4 w-5 rounded-md border border-white/10"
+                          style={{ background: `${t.swatch[1] || t.swatch[0]}30` }}
+                        />
+                        <div
+                          className="h-4 w-5 rounded-md border border-white/10"
+                          style={{ background: `${t.swatch[2] || t.swatch[0]}30` }}
+                        />
+                      </div>
+                    </div>
+
                     {/* Color swatch bar */}
                     <div className="flex gap-1.5 mb-2">
                       {t.swatch.map((color) => (
                         <div
                           key={color}
-                          className="h-2 flex-1 rounded-full"
+                          className="h-1.5 flex-1 rounded-full"
                           style={{ background: color, boxShadow: `0 0 8px ${color}66` }}
                         />
                       ))}

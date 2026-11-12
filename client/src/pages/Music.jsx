@@ -378,13 +378,64 @@ export default function Music() {
 
   // ── Favorites Internal Search, Sort & Drag Reorder State ──
   const [playRipple, setPlayRipple] = useState({ id: null, seq: 0 });
-  const handleSongPlayClick = (song, queueList) => {
+  const handleSongPlayClick = (song, queueList, evt) => {
     setPlayRipple((prev) => ({ id: song.id, seq: prev.seq + 1 }));
+    if (currentTrack?.id !== song.id) {
+      let fromRect = null;
+      const targetEl = evt?.currentTarget;
+      if (targetEl) {
+        const cardImg = targetEl.closest?.('.group')?.querySelector?.('img') || targetEl.querySelector?.('img') || targetEl;
+        fromRect = cardImg?.getBoundingClientRect?.() || null;
+      }
+      window.dispatchEvent(
+        new CustomEvent('syncstream:fly-cover', {
+          detail: {
+            src: song.image || FALLBACK_COVER,
+            fromRect
+          }
+        })
+      );
+    }
     if (currentTrack?.id === song.id) {
       togglePlay();
     } else {
       playTrack(song, queueList);
     }
+  };
+
+  // Elastic Pull-to-Refresh Neon Orb State (#2)
+  const [pullDistance, setPullDistance] = useState(0);
+  const pullStartYRef = useRef(null);
+
+  const handleTouchStartPull = (e) => {
+    if (window.scrollY <= 4 && e.touches?.length === 1) {
+      pullStartYRef.current = e.touches[0].clientY;
+    } else {
+      pullStartYRef.current = null;
+    }
+  };
+
+  const handleTouchMovePull = (e) => {
+    if (pullStartYRef.current === null || isRefreshing) return;
+    if (window.scrollY > 4) {
+      pullStartYRef.current = null;
+      setPullDistance(0);
+      return;
+    }
+    const delta = e.touches[0].clientY - pullStartYRef.current;
+    if (delta > 6) {
+      setPullDistance(Math.min(84, Math.round(delta * 0.48)));
+    } else {
+      setPullDistance(0);
+    }
+  };
+
+  const handleTouchEndPull = () => {
+    if (pullDistance >= 54 && !isRefreshing) {
+      handleRefreshAll();
+    }
+    pullStartYRef.current = null;
+    setPullDistance(0);
   };
 
   const [favoriteSearch, setFavoriteSearch] = useState('');
@@ -907,7 +958,36 @@ export default function Music() {
   }, [activeTab, selectedLang, searchQuery]);
 
   return (
-    <div className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3 xs:px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-8 overflow-x-clip">
+    <div
+      onTouchStart={handleTouchStartPull}
+      onTouchMove={handleTouchMovePull}
+      onTouchEnd={handleTouchEndPull}
+      className="relative max-w-7xl mx-auto py-4 sm:py-8 px-3 xs:px-3.5 sm:px-6 md:px-8 space-y-5 sm:space-y-6 min-h-[85vh] pb-8 overflow-x-clip"
+    >
+      {/* Elastic Pull-to-Refresh Neon Orb Indicator */}
+      {(pullDistance > 6 || isRefreshing) && (
+        <div
+          aria-live="polite"
+          style={{
+            transform: `translateY(${isRefreshing ? 6 : Math.max(0, pullDistance - 24)}px) scale(${isRefreshing ? 1 : Math.min(1.08, 0.72 + pullDistance / 110)})`
+          }}
+          className="flex justify-center pointer-events-none transition-transform duration-150 -mb-2"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0a1026]/95 border border-accentCyan/70 shadow-[0_0_24px_rgba(var(--accent-cyan),0.55)] backdrop-blur-xl">
+            <span className="relative flex h-3 w-3 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accentCyan opacity-75" />
+              <RefreshCw className={`relative w-3 h-3 text-accentCyan ${isRefreshing ? 'animate-spin' : ''}`} style={!isRefreshing ? { transform: `rotate(${pullDistance * 4}deg)` } : undefined} />
+            </span>
+            <span className="text-[11px] font-mono font-extrabold text-white">
+              {isRefreshing
+                ? 'Syncing Live Hits...'
+                : pullDistance >= 54
+                  ? 'Release to Refresh'
+                  : 'Pull for Fresh Hits'}
+            </span>
+          </div>
+        </div>
+      )}
       {/* Radiant Background Ambient Aurora Glows (Contained to prevent horizontal scrolling) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-10 left-10 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-cyan-500/15 blur-[100px]" />
@@ -1156,7 +1236,7 @@ export default function Music() {
                 {/* Quick Play & Action Buttons */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-0.5">
                   <button
-                    onClick={() => handleSongPlayClick(featuredSong, songs)}
+                    onClick={(e) => handleSongPlayClick(featuredSong, songs, e)}
                     className="btn-shimmer relative overflow-visible flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.6)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
                   >
                     {playRipple.id === featuredSong.id && (
@@ -1305,13 +1385,7 @@ export default function Music() {
                         >
                           {/* Square Album Cover */}
                           <div
-                            onClick={() => {
-                              if (currentTrack?.id === song.id) {
-                                togglePlay();
-                              } else {
-                                playTrack(song, songs);
-                              }
-                            }}
+                            onClick={(e) => handleSongPlayClick(song, songs, e)}
                             className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
                           >
                             <img
@@ -1393,7 +1467,7 @@ export default function Music() {
                                 {/* Play / Pause Button with Shockwave Ripple */}
                                 <button
                                   type="button"
-                                  onClick={() => handleSongPlayClick(song, songs)}
+                                  onClick={(e) => handleSongPlayClick(song, songs, e)}
                                   className={`relative overflow-visible p-1 sm:p-1.5 rounded-full transition active:scale-90 border shrink-0 ${
                                     isCurrentPlaying
                                       ? 'bg-accentCyan text-black border-white shadow-[0_0_12px_rgba(99,210,255,0.7)] font-black'
@@ -2963,15 +3037,26 @@ export default function Music() {
                     <div
                       key={pl.id}
                       onClick={() => handleOpenPlaylistDetails(pl)}
-                      className="group rounded-3xl border-2 border-white/25 bg-[#18203c]/95 p-4 transition-all duration-300 hover:border-accentPurple/80 hover:bg-[#202b52] shadow-xl hover:shadow-[0_10px_30px_rgba(168,85,247,0.35)] cursor-pointer space-y-3 flex flex-col justify-between"
+                      className="playlist-fan-card group rounded-3xl border-2 border-white/25 bg-[#18203c]/95 p-4 transition-all duration-300 hover:border-accentPurple/80 hover:bg-[#202b52] shadow-xl hover:shadow-[0_10px_30px_rgba(168,85,247,0.35)] cursor-pointer space-y-3 flex flex-col justify-between"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-tr from-purple-600/60 to-cyan-500/60 flex items-center justify-center shrink-0 border-2 border-white/25 shadow-md">
-                          {pl.cover_image ? (
-                            <img src={pl.cover_image} alt={pl.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <ListMusic className="w-6 h-6 text-accentCyan" />
-                          )}
+                      <div className="flex items-center gap-3.5 pl-1 pt-0.5">
+                        {/* Stacked Cover Sleeve Fan */}
+                        <div className="relative w-14 h-14 shrink-0">
+                          <span
+                            aria-hidden="true"
+                            className="fan-sleeve-left absolute inset-0 rounded-2xl bg-gradient-to-br from-accentPurple/55 to-accentPink/45 border border-accentPurple/60 shadow-md"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="fan-sleeve-right absolute inset-0 rounded-2xl bg-gradient-to-br from-accentCyan/55 to-blue-500/45 border border-accentCyan/60 shadow-md"
+                          />
+                          <div className="relative z-10 w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-tr from-purple-700/80 to-cyan-600/80 flex items-center justify-center border-2 border-white/30 shadow-lg">
+                            {pl.cover_image ? (
+                              <img src={pl.cover_image} alt={pl.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <ListMusic className="w-6 h-6 text-accentCyan" />
+                            )}
+                          </div>
                         </div>
                         <div className="min-w-0 flex-1">
                           <h4 className="font-black text-sm sm:text-base text-white truncate group-hover:text-accentCyan transition-colors">

@@ -31,6 +31,41 @@ export default function Home() {
   const heroRef = useRef(null);
   const [heroSpot, setHeroSpot] = useState({ x: 50, y: 45, active: false });
 
+  // Elastic Pull-to-Refresh Neon Orb (#2)
+  const [pullDistance, setPullDistance] = useState(0);
+  const pullStartYRef = useRef(null);
+
+  const handleTouchStartPull = (e) => {
+    if (window.scrollY <= 4 && e.touches?.length === 1) {
+      pullStartYRef.current = e.touches[0].clientY;
+    } else {
+      pullStartYRef.current = null;
+    }
+  };
+
+  const handleTouchMovePull = (e) => {
+    if (pullStartYRef.current === null || loading) return;
+    if (window.scrollY > 4) {
+      pullStartYRef.current = null;
+      setPullDistance(0);
+      return;
+    }
+    const delta = e.touches[0].clientY - pullStartYRef.current;
+    if (delta > 6) {
+      setPullDistance(Math.min(84, Math.round(delta * 0.48)));
+    } else {
+      setPullDistance(0);
+    }
+  };
+
+  const handleTouchEndPull = () => {
+    if (pullDistance >= 54 && !loading) {
+      fetchCatalog(true);
+    }
+    pullStartYRef.current = null;
+    setPullDistance(0);
+  };
+
   const handleHeroPointerMove = (e) => {
     const el = heroRef.current;
     if (!el) return;
@@ -255,7 +290,39 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-8 sm:space-y-14 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto">
+    <div
+      onTouchStart={handleTouchStartPull}
+      onTouchMove={handleTouchMovePull}
+      onTouchEnd={handleTouchEndPull}
+      className="space-y-8 sm:space-y-14 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto"
+    >
+      {/* Elastic Pull-to-Refresh Neon Orb Indicator */}
+      {(pullDistance > 6 || (loading && media !== null)) && (
+        <div
+          aria-live="polite"
+          style={{
+            transform: `translateY(${loading ? 4 : Math.max(0, pullDistance - 24)}px) scale(${loading ? 1 : Math.min(1.08, 0.72 + pullDistance / 110)})`
+          }}
+          className="flex justify-center pointer-events-none transition-transform duration-150 -mb-4"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0a1026]/95 border border-accentCyan/70 shadow-[0_0_24px_rgba(var(--accent-cyan),0.55)] backdrop-blur-xl">
+            <span className="relative flex h-3 w-3 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accentCyan opacity-75" />
+              <RefreshCw
+                className={`relative w-3 h-3 text-accentCyan ${loading ? 'animate-spin' : ''}`}
+                style={!loading ? { transform: `rotate(${pullDistance * 4}deg)` } : undefined}
+              />
+            </span>
+            <span className="text-[11px] font-mono font-extrabold text-white">
+              {loading
+                ? 'Refreshing Feeds...'
+                : pullDistance >= 54
+                  ? 'Release to Refresh'
+                  : 'Pull Down to Sync'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ── Hero Banner (Floating Parallax Spotlight Hero) ── */}
       <section

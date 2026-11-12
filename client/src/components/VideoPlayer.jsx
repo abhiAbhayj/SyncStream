@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, ShieldAlert, Loader2, Gauge } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, ShieldAlert, Loader2, Gauge } from 'lucide-react';
 import Hls from 'hls.js';
 
 export default function VideoPlayer({ 
@@ -12,6 +12,9 @@ export default function VideoPlayer({
   const containerRef = useRef(null);
   const isSyncingRef = useRef(false); // Ref to break recursive sync loops
   const hlsRef = useRef(null);
+  const tapTimerRef = useRef(null);
+  const lastTapRef = useRef({ time: 0, side: null });
+  const skipTimeoutRef = useRef(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -22,10 +25,12 @@ export default function VideoPlayer({
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [skipRipple, setSkipRipple] = useState(null); // { side: 'left'|'right', key: number, delta: number }
 
   // 0. Attach HLS.js for .m3u8 streams or native video for MP4
   useEffect(() => {
     if (!src || !videoRef.current) return;
+    setIsLoading(true);
 
     // Cleanup any existing Hls instance
     if (hlsRef.current) {
@@ -71,6 +76,8 @@ export default function VideoPlayer({
     }
 
     return () => {
+      if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+      if (skipTimeoutRef.current) clearTimeout(skipTimeoutRef.current);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -172,6 +179,47 @@ export default function VideoPlayer({
     triggerOutboundSync('seek', newTime);
   };
 
+  const seekRelative = (delta) => {
+    if (!videoRef.current) return;
+    const maxDur = Number.isFinite(videoRef.current.duration) && videoRef.current.duration > 0
+      ? videoRef.current.duration
+      : Infinity;
+    const nextTime = Math.max(0, Math.min(maxDur, (videoRef.current.currentTime || 0) + delta));
+    videoRef.current.currentTime = nextTime;
+    setCurrentTime(nextTime);
+    triggerOutboundSync('seek', nextTime);
+
+    const side = delta < 0 ? 'left' : 'right';
+    setSkipRipple({ side, key: Date.now(), delta: Math.abs(delta) });
+    if (skipTimeoutRef.current) clearTimeout(skipTimeoutRef.current);
+    skipTimeoutRef.current = setTimeout(() => setSkipRipple(null), 700);
+  };
+
+  // Single-tap Play/Pause + Double-Tap/Click -10s / +10s
+  const handleViewportTap = (e) => {
+    if (!videoRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const side = e.clientX - rect.left < rect.width / 2 ? 'left' : 'right';
+    const now = Date.now();
+
+    if (now - lastTapRef.current.time < 280 && lastTapRef.current.side === side) {
+      if (tapTimerRef.current) {
+        clearTimeout(tapTimerRef.current);
+        tapTimerRef.current = null;
+      }
+      lastTapRef.current = { time: 0, side: null };
+      seekRelative(side === 'left' ? -10 : 10);
+      return;
+    }
+
+    lastTapRef.current = { time: now, side };
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    tapTimerRef.current = setTimeout(() => {
+      tapTimerRef.current = null;
+      handlePlayPause();
+    }, 240);
+  };
+
   const triggerOutboundSync = (event, time) => {
     // Only emit state changes if NOT currently processing an inbound sync event
     if (!isSyncingRef.current && onStateChange) {
@@ -255,20 +303,66 @@ export default function VideoPlayer({
       {/* Video element */}
       <video
         ref={videoRef}
-        className="w-full h-full object-contain cursor-pointer"
+        className="w-full h-full object-contain"
         onPlay={onPlay}
         onPause={onPause}
         onTimeUpdate={onTimeUpdate}
         onLoadedMetadata={onLoadedMetadata}
         onWaiting={() => setIsLoading(true)}
         onPlaying={() => setIsLoading(false)}
-        onClick={handlePlayPause}
       />
 
-      {/* Loading overlay */}
+      {/* Interactive Single-Tap / Double-Tap Surface Overlay */}
+      <div
+        onClick={handleViewportTap}
+        aria-label="Tap to play or pause; double tap left or right to seek 10 seconds"
+        className="absolute inset-0 bottom-14 sm:bottom-16 z-10 cursor-pointer"
+      />
+
+      {/* Double-Tap -10s / +10s Translucent Ripple Arc Feedback */}
+      {skipRipple && (
+        <div
+          key={skipRipple.key}
+          aria-hidden="true"
+          className={`pointer-events-none absolute top-0 bottom-0 w-1/2 z-20 flex flex-col items-center justify-center bg-accentCyan/15 border-accentCyan/35 backdrop-blur-[2px] animate-skip-ripple ${
+            skipRipple.side === 'left'
+              ? 'left-0 rounded-r-full border-r'
+              : 'right-0 rounded-l-full border-l'
+          }`}
+        >
+          <div className="flex flex-col items-center gap-1 text-white drop-shadow-[0_0_14px_rgba(var(--accent-cyan),0.8)]">
+            {skipRipple.side === 'left' ? (
+              <RotateCcw className="w-7 h-7 sm:w-9 sm:h-9 text-accentCyan" />
+            ) : (
+              <RotateCw className="w-7 h-7 sm:w-9 sm:h-9 text-accentCyan" />
+            )}
+            <span className="text-xs sm:text-sm font-black tracking-wider font-mono text-accentCyan">
+              {skipRipple.side === 'left' ? `-${skipRipple.delta}s` : `+${skipRipple.delta}s`}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Animated Buffering Matrix Overlay */}
       {isLoading && (
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none z-10">
-          <Loader2 className="w-12 h-12 text-accentCyan animate-spin" />
+        <div className="absolute inset-0 bg-[#050814]/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2.5 pointer-events-none z-20 overflow-hidden">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, rgba(var(--accent-cyan), 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--accent-purple), 0.14) 1px, transparent 1px)',
+              backgroundSize: '26px 26px'
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-accentCyan/25 to-transparent border-y border-accentCyan/30 animate-cyber-shutter"
+          />
+          <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 text-accentCyan animate-spin relative z-10" />
+          <span className="relative z-10 px-2.5 py-1 rounded-full bg-black/75 border border-accentCyan/35 text-[10px] sm:text-xs font-mono font-bold text-accentCyan">
+            Buffering Stream...
+          </span>
         </div>
       )}
 

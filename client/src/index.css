@@ -1380,6 +1380,170 @@ input[type="range"] { accent-color: rgb(var(--accent-purple)); }
 .animate-orbit-cw  { animation: orbitSpinSlow 4.5s linear infinite; }
 .animate-orbit-ccw { animation: orbitSpinReverse 6.5s linear infinite; }
 
+/* ─────────────────────────────────────────────
+   12. INTERACTIVE UI MICRO-ANIMATIONS (PHASE 2)
+   ───────────────────────────────────────────── */
+@keyframes digitRollIn {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.86); }
+  65%  { opacity: 1; transform: translateY(-2px) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-digit-roll {
+  animation: digitRollIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes badgeNeonPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--accent-cyan), 0.55); border-color: rgba(var(--accent-cyan), 0.9); }
+  50%  { box-shadow: 0 0 18px 2px rgba(var(--accent-cyan), 0.35); border-color: rgba(var(--accent-purple), 0.9); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-cyan), 0); }
+}
+.animate-badge-pulse {
+  animation: badgeNeonPulse 0.7s ease-out;
+}
+
+@keyframes horizonBeamSweep {
+  0%   { transform: translateX(-100%); opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { transform: translateX(200%); opacity: 0.3; }
+}
+.animate-horizon-beam {
+  animation: horizonBeamSweep 2.2s ease-in-out infinite;
+}
+
+@keyframes playerDiscPulse {
+  0%   { transform: scale(1); filter: brightness(1); }
+  45%  { transform: scale(1.18); filter: brightness(1.3); box-shadow: 0 0 22px rgba(var(--accent-cyan), 0.75); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.animate-disc-pulse {
+  animation: playerDiscPulse 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Playlist Card Stacked Cover Fan (Works on Desktop Hover + Mobile/Tablet Tap/Active) */
+.playlist-fan-card .fan-sleeve-left,
+.playlist-fan-card .fan-sleeve-right {
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+.playlist-fan-card .fan-sleeve-left {
+  transform: translate(-3px, -2px) rotate(-4deg);
+}
+.playlist-fan-card .fan-sleeve-right {
+  transform: translate(3px, -2px) rotate(4deg);
+}
+@media (hover: hover) {
+  .playlist-fan-card:hover .fan-sleeve-left,
+  .playlist-fan-card:focus-within .fan-sleeve-left {
+    transform: translate(-10px, -5px) rotate(-11deg) scale(1.03);
+  }
+  .playlist-fan-card:hover .fan-sleeve-right,
+  .playlist-fan-card:focus-within .fan-sleeve-right {
+    transform: translate(10px, -5px) rotate(11deg) scale(1.03);
+  }
+}
+.playlist-fan-card.is-fanned .fan-sleeve-left,
+.playlist-fan-card:active .fan-sleeve-left {
+  transform: translate(-11px, -5px) rotate(-12deg) scale(1.04);
+}
+.playlist-fan-card.is-fanned .fan-sleeve-right,
+.playlist-fan-card:active .fan-sleeve-right {
+  transform: translate(11px, -5px) rotate(12deg) scale(1.04);
+}
+
+@keyframes cyberShutterSweep {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  25%  { opacity: 0.75; }
+  75%  { opacity: 0.75; }
+  100% { transform: translateY(350%); opacity: 0; }
+}
+.animate-cyber-shutter {
+  animation: cyberShutterSweep 1.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes skipRippleArc {
+  0%   { opacity: 0; transform: scale(0.7); }
+  22%  { opacity: 1; transform: scale(1.04); }
+  75%  { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.16); }
+}
+.animate-skip-ripple {
+  animation: skipRippleArc 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes cardShrinkOut {
+  0%   { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.75) translateY(10px); }
+}
+.animate-card-shrink {
+  animation: cardShrinkOut 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes drainLinear {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+.animate-drain-bar {
+  transform-origin: left center;
+  animation: drainLinear var(--drain-duration, 4.5s) linear forwards;
+}
+
+@keyframes authErrorShake {
+  0%, 100% { transform: translateX(0); }
+  18%      { transform: translateX(-7px); }
+  36%      { transform: translateX(7px); }
+  54%      { transform: translateX(-5px); }
+  72%      { transform: translateX(4px); }
+  90%      { transform: translateX(-2px); }
+}
+.animate-auth-shake {
+  animation: authErrorShake 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes holoGlitch {
+  0%, 88%, 100% { transform: translate(0, 0) skew(0deg); filter: hue-rotate(0deg); }
+  90%           { transform: translate(-2px, 1px) skew(-4deg); filter: hue-rotate(25deg); }
+  93%           { transform: translate(2px, -1px) skew(3deg); filter: hue-rotate(-25deg); }
+  96%           { transform: translate(-1px, 0) skew(-2deg); }
+}
+.animate-holo-glitch {
+  animation: holoGlitch 3.2s infinite;
+}
+
+@keyframes portalPopSpring {
+  0%   { opacity: 0; transform: scale(0.84) translateY(8px); }
+  70%  { opacity: 1; transform: scale(1.04) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-portal-pop {
+  animation: portalPopSpring 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes syncTimelineBeam {
+  0%   { transform: translateX(-100%); opacity: 0.9; }
+  100% { transform: translateX(250%); opacity: 0; }
+}
+.animate-sync-beam {
+  animation: syncTimelineBeam 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes magneticPillBob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, -4px); }
+}
+.animate-pill-bob {
+  animation: magneticPillBob 2s ease-in-out infinite;
+}
+
+@keyframes auroraWaveFlowX {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-aurora-wave-1 {
+  animation: auroraWaveFlowX 14s linear infinite;
+}
+.animate-aurora-wave-2 {
+  animation: auroraWaveFlowX 20s linear infinite reverse;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-ambient-breathe,
   .animate-heart-spring,
@@ -1404,7 +1568,22 @@ input[type="range"] { accent-color: rgb(var(--accent-purple)); }
   .animate-hero-float,
   .animate-levitate,
   .animate-orbit-cw,
-  .animate-orbit-ccw {
+  .animate-orbit-ccw,
+  .animate-digit-roll,
+  .animate-badge-pulse,
+  .animate-horizon-beam,
+  .animate-disc-pulse,
+  .animate-cyber-shutter,
+  .animate-skip-ripple,
+  .animate-card-shrink,
+  .animate-drain-bar,
+  .animate-auth-shake,
+  .animate-holo-glitch,
+  .animate-portal-pop,
+  .animate-sync-beam,
+  .animate-pill-bob,
+  .animate-aurora-wave-1,
+  .animate-aurora-wave-2 {
     animation: none !important;
   }
 }

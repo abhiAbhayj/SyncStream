@@ -69,7 +69,7 @@ export default function LogoutConfirmModal() {
           />
 
           {/* Modal Dialog */}
-          <div className="relative w-full max-w-sm rounded-3xl bg-[#0c1024]/95 border border-white/15 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.85)] animate-slide-up overflow-hidden">
+          <div className="relative w-full max-w-sm rounded-3xl bg-[#0c1024]/95 border border-white/15 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.85)] animate-portal-pop overflow-hidden">
             {/* Top Gradient Highlight */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-accentPurple to-accentCyan" />
 
@@ -85,10 +85,14 @@ export default function LogoutConfirmModal() {
             {/* Icon & Content */}
             <div className="flex flex-col items-center text-center space-y-4 pt-2">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.35)]">
-                  <LogOut className="w-8 h-8 fill-rose-500/25 stroke-[2.2]" />
+                <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/35 flex items-center justify-center text-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.35)] animate-holo-glitch relative overflow-hidden">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 h-3 bg-gradient-to-b from-transparent via-rose-400/25 to-transparent animate-cyber-shutter"
+                  />
+                  <LogOut className="w-8 h-8 fill-rose-500/25 stroke-[2.2] relative z-10" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-black/90 border border-amber-400/40 text-amber-400">
+                <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-black/90 border border-amber-400/40 text-amber-400 animate-pulse">
                   <AlertTriangle className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -110,7 +114,8 @@ export default function LogoutConfirmModal() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="w-full py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-bold text-sm transition-all duration-200 active:scale-95 cursor-pointer font-poppins"
+                  style={{ animationDelay: '70ms' }}
+                  className="w-full py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-bold text-sm transition-all duration-200 active:scale-95 cursor-pointer font-poppins animate-portal-pop"
                 >
                   Cancel
                 </button>
@@ -118,7 +123,8 @@ export default function LogoutConfirmModal() {
                 <button
                   type="button"
                   onClick={handleConfirmLogout}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-sm shadow-[0_0_20px_rgba(244,63,94,0.4)] transition-all duration-200 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 font-poppins"
+                  style={{ animationDelay: '130ms' }}
+                  className="btn-shimmer w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-sm shadow-[0_0_20px_rgba(244,63,94,0.4)] transition-all duration-200 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 font-poppins animate-portal-pop"
                 >
                   <LogOut className="w-4 h-4 fill-white/20" />
                   <span>Confirm</span>
