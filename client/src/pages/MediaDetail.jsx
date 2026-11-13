@@ -122,8 +122,8 @@ export default function MediaDetail() {
   const [activeSeason, setActiveSeason] = useState(urlSeason ? parseInt(urlSeason, 10) : 1);
   const [activeEpisode, setActiveEpisode] = useState(urlEpisode ? parseInt(urlEpisode, 10) : 1);
   
-  // Streaming server source tracking (Default: VidSrc SU - 100% Sandbox Protected)
-  const [embedServer, setEmbedServer] = useState('vidsrcsu');
+  // Streaming server source tracking (Default: VidSrc TO - 100% Sandbox Protected)
+  const [embedServer, setEmbedServer] = useState('vidsrcto');
   const [showAllServers, setShowAllServers] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   

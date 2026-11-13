@@ -58,9 +58,9 @@ export default function WatchParty() {
     }, 3200);
   };
 
-  // Streaming console states (Default: VidSrc SU - 100% Sandbox Protected)
+  // Streaming console states (Default: VidSrc TO - 100% Sandbox Protected)
   const [playbackMode, setPlaybackMode] = useState('trailer');
-  const [embedServer, setEmbedServer] = useState('vidsrcsu');
+  const [embedServer, setEmbedServer] = useState('vidsrcto');
   const [showAllServers, setShowAllServers] = useState(false);
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeEpisode, setActiveEpisode] = useState(1);
