@@ -7,73 +7,93 @@
 export const STREAMING_SERVERS = [
   { 
     key: 'vidsrcto', 
+    num: '01',
+    name: 'VidSrc TO',
     label: 'Server 1 (VidSrc TO)', 
-    badge: 'Ultra Fast • Bufferless',
+    badge: 'Ultra Fast',
     tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
     description: 'High-speed VidSrc TO video engine with instant bufferless playback'
   },
   { 
     key: 'vidlink', 
+    num: '02',
+    name: 'VidLink PRO',
     label: 'Server 2 (VidLink PRO)', 
-    badge: 'Multi-Subtitles • 4K',
+    badge: 'Multi-Subs • 4K',
     tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
     description: 'Next-gen streaming cloud with built-in multi-language subtitles and 4K sources'
   },
   { 
-    key: 'vidsrcsu', 
-    label: 'Server 3 (VidSrc SU)', 
-    badge: 'Recommended • Fast',
+    key: 'vidfast', 
+    num: '03',
+    name: 'VidFast PRO',
+    label: 'Server 3 (VidFast PRO)', 
+    badge: 'Lightning Fast',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'High-speed global cloud mirror with instant playback'
+    description: 'Supercharged direct cloud node with rapid loading and adaptive bitrate'
   },
   { 
     key: 'twoembed', 
+    num: '04',
+    name: '2Embed CC',
     label: 'Server 4 (2Embed CC)', 
-    badge: 'High Compatibility',
+    badge: 'High Quality',
     tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
     description: 'Reliable global streaming server with extensive anime and cinema library'
   },
   { 
     key: 'anyembed', 
+    num: '05',
+    name: 'AnyEmbed Stream',
     label: 'Server 5 (AnyEmbed Stream)', 
     badge: 'Cloud Player',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
     description: 'High-speed cloud player with multi-source auto-failover'
   },
   { 
-    key: 'vidsrcdev', 
-    label: 'Server 6 (VidSrc DEV)', 
-    badge: 'Global CDN Mirror',
-    tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-    description: 'Official global VidSrc developer cloud endpoint'
+    key: 'movietv', 
+    num: '06',
+    name: 'MovieTV Cloud',
+    label: 'Server 6 (MovieTV Cloud)', 
+    badge: 'Multi-Source',
+    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    description: 'Multi-source failover architecture with responsive HTML5 playback'
   },
   { 
-    key: 'movies111', 
-    label: 'Server 7 (111Movies Cloud)', 
-    badge: 'Direct Stream',
+    key: 'embedwave', 
+    num: '07',
+    name: 'EmbedWave Ultra',
+    label: 'Server 7 (EmbedWave Ultra)', 
+    badge: 'Zero Ads Node',
     tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    description: 'Direct streaming cloud mirror optimized for latest releases & anime'
+    description: 'Modern clean player engine with crystal-clear playback'
   },
   { 
     key: 'twoembedskin', 
+    num: '08',
+    name: '2Embed Skin',
     label: 'Server 8 (2Embed Skin)', 
-    badge: 'Multi-Source',
-    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    badge: 'Global Mirror',
+    tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
     description: 'High-availability secondary 2Embed network node'
   },
   { 
     key: 'nontongo', 
+    num: '09',
+    name: 'NontonGo VIP',
     label: 'Server 9 (NontonGo VIP)', 
     badge: 'HD Multi-Audio',
     tagColor: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
     description: 'Extensive high-definition server with multi-language subtitle tracks'
   },
   { 
-    key: 'warezcdn', 
-    label: 'Server 10 (WarezCDN Player)', 
+    key: 'autoembedpro', 
+    num: '10',
+    name: 'AutoEmbed PRO',
+    label: 'Server 10 (AutoEmbed PRO)', 
     badge: 'Adaptive Stream',
     tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-    description: 'Adaptive bitrate video node with high global availability'
+    description: 'Adaptive bitrate video node with high global availability and failover'
   }
 ];
 
@@ -89,28 +109,32 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'vidlink':
       case 'videasy':
         return `https://vidlink.pro/movie/${activeId}`;
-      case 'vidsrcsu':
-      case 'vidsrcpm':
-        return `https://vidsrc.su/embed/movie/${activeId}`;
+      case 'vidfast':
+        return `https://vidfast.vc/movie/${activeId}`;
       case 'twoembed':
         return `https://www.2embed.cc/embed/${activeId}`;
       case 'anyembed':
       case 'smashystream':
-      case 'autoembedco':
         return `https://anyembed.xyz/embed/tmdb-movie-${activeId}`;
+      case 'movietv':
       case 'vidsrcdev':
       case 'vidsrcnet':
       case 'vidsrcme':
-        return `https://vidsrc.dev/embed/movie/${activeId}`;
+        return `https://movietvapi.stream/embed/${activeId}`;
+      case 'embedwave':
       case 'movies111':
       case 'rgshows':
-        return `https://111movies.com/movie/${activeId}`;
+        return `https://embedwave.cc/embed/movie/${activeId}`;
       case 'twoembedskin':
         return `https://www.2embed.skin/embed/${activeId}`;
       case 'nontongo':
         return `https://www.nontongo.win/embed/movie/${activeId}`;
+      case 'autoembedpro':
+      case 'autoembedco':
       case 'warezcdn':
-        return `https://embed.warezcdn.net/filme/${activeId}`;
+      case 'vidsrcsu':
+      case 'vidsrcpm':
+        return `https://autoembed.pro/embed/movie/${activeId}`;
       default:
         return `https://vidsrc.to/embed/movie/${activeId}`;
     }
@@ -123,28 +147,32 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
     case 'vidlink':
     case 'videasy':
       return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
-    case 'vidsrcsu':
-    case 'vidsrcpm':
-      return `https://vidsrc.su/embed/tv/${activeId}/${s}/${ep}`;
+    case 'vidfast':
+      return `https://vidfast.vc/tv/${activeId}/${s}/${ep}`;
     case 'twoembed':
       return `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
     case 'anyembed':
     case 'smashystream':
-    case 'autoembedco':
       return `https://anyembed.xyz/embed/tmdb-tv-${activeId}-${s}-${ep}`;
+    case 'movietv':
     case 'vidsrcdev':
     case 'vidsrcnet':
     case 'vidsrcme':
-      return `https://vidsrc.dev/embed/tv/${activeId}/${s}/${ep}`;
+      return `https://movietvapi.stream/embed/tv/${activeId}/${s}/${ep}`;
+    case 'embedwave':
     case 'movies111':
     case 'rgshows':
-      return `https://111movies.com/tv/${activeId}/${s}/${ep}`;
+      return `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
     case 'twoembedskin':
       return `https://www.2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
     case 'nontongo':
       return `https://www.nontongo.win/embed/tv/${activeId}/${s}/${ep}`;
+    case 'autoembedpro':
+    case 'autoembedco':
     case 'warezcdn':
-      return `https://embed.warezcdn.net/serie/${activeId}/${s}/${ep}`;
+    case 'vidsrcsu':
+    case 'vidsrcpm':
+      return `https://autoembed.pro/embed/tv/${activeId}/${s}/${ep}`;
     default:
       return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
   }
