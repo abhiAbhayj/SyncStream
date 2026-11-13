@@ -28,9 +28,7 @@ import {
   Moon,
   Layers,
   Compass,
-  Search,
-  Film,
-  Cat
+  Search
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -187,36 +185,6 @@ const DEFAULT_AVATAR_COLLECTIONS = {
       { id: 'ani-seed-zoro', name: 'Roronoa Zoro', series: 'One Piece', prompt: 'Anime character Roronoa Zoro portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Zoro' },
       { id: 'ani-seed-anya', name: 'Anya Forger', series: 'Spy x Family', prompt: 'Anime character Anya Forger portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Anya' }
     ]
-  },
-  mascots: {
-    label: 'Cute Mascots',
-    icon: Cat,
-    iconColor: 'text-emerald-400 fill-emerald-400/30',
-    items: [
-      { id: 'mas-fox', name: 'Fox 🦊', prompt: '3D cute kitsune fox mascot avatar', url: `${EMOJI_CDN}/1f98a.png` },
-      { id: 'mas-panda', name: 'Panda 🐼', prompt: '3D adorable fluffy panda avatar', url: `${EMOJI_CDN}/1f43c.png` },
-      { id: 'mas-dog', name: 'Shiba 🐶', prompt: '3D playful shiba puppy avatar', url: `${EMOJI_CDN}/1f436.png` },
-      { id: 'mas-lion', name: 'Lion 🦁', prompt: '3D bold golden lion mascot avatar', url: `${EMOJI_CDN}/1f981.png` },
-      { id: 'mas-unicorn', name: 'Unicorn 🦄', prompt: '3D pastel cosmic unicorn mascot avatar', url: `${EMOJI_CDN}/1f984.png` },
-      { id: 'mas-octopus', name: 'Octo 🐙', prompt: '3D neon coral octopus mascot avatar', url: `${EMOJI_CDN}/1f419.png` },
-      { id: 'mas-frog', name: 'Froggy 🐸', prompt: '3D chill green frog mascot avatar', url: `${EMOJI_CDN}/1f438.png` },
-      { id: 'mas-owl', name: 'Night Owl 🦉', prompt: '3D midnight movie owl mascot avatar', url: `${EMOJI_CDN}/1f989.png` }
-    ]
-  },
-  cinema: {
-    label: 'Cinema & Music',
-    icon: Film,
-    iconColor: 'text-cyan-400 fill-cyan-400/30',
-    items: [
-      { id: 'cin-clapper', name: 'Director 🎬', prompt: 'Cinema film clapperboard glossy 3D icon', url: `${EMOJI_CDN}/1f3ac.png` },
-      { id: 'cin-popcorn', name: 'Popcorn 🍿', prompt: 'Watch party butter popcorn glossy 3D icon', url: `${EMOJI_CDN}/1f37f.png` },
-      { id: 'cin-mic', name: 'Vocalist 🎤', prompt: 'Concert stage microphone glossy 3D icon', url: `${EMOJI_CDN}/1f3a4.png` },
-      { id: 'cin-note', name: 'Beats 🎵', prompt: 'Glowing neon music note glossy 3D icon', url: `${EMOJI_CDN}/1f3b5.png` },
-      { id: 'cin-gamepad', name: 'Player 🎮', prompt: 'Esports console controller glossy 3D icon', url: `${EMOJI_CDN}/1f3ae.png` },
-      { id: 'cin-rocket', name: 'Rocket 🚀', prompt: 'Sci-fi space shuttle launch glossy 3D icon', url: `${EMOJI_CDN}/1f680.png` },
-      { id: 'cin-galaxy', name: 'Nebula 🌌', prompt: 'Milky way aurora galaxy night glossy 3D icon', url: `${EMOJI_CDN}/1f30c.png` },
-      { id: 'cin-gem', name: 'VIP Gem 💎', prompt: 'Cyan glowing crystal diamond glossy 3D icon', url: `${EMOJI_CDN}/1f48e.png` }
-    ]
   }
 };
 
@@ -225,18 +193,16 @@ const MIN_AVATARS_PER_CATEGORY = 1;
 
 const AI_STYLE_PRESETS = [
   { id: 'emojis', label: '3D Emoji', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'glossy 3D WhatsApp Apple-style emoji reaction sticker, studio rim lighting, crisp icon, dark neon background' },
-  { id: 'anime', label: 'Anime Character', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'vibrant iconic anime character portrait avatar, detailed manga art style, studio anime aesthetic' },
-  { id: 'mascots', label: 'Cute Mascot', icon: Cat, iconColor: 'text-emerald-400 fill-emerald-400/40', suffix: 'adorable chibi animal mascot character avatar, glossy 3D Pixar style, vibrant studio glow' },
-  { id: 'cinema', label: 'Cinema & Music', icon: Film, iconColor: 'text-cyan-400 fill-cyan-400/40', suffix: 'cinematic movie & music hero portrait avatar, neon stage spotlight, dramatic color grading' }
+  { id: 'anime', label: 'Anime Character', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'vibrant iconic anime character portrait avatar, detailed manga art style, studio anime aesthetic' }
 ];
 
 const PROMPT_SUGGESTIONS = [
   'Gojo Satoru infinity glow anime portrait',
   '3D Cool Sunglasses Emoji with neon cyan aura',
-  'Cute Shiba Inu mascot wearing studio headphones',
+  'Sung Jin-Woo shadow monarch purple aura portrait',
   'Spider-Verse comic style cyberpunk hero',
-  'Kawaii cat spirit sipping boba tea anime',
-  'Midnight cinema director with golden clapperboard'
+  'Itachi Uchiha sharingan glowing eye portrait',
+  '3D Laughing Tears Joy Emoji with holographic ring'
 ];
 
 export default function Profile() {
@@ -285,13 +251,13 @@ export default function Profile() {
   // ── Universal Avatar Collections State (Supports Add / Edit / Delete in all categories) ──
   const [avatarCollections, setAvatarCollections] = useState(() => {
     try {
-      const saved = localStorage.getItem(`syncstream_avatar_collections_v2_${user?.id || 'guest'}`);
+      const saved = localStorage.getItem(`syncstream_avatar_collections_v3_${user?.id || 'guest'}`);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Ensure icon components are re-attached
+        // Ensure icon components are re-attached and only currently supported categories are loaded
         const merged = { ...DEFAULT_AVATAR_COLLECTIONS };
         Object.keys(merged).forEach((cat) => {
-          if (parsed[cat] && Array.isArray(parsed[cat].items)) {
+          if (parsed[cat] && Array.isArray(parsed[cat].items) && parsed[cat].items.length > 0) {
             merged[cat] = { ...merged[cat], items: parsed[cat].items };
           }
         });
@@ -305,7 +271,7 @@ export default function Profile() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`syncstream_avatar_collections_v2_${user?.id || 'guest'}`, JSON.stringify(avatarCollections));
+      localStorage.setItem(`syncstream_avatar_collections_v3_${user?.id || 'guest'}`, JSON.stringify(avatarCollections));
     } catch (e) {}
   }, [avatarCollections, user?.id]);
 
@@ -650,8 +616,6 @@ export default function Profile() {
     const fallbackSeed = encodeURIComponent(aiPrompt.trim());
     const dicebearFallback = aiStyle === 'anime'
       ? `https://api.dicebear.com/7.x/adventurer/svg?seed=${fallbackSeed}`
-      : aiStyle === 'cinema'
-      ? `https://api.dicebear.com/7.x/notionists/svg?seed=${fallbackSeed}`
       : `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${fallbackSeed}`;
 
     // Instant Vector Mode
@@ -1458,7 +1422,7 @@ export default function Profile() {
                 <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider font-mono">
                   Save Target Style &amp; Category
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                   {Object.entries(avatarCollections).map(([key, col]) => {
                     const ColIcon = col.icon;
                     return (
