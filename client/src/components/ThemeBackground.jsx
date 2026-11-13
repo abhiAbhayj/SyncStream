@@ -160,7 +160,7 @@ export default function ThemeBackground() {
             vertices,
             baseRadius,
             alpha: 0.12 + Math.random() * 0.22,
-            prismHue: Math.random() > 0.5 ? '#38bdf8' : '#22d3ee'
+            prismHue: Math.random() > 0.6 ? '#fb7185' : (Math.random() > 0.3 ? '#2dd4bf' : '#e879f9')
           });
         }
 
@@ -188,7 +188,7 @@ export default function ThemeBackground() {
             size: Math.random() * 2.2 + 0.8,
             phase: Math.random() * Math.PI * 2,
             speed: 0.02 + Math.random() * 0.03,
-            color: g % 2 === 0 ? '#38bdf8' : (g % 3 === 0 ? '#22d3ee' : '#ffffff')
+            color: g % 3 === 0 ? '#ffffff' : (g % 2 === 0 ? '#fb7185' : '#2dd4bf')
           });
         }
 
@@ -323,7 +323,7 @@ export default function ThemeBackground() {
             vx: (Math.random() - 0.5) * 0.6,
             vy: (Math.random() - 0.5) * 0.6,
             size: Math.random() * 2.4 + 1.2,
-            color: p % 3 === 0 ? '#f8fafc' : (p % 2 === 0 ? '#3b82f6' : '#06b6d4'),
+            color: p % 3 === 0 ? '#ffffff' : (p % 2 === 0 ? '#8b5cf6' : '#a3e635'),
             phase: Math.random() * Math.PI * 2
           });
         }
@@ -449,7 +449,7 @@ export default function ThemeBackground() {
           });
         }
 
-        // Drifting Platinum and Phantom-Violet Micro-Sparks
+        // Drifting Mirror-Platinum and Molten Gold Micro-Sparks
         const sparkCount = isMobile ? 25 : 55;
         const microSparks = [];
         for (let sp = 0; sp < sparkCount; sp++) {
@@ -459,7 +459,7 @@ export default function ThemeBackground() {
             size: Math.random() * 2.2 + 0.8,
             speed: 0.02 + Math.random() * 0.03,
             phase: Math.random() * Math.PI * 2,
-            color: sp % 3 === 0 ? '#f8fafc' : (sp % 2 === 0 ? '#818cf8' : '#cbd5e1')
+            color: sp % 3 === 0 ? '#f8fafc' : (sp % 2 === 0 ? '#f59e0b' : '#fde68a')
           });
         }
 
@@ -549,10 +549,10 @@ export default function ThemeBackground() {
         mouseY += (targetMouseY - mouseY) * 0.04;
 
       if (activeTheme === 'cryo-glacial') {
-        // 1. Cryo-Prismatic Glacial Shatter (Sub-Zero Frost Prism Refraction)
+        // 1. Cryo-Prismatic Glacial Shatter (Sub-Zero Frost Prism Refraction - Frost Rose & Aurora Mint)
         ctx.save();
 
-        // Refracted rainbow light beams
+        // Refracted rainbow / aurora light beams
         if (state.beams) {
           state.beams.forEach((beam) => {
             beam.angle += beam.vAngle;
@@ -566,11 +566,11 @@ export default function ThemeBackground() {
               beam.originX + Math.cos(beam.angle) * width,
               height
             );
-            grad.addColorStop(0, 'rgba(56, 189, 248, 0)');
-            grad.addColorStop(0.35, `rgba(56, 189, 248, ${0.035 * pulse})`);
-            grad.addColorStop(0.55, `rgba(34, 211, 238, ${0.045 * pulse})`);
-            grad.addColorStop(0.75, `rgba(168, 85, 247, ${0.03 * pulse})`);
-            grad.addColorStop(1, 'rgba(234, 179, 8, 0)');
+            grad.addColorStop(0, 'rgba(251, 113, 133, 0)');
+            grad.addColorStop(0.35, `rgba(251, 113, 133, ${0.04 * pulse})`);
+            grad.addColorStop(0.55, `rgba(45, 212, 191, ${0.045 * pulse})`);
+            grad.addColorStop(0.75, `rgba(232, 121, 249, ${0.035 * pulse})`);
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
             ctx.fillStyle = grad;
             ctx.beginPath();
@@ -583,7 +583,7 @@ export default function ThemeBackground() {
           });
         }
 
-        // Translucent Ice Shards
+        // Translucent Frost Rose & Mint Shards
         if (state.shards) {
           state.shards.forEach((s) => {
             s.x += s.vx;
@@ -605,12 +605,21 @@ export default function ThemeBackground() {
             ctx.closePath();
 
             // Translucent frosted fill
-            ctx.fillStyle = `rgba(56, 189, 248, ${s.alpha * 0.28})`;
+            const fillHue = s.prismHue || '#fb7185';
+            ctx.fillStyle = fillHue === '#fb7185'
+              ? `rgba(251, 113, 133, ${s.alpha * 0.22})`
+              : fillHue === '#2dd4bf'
+                ? `rgba(45, 212, 191, ${s.alpha * 0.22})`
+                : `rgba(232, 121, 249, ${s.alpha * 0.22})`;
             ctx.fill();
 
-            // Crisp prismatic boundary stroke
-            ctx.strokeStyle = s.prismHue === '#38bdf8' ? `rgba(56, 189, 248, ${s.alpha})` : `rgba(34, 211, 238, ${s.alpha})`;
-            ctx.lineWidth = 1.2;
+            // Crisp prismatic rose / mint boundary stroke with glow
+            ctx.strokeStyle = fillHue === '#fb7185'
+              ? `rgba(251, 113, 133, ${s.alpha * 0.95})`
+              : fillHue === '#2dd4bf'
+                ? `rgba(45, 212, 191, ${s.alpha * 0.95})`
+                : `rgba(232, 121, 249, ${s.alpha * 0.95})`;
+            ctx.lineWidth = 1.3;
             ctx.stroke();
 
             ctx.restore();
@@ -902,15 +911,15 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'cobalt-quantum') {
-        // 4. Cobalt Quantum Wave (Full-Screen 3D Spacetime Wave Mesh & Particle Entanglement Web)
+        // 4. Cobalt Quantum Wave (Ultraviolet Harmonic Spacetime Mesh & Hyper-Neon Lime Entanglement Web)
         ctx.save();
         const { gridSpacingX, gridSpacingY, cols, rows, quantumParticles } = state;
         const waveSpeed = frame * 0.028;
 
         // A. Full-Screen 3D Spacetime Topological Wave Mesh
-        ctx.lineWidth = 1.1;
+        ctx.lineWidth = 1.15;
 
-        // Horizontal curvature wave lines
+        // Horizontal curvature wave lines (Ultraviolet Purple)
         for (let r = 0; r < rows; r++) {
           ctx.beginPath();
           const by = r * gridSpacingY;
@@ -924,11 +933,11 @@ export default function ThemeBackground() {
             else ctx.lineTo(bx, py);
           }
           const rowProgress = r / rows;
-          ctx.strokeStyle = `rgba(59, 130, 246, ${0.06 + Math.sin(rowProgress * Math.PI) * 0.12})`;
+          ctx.strokeStyle = `rgba(139, 92, 246, ${0.08 + Math.sin(rowProgress * Math.PI) * 0.16})`;
           ctx.stroke();
         }
 
-        // Vertical curvature wave lines
+        // Vertical curvature wave lines (Hyper-Neon Lime)
         for (let c = 0; c < cols; c++) {
           ctx.beginPath();
           const bx = c * gridSpacingX;
@@ -942,7 +951,7 @@ export default function ThemeBackground() {
             else ctx.lineTo(px, by + wave);
           }
           const colProgress = c / cols;
-          ctx.strokeStyle = `rgba(6, 182, 212, ${0.05 + Math.sin(colProgress * Math.PI) * 0.10})`;
+          ctx.strokeStyle = `rgba(163, 230, 53, ${0.07 + Math.sin(colProgress * Math.PI) * 0.14})`;
           ctx.stroke();
         }
 
@@ -968,7 +977,7 @@ export default function ThemeBackground() {
                 ctx.beginPath();
                 ctx.moveTo(p1.x, p1.y);
                 ctx.lineTo(p2.x, p2.y);
-                ctx.strokeStyle = `rgba(6, 182, 212, ${alpha})`;
+                ctx.strokeStyle = (i + j) % 2 === 0 ? `rgba(163, 230, 53, ${alpha})` : `rgba(139, 92, 246, ${alpha})`;
                 ctx.lineWidth = 1.0;
                 ctx.stroke();
               }
@@ -981,7 +990,9 @@ export default function ThemeBackground() {
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
-            ctx.fillStyle = p.color === '#06b6d4' ? 'rgba(6, 182, 212, 0.2)' : 'rgba(59, 130, 246, 0.2)';
+            ctx.fillStyle = p.color === '#a3e635'
+              ? 'rgba(163, 230, 53, 0.28)'
+              : (p.color === '#8b5cf6' ? 'rgba(139, 92, 246, 0.28)' : 'rgba(255, 255, 255, 0.35)');
             ctx.fill();
 
             ctx.beginPath();
@@ -1065,11 +1076,24 @@ export default function ThemeBackground() {
 
         ctx.restore();
       } else if (activeTheme === 'obsidian-void') {
-        // 6. Obsidian Shadow Void (Full-Canvas 3D Tumbling Dark-Matter Shards & Corner-to-Corner Crystal Lattice)
+        // 6. Obsidian Shadow Void (Onyx Pitch Black Singularity, Molten Eclipse Gold & Chrome Shards)
         ctx.save();
         const { shards, circuitPaths, veils, microSparks } = state;
 
-        // A. Atmospheric Dark-Matter Veil Fog Bands
+        // A. Solar Eclipse Singularity Ambient Corona
+        const eclipseGrad = ctx.createRadialGradient(
+          width * 0.5, height * 0.4, 20,
+          width * 0.5, height * 0.4, Math.max(width, height) * 0.65
+        );
+        const eclipsePulse = 0.07 + Math.sin(frame * 0.018) * 0.03;
+        eclipseGrad.addColorStop(0, `rgba(245, 158, 11, ${eclipsePulse * 1.6})`);
+        eclipseGrad.addColorStop(0.25, `rgba(217, 119, 6, ${eclipsePulse * 0.8})`);
+        eclipseGrad.addColorStop(0.55, 'rgba(5, 5, 8, 0.45)');
+        eclipseGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = eclipseGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // B. Atmospheric Molten-Gold and Chrome Veil Fog Bands
         if (veils) {
           veils.forEach((v, vIdx) => {
             ctx.beginPath();
@@ -1080,18 +1104,18 @@ export default function ThemeBackground() {
               if (x === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
             }
-            const pulse = 0.08 + Math.sin(frame * 0.02 + vIdx) * 0.05;
-            ctx.strokeStyle = `rgba(129, 140, 248, ${pulse})`;
+            const pulse = 0.07 + Math.sin(frame * 0.02 + vIdx) * 0.05;
+            ctx.strokeStyle = vIdx % 2 === 0 ? `rgba(245, 158, 11, ${pulse * 1.4})` : `rgba(248, 250, 252, ${pulse * 0.9})`;
             ctx.lineWidth = 1.4;
             ctx.stroke();
           });
         }
 
-        // B. Corner-to-Corner Dendritic Stealth Circuit Lattice
+        // C. Corner-to-Corner Dendritic Molten-Gold Circuit Lattice
         if (circuitPaths) {
           circuitPaths.forEach((branch, bIdx) => {
             const p = 0.35 + Math.sin(frame * 0.025 + bIdx) * 0.25;
-            ctx.strokeStyle = `rgba(129, 140, 248, ${p * 0.4})`;
+            ctx.strokeStyle = `rgba(245, 158, 11, ${p * 0.42})`;
             ctx.lineWidth = 1.3;
             ctx.beginPath();
             branch.forEach((seg) => {
@@ -1100,16 +1124,16 @@ export default function ThemeBackground() {
             });
             ctx.stroke();
 
-            // Circuit Node Junctions
+            // Circuit Node Junctions (Molten Gold & Mirror Chrome)
             branch.forEach((seg) => {
               if (seg.node) {
-                ctx.fillStyle = '#cbd5e1';
+                ctx.fillStyle = '#fde68a';
                 ctx.beginPath();
                 ctx.arc(seg.x2, seg.y2, 1.8, 0, Math.PI * 2);
                 ctx.fill();
 
                 if (Math.sin(frame * 0.05 + seg.x2) > 0.8) {
-                  ctx.fillStyle = '#818cf8';
+                  ctx.fillStyle = '#f59e0b';
                   ctx.beginPath();
                   ctx.arc(seg.x2, seg.y2, 3.2, 0, Math.PI * 2);
                   ctx.fill();
@@ -1119,7 +1143,7 @@ export default function ThemeBackground() {
           });
         }
 
-        // C. Full-Canvas 3D Tumbling Geometric Dark-Matter Polygon Shards
+        // D. Full-Canvas 3D Tumbling Onyx Obsidian Polygon Shards
         if (shards) {
           shards.forEach((s) => {
             s.x += s.vx;
@@ -1149,29 +1173,29 @@ export default function ThemeBackground() {
             }
             ctx.closePath();
 
-            // Dark-matter semi-translucent fill
-            ctx.fillStyle = `rgba(12, 12, 18, ${s.alpha})`;
+            // Onyx dark-matter semi-translucent fill
+            ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.9, s.alpha * 1.5)})`;
             ctx.fill();
 
-            // Platinum-chrome and phantom-violet edges
-            ctx.strokeStyle = `rgba(203, 213, 225, ${s.alpha * 1.8})`;
-            ctx.lineWidth = 1.3;
+            // Molten Gold and Chrome border stroke
+            ctx.strokeStyle = `rgba(245, 158, 11, ${s.alpha * 1.7})`;
+            ctx.lineWidth = 1.35;
             ctx.stroke();
 
-            // Vertex specular glint
+            // Vertex specular glint (Mirror Chrome)
             const glintA = 0;
             const gx = Math.cos(glintA) * s.baseRadius * (0.65 + sinY * 0.35);
             const gy = Math.sin(glintA) * s.baseRadius * (0.65 + cosX * 0.35);
             ctx.beginPath();
             ctx.arc(gx, gy, 2.0, 0, Math.PI * 2);
-            ctx.fillStyle = '#818cf8';
+            ctx.fillStyle = '#ffffff';
             ctx.fill();
 
             ctx.restore();
           });
         }
 
-        // D. Drifting Platinum and Phantom-Violet Micro-Sparks
+        // E. Drifting Mirror-Platinum and Molten-Gold Micro-Sparks
         if (microSparks) {
           microSparks.forEach((sp) => {
             const p = 0.25 + Math.sin(frame * sp.speed + sp.phase) * 0.35;

@@ -6,26 +6,26 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   THEME 1 (Default): Cryo-Prismatic Glacial Shatter (Ice / Light Blue)
-   Deep Ice Abyss (#020617), Pure Ice Crystal (#FFFFFF), Ice Sky Blue (#38BDF8), Frost Cyan (#22D3EE), Frosted Slate Panel (#0F172A)
+   THEME 1 (Default): Cryo-Prismatic Glacial Shatter (Frost Rose & Aurora Mint)
+   Sub-Zero Polar Abyss (#050811), Opal White (#FFFFFF), Frostbite Rose (#FB7185), Aurora Mint Teal (#2DD4BF), Frosted Polar Slate (#0C1220)
 ───────────────────────────────────────────── */
 :root,
 .theme-cryo-glacial,
 .theme-cryo-vault {
-  --dark-bg:     2 6 23;
-  --dark-card:   15 23 42;
-  --dark-surf:   30 41 59;
-  --dark-border: 56 189 248;
+  --dark-bg:     5 8 17;
+  --dark-card:   12 18 32;
+  --dark-surf:   22 32 53;
+  --dark-border: 251 113 133;
 
-  --accent-cyan:   56 189 248;
-  --accent-purple: 34 211 238;
+  --accent-cyan:   251 113 133;
+  --accent-purple: 45 212 191;
   --accent-pink:   255 255 255;
-  --accent-gold:   186 230 253;
-  --accent-green:  34 211 238;
+  --accent-gold:   232 121 249;
+  --accent-green:  45 212 191;
 
-  --glow-1: rgba(56, 189, 248, 0.28);
-  --glow-2: rgba(34, 211, 238, 0.20);
-  --glow-3: rgba(255, 255, 255, 0.12);
+  --glow-1: rgba(251, 113, 133, 0.32);
+  --glow-2: rgba(45, 212, 191, 0.24);
+  --glow-3: rgba(255, 255, 255, 0.15);
 }
 
 /* ─────────────────────────────────────────────
@@ -73,25 +73,25 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 4: Cobalt Quantum Wave (Blue)
-   Abyssal Navy Black (#030712), Ice Porcelain White (#F8FAFC), Electric Cobalt (#3B82F6), Laser Cyan (#06B6D4), Deep Steel Panel (#0F172A)
+   THEME 4: Cobalt Quantum Wave (Ultraviolet & Hyper-Neon Lime)
+   Cosmic Deep Indigo (#050510), Pure Photon White (#FFFFFF), Ultraviolet Purple (#8B5CF6), Hyper-Neon Lime (#A3E635), Deep Space Void (#0E0E22)
 ───────────────────────────────────────────── */
 .theme-cobalt-quantum,
 .theme-storm-thunder {
-  --dark-bg:     3 7 18;
-  --dark-card:   15 23 42;
-  --dark-surf:   30 41 59;
-  --dark-border: 59 130 246;
+  --dark-bg:     5 5 16;
+  --dark-card:   14 14 34;
+  --dark-surf:   26 26 58;
+  --dark-border: 139 92 246;
 
-  --accent-cyan:   59 130 246;
-  --accent-purple: 6 182 212;
-  --accent-pink:   248 250 252;
-  --accent-gold:   147 197 253;
-  --accent-green:  6 182 212;
+  --accent-cyan:   139 92 246;
+  --accent-purple: 163 230 53;
+  --accent-pink:   255 255 255;
+  --accent-gold:   190 242 100;
+  --accent-green:  163 230 53;
 
-  --glow-1: rgba(59, 130, 246, 0.28);
-  --glow-2: rgba(6, 182, 212, 0.22);
-  --glow-3: rgba(248, 250, 252, 0.12);
+  --glow-1: rgba(139, 92, 246, 0.32);
+  --glow-2: rgba(163, 230, 53, 0.25);
+  --glow-3: rgba(255, 255, 255, 0.15);
 }
 
 /* ─────────────────────────────────────────────
@@ -117,24 +117,24 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 6: Obsidian Shadow Void (Stealth Platinum & Phantom Violet Eclipse)
-   Ultimate Void Black (#000000), Ghost Platinum White (#F8FAFC), Phantom Violet (#818CF8), Cold Chrome Silver (#CBD5E1), Dark Carbon Slate (#0C0C12)
+   THEME 6: Obsidian Shadow Void (Onyx Pitch Black & Molten Gold Eclipse)
+   Ultimate Void Black (#000000), Mirror Chrome Platinum (#F8FAFC), Molten Eclipse Gold (#F59E0B), Solar Corona Amber (#FDE68A), Dark Obsidian Slate (#0A0A0E)
 ───────────────────────────────────────────── */
 .theme-obsidian-void {
-  --dark-bg:     2 2 4;
-  --dark-card:   12 12 18;
-  --dark-surf:   22 22 32;
-  --dark-border: 129 140 248;
+  --dark-bg:     0 0 0;
+  --dark-card:   10 10 14;
+  --dark-surf:   22 22 29;
+  --dark-border: 245 158 11;
 
-  --accent-cyan:   203 213 225;
-  --accent-purple: 129 140 248;
-  --accent-pink:   248 250 252;
-  --accent-gold:   165 180 252;
-  --accent-green:  148 163 184;
+  --accent-cyan:   245 158 11;
+  --accent-purple: 248 250 252;
+  --accent-pink:   253 230 138;
+  --accent-gold:   217 119 6;
+  --accent-green:  245 158 11;
 
-  --glow-1: rgba(129, 140, 248, 0.26);
-  --glow-2: rgba(99, 102, 241, 0.20);
-  --glow-3: rgba(248, 250, 252, 0.12);
+  --glow-1: rgba(245, 158, 11, 0.34);
+  --glow-2: rgba(248, 250, 252, 0.22);
+  --glow-3: rgba(253, 230, 138, 0.16);
 }
 
 /* ─────────────────────────────────────────────
@@ -1544,6 +1544,65 @@ input[type="range"] { accent-color: rgb(var(--accent-purple)); }
   animation: auroraWaveFlowX 20s linear infinite reverse;
 }
 
+/* ── Live Theme Selector Interactive UI & Animations ── */
+@keyframes themeBorderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes themeMockupSweep {
+  0% { transform: translateX(-120%) skewX(-20deg); opacity: 0; }
+  35% { opacity: 0.6; }
+  70% { opacity: 0.8; }
+  100% { transform: translateX(220%) skewX(-20deg); opacity: 0; }
+}
+
+@keyframes themeBadgeRadar {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes themeWaveUndulate {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes themeShardFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2.5px) rotate(5deg); }
+}
+
+@keyframes themeSingularitySpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.animate-theme-border-rotate {
+  animation: themeBorderRotate 6s linear infinite;
+}
+
+.animate-theme-mockup-sweep {
+  animation: themeMockupSweep 3.2s ease-in-out infinite;
+}
+
+.animate-theme-badge-radar {
+  animation: themeBadgeRadar 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-theme-wave {
+  animation: themeWaveUndulate 2.8s ease-in-out infinite;
+}
+
+.animate-theme-shard {
+  animation: themeShardFloat 3.5s ease-in-out infinite;
+}
+
+.animate-theme-singularity {
+  animation: themeSingularitySpin 9s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-ambient-breathe,
   .animate-heart-spring,
@@ -1583,7 +1642,13 @@ input[type="range"] { accent-color: rgb(var(--accent-purple)); }
   .animate-sync-beam,
   .animate-pill-bob,
   .animate-aurora-wave-1,
-  .animate-aurora-wave-2 {
+  .animate-aurora-wave-2,
+  .animate-theme-border-rotate,
+  .animate-theme-mockup-sweep,
+  .animate-theme-badge-radar,
+  .animate-theme-wave,
+  .animate-theme-shard,
+  .animate-theme-singularity {
     animation: none !important;
   }
 }

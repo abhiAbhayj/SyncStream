@@ -59,13 +59,13 @@ const THEME_OPTIONS = [
   {
     id: 'cryo-glacial',
     name: 'Cryo-Prismatic Glacial Shatter',
-    vibe: 'Ice / Light Blue',
+    vibe: 'Frost Rose & Aurora Mint',
     icon: Snowflake,
-    iconColor: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)]',
-    iconBg: 'bg-sky-400/10 border-sky-400/30',
-    desc: 'Sub-Zero Frost Prism Refraction with translucent rotating ice geometric shards that refract soft rainbow light beams',
-    animation: 'Sub-Zero Frost Prism Refraction',
-    swatch: ['#020617', '#38bdf8', '#22d3ee', '#0f172a', '#ffffff'],
+    iconColor: 'text-rose-400 fill-rose-400 drop-shadow-[0_0_10px_rgba(251,113,133,0.8)]',
+    iconBg: 'bg-rose-500/10 border-rose-400/30',
+    desc: 'Sub-Zero Aurora Prismatic Refraction with floating frost rose and aurora mint crystalline shards refracting opal light beams',
+    animation: 'Sub-Zero Rose & Aurora Mint Prism',
+    swatch: ['#050811', '#fb7185', '#2dd4bf', '#e879f9', '#ffffff'],
   },
   {
     id: 'magma-thermal',
@@ -92,13 +92,13 @@ const THEME_OPTIONS = [
   {
     id: 'cobalt-quantum',
     name: 'Cobalt Quantum Wave',
-    vibe: 'Blue',
+    vibe: 'Ultraviolet & Neon Lime',
     icon: Atom,
-    iconColor: 'text-blue-500 fill-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.7)]',
-    iconBg: 'bg-blue-500/10 border-blue-500/30',
-    desc: 'Full-Screen 3D Spacetime Harmonic Topology with undulating quantum wave fabric and dynamic proximity particle entanglement lines',
-    animation: '3D Spacetime Wave & Entanglement Web',
-    swatch: ['#030712', '#3b82f6', '#06b6d4', '#0f172a', '#f8fafc'],
+    iconColor: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.7)]',
+    iconBg: 'bg-purple-500/10 border-lime-400/30',
+    desc: 'Full-Screen Spacetime Wave Mesh undulating with high-energy ultraviolet harmonic waves, neon lime verticals, and photon entanglement nodes',
+    animation: 'Ultraviolet Wave & Neon Lime Entanglement',
+    swatch: ['#050510', '#8b5cf6', '#a3e635', '#bef264', '#ffffff'],
   },
   {
     id: 'golden-sunfire',
@@ -114,13 +114,13 @@ const THEME_OPTIONS = [
   {
     id: 'obsidian-void',
     name: 'Obsidian Shadow Void',
-    vibe: 'Stealth Platinum & Phantom Violet',
+    vibe: 'Onyx Pitch Black & Molten Gold',
     icon: Moon,
-    iconColor: 'text-indigo-400 fill-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.7)]',
-    iconBg: 'bg-indigo-500/10 border-indigo-500/30',
-    desc: 'Full-Canvas Dark-Matter Polygon Shards tumbling with ghost-chrome glints and corner-to-corner freezing stealth quantum circuits',
-    animation: 'Dark-Matter Shards & Crystal Lattice',
-    swatch: ['#000000', '#818cf8', '#cbd5e1', '#0c0c12', '#f8fafc'],
+    iconColor: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]',
+    iconBg: 'bg-amber-500/10 border-amber-400/30',
+    desc: 'Full-Canvas Onyx Dark-Matter Shards tumbling through a solar eclipse singularity with molten gold circuits and mirror chrome glints',
+    animation: 'Eclipse Singularity & Molten Gold Shards',
+    swatch: ['#000000', '#f59e0b', '#f8fafc', '#fde68a', '#18181b'],
   },
   {
     id: 'cyberpunk-synthwave',
@@ -1588,7 +1588,7 @@ export default function Profile() {
               <span>Live Animated Dashboard Themes ({THEME_OPTIONS.length})</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
               {THEME_OPTIONS.map((t) => {
                 const isSelected = theme === t.id;
                 return (
@@ -1596,92 +1596,253 @@ export default function Profile() {
                     key={t.id}
                     type="button"
                     onClick={(e) => handleThemeChange(t.id, e)}
-                    className={`relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] ${
+                    className={`group relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] cursor-pointer ${
                       isSelected
-                        ? 'border-accentCyan/80 bg-accentCyan/[0.08] shadow-[0_0_20px_rgba(var(--accent-cyan),0.25)] ring-1 ring-accentCyan/50'
-                        : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/15'
+                        ? 'ring-1 ring-white/20'
+                        : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-0.5 hover:shadow-xl'
                     }`}
+                    style={
+                      isSelected
+                        ? {
+                            borderColor: `${t.swatch[1]}aa`,
+                            background: `linear-gradient(135deg, ${t.swatch[0]}f5, ${t.swatch[3] || t.swatch[0]}ee)`,
+                            boxShadow: `0 0 28px ${t.swatch[1]}35, inset 0 0 16px ${t.swatch[1]}15`,
+                          }
+                        : undefined
+                    }
                   >
-                    {/* Animated Theme Preview Mini-Mockup */}
+                    {/* Hover Shimmer Glint */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+
+                    {/* Animated Theme Preview Mini-Mockup Stage */}
                     <div
                       aria-hidden="true"
-                      className="relative mb-2.5 h-12 rounded-xl border border-white/10 bg-[#050814]/95 p-1.5 flex flex-col justify-between overflow-hidden shadow-inner"
+                      className="relative mb-3 h-16 sm:h-20 rounded-xl border border-white/10 bg-[#04060f]/95 p-2 flex flex-col justify-between overflow-hidden shadow-inner"
                     >
-                      {/* Subtle theme ambient glow */}
+                      {/* Theme Ambient Glow Orbs */}
                       <div
-                        className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-xl opacity-35 transition-opacity duration-500"
+                        className="absolute -top-4 -right-4 w-20 h-20 rounded-full blur-xl opacity-45 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none"
                         style={{ background: t.swatch[1] || t.swatch[0] }}
                       />
-                      {/* Mini Navbar row */}
+                      <div
+                        className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full blur-lg opacity-30 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none"
+                        style={{ background: t.swatch[2] || t.swatch[0] }}
+                      />
+
+                      {/* Sweeping Specular Light Glint */}
+                      <div className="absolute inset-0 animate-theme-mockup-sweep bg-gradient-to-r from-transparent via-white/[0.12] to-transparent pointer-events-none" />
+
+                      {/* Mini Mockup Header / OS Navbar */}
                       <div className="relative z-10 flex items-center justify-between gap-1.5">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <span
-                            className="w-1.5 h-1.5 rounded-full animate-pulse"
-                            style={{ background: t.swatch[0], boxShadow: `0 0 6px ${t.swatch[0]}` }}
+                            className="w-2 h-2 rounded-full animate-pulse"
+                            style={{ background: t.swatch[1] || t.swatch[0], boxShadow: `0 0 6px ${t.swatch[1] || t.swatch[0]}` }}
                           />
-                          <span className="h-1 w-6 rounded-full bg-white/20" />
-                        </div>
-                        <div className="flex gap-1">
-                          <span className="h-1 w-3 rounded-full bg-white/15" />
                           <span
-                            className="h-1 w-4 rounded-full"
-                            style={{ background: t.swatch[2] || t.swatch[1] || t.swatch[0] }}
+                            className="w-1.5 h-1.5 rounded-full opacity-80"
+                            style={{ background: t.swatch[2] || t.swatch[0] }}
+                          />
+                          <span
+                            className="w-1.5 h-1.5 rounded-full opacity-60"
+                            style={{ background: t.swatch[3] || t.swatch[0] }}
                           />
                         </div>
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-white/10 bg-black/50 text-gray-300 truncate max-w-[150px]">
+                          {t.vibe}
+                        </span>
                       </div>
-                      {/* Mini Hero + Cards row */}
+
+                      {/* Mini Dynamic Graphics Stage */}
+                      <div className="relative z-10 flex-1 my-1 flex items-center justify-center overflow-hidden">
+                        {t.id === 'cryo-glacial' && (
+                          <div className="w-full h-full flex items-center justify-around px-3 relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 via-teal-400/20 to-fuchsia-400/20 blur-sm animate-pulse" />
+                            <div
+                              className="w-4 h-4 rotate-45 border border-rose-400/90 bg-rose-500/30 rounded-sm animate-theme-shard shadow-[0_0_8px_rgba(251,113,133,0.7)]"
+                              style={{ animationDelay: '0s' }}
+                            />
+                            <div
+                              className="w-5 h-5 -rotate-12 border border-teal-400/90 bg-teal-400/30 rounded-sm animate-theme-shard shadow-[0_0_10px_rgba(45,212,191,0.7)]"
+                              style={{ animationDelay: '1.2s' }}
+                            />
+                            <div
+                              className="w-3.5 h-3.5 rotate-30 border border-fuchsia-400/90 bg-fuchsia-400/30 rounded-sm animate-theme-shard shadow-[0_0_6px_rgba(232,121,249,0.7)]"
+                              style={{ animationDelay: '0.6s' }}
+                            />
+                          </div>
+                        )}
+
+                        {t.id === 'cobalt-quantum' && (
+                          <div className="w-full h-full flex items-center justify-center relative px-2">
+                            <svg className="w-full h-8 overflow-visible" viewBox="0 0 120 28" fill="none">
+                              <path
+                                d="M0 14 Q 30 2, 60 14 T 120 14"
+                                stroke="#8b5cf6"
+                                strokeWidth="2"
+                                className="animate-theme-wave"
+                                strokeDasharray="3 1.5"
+                              />
+                              <path
+                                d="M0 14 Q 30 26, 60 14 T 120 14"
+                                stroke="#a3e635"
+                                strokeWidth="1.8"
+                                className="animate-theme-wave"
+                                style={{ animationDirection: 'reverse' }}
+                              />
+                              <circle
+                                cx="60"
+                                cy="14"
+                                r="3"
+                                fill="#ffffff"
+                                className="animate-ping"
+                                style={{ animationDuration: '2s' }}
+                              />
+                              <circle cx="60" cy="14" r="2.5" fill="#a3e635" />
+                            </svg>
+                          </div>
+                        )}
+
+                        {t.id === 'obsidian-void' && (
+                          <div className="w-full h-full flex items-center justify-center relative">
+                            <div className="relative w-8 h-8 flex items-center justify-center">
+                              <div className="absolute inset-0 rounded-full border border-amber-400/80 border-dashed animate-theme-singularity shadow-[0_0_12px_rgba(245,158,11,0.8)]" />
+                              <div className="w-5 h-5 rounded-full bg-black border border-amber-500/60 shadow-[inset_0_0_8px_rgba(0,0,0,1)]" />
+                              <div className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_6px_#ffffff] animate-pulse" />
+                            </div>
+                          </div>
+                        )}
+
+                        {t.id === 'magma-thermal' && (
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-red-600/40 via-orange-500/20 to-transparent animate-pulse" />
+                            <div className="flex gap-2 items-end h-5">
+                              <span className="w-1.5 h-3 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.1s' }} />
+                              <span className="w-1.5 h-5 rounded-full bg-red-500 animate-bounce" style={{ animationDelay: '0.3s' }} />
+                              <span className="w-1.5 h-4 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                            </div>
+                          </div>
+                        )}
+
+                        {t.id === 'emerald-biogrid' && (
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                            <div className="w-full flex justify-between px-2 text-[8px] font-mono text-emerald-400/80 animate-pulse">
+                              <span>0101</span>
+                              <span className="text-teal-300 font-bold">BIO_GRID</span>
+                              <span>1010</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {t.id === 'golden-sunfire' && (
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-600/20 blur-sm animate-pulse" />
+                            <Crown className="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-bounce" style={{ animationDuration: '2.5s' }} />
+                          </div>
+                        )}
+
+                        {t.id === 'cyberpunk-synthwave' && (
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                            <div className="w-full h-6 border-b border-pink-500/80 bg-gradient-to-t from-pink-500/20 to-cyan-500/20 flex flex-col justify-end">
+                              <div className="w-full h-0.5 bg-gradient-to-r from-pink-500 via-cyan-400 to-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
+                            </div>
+                          </div>
+                        )}
+
+                        {t.id === 'mystic-amethyst' && (
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                            <div className="w-7 h-7 rounded-full border-2 border-purple-500/80 border-t-emerald-400 animate-spin shadow-[0_0_10px_rgba(168,85,247,0.7)]" style={{ animationDuration: '4s' }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Mini Footer row */}
                       <div className="relative z-10 flex items-center gap-1.5">
                         <div
-                          className="h-4 flex-1 rounded-md border border-white/10 relative overflow-hidden"
+                          className="h-2 flex-1 rounded-full relative overflow-hidden"
                           style={{
-                            background: `linear-gradient(120deg, ${t.swatch[0]}33, ${t.swatch[1] || t.swatch[0]}28)`
+                            background: `linear-gradient(90deg, ${t.swatch[0]}66, ${t.swatch[1] || t.swatch[0]}55)`
                           }}
                         >
                           <div
                             className="h-full w-1/2 animate-horizon-beam opacity-80"
                             style={{
-                              background: `linear-gradient(90deg, transparent, ${t.swatch[0]}aa, transparent)`
+                              background: `linear-gradient(90deg, transparent, ${t.swatch[1] || t.swatch[0]}, transparent)`
                             }}
                           />
                         </div>
-                        <div
-                          className="h-4 w-5 rounded-md border border-white/10"
-                          style={{ background: `${t.swatch[1] || t.swatch[0]}30` }}
-                        />
-                        <div
-                          className="h-4 w-5 rounded-md border border-white/10"
-                          style={{ background: `${t.swatch[2] || t.swatch[0]}30` }}
+                        <span
+                          className="h-2 w-4 rounded-full"
+                          style={{ background: t.swatch[2] || t.swatch[1] }}
                         />
                       </div>
                     </div>
 
-                    {/* Color swatch bar */}
-                    <div className="flex gap-1.5 mb-2">
-                      {t.swatch.map((color) => (
+                    {/* Interactive 5-Tone Color Swatch Bar */}
+                    <div className="flex gap-1.5 mb-2.5">
+                      {t.swatch.map((color, cIdx) => (
                         <div
-                          key={color}
-                          className="h-1.5 flex-1 rounded-full"
-                          style={{ background: color, boxShadow: `0 0 8px ${color}66` }}
+                          key={`${color}-${cIdx}`}
+                          title={color}
+                          className="h-2 flex-1 rounded-full transition-all duration-200 group-hover:h-2.5"
+                          style={{
+                            background: color,
+                            boxShadow: `0 0 10px ${color}88`
+                          }}
                         />
                       ))}
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
-                        {t.icon && <t.icon className={`w-4 h-4 ${t.iconColor || 'text-accentCyan'} shrink-0`} />}
-                      </span>
-                      <span className="font-bold text-sm text-white">{t.name}</span>
-                    </div>
-                    <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">{t.desc}</p>
-                    <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-accentCyan">
-                      <Sparkles className="w-2.5 h-2.5 animate-pulse text-accentCyan" />
-                      <span>{t.animation}</span>
+
+                    {/* Theme Header: Icon + Title + Active Radar Badge */}
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
+                          {t.icon && <t.icon className={`w-4 h-4 ${t.iconColor || 'text-accentCyan'} shrink-0`} />}
+                        </span>
+                        <div className="min-w-0">
+                          <span className="font-extrabold text-sm text-white tracking-tight block truncate">
+                            {t.name}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <div
+                          className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider font-mono border shadow-md shrink-0"
+                          style={{
+                            backgroundColor: `${t.swatch[1]}20`,
+                            borderColor: `${t.swatch[1]}70`,
+                            color: t.swatch[4] || '#ffffff',
+                            boxShadow: `0 0 10px ${t.swatch[1]}40`
+                          }}
+                        >
+                          <span className="relative flex h-2 w-2">
+                            <span
+                              className="animate-theme-badge-radar absolute inline-flex h-full w-full rounded-full opacity-75"
+                              style={{ backgroundColor: t.swatch[1] }}
+                            />
+                            <span
+                              className="relative inline-flex rounded-full h-2 w-2"
+                              style={{ backgroundColor: t.swatch[1] }}
+                            />
+                          </span>
+                          <span>ACTIVE</span>
+                        </div>
+                      )}
                     </div>
 
-                    {isSelected && (
-                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accentCyan text-black flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-cyan),0.6)] font-black">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                    )}
+                    <p className="text-[11px] sm:text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">
+                      {t.desc}
+                    </p>
+
+                    {/* Animation Pill Tag */}
+                    <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-mono text-gray-300 group-hover:border-white/20 transition-colors">
+                      <Sparkles
+                        className="w-2.5 h-2.5 animate-pulse shrink-0"
+                        style={{ color: t.swatch[1] }}
+                      />
+                      <span className="truncate">{t.animation}</span>
+                    </div>
                   </button>
                 );
               })}
