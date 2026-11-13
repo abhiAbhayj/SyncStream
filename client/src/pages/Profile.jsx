@@ -59,13 +59,13 @@ const THEME_OPTIONS = [
   {
     id: 'cryo-glacial',
     name: 'Cryo-Prismatic Glacial Shatter',
-    vibe: 'Frost Rose & Aurora Mint',
+    vibe: 'Ice Blue, Cyan & Frost White',
     icon: Snowflake,
-    iconColor: 'text-rose-400 fill-rose-400 drop-shadow-[0_0_10px_rgba(251,113,133,0.8)]',
-    iconBg: 'bg-rose-500/10 border-rose-400/30',
-    desc: 'Sub-Zero Aurora Prismatic Refraction with floating frost rose and aurora mint crystalline shards refracting opal light beams',
-    animation: 'Sub-Zero Rose & Aurora Mint Prism',
-    swatch: ['#050811', '#fb7185', '#2dd4bf', '#e879f9', '#ffffff'],
+    iconColor: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.8)]',
+    iconBg: 'bg-sky-500/10 border-sky-400/30',
+    desc: 'Sub-Zero Glacial Frost with intricate six-fold ice snowflakes, drifting crystalline needle shards, and refractive cyan beam halos',
+    animation: 'Crystalline Ice Flakes & Frost Prism',
+    swatch: ['#020617', '#38bdf8', '#06b6d4', '#081226', '#ffffff'],
   },
   {
     id: 'magma-thermal',
@@ -92,12 +92,12 @@ const THEME_OPTIONS = [
   {
     id: 'cobalt-quantum',
     name: 'Cobalt Quantum Wave',
-    vibe: 'Ultraviolet & Neon Lime',
+    vibe: 'Ultraviolet, Neon Lime & Photon White',
     icon: Atom,
     iconColor: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.7)]',
     iconBg: 'bg-purple-500/10 border-lime-400/30',
-    desc: 'Full-Screen Spacetime Wave Mesh undulating with high-energy ultraviolet harmonic waves, neon lime verticals, and photon entanglement nodes',
-    animation: 'Ultraviolet Wave & Neon Lime Entanglement',
+    desc: 'Harmonic Quantum Field with 3D undulating Lissajous wave vortexes, orbital probability rings, and quantum entanglement arcs',
+    animation: 'Harmonic Quantum Vortex & String Loom',
     swatch: ['#050510', '#8b5cf6', '#a3e635', '#bef264', '#ffffff'],
   },
   {
@@ -114,13 +114,13 @@ const THEME_OPTIONS = [
   {
     id: 'obsidian-void',
     name: 'Obsidian Shadow Void',
-    vibe: 'Onyx Pitch Black & Molten Gold',
+    vibe: 'Onyx Black, Cosmic Blue & Meteor Grey',
     icon: Moon,
-    iconColor: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]',
-    iconBg: 'bg-amber-500/10 border-amber-400/30',
-    desc: 'Full-Canvas Onyx Dark-Matter Shards tumbling through a solar eclipse singularity with molten gold circuits and mirror chrome glints',
-    animation: 'Eclipse Singularity & Molten Gold Shards',
-    swatch: ['#000000', '#f59e0b', '#f8fafc', '#fde68a', '#18181b'],
+    iconColor: 'text-blue-400 fill-blue-400 drop-shadow-[0_0_10px_rgba(37,99,235,0.8)]',
+    iconBg: 'bg-blue-900/20 border-blue-600/30',
+    desc: 'Deep Space Cosmic Void with hyper-velocity burning meteors, 3D tumbling geometric asteroids, and dark-blue ion trails',
+    animation: 'Space Meteors & Polyhedral Asteroids',
+    swatch: ['#000000', '#1d4ed8', '#64748b', '#080c18', '#ffffff'],
   },
   {
     id: 'cyberpunk-synthwave',
@@ -1657,18 +1657,21 @@ export default function Profile() {
                       <div className="relative z-10 flex-1 my-1 flex items-center justify-center overflow-hidden">
                         {t.id === 'cryo-glacial' && (
                           <div className="w-full h-full flex items-center justify-around px-3 relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 via-teal-400/20 to-fuchsia-400/20 blur-sm animate-pulse" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/20 via-cyan-400/25 to-blue-600/15 blur-sm animate-pulse" />
+                            {/* Six-fold ice snowflake crystal */}
+                            <div className="relative animate-theme-shard flex items-center justify-center">
+                              <Snowflake className="w-5 h-5 text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
+                              <span className="absolute w-1 h-1 rounded-full bg-white shadow-[0_0_6px_#ffffff]" />
+                            </div>
+                            {/* Drifting diamond ice needle */}
                             <div
-                              className="w-4 h-4 rotate-45 border border-rose-400/90 bg-rose-500/30 rounded-sm animate-theme-shard shadow-[0_0_8px_rgba(251,113,133,0.7)]"
-                              style={{ animationDelay: '0s' }}
+                              className="w-2.5 h-5 rotate-45 border border-cyan-300/90 bg-cyan-400/30 rounded-sm animate-theme-wave shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                              style={{ animationDelay: '0.8s' }}
                             />
+                            {/* Micro ice crystal glint */}
                             <div
-                              className="w-5 h-5 -rotate-12 border border-teal-400/90 bg-teal-400/30 rounded-sm animate-theme-shard shadow-[0_0_10px_rgba(45,212,191,0.7)]"
-                              style={{ animationDelay: '1.2s' }}
-                            />
-                            <div
-                              className="w-3.5 h-3.5 rotate-30 border border-fuchsia-400/90 bg-fuchsia-400/30 rounded-sm animate-theme-shard shadow-[0_0_6px_rgba(232,121,249,0.7)]"
-                              style={{ animationDelay: '0.6s' }}
+                              className="w-3.5 h-3.5 rotate-12 border border-white/90 bg-white/40 rounded-sm animate-theme-shard shadow-[0_0_8px_#ffffff]"
+                              style={{ animationDelay: '1.4s' }}
                             />
                           </div>
                         )}
@@ -1676,20 +1679,24 @@ export default function Profile() {
                         {t.id === 'cobalt-quantum' && (
                           <div className="w-full h-full flex items-center justify-center relative px-2">
                             <svg className="w-full h-8 overflow-visible" viewBox="0 0 120 28" fill="none">
+                              {/* Harmonic Lissajous Wave Curve */}
                               <path
-                                d="M0 14 Q 30 2, 60 14 T 120 14"
+                                d="M0 14 C 20 2, 40 26, 60 14 C 80 2, 100 26, 120 14"
                                 stroke="#8b5cf6"
                                 strokeWidth="2"
                                 className="animate-theme-wave"
-                                strokeDasharray="3 1.5"
                               />
+                              {/* Reverse phase neon lime wave */}
                               <path
-                                d="M0 14 Q 30 26, 60 14 T 120 14"
+                                d="M0 14 C 20 26, 40 2, 60 14 C 80 26, 100 2, 120 14"
                                 stroke="#a3e635"
-                                strokeWidth="1.8"
+                                strokeWidth="1.6"
                                 className="animate-theme-wave"
                                 style={{ animationDirection: 'reverse' }}
                               />
+                              {/* Tilted orbital ring */}
+                              <ellipse cx="60" cy="14" rx="28" ry="8" stroke="#8b5cf6" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+                              {/* Quantum Entangled Node */}
                               <circle
                                 cx="60"
                                 cy="14"
@@ -1704,11 +1711,19 @@ export default function Profile() {
                         )}
 
                         {t.id === 'obsidian-void' && (
-                          <div className="w-full h-full flex items-center justify-center relative">
-                            <div className="relative w-8 h-8 flex items-center justify-center">
-                              <div className="absolute inset-0 rounded-full border border-amber-400/80 border-dashed animate-theme-singularity shadow-[0_0_12px_rgba(245,158,11,0.8)]" />
-                              <div className="w-5 h-5 rounded-full bg-black border border-amber-500/60 shadow-[inset_0_0_8px_rgba(0,0,0,1)]" />
-                              <div className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_6px_#ffffff] animate-pulse" />
+                          <div className="w-full h-full flex items-center justify-between px-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-black to-slate-900/30" />
+                            {/* Shooting Meteor with blazing ion trail */}
+                            <div className="relative flex items-center">
+                              <div className="w-14 h-1 bg-gradient-to-r from-transparent via-blue-600/80 to-white rounded-full shadow-[0_0_10px_rgba(37,99,235,0.9)] animate-theme-wave" />
+                              <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#ffffff] -ml-1 animate-pulse" />
+                            </div>
+                            {/* 3D Geometric Asteroid Polyhedron */}
+                            <div className="relative w-6 h-6 flex items-center justify-center animate-theme-singularity">
+                              <div className="w-5 h-5 bg-[#080c18] border border-slate-400/80 rotate-45 shadow-[inset_0_0_6px_rgba(37,99,235,0.6)] flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 bg-blue-600/30 border border-blue-400/70 rotate-12" />
+                              </div>
+                              <span className="absolute top-0 right-0 w-1 h-1 rounded-full bg-white shadow-[0_0_4px_#ffffff]" />
                             </div>
                           </div>
                         )}

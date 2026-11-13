@@ -6,26 +6,26 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   THEME 1 (Default): Cryo-Prismatic Glacial Shatter (Frost Rose & Aurora Mint)
-   Sub-Zero Polar Abyss (#050811), Opal White (#FFFFFF), Frostbite Rose (#FB7185), Aurora Mint Teal (#2DD4BF), Frosted Polar Slate (#0C1220)
+   THEME 1 (Default): Cryo-Prismatic Glacial Shatter (Ice Blue, Electric Cyan & Frost White)
+   Sub-Zero Glacial Deep (#020617), Pure Frost White (#FFFFFF), Crisp Ice Blue (#38BDF8), Electric Ice Cyan (#22D3EE), Polar Crystal Navy (#081226)
 ───────────────────────────────────────────── */
 :root,
 .theme-cryo-glacial,
 .theme-cryo-vault {
-  --dark-bg:     5 8 17;
-  --dark-card:   12 18 32;
-  --dark-surf:   22 32 53;
-  --dark-border: 251 113 133;
+  --dark-bg:     2 6 23;
+  --dark-card:   8 18 38;
+  --dark-surf:   15 32 64;
+  --dark-border: 56 189 248;
 
-  --accent-cyan:   251 113 133;
-  --accent-purple: 45 212 191;
+  --accent-cyan:   56 189 248;
+  --accent-purple: 34 211 238;
   --accent-pink:   255 255 255;
-  --accent-gold:   232 121 249;
-  --accent-green:  45 212 191;
+  --accent-gold:   186 230 253;
+  --accent-green:  6 182 212;
 
-  --glow-1: rgba(251, 113, 133, 0.32);
-  --glow-2: rgba(45, 212, 191, 0.24);
-  --glow-3: rgba(255, 255, 255, 0.15);
+  --glow-1: rgba(56, 189, 248, 0.35);
+  --glow-2: rgba(34, 211, 238, 0.25);
+  --glow-3: rgba(255, 255, 255, 0.18);
 }
 
 /* ─────────────────────────────────────────────
@@ -117,24 +117,24 @@
 }
 
 /* ─────────────────────────────────────────────
-   THEME 6: Obsidian Shadow Void (Onyx Pitch Black & Molten Gold Eclipse)
-   Ultimate Void Black (#000000), Mirror Chrome Platinum (#F8FAFC), Molten Eclipse Gold (#F59E0B), Solar Corona Amber (#FDE68A), Dark Obsidian Slate (#0A0A0E)
+   THEME 6: Obsidian Shadow Void (Onyx Black, Cosmic Dark Blue & Space Meteor Grey)
+   Deep Space Void (#000000), Stellar White (#F8FAFC), Cosmic Dark Blue (#1D4ED8), Meteor Slate Grey (#94A3B8), Deep Void Panel (#080C18)
 ───────────────────────────────────────────── */
 .theme-obsidian-void {
   --dark-bg:     0 0 0;
-  --dark-card:   10 10 14;
-  --dark-surf:   22 22 29;
-  --dark-border: 245 158 11;
+  --dark-card:   8 12 24;
+  --dark-surf:   15 23 42;
+  --dark-border: 29 78 216;
 
-  --accent-cyan:   245 158 11;
-  --accent-purple: 248 250 252;
-  --accent-pink:   253 230 138;
-  --accent-gold:   217 119 6;
-  --accent-green:  245 158 11;
+  --accent-cyan:   37 99 235;
+  --accent-purple: 148 163 184;
+  --accent-pink:   248 250 252;
+  --accent-gold:   96 165 250;
+  --accent-green:  100 116 139;
 
-  --glow-1: rgba(245, 158, 11, 0.34);
-  --glow-2: rgba(248, 250, 252, 0.22);
-  --glow-3: rgba(253, 230, 138, 0.16);
+  --glow-1: rgba(37, 99, 235, 0.35);
+  --glow-2: rgba(148, 163, 184, 0.22);
+  --glow-3: rgba(248, 250, 252, 0.16);
 }
 
 /* ─────────────────────────────────────────────
