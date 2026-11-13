@@ -78,22 +78,22 @@ export const STREAMING_SERVERS = [
     description: 'High-availability secondary 2Embed network node'
   },
   { 
-    key: 'nontongo', 
+    key: 'vidsrcsh', 
     num: '09',
-    name: 'NontonGo VIP',
-    label: 'Server 9 (NontonGo VIP)', 
-    badge: 'HD Multi-Audio',
+    name: 'VidSrc SH',
+    label: 'Server 9 (VidSrc SH)', 
+    badge: 'Official Mirror',
     tagColor: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
-    description: 'Extensive high-definition server with multi-language subtitle tracks'
+    description: 'Official VidSrc primary cloud domain with fast bufferless playback'
   },
   { 
-    key: 'autoembedpro', 
+    key: 'vidzy', 
     num: '10',
-    name: 'AutoEmbed PRO',
-    label: 'Server 10 (AutoEmbed PRO)', 
-    badge: 'Adaptive Stream',
+    name: 'Vidzy Ultra',
+    label: 'Server 10 (Vidzy Ultra)', 
+    badge: 'Direct Stream • HD',
     tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-    description: 'Adaptive bitrate video node with high global availability and failover'
+    description: 'High-speed cloud video engine with multi-language subtitle tracks'
   }
 ];
 
@@ -127,14 +127,16 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
         return `https://embedwave.cc/embed/movie/${activeId}`;
       case 'twoembedskin':
         return `https://www.2embed.skin/embed/${activeId}`;
+      case 'vidsrcsh':
       case 'nontongo':
-        return `https://www.nontongo.win/embed/movie/${activeId}`;
+        return `https://vidsrc.sh/embed/movie/${activeId}`;
+      case 'vidzy':
       case 'autoembedpro':
       case 'autoembedco':
       case 'warezcdn':
       case 'vidsrcsu':
       case 'vidsrcpm':
-        return `https://autoembed.pro/embed/movie/${activeId}`;
+        return `https://vidzy.org/movie/${activeId}`;
       default:
         return `https://vidsrc.to/embed/movie/${activeId}`;
     }
@@ -165,14 +167,16 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       return `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
     case 'twoembedskin':
       return `https://www.2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
+    case 'vidsrcsh':
     case 'nontongo':
-      return `https://www.nontongo.win/embed/tv/${activeId}/${s}/${ep}`;
+      return `https://vidsrc.sh/embed/tv/${activeId}/${s}/${ep}`;
+    case 'vidzy':
     case 'autoembedpro':
     case 'autoembedco':
     case 'warezcdn':
     case 'vidsrcsu':
     case 'vidsrcpm':
-      return `https://autoembed.pro/embed/tv/${activeId}/${s}/${ep}`;
+      return `https://vidzy.org/serie/${activeId}/${s}/${ep}`;
     default:
       return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
   }
