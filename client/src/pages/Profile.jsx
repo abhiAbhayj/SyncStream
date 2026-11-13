@@ -151,6 +151,18 @@ const DEFAULT_EMOJI_AVATAR = `${EMOJI_CDN}/1f60e.png`;
 const isEmojiAvatarUrl = (url) =>
   typeof url === 'string' && url.includes('emoji-datasource-apple');
 
+const EMOJI_CATEGORIES = [
+  { id: 'All', label: 'All', icon: '✨' },
+  { id: 'Smileys & Emotion', label: 'Smileys', icon: '😀' },
+  { id: 'People & Body', label: 'People', icon: '🥷' },
+  { id: 'Animals & Nature', label: 'Animals', icon: '🦊' },
+  { id: 'Food & Drink', label: 'Food', icon: '🍕' },
+  { id: 'Activities', label: 'Activities', icon: '🎮' },
+  { id: 'Travel & Places', label: 'Travel', icon: '🚀' },
+  { id: 'Objects', label: 'Objects', icon: '💎' },
+  { id: 'Symbols', label: 'Symbols', icon: '⚡' }
+];
+
 const DEFAULT_AVATAR_COLLECTIONS = {
   emojis: {
     label: 'WhatsApp Emojis',
@@ -274,6 +286,13 @@ export default function Profile() {
       localStorage.setItem(`syncstream_avatar_collections_v3_${user?.id || 'guest'}`, JSON.stringify(avatarCollections));
     } catch (e) {}
   }, [avatarCollections, user?.id]);
+
+  // ── Live WhatsApp / Apple 3D Emoji Search State ──
+  const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
+  const [emojiSelectedCategory, setEmojiSelectedCategory] = useState('All');
+  const [emojiSearchResults, setEmojiSearchResults] = useState([]);
+  const [emojiSearchLoading, setEmojiSearchLoading] = useState(false);
+  const [emojiSearchTouched, setEmojiSearchTouched] = useState(false);
 
   // ── Live AniList Anime Character Search & Iconic Preload ──
   const [animeSearchQuery, setAnimeSearchQuery] = useState('');
@@ -600,6 +619,84 @@ export default function Profile() {
       }
     }));
     handleSelectAvatar(charItem.url);
+  };
+
+  // Live WhatsApp / Apple 3D Emoji Search
+  const runEmojiSearch = async (queryText, cat) => {
+    const targetQuery = queryText !== undefined ? queryText : emojiSearchQuery;
+    const targetCat = cat !== undefined ? cat : emojiSelectedCategory;
+    const trimmed = (targetQuery || '').trim();
+    const categoryParam = targetCat && targetCat !== 'All' ? targetCat : '';
+
+    setEmojiSearchLoading(true);
+    if (trimmed || categoryParam) {
+      setEmojiSearchTouched(true);
+    }
+
+    try {
+      const params = new URLSearchParams();
+      if (trimmed) params.append('q', trimmed);
+      if (categoryParam) params.append('category', categoryParam);
+      params.append('limit', '60');
+
+      const res = await axios.get(`/api/media/emojis?${params.toString()}`);
+      setEmojiSearchResults(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setEmojiSearchResults([]);
+    } finally {
+      setEmojiSearchLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeAvatarTab !== 'emojis') return;
+    const trimmed = emojiSearchQuery.trim();
+    const categoryParam = emojiSelectedCategory !== 'All' ? emojiSelectedCategory : '';
+
+    if (!trimmed && !categoryParam) {
+      setEmojiSearchResults([]);
+      setEmojiSearchTouched(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      runEmojiSearch(trimmed, emojiSelectedCategory);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [emojiSearchQuery, emojiSelectedCategory, activeAvatarTab]);
+
+  // Select and/or Pin a searched WhatsApp emoji to the WhatsApp Emojis collection
+  const handlePinEmoji = (emojiItem, e) => {
+    e?.stopPropagation?.();
+    if (!emojiItem?.url) return;
+
+    const existing = avatarCollections.emojis?.items || [];
+    const alreadyPinned = existing.some((it) => it.id === emojiItem.id || it.url === emojiItem.url);
+    if (alreadyPinned) {
+      handleSelectAvatar(emojiItem.url);
+      return;
+    }
+
+    if (existing.length >= MAX_AVATARS_PER_CATEGORY) {
+      setError(`WhatsApp Emojis limit reached (${MAX_AVATARS_PER_CATEGORY} max). Delete an avatar slot first or click the card to use directly.`);
+      return;
+    }
+
+    const newItem = {
+      id: emojiItem.id,
+      name: emojiItem.name,
+      prompt: emojiItem.prompt || `3D glossy WhatsApp ${emojiItem.name} emoji reaction`,
+      url: emojiItem.url
+    };
+
+    setAvatarCollections((prev) => ({
+      ...prev,
+      emojis: {
+        ...prev.emojis,
+        items: [newItem, ...(prev.emojis?.items || [])]
+      }
+    }));
+    handleSelectAvatar(emojiItem.url);
   };
 
   // Generate avatar through AI Prompt (Turbo Speed with Fast Watchdog)
@@ -1027,6 +1124,189 @@ export default function Profile() {
                 );
               })}
             </div>
+
+            {/* Live WhatsApp / Apple 3D Emoji Search Bar (Emojis Tab Only) */}
+            {activeAvatarTab === 'emojis' && (
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/[0.08] via-black/40 to-accentCyan/[0.08] border border-amber-500/25 space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5 font-mono">
+                    <Smile className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Live WhatsApp &amp; 3D Emoji Search (1,900+ Emojis)</span>
+                  </span>
+                  <span className="text-[10px] text-accentCyan font-mono">
+                    All WhatsApp Categories
+                  </span>
+                </div>
+
+                {/* Search Input Row */}
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={emojiSearchQuery}
+                      onChange={(e) => setEmojiSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          runEmojiSearch(emojiSearchQuery, emojiSelectedCategory);
+                        }
+                      }}
+                      placeholder="Search all 1,900+ WhatsApp emojis (cool, fire, laugh, ninja, gaming)..."
+                      className="w-full bg-darkBg/90 border border-white/15 rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition"
+                    />
+                    {emojiSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmojiSearchQuery('');
+                          if (emojiSelectedCategory === 'All') {
+                            setEmojiSearchResults([]);
+                            setEmojiSearchTouched(false);
+                          } else {
+                            runEmojiSearch('', emojiSelectedCategory);
+                          }
+                        }}
+                        title="Clear search"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-0.5 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={emojiSearchLoading}
+                    onClick={() => runEmojiSearch(emojiSearchQuery, emojiSelectedCategory)}
+                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-accentCyan text-black font-extrabold text-xs shrink-0 hover:opacity-90 active:scale-95 transition cursor-pointer flex items-center gap-1 shadow-sm"
+                  >
+                    {emojiSearchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-black" /> : <Search className="w-3.5 h-3.5 text-black" />}
+                    <span className="hidden xs:inline">Search</span>
+                  </button>
+                </div>
+
+                {/* Category Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                  {EMOJI_CATEGORIES.map((cat) => {
+                    const isCatActive = emojiSelectedCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setEmojiSelectedCategory(cat.id);
+                          runEmojiSearch(emojiSearchQuery, cat.id);
+                        }}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap shrink-0 transition active:scale-95 border cursor-pointer flex items-center gap-1 ${
+                          isCatActive
+                            ? 'bg-amber-400/25 border-amber-400 text-amber-200 shadow-sm'
+                            : 'bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Quick Popular Emoji Query Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                  {[
+                    { q: 'cool', label: 'Cool 😎' },
+                    { q: 'fire', label: 'Fire 🔥' },
+                    { q: 'laugh', label: 'Laugh 😂' },
+                    { q: 'ninja', label: 'Ninja 🥷' },
+                    { q: 'gaming', label: 'Gaming 🎮' },
+                    { q: 'skull', label: 'Skull 💀' },
+                    { q: 'crown', label: 'Crown 👑' },
+                    { q: 'ghost', label: 'Ghost 👻' },
+                    { q: 'party', label: 'Party 🥳' },
+                    { q: 'cat', label: 'Cat 🐱' }
+                  ].map((item) => (
+                    <button
+                      key={item.q}
+                      type="button"
+                      onClick={() => {
+                        setEmojiSearchQuery(item.q);
+                        runEmojiSearch(item.q, emojiSelectedCategory);
+                      }}
+                      className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-amber-400/20 border border-white/10 hover:border-amber-400/40 text-[10px] font-semibold text-gray-300 hover:text-amber-200 whitespace-nowrap shrink-0 transition active:scale-95 cursor-pointer"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Search Results Grid */}
+                {emojiSearchLoading ? (
+                  <div className="flex items-center justify-center gap-2 py-4 text-xs text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                    <span>Searching WhatsApp emojis...</span>
+                  </div>
+                ) : emojiSearchTouched && emojiSearchResults.length === 0 ? (
+                  <p className="text-[11px] text-gray-400 text-center py-2">
+                    No WhatsApp emojis found for &quot;{emojiSearchQuery}&quot;. Try keywords like cool, fire, heart, or smileys!
+                  </p>
+                ) : emojiSearchResults.length > 0 ? (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                      <span>Found {emojiSearchResults.length} emojis — tap to use or + Pin</span>
+                    </div>
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-0.5">
+                      {emojiSearchResults.map((emoji) => {
+                        const isSelected = selectedAvatar === emoji.url;
+                        const isPinned = (avatarCollections.emojis?.items || []).some(
+                          (it) => it.id === emoji.id || it.url === emoji.url
+                        );
+                        return (
+                          <div
+                            key={emoji.id}
+                            onClick={() => handleSelectAvatar(emoji.url)}
+                            className={`group relative rounded-xl overflow-hidden border p-1 bg-gradient-to-br from-accentCyan/15 via-[#0e1530] to-accentPurple/20 transition-all cursor-pointer active:scale-95 ${
+                              isSelected
+                                ? 'border-accentCyan ring-2 ring-accentCyan/55 shadow-[0_0_14px_rgba(var(--accent-cyan),0.45)]'
+                                : 'border-white/10 hover:border-amber-400/50'
+                            }`}
+                          >
+                            <div className="aspect-square w-full overflow-hidden rounded-lg bg-black/40 relative flex items-center justify-center p-2.5">
+                              <img
+                                src={emoji.url}
+                                alt={emoji.name}
+                                referrerPolicy="no-referrer"
+                                loading="lazy"
+                                className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                              />
+                              {isSelected && (
+                                <div className="absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow">
+                                  <Check className="w-2.5 h-2.5 stroke-[4]" />
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => handlePinEmoji(emoji, e)}
+                                title={isPinned ? 'Saved in WhatsApp Emojis' : 'Pin to WhatsApp Emojis'}
+                                className={`absolute top-1 left-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition shadow ${
+                                  isPinned
+                                    ? 'bg-emerald-500/90 text-black'
+                                    : 'bg-black/80 hover:bg-amber-400 text-amber-200 hover:text-black border border-amber-400/30'
+                                }`}
+                              >
+                                {isPinned ? 'Pinned' : '+ Pin'}
+                              </button>
+                            </div>
+                            <div className="pt-1 px-0.5">
+                              <p className="text-[10px] font-bold text-white truncate">{emoji.name}</p>
+                              <p className="text-[9px] text-gray-400 truncate">{emoji.category}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
 
             {/* Live AniList Character Search Bar (Anime Tab Only) */}
             {activeAvatarTab === 'anime' && (

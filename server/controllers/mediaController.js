@@ -1,4 +1,7 @@
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { db } from '../config/db.js';
 import dotenv from 'dotenv';
 import { getSongDetails, getTrendingMusicDirect } from './musicController.js';
@@ -12,6 +15,9 @@ import {
 } from '../utils/mangaCovers.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -2562,4 +2568,97 @@ export const getAnimeCharacters = async (req, res) => {
     console.warn('[Media Controller Anime Characters Error]:', err.message);
     res.json([]);
   }
+};
+
+let whatsappEmojisDataset = null;
+const loadWhatsAppEmojis = () => {
+  if (whatsappEmojisDataset) return whatsappEmojisDataset;
+  try {
+    const filePath = path.join(__dirname, '..', 'data', 'whatsapp_emojis.json');
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      whatsappEmojisDataset = JSON.parse(raw);
+    } else {
+      const cwdPath = path.join(process.cwd(), 'server', 'data', 'whatsapp_emojis.json');
+      const raw = fs.readFileSync(cwdPath, 'utf8');
+      whatsappEmojisDataset = JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('[Media Controller Emoji Load Error]:', err.message);
+    whatsappEmojisDataset = [];
+  }
+  return whatsappEmojisDataset || [];
+};
+
+// 10. Get WhatsApp / Apple 3D Emojis with live search, categories, and keywords
+export const getWhatsAppEmojis = async (req, res) => {
+  const q = (req.query.q || '').trim().toLowerCase();
+  const category = (req.query.category || '').trim();
+  const limit = Math.min(parseInt(req.query.limit || '60', 10), 120);
+  const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+
+  const all = loadWhatsAppEmojis();
+  if (!all || all.length === 0) {
+    return res.json([]);
+  }
+
+  let filtered = all;
+
+  if (category && category.toLowerCase() !== 'all') {
+    filtered = filtered.filter(
+      (e) => e.category && e.category.toLowerCase() === category.toLowerCase()
+    );
+  }
+
+  if (q) {
+    const scored = [];
+    for (const item of filtered) {
+      let score = 0;
+      const lowerName = item.name.toLowerCase();
+      const lowerShort = item.short_name.toLowerCase();
+
+      if (lowerShort === q || lowerName === q) {
+        score += 100;
+      } else if (item.keywords && item.keywords.includes(q)) {
+        score += 90;
+      } else if (lowerShort.startsWith(q)) {
+        score += 70;
+      } else if (lowerName.startsWith(q)) {
+        score += 55;
+      } else if (item.keywords && item.keywords.some((k) => k.startsWith(q))) {
+        score += 45;
+      } else if (lowerShort.includes(q) || lowerName.includes(q)) {
+        score += 25;
+      } else if (item.keywords && item.keywords.some((k) => k.includes(q))) {
+        score += 15;
+      }
+
+      // Prioritize smileys, people, and characters for avatar discovery
+      if (score > 0 && (item.category === 'Smileys & Emotion' || item.category === 'People & Body')) {
+        score += 12;
+      }
+
+      if (score > 0) {
+        scored.push({ item, score });
+      }
+    }
+
+    scored.sort((a, b) => b.score - a.score || (a.item.sort_order - b.item.sort_order));
+    filtered = scored.map((s) => s.item);
+  }
+
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  const EMOJI_CDN = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64';
+  const result = sliced.map((e) => ({
+    id: e.id,
+    name: e.name,
+    short_name: e.short_name,
+    category: e.category,
+    prompt: `3D glossy WhatsApp Apple-style ${e.name} emoji sticker avatar`,
+    url: `${EMOJI_CDN}/${e.image}`
+  }));
+
+  res.json(result);
 };
