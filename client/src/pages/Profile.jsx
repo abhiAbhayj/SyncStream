@@ -205,17 +205,17 @@ const MAX_AVATARS_PER_CATEGORY = 24;
 const MIN_AVATARS_PER_CATEGORY = 1;
 
 const AI_STYLE_PRESETS = [
-  { id: 'emojis', label: '3D Emoji', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'glossy 3D WhatsApp Apple-style emoji reaction sticker, studio rim lighting, crisp icon, dark neon background' },
-  { id: 'anime', label: 'Anime Character', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'vibrant iconic anime character portrait avatar, detailed manga art style, studio anime aesthetic' }
+  { id: 'emojis', label: '3D Emoji', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'high resolution glossy 3D WhatsApp Apple-style emoji reaction sticker, 3D smooth plastic render, vibrant colors, studio rim lighting, dark neon background' },
+  { id: 'anime', label: 'Anime Character', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'masterpiece anime character portrait avatar, vibrant colors, detailed anime face and expressive eyes, studio anime aesthetic, sharp focus' }
 ];
 
 const PROMPT_SUGGESTIONS = [
-  'Gojo Satoru infinity glow anime portrait',
-  '3D Cool Sunglasses Emoji with neon cyan aura',
-  'Sung Jin-Woo shadow monarch purple aura portrait',
-  'Spider-Verse comic style cyberpunk hero',
-  'Itachi Uchiha sharingan glowing eye portrait',
-  '3D Laughing Tears Joy Emoji with holographic ring'
+  'Gojo Satoru anime portrait',
+  'Koharu Sato anime portrait',
+  '3D Cool Sunglasses Emoji with neon cyan glow',
+  'Sung Jin-Woo shadow monarch purple aura',
+  'Levi Ackerman anime portrait',
+  '3D Fire Heart Emoji glossy sticker'
 ];
 
 export default function Profile() {
@@ -709,10 +709,11 @@ export default function Profile() {
     handleSelectAvatar(emojiUrl);
   };
 
-  // Generate avatar through AI Prompt (Turbo Speed with Fast Watchdog)
+  // Generate avatar through AI Prompt (Intelligent Multi-Tier AI Synthesis)
   const handleGenerateAiAvatar = async (e) => {
     e?.preventDefault?.();
-    if (!aiPrompt.trim()) {
+    const cleanPrompt = aiPrompt.trim();
+    if (!cleanPrompt) {
       setError('Please enter a prompt to generate your AI avatar.');
       return;
     }
@@ -720,27 +721,44 @@ export default function Profile() {
     setAiGenerating(true);
     setError(null);
 
-    const fallbackSeed = encodeURIComponent(aiPrompt.trim());
-    const dicebearFallback = aiStyle === 'anime'
-      ? `https://api.dicebear.com/7.x/adventurer/svg?seed=${fallbackSeed}`
-      : `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${fallbackSeed}`;
+    const fallbackSeed = encodeURIComponent(cleanPrompt);
+    // Authentic style-appropriate fallback (Lorelei manga/anime or 3D Apple emoji, NOT medieval adventurer!)
+    const authenticFallback = aiStyle === 'anime'
+      ? `https://api.dicebear.com/7.x/lorelei/svg?seed=${fallbackSeed}`
+      : `https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png`;
 
     // Instant Vector Mode
     if (aiEngineMode === 'instant') {
-      setAiPreviewUrl(dicebearFallback);
+      setAiPreviewUrl(authenticFallback);
       setAiGenerating(false);
       return;
     }
 
-    // Fast Turbo Diffusion Mode with Strict Watchdog
+    // Step 1: Call our intelligent backend AI avatar endpoint
+    try {
+      const res = await axios.post('/api/media/ai/avatar', {
+        prompt: cleanPrompt,
+        style: aiStyle || aiTargetCategory || 'anime'
+      }, { timeout: 13000 });
+
+      if (res.data?.url) {
+        setAiPreviewUrl(res.data.url);
+        setAiGenerating(false);
+        return;
+      }
+    } catch (backendErr) {
+      console.warn('[AI Avatar Studio] Backend route fallback:', backendErr.message);
+    }
+
+    // Step 2: Client-side AI Diffusion (with safe 12s timeout and authentic fallbacks)
     try {
       const styleConfig = AI_STYLE_PRESETS.find((s) => s.id === aiStyle) || AI_STYLE_PRESETS[0];
-      const fullPrompt = `${aiPrompt.trim()}, ${styleConfig.suffix}`;
+      const fullPrompt = `${cleanPrompt}, ${styleConfig.suffix}`;
       const seed = Math.floor(Math.random() * 1000000);
-      const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=256&height=256&nologo=true&seed=${seed}&model=turbo`;
+      // NOTE: Free tier does not use &model=turbo to avoid 402 payment limit
+      const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=384&height=384&nologo=true&seed=${seed}`;
 
       let hasFinished = false;
-
       const finishWith = (url) => {
         if (hasFinished) return;
         hasFinished = true;
@@ -748,24 +766,22 @@ export default function Profile() {
         setAiGenerating(false);
       };
 
-      // 4.5-second watchdog so user never hangs waiting for remote queues
       const timeoutId = setTimeout(() => {
-        finishWith(dicebearFallback);
-      }, 4500);
+        finishWith(authenticFallback);
+      }, 12000);
 
       const testImg = new Image();
-      testImg.crossOrigin = 'anonymous';
       testImg.onload = () => {
         clearTimeout(timeoutId);
         finishWith(generatedUrl);
       };
       testImg.onerror = () => {
         clearTimeout(timeoutId);
-        finishWith(dicebearFallback);
+        finishWith(authenticFallback);
       };
       testImg.src = generatedUrl;
     } catch (err) {
-      setAiPreviewUrl(dicebearFallback);
+      setAiPreviewUrl(authenticFallback);
       setAiGenerating(false);
     }
   };
@@ -1372,7 +1388,7 @@ export default function Profile() {
                           runAnimeCharacterSearch(animeSearchQuery);
                         }
                       }}
-                      placeholder="Search any anime character (Itachi, Mikasa, Gojo)..."
+                      placeholder="Search any character or anime (Koharu, Sato, Gojo, Levi)..."
                       className="w-full bg-darkBg/90 border border-white/15 rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400/50 transition"
                     />
                     {animeSearchQuery && (
@@ -1403,7 +1419,7 @@ export default function Profile() {
 
                 {/* Quick Popular Character Queries */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-                  {['Itachi', 'Mikasa', 'Sung Jin-Woo', 'Levi', 'Goku', 'Killua', 'Gojo'].map((quickName) => (
+                  {['Koharu', 'Sato', 'Gojo', 'Levi', 'Mikasa', 'Sung Jin-Woo', 'Itachi', 'Anya'].map((quickName) => (
                     <button
                       key={quickName}
                       type="button"

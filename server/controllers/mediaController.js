@@ -2490,7 +2490,7 @@ export const getPersonCredits = async (req, res) => {
 
 const animeCharactersCache = new Map();
 
-// 9. Get Iconic & Live-Searchable Anime Character Avatars (AniList GraphQL)
+// 9. Get Iconic & Live-Searchable Anime Character Avatars (AniList GraphQL Universal Search)
 export const getAnimeCharacters = async (req, res) => {
   const q = (req.query.q || '').trim();
   const cacheKey = q ? `search:${q.toLowerCase()}` : 'popular_iconic';
@@ -2503,28 +2503,14 @@ export const getAnimeCharacters = async (req, res) => {
       }
     }
 
-    const gqlQuery = q
-      ? `
-        query ($search: String) {
-          Page(page: 1, perPage: 20) {
-            characters(search: $search, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
-              id
-              name { full native }
-              favourites
-              image { large medium }
-              media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
-                nodes { title { english romaji } }
-              }
-            }
-          }
-        }
-      `
-      : `
+    if (!q) {
+      // Default: Top iconic favorite anime characters across all popular series
+      const defaultQuery = `
         query {
-          Page(page: 1, perPage: 24) {
+          Page(page: 1, perPage: 32) {
             characters(sort: FAVOURITES_DESC) {
               id
-              name { full native }
+              name { full native alternative userPreferred first last }
               favourites
               image { large medium }
               media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
@@ -2534,36 +2520,212 @@ export const getAnimeCharacters = async (req, res) => {
           }
         }
       `;
+      const alRes = await axios.post(
+        'https://graphql.anilist.co',
+        { query: defaultQuery },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 7000 }
+      );
+      const rawChars = alRes.data?.data?.Page?.characters || [];
+      const formatted = rawChars
+        .filter((c) => {
+          const imgUrl = c?.image?.large || c?.image?.medium || '';
+          return Boolean(imgUrl && !imgUrl.includes('default.jpg'));
+        })
+        .map((c) => {
+          const series =
+            c.media?.nodes?.[0]?.title?.english ||
+            c.media?.nodes?.[0]?.title?.romaji ||
+            'Anime';
+          const fullName = c.name?.full || c.name?.userPreferred || 'Anime Character';
+          return {
+            id: `al-char-${c.id}`,
+            name: fullName,
+            series,
+            prompt: `Anime character ${fullName} from ${series}, studio anime portrait`,
+            url: c.image.large || c.image.medium
+          };
+        });
+      animeCharactersCache.set(cacheKey, { data: formatted, timestamp: Date.now() });
+      return res.json(formatted);
+    }
+
+    // Comprehensive Universal Character & Title Search
+    // 1. Clean query & extract tokens
+    const cleanQ = q.replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+    const words = cleanQ.split(' ').filter(Boolean);
+    const reversed = words.length > 1 ? [...words].reverse().join(' ') : null;
+
+    // Transliteration helper: e.g. "sato" <-> "satou", "gojo" <-> "gojou", "yuji" <-> "yuuji"
+    let variant = null;
+    if (/\bsato\b/i.test(cleanQ)) variant = cleanQ.replace(/\bsato\b/gi, 'satou');
+    else if (/\bsatou\b/i.test(cleanQ)) variant = cleanQ.replace(/\bsatou\b/gi, 'sato');
+    else if (/\bgojo\b/i.test(cleanQ)) variant = cleanQ.replace(/\bgojo\b/gi, 'gojou');
+    else if (/\byuji\b/i.test(cleanQ)) variant = cleanQ.replace(/\byuji\b/gi, 'yuuji');
+
+    // First word token fallback (handles characters where last name is in alternative names, e.g. "Levi Ackerman")
+    const firstWord = words.length > 1 && words[0].length >= 3 ? words[0] : null;
+
+    const gqlQuery = `
+      query ($q: String, $reversed: String, $hasReversed: Boolean!, $variant: String, $hasVariant: Boolean!, $w0: String, $hasW0: Boolean!) {
+        direct: Page(page: 1, perPage: 45) {
+          characters(search: $q, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
+              nodes { title { english romaji native } }
+            }
+          }
+        }
+        rev: Page(page: 1, perPage: 35) @include(if: $hasReversed) {
+          characters(search: $reversed, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
+              nodes { title { english romaji native } }
+            }
+          }
+        }
+        vari: Page(page: 1, perPage: 35) @include(if: $hasVariant) {
+          characters(search: $variant, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
+              nodes { title { english romaji native } }
+            }
+          }
+        }
+        w0Page: Page(page: 1, perPage: 25) @include(if: $hasW0) {
+          characters(search: $w0, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
+              nodes { title { english romaji native } }
+            }
+          }
+        }
+        mediaList: Page(page: 1, perPage: 6) {
+          media(search: $q, sort: SEARCH_MATCH) {
+            id
+            title { english romaji native }
+            characters(page: 1, perPage: 18, sort: [ROLE, FAVOURITES_DESC]) {
+              nodes {
+                id
+                name { full native alternative userPreferred first last }
+                image { large medium }
+                favourites
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      q: cleanQ,
+      reversed: reversed || '',
+      hasReversed: Boolean(reversed),
+      variant: variant || '',
+      hasVariant: Boolean(variant),
+      w0: firstWord || '',
+      hasW0: Boolean(firstWord)
+    };
 
     const alRes = await axios.post(
       'https://graphql.anilist.co',
-      { query: gqlQuery, variables: q ? { search: q } : {} },
-      { headers: { 'Content-Type': 'application/json' }, timeout: 6500 }
+      { query: gqlQuery, variables },
+      { headers: { 'Content-Type': 'application/json' }, timeout: 8000 }
     );
 
-    const rawChars = alRes.data?.data?.Page?.characters || [];
-    const formatted = rawChars
-      .filter((c) => {
-        const imgUrl = c?.image?.large || c?.image?.medium || '';
-        return Boolean(imgUrl && !imgUrl.includes('default.jpg'));
-      })
-      .map((c) => {
-        const series =
-          c.media?.nodes?.[0]?.title?.english ||
-          c.media?.nodes?.[0]?.title?.romaji ||
-          'Anime';
-        const fullName = c.name?.full || 'Anime Character';
-        return {
-          id: `al-char-${c.id}`,
-          name: fullName,
-          series,
-          prompt: `Anime character ${fullName} from ${series}, studio anime portrait`,
-          url: c.image.large || c.image.medium
-        };
-      });
+    const seen = new Set();
+    const formatted = [];
 
-    animeCharactersCache.set(cacheKey, { data: formatted, timestamp: Date.now() });
-    res.json(formatted);
+    const registerChar = (c, seriesName = null, baseWeight = 0) => {
+      if (!c || seen.has(c.id)) return;
+      const imgUrl = c?.image?.large || c?.image?.medium || '';
+      if (!imgUrl || imgUrl.includes('default.jpg')) return;
+      seen.add(c.id);
+
+      const series =
+        seriesName ||
+        c.media?.nodes?.[0]?.title?.english ||
+        c.media?.nodes?.[0]?.title?.romaji ||
+        'Anime';
+
+      const fullName = c.name?.full || c.name?.userPreferred || 'Anime Character';
+      const first = c.name?.first || '';
+      const last = c.name?.last || '';
+      const altNames = Array.isArray(c.name?.alternative) ? c.name.alternative : [];
+      const allNamesStr = `${fullName} ${first} ${last} ${altNames.join(' ')}`.toLowerCase();
+
+      // Intelligent relevance scoring
+      let score = baseWeight;
+      const lowerFull = fullName.toLowerCase();
+      const lowerCleanQ = cleanQ.toLowerCase();
+      const lowerSeries = series.toLowerCase();
+
+      if (lowerFull === lowerCleanQ) {
+        score += 300;
+      } else if (words.every((w) => allNamesStr.includes(w.toLowerCase()))) {
+        score += 220;
+      } else if (words.every((w) => allNamesStr.includes(w.toLowerCase()) || lowerSeries.includes(w.toLowerCase()))) {
+        score += 180;
+      } else if (words.some((w) => first.toLowerCase() === w.toLowerCase() || last.toLowerCase() === w.toLowerCase())) {
+        score += 140;
+      } else if (allNamesStr.includes(lowerCleanQ)) {
+        score += 110;
+      } else if (lowerSeries.includes(lowerCleanQ)) {
+        score += 90;
+      }
+
+      // Add bonus for character popularity
+      score += Math.min(Math.floor((c.favourites || 0) / 40), 50);
+
+      formatted.push({
+        id: `al-char-${c.id}`,
+        name: fullName,
+        series,
+        prompt: `Anime character ${fullName} from ${series}, studio anime portrait`,
+        url: imgUrl,
+        score
+      });
+    };
+
+    // 1. Direct character search
+    (alRes.data?.data?.direct?.characters || []).forEach((c) => registerChar(c, null, 60));
+
+    // 2. Reversed name order
+    (alRes.data?.data?.rev?.characters || []).forEach((c) => registerChar(c, null, 50));
+
+    // 3. Transliteration variant
+    (alRes.data?.data?.vari?.characters || []).forEach((c) => registerChar(c, null, 55));
+
+    // 4. First word token fallback
+    (alRes.data?.data?.w0Page?.characters || []).forEach((c) => registerChar(c, null, 30));
+
+    // 5. Anime / Manga title matches (e.g. "cold sato san", "attack on titan")
+    (alRes.data?.data?.mediaList?.media || []).forEach((m) => {
+      const seriesTitle = m.title?.english || m.title?.romaji || 'Anime';
+      (m.characters?.nodes || []).forEach((c, idx) => {
+        registerChar(c, seriesTitle, 80 - Math.min(idx * 3, 40));
+      });
+    });
+
+    // Sort by calculated relevance score descending
+    formatted.sort((a, b) => b.score - a.score);
+
+    // Limit to top 50 matches
+    const topResults = formatted.slice(0, 50);
+
+    animeCharactersCache.set(cacheKey, { data: topResults, timestamp: Date.now() });
+    res.json(topResults);
   } catch (err) {
     console.warn('[Media Controller Anime Characters Error]:', err.message);
     res.json([]);
@@ -2661,4 +2823,155 @@ export const getWhatsAppEmojis = async (req, res) => {
   }));
 
   res.json(result);
+};
+
+// 11. Intelligent Multi-Tier AI Avatar Generation with Smart Fallbacks
+export const generateAiAvatar = async (req, res) => {
+  const { prompt, style = 'anime' } = req.body;
+  const rawPrompt = (prompt || '').trim();
+
+  if (!rawPrompt) {
+    return res.status(400).json({ error: 'Prompt is required to generate an avatar' });
+  }
+
+  try {
+    const isAnime = style === 'anime';
+
+    // 1. Enhanced prompt engineering
+    const enhancedPrompt = isAnime
+      ? `masterpiece anime portrait avatar of ${rawPrompt}, vibrant colors, sharp focus, detailed anime face and expressive eyes, ufotable studio ghibli anime key visual, clean dark background, 8k resolution, centered avatar icon`
+      : `high resolution 3D glossy ${rawPrompt} Apple WhatsApp style emoji reaction sticker, 3D smooth plastic render, vibrant colors, studio rim lighting, centered avatar icon on clean dark background`;
+
+    const seed = Math.floor(Math.random() * 1000000);
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=384&height=384&nologo=true&seed=${seed}`;
+
+    // 2. Attempt real AI diffusion generation via Pollinations
+    try {
+      const pollRes = await axios.get(pollinationsUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        responseType: 'arraybuffer',
+        timeout: 11000
+      });
+
+      const contentType = pollRes.headers['content-type'] || '';
+      if (pollRes.status === 200 && contentType.startsWith('image/')) {
+        const base64Img = `data:${contentType};base64,${Buffer.from(pollRes.data).toString('base64')}`;
+        return res.json({
+          url: base64Img,
+          prompt: rawPrompt,
+          style,
+          engine: 'ai-diffusion'
+        });
+      }
+    } catch (pollErr) {
+      console.warn('[AI Avatar Generator] Diffusion timed out or rate-limited:', pollErr.message);
+    }
+
+    // 3. Smart High-Quality Fallback (Style-specific)
+    if (isAnime) {
+      // Look up character from AniList if prompt mentions a real character or series
+      const cleanName = rawPrompt
+        .replace(/anime|character|portrait|avatar|style|face|boy|girl|man|woman|art/gi, '')
+        .trim();
+
+      if (cleanName.length >= 2) {
+        try {
+          const charSearchRes = await axios.post(
+            'https://graphql.anilist.co',
+            {
+              query: `
+                query ($search: String) {
+                  Page(page: 1, perPage: 4) {
+                    characters(search: $search, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+                      id
+                      name { full userPreferred }
+                      image { large medium }
+                      media(page: 1, perPage: 1) {
+                        nodes { title { english romaji } }
+                      }
+                    }
+                  }
+                }
+              `,
+              variables: { search: cleanName }
+            },
+            { headers: { 'Content-Type': 'application/json' }, timeout: 4500 }
+          );
+
+          const matchedChar = charSearchRes.data?.data?.Page?.characters?.[0];
+          const charImg = matchedChar?.image?.large || matchedChar?.image?.medium;
+          if (charImg && !charImg.includes('default.jpg')) {
+            const seriesName = matchedChar.media?.nodes?.[0]?.title?.english || matchedChar.media?.nodes?.[0]?.title?.romaji || 'Anime';
+            return res.json({
+              url: charImg,
+              prompt: rawPrompt,
+              style,
+              name: matchedChar.name?.full || matchedChar.name?.userPreferred,
+              series: seriesName,
+              engine: 'anilist-smart-match'
+            });
+          }
+        } catch (charErr) {
+          // ignore and proceed to vector fallback
+        }
+      }
+
+      // Elegant anime vector portrait fallback (Lorelei style, authentic anime/manga)
+      const loreleiUrl = `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(rawPrompt)}`;
+      return res.json({
+        url: loreleiUrl,
+        prompt: rawPrompt,
+        style,
+        engine: 'anime-vector-portrait'
+      });
+    } else {
+      // Emoji style smart fallback: match with WhatsApp/Apple 3D emoji collection
+      const emojis = loadWhatsAppEmojis();
+      const lowerPrompt = rawPrompt.toLowerCase();
+      const words = lowerPrompt.split(/\s+/).filter(Boolean);
+
+      let bestMatch = null;
+      let highestScore = 0;
+
+      for (const item of emojis) {
+        let score = 0;
+        const lowerName = item.name.toLowerCase();
+        const lowerShort = item.short_name.toLowerCase();
+        const kws = (item.keywords || []).map((k) => k.toLowerCase());
+
+        if (lowerName === lowerPrompt || lowerShort === lowerPrompt) score += 100;
+        else if (words.some((w) => lowerName.includes(w) || lowerShort.includes(w))) score += 70;
+        else if (words.some((w) => kws.includes(w))) score += 50;
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestMatch = item;
+        }
+      }
+
+      if (bestMatch && highestScore >= 50) {
+        return res.json({
+          url: bestMatch.url,
+          prompt: rawPrompt,
+          style,
+          engine: 'emoji-smart-match'
+        });
+      }
+
+      // Clean Apple emoji CDN fallback
+      const defaultEmoji = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png';
+      return res.json({
+        url: defaultEmoji,
+        prompt: rawPrompt,
+        style,
+        engine: 'emoji-fallback'
+      });
+    }
+  } catch (err) {
+    console.error('[Generate AI Avatar Error]:', err.message);
+    const fallback = style === 'anime'
+      ? `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(prompt)}`
+      : 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png';
+    return res.json({ url: fallback, prompt, style, engine: 'fallback' });
+  }
 };

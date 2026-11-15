@@ -12,7 +12,8 @@ import {
   getTvSeason,
   getPersonCredits,
   getAnimeCharacters,
-  getWhatsAppEmojis
+  getWhatsAppEmojis,
+  generateAiAvatar
 } from '../controllers/mediaController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
@@ -27,6 +28,7 @@ router.get('/tv/:id/season/:season_number', getTvSeason);
 router.get('/person/:source/:personId', getPersonCredits);
 router.get('/anime/characters', getAnimeCharacters);
 router.get('/emojis', getWhatsAppEmojis);
+router.post('/ai/avatar', generateAiAvatar);
 
 router.get('/catalog/:category/:type', getCatalog);
 
