@@ -8,6 +8,7 @@ import MangaReader from '../components/MangaReader';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
+import ConfirmModal from '../components/ConfirmModal';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server } from 'lucide-react';
@@ -133,6 +134,7 @@ export default function MediaDetail() {
   const [watchlist, setWatchlist] = useState([]);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [heartBurstKey, setHeartBurstKey] = useState(0);
   const [ratingSweepReady, setRatingSweepReady] = useState(false);
   
@@ -292,26 +294,38 @@ export default function MediaDetail() {
     }
   };
 
+  const confirmRemoveFromWatchlist = async () => {
+    setShowRemoveConfirm(false);
+    setWatchlistLoading(true);
+    try {
+      await axios.delete(`/api/media/watchlist/${id}`);
+      setInWatchlist(false);
+    } catch (err) {
+      console.error('Failed to remove from watchlist:', err);
+    } finally {
+      setWatchlistLoading(false);
+    }
+  };
+
   const handleWatchlistToggle = async () => {
     if (!user) {
       navigate('/login');
       return;
     }
+    if (inWatchlist) {
+      setShowRemoveConfirm(true);
+      return;
+    }
     setWatchlistLoading(true);
     try {
-      if (inWatchlist) {
-        await axios.delete(`/api/media/watchlist/${id}`);
-        setInWatchlist(false);
-      } else {
-        await axios.post('/api/media/watchlist', {
-          external_media_id: id,
-          media_type: type,
-          title: detail.title,
-          poster_path: detail.poster_path
-        });
-        setInWatchlist(true);
-        setHeartBurstKey((k) => k + 1);
-      }
+      await axios.post('/api/media/watchlist', {
+        external_media_id: id,
+        media_type: type,
+        title: detail.title,
+        poster_path: detail.poster_path
+      });
+      setInWatchlist(true);
+      setHeartBurstKey((k) => k + 1);
     } catch (err) {
       console.error('Failed to toggle watchlist:', err);
     } finally {
@@ -1514,6 +1528,63 @@ export default function MediaDetail() {
           <MediaGrid items={detail.recommendations} title="Suggested Recommendations" />
         </section>
       )}
+
+      {/* Confirmation Alert Box for Removing from Library */}
+      <ConfirmModal
+        isOpen={showRemoveConfirm}
+        title={
+          type === 'movie'
+            ? 'Remove Movie from Library'
+            : type === 'tv'
+            ? 'Remove TV Series from Library'
+            : type === 'anime'
+            ? 'Remove Anime from Library'
+            : type === 'manga'
+            ? 'Remove Manga from Library'
+            : 'Remove from Library'
+        }
+        message={`Are you sure you want to remove "${detail?.title || detail?.name || 'this title'}" from your library?`}
+        confirmText="Remove from Library"
+        confirmVariant="danger"
+        iconType={
+          type === 'movie'
+            ? 'movie'
+            : type === 'tv'
+            ? 'tv'
+            : type === 'anime'
+            ? 'anime'
+            : type === 'manga'
+            ? 'manga'
+            : 'trash'
+        }
+        itemPreview={{
+          title: detail?.title || detail?.name || 'Untitled',
+          subtitle: detail?.release_date || detail?.first_air_date || type?.toUpperCase(),
+          image: detail?.poster_path,
+          badge:
+            type === 'movie'
+              ? 'Movie'
+              : type === 'tv'
+              ? 'TV Series'
+              : type === 'anime'
+              ? 'Anime'
+              : type === 'manga'
+              ? 'Manga'
+              : 'Library',
+          badgeColor:
+            type === 'movie'
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+              : type === 'tv'
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+              : type === 'anime'
+              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+              : type === 'manga'
+              ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30'
+              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+        }}
+        onConfirm={confirmRemoveFromWatchlist}
+        onCancel={() => setShowRemoveConfirm(false)}
+      />
 
     </div>
   );

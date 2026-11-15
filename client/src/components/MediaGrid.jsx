@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
 import { useAuth } from '../context/AuthContext';
 import EqualizerBars from './EqualizerBars';
+import ConfirmModal from './ConfirmModal';
 import {
   Star,
   Play,
@@ -157,6 +158,7 @@ function HoloMediaItem({ item, index, cfg, showTimings, onRemoveItem, isRemoving
 
   const [savedToWatchlist, setSavedToWatchlist] = useState(false);
   const [savingWatchlist, setSavingWatchlist] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [creatingParty, setCreatingParty] = useState(false);
   const [peekOpen, setPeekOpen] = useState(false);
   const longPressRef = useRef(null);
@@ -197,6 +199,20 @@ function HoloMediaItem({ item, index, cfg, showTimings, onRemoveItem, isRemoving
     navigate(mediaType === 'manga' ? mediaLink : playLink);
   };
 
+  const confirmRemoveFromWatchlist = async () => {
+    setShowRemoveConfirm(false);
+    setSavingWatchlist(true);
+    try {
+      const cleanId = String(baseTargetId);
+      await axios.delete(`/api/media/watchlist/${cleanId}`);
+      setSavedToWatchlist(false);
+    } catch (err) {
+      console.error('Quick watchlist remove error:', err);
+    } finally {
+      setSavingWatchlist(false);
+    }
+  };
+
   const handleQuickWatchlist = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -204,25 +220,24 @@ function HoloMediaItem({ item, index, cfg, showTimings, onRemoveItem, isRemoving
       navigate('/login');
       return;
     }
+    if (savedToWatchlist) {
+      setShowRemoveConfirm(true);
+      return;
+    }
     if (savingWatchlist) return;
     setSavingWatchlist(true);
     try {
       const cleanId = String(baseTargetId);
-      if (savedToWatchlist) {
-        await axios.delete(`/api/media/watchlist/${cleanId}`);
-        setSavedToWatchlist(false);
-      } else {
-        const dbPoster = item.poster_path && typeof item.poster_path === 'string' && item.poster_path.length <= 250 && !item.poster_path.startsWith('data:')
-          ? item.poster_path
-          : null;
-        await axios.post('/api/media/watchlist', {
-          external_media_id: cleanId,
-          media_type: ['movie', 'tv', 'anime', 'manga'].includes(mediaType) ? mediaType : 'movie',
-          title: (item.title || item.name || 'Untitled').slice(0, 250),
-          poster_path: dbPoster
-        });
-        setSavedToWatchlist(true);
-      }
+      const dbPoster = item.poster_path && typeof item.poster_path === 'string' && item.poster_path.length <= 250 && !item.poster_path.startsWith('data:')
+        ? item.poster_path
+        : null;
+      await axios.post('/api/media/watchlist', {
+        external_media_id: cleanId,
+        media_type: ['movie', 'tv', 'anime', 'manga'].includes(mediaType) ? mediaType : 'movie',
+        title: (item.title || item.name || 'Untitled').slice(0, 250),
+        poster_path: dbPoster
+      });
+      setSavedToWatchlist(true);
     } catch (err) {
       console.error('Quick watchlist toggle error:', err);
     } finally {
@@ -525,6 +540,54 @@ function HoloMediaItem({ item, index, cfg, showTimings, onRemoveItem, isRemoving
           </div>
         </div>
       </Link>
+
+      {/* Confirmation Alert Box for Quick Removing from Library */}
+      <ConfirmModal
+        isOpen={showRemoveConfirm}
+        title={
+          mediaType === 'movie'
+            ? 'Remove Movie from Library'
+            : mediaType === 'tv'
+            ? 'Remove TV Series from Library'
+            : mediaType === 'anime'
+            ? 'Remove Anime from Library'
+            : mediaType === 'manga'
+            ? 'Remove Manga from Library'
+            : 'Remove from Library'
+        }
+        message={`Are you sure you want to remove "${item.title || item.name || 'this title'}" from your library?`}
+        confirmText="Remove from Library"
+        confirmVariant="danger"
+        iconType={
+          mediaType === 'movie'
+            ? 'movie'
+            : mediaType === 'tv'
+            ? 'tv'
+            : mediaType === 'anime'
+            ? 'anime'
+            : mediaType === 'manga'
+            ? 'manga'
+            : 'trash'
+        }
+        itemPreview={{
+          title: item.title || item.name || 'Untitled',
+          subtitle: item.release_date || item.first_air_date || mediaType?.toUpperCase(),
+          image: posterSrc,
+          badge: formatLabel,
+          badgeColor:
+            mediaType === 'movie'
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+              : mediaType === 'tv'
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+              : mediaType === 'anime'
+              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+              : mediaType === 'manga'
+              ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30'
+              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+        }}
+        onConfirm={confirmRemoveFromWatchlist}
+        onCancel={() => setShowRemoveConfirm(false)}
+      />
     </div>
   );
 }

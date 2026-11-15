@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import ConfirmModal from '../components/ConfirmModal';
 
 const MusicContext = createContext();
 
@@ -1052,16 +1053,13 @@ export const MusicProvider = ({ children }) => {
     return favorites.some(f => f.id === songId);
   }, [favorites]);
 
-  // Toggle Favorite
-  const toggleFavorite = useCallback(async (song) => {
+  // State for Confirmation Dialog when removing song from Favorites
+  const [favoriteToRemove, setFavoriteToRemove] = useState(null);
+
+  // Directly perform favorite removal after user confirms
+  const confirmRemoveFavorite = useCallback(async (song) => {
     if (!song || !song.id) return;
-    const exists = favorites.some(f => f.id === song.id);
-    let updated;
-    if (exists) {
-      updated = favorites.filter(f => f.id !== song.id);
-    } else {
-      updated = [{ ...song, media_type: 'music' }, ...favorites];
-    }
+    const updated = favorites.filter(f => f.id !== song.id);
     setFavorites(updated);
     try {
       localStorage.setItem('syncstream_favorites', JSON.stringify(updated));
@@ -1070,16 +1068,44 @@ export const MusicProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        if (exists) {
-          await axios.delete(`/api/music/favorites/${song.id}`);
-        } else {
-          await axios.post('/api/music/favorites', { song });
-        }
+        await axios.delete(`/api/music/favorites/${song.id}`);
       } catch (err) {
         console.warn('Failed to sync favorite on server:', err.message);
       }
     }
+    setFavoriteToRemove(null);
   }, [favorites]);
+
+  // Toggle Favorite: If already favorite, triggers confirmation dialog. If not, adds immediately!
+  const toggleFavorite = useCallback(async (song, skipConfirm = false) => {
+    if (!song || !song.id) return;
+    const exists = favorites.some(f => f.id === song.id);
+    
+    if (exists) {
+      if (skipConfirm) {
+        await confirmRemoveFavorite(song);
+      } else {
+        setFavoriteToRemove(song);
+      }
+      return;
+    }
+
+    // Adding to Favorites - Instant without prompt
+    const updated = [{ ...song, media_type: 'music' }, ...favorites];
+    setFavorites(updated);
+    try {
+      localStorage.setItem('syncstream_favorites', JSON.stringify(updated));
+    } catch (e) {}
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        await axios.post('/api/music/favorites', { song });
+      } catch (err) {
+        console.warn('Failed to sync favorite on server:', err.message);
+      }
+    }
+  }, [favorites, confirmRemoveFavorite]);
 
   // Reorder user favorite songs
   const reorderFavorites = useCallback((newFavorites) => {
@@ -1246,6 +1272,9 @@ export const MusicProvider = ({ children }) => {
     playlists,
     isFavorite,
     toggleFavorite,
+    confirmRemoveFavorite,
+    favoriteToRemove,
+    setFavoriteToRemove,
     reorderFavorites,
     createPlaylist,
     updatePlaylist,
@@ -1279,6 +1308,26 @@ export const MusicProvider = ({ children }) => {
   return (
     <MusicContext.Provider value={value}>
       {children}
+
+      {/* Global Confirmation Alert Box for Removing Song from Favorites */}
+      <ConfirmModal
+        isOpen={Boolean(favoriteToRemove)}
+        title="Remove from Favorites"
+        message={`Are you sure you want to remove "${favoriteToRemove?.title || 'this track'}" from your favorite songs?`}
+        confirmText="Remove from Favorites"
+        confirmVariant="danger"
+        iconType="heart"
+        itemPreview={favoriteToRemove ? {
+          title: favoriteToRemove.title,
+          subtitle: favoriteToRemove.artist,
+          image: favoriteToRemove.image,
+          badge: 'Liked Track',
+          badgeColor: 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+        } : null}
+        onConfirm={() => confirmRemoveFavorite(favoriteToRemove)}
+        onCancel={() => setFavoriteToRemove(null)}
+      />
+
       {/* In-DOM Audio Anchor for mobile OS audio session keep-alive */}
       <audio
         ref={bgAudioAnchorRef}

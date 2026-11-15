@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
 import EqualizerBars from '../components/EqualizerBars';
+import ConfirmModal from '../components/ConfirmModal';
 import {
   Music2,
   Play,
@@ -821,19 +822,29 @@ export default function Music() {
   };
 
   // ── Confirmation Modal Helpers ──
-  const askConfirmation = ({ title, message, confirmText = 'Delete', confirmVariant = 'danger', onConfirm }) => {
+  const askConfirmation = ({
+    title,
+    message,
+    confirmText = 'Delete',
+    confirmVariant = 'danger',
+    iconType = 'trash',
+    itemPreview = null,
+    onConfirm
+  }) => {
     setConfirmModal({
       isOpen: true,
       title,
       message,
       confirmText,
       confirmVariant,
+      iconType,
+      itemPreview,
       onConfirm
     });
   };
 
   const closeConfirmation = () => {
-    setConfirmModal(prev => ({ ...prev, isOpen: false, onConfirm: null }));
+    setConfirmModal((prev) => ({ ...prev, isOpen: false, onConfirm: null }));
   };
 
   // Delete song from current playlist with in-app confirmation
@@ -844,11 +855,19 @@ export default function Music() {
     askConfirmation({
       title: 'Remove Song from Playlist',
       message: `Are you sure you want to remove "${song.title}" from "${selectedPlaylistDetails.name}"?`,
-      confirmText: 'Remove Song',
+      confirmText: 'Remove Track',
       confirmVariant: 'danger',
+      iconType: 'music',
+      itemPreview: {
+        title: song.title,
+        subtitle: song.artist,
+        image: song.image,
+        badge: 'Playlist Track',
+        badgeColor: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+      },
       onConfirm: async () => {
         await removeSongFromPlaylist(selectedPlaylistDetails.id, song.id);
-        setPlaylistSongs(prev => prev.filter(s => s.id !== song.id));
+        setPlaylistSongs((prev) => prev.filter((s) => s.id !== song.id));
         closeConfirmation();
       }
     });
@@ -864,6 +883,13 @@ export default function Music() {
       message: `Are you sure you want to delete "${playlist.name}"? All tracks in this collection will be removed. This cannot be undone.`,
       confirmText: 'Delete Playlist',
       confirmVariant: 'danger',
+      iconType: 'trash',
+      itemPreview: {
+        title: playlist.name,
+        subtitle: `${playlist.track_count || 0} tracks`,
+        badge: 'Playlist',
+        badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+      },
       onConfirm: async () => {
         await deletePlaylist(playlist.id);
         if (selectedPlaylistDetails?.id === playlist.id) {
@@ -3256,45 +3282,17 @@ export default function Music() {
       {/* ══════════════════════════════════════════════════════════════════════
           MODAL 3: IN-APP CONFIRMATION MODAL ("ARE YOU SURE?")
          ══════════════════════════════════════════════════════════════════════ */}
-      {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-2.5 xs:p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm border-2 border-white/25 rounded-3xl p-4 xs:p-5 sm:p-6 space-y-4 shadow-2xl bg-[#141a33] text-center">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/25 border-2 border-red-500/50 text-red-400 flex items-center justify-center mx-auto shadow-lg shadow-red-500/35">
-              <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h3 className="font-black text-base sm:text-lg text-white font-outfit">
-                {confirmModal.title || 'Are you sure?'}
-              </h3>
-              <p className="text-xs text-slate-200 leading-relaxed font-semibold">
-                {confirmModal.message || 'Are you sure you want to proceed with this action?'}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={closeConfirmation}
-                className="flex-1 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border-2 border-white/25 text-white text-xs font-black transition active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof confirmModal.onConfirm === 'function') {
-                    confirmModal.onConfirm();
-                  }
-                }}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs transition shadow-lg shadow-red-500/50 active:scale-95 border border-white/30"
-              >
-                {confirmModal.confirmText || 'Confirm'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={Boolean(confirmModal.isOpen)}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmVariant={confirmModal.confirmVariant || 'danger'}
+        iconType={confirmModal.iconType || 'trash'}
+        itemPreview={confirmModal.itemPreview}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmation}
+      />
 
       {/* ══════════════════════════════════════════════════════════════════════
           MODAL 4: ADD TO PLAYLIST

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import MediaGrid from '../components/MediaGrid';
+import ConfirmModal from '../components/ConfirmModal';
 import { Heart, Search, Loader2, Film, Tv, Sparkles, BookOpen, Layers, ArrowRight, RotateCcw, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -14,6 +15,7 @@ export default function Watchlist() {
   const [activeTab, setActiveTab] = useState('all');
   const [displayCount, setDisplayCount] = useState(0);
   const [removingIds, setRemovingIds] = useState(new Set());
+  const [itemToRemove, setItemToRemove] = useState(null);
   const [undoToast, setUndoToast] = useState(null); // { key, item }
   const undoTimerRef = useRef(null);
 
@@ -91,6 +93,13 @@ export default function Watchlist() {
         console.error('Failed to remove from watchlist:', err);
       }
     }, 260);
+  };
+
+  const handleConfirmRemove = () => {
+    if (!itemToRemove) return;
+    const item = itemToRemove;
+    setItemToRemove(null);
+    handleRemoveWithUndo(item);
   };
 
   const handleUndoRemove = async () => {
@@ -392,7 +401,7 @@ export default function Watchlist() {
                 <div className="relative z-10">
                   <MediaGrid
                     items={sec.items}
-                    onRemoveItem={handleRemoveWithUndo}
+                    onRemoveItem={(item) => setItemToRemove(item)}
                     removingIds={removingIds}
                   />
                 </div>
@@ -419,7 +428,7 @@ export default function Watchlist() {
               <div className="relative z-10">
                 <MediaGrid
                   items={others}
-                  onRemoveItem={handleRemoveWithUndo}
+                  onRemoveItem={(item) => setItemToRemove(item)}
                   removingIds={removingIds}
                 />
               </div>
@@ -428,6 +437,67 @@ export default function Watchlist() {
 
         </div>
       )}
+
+      {/* Confirmation Alert Box for Removing Movie / Series / Anime / Manga from Library */}
+      <ConfirmModal
+        isOpen={Boolean(itemToRemove)}
+        title={
+          itemToRemove?.media_type === 'movie'
+            ? 'Remove Movie from Library'
+            : itemToRemove?.media_type === 'tv'
+            ? 'Remove TV Series from Library'
+            : itemToRemove?.media_type === 'anime'
+            ? 'Remove Anime from Library'
+            : itemToRemove?.media_type === 'manga'
+            ? 'Remove Manga from Library'
+            : 'Remove from Library'
+        }
+        message={`Are you sure you want to remove "${itemToRemove?.title || itemToRemove?.name || 'this title'}" from your library?`}
+        confirmText="Remove from Library"
+        confirmVariant="danger"
+        iconType={
+          itemToRemove?.media_type === 'movie'
+            ? 'movie'
+            : itemToRemove?.media_type === 'tv'
+            ? 'tv'
+            : itemToRemove?.media_type === 'anime'
+            ? 'anime'
+            : itemToRemove?.media_type === 'manga'
+            ? 'manga'
+            : 'trash'
+        }
+        itemPreview={
+          itemToRemove
+            ? {
+                title: itemToRemove.title || itemToRemove.name || 'Untitled',
+                subtitle: itemToRemove.release_date || itemToRemove.first_air_date || itemToRemove.media_type?.toUpperCase(),
+                image: itemToRemove.poster_path,
+                badge:
+                  itemToRemove.media_type === 'movie'
+                    ? 'Movie'
+                    : itemToRemove.media_type === 'tv'
+                    ? 'TV Series'
+                    : itemToRemove.media_type === 'anime'
+                    ? 'Anime'
+                    : itemToRemove.media_type === 'manga'
+                    ? 'Manga'
+                    : 'Library',
+                badgeColor:
+                  itemToRemove.media_type === 'movie'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    : itemToRemove.media_type === 'tv'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : itemToRemove.media_type === 'anime'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    : itemToRemove.media_type === 'manga'
+                    ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              }
+            : null
+        }
+        onConfirm={handleConfirmRemove}
+        onCancel={() => setItemToRemove(null)}
+      />
 
       {/* Undo Toast Pill (#13) */}
       {undoToast && (
