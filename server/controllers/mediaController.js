@@ -2490,10 +2490,10 @@ export const getPersonCredits = async (req, res) => {
 
 const animeCharactersCache = new Map();
 
-// 9. Get Iconic & Live-Searchable Anime Character Avatars (AniList GraphQL Universal Search)
+// 9. Get Iconic & Live-Searchable Anime & Manga Character Avatars (AniList GraphQL Universal Engine)
 export const getAnimeCharacters = async (req, res) => {
-  const q = (req.query.q || '').trim();
-  const cacheKey = q ? `search:${q.toLowerCase()}` : 'popular_iconic';
+  const rawQ = (req.query.q || '').trim();
+  const cacheKey = rawQ ? `search:${rawQ.toLowerCase()}` : 'popular_iconic';
 
   try {
     if (animeCharactersCache.has(cacheKey)) {
@@ -2503,18 +2503,22 @@ export const getAnimeCharacters = async (req, res) => {
       }
     }
 
-    if (!q) {
-      // Default: Top iconic favorite anime characters across all popular series
+    if (!rawQ) {
+      // Default: Top iconic favorite anime & manga characters across popular series
       const defaultQuery = `
         query {
-          Page(page: 1, perPage: 32) {
+          Page(page: 1, perPage: 40) {
             characters(sort: FAVOURITES_DESC) {
               id
               name { full native alternative userPreferred first last }
               favourites
               image { large medium }
-              media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
-                nodes { title { english romaji } }
+              media(page: 1, perPage: 3, sort: POPULARITY_DESC) {
+                nodes {
+                  type
+                  format
+                  title { english romaji native }
+                }
               }
             }
           }
@@ -2523,7 +2527,7 @@ export const getAnimeCharacters = async (req, res) => {
       const alRes = await axios.post(
         'https://graphql.anilist.co',
         { query: defaultQuery },
-        { headers: { 'Content-Type': 'application/json' }, timeout: 7000 }
+        { headers: { 'Content-Type': 'application/json' }, timeout: 8000 }
       );
       const rawChars = alRes.data?.data?.Page?.characters || [];
       const formatted = rawChars
@@ -2532,16 +2536,21 @@ export const getAnimeCharacters = async (req, res) => {
           return Boolean(imgUrl && !imgUrl.includes('default.jpg'));
         })
         .map((c) => {
+          const primaryMedia = c.media?.nodes?.[0];
           const series =
-            c.media?.nodes?.[0]?.title?.english ||
-            c.media?.nodes?.[0]?.title?.romaji ||
+            primaryMedia?.title?.english ||
+            primaryMedia?.title?.romaji ||
             'Anime';
           const fullName = c.name?.full || c.name?.userPreferred || 'Anime Character';
+          const isManga = primaryMedia?.type === 'MANGA' || primaryMedia?.format === 'MANGA' || primaryMedia?.format === 'NOVEL';
+          const formatTag = isManga ? 'Manga' : (primaryMedia?.format || 'Anime');
           return {
             id: `al-char-${c.id}`,
             name: fullName,
             series,
-            prompt: `Anime character ${fullName} from ${series}, studio anime portrait`,
+            format: formatTag,
+            type: isManga ? 'manga' : 'anime',
+            prompt: `${formatTag} character ${fullName} from ${series}, high quality studio portrait`,
             url: c.image.large || c.image.medium
           };
         });
@@ -2549,73 +2558,110 @@ export const getAnimeCharacters = async (req, res) => {
       return res.json(formatted);
     }
 
-    // Comprehensive Universal Character & Title Search
-    // 1. Clean query & extract tokens
-    const cleanQ = q.replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
-    const words = cleanQ.split(' ').filter(Boolean);
-    const reversed = words.length > 1 ? [...words].reverse().join(' ') : null;
+    // ── Universal Natural Language, Manga & Anime Character Resolution Engine ──
+    // 1. Strip natural language query filler phrases (e.g. "anime characters from anime", "characters from", etc.)
+    let cleaned = rawQ
+      .replace(/[-_]/g, ' ')
+      .replace(/\b(?:anime|manga|webtoon|manhwa|light\s*novel|series|show)\s+(?:characters?|avatars?|pics?|pictures?)\b/gi, ' ')
+      .replace(/\b(?:characters?|avatars?|pics?|pictures?)\s+from\s+(?:anime|manga|webtoon|series)\b/gi, ' from ')
+      .replace(/\b(?:characters?|avatars?|pics?|pictures?)\b/gi, ' ')
+      .replace(/\bfrom\s+(?:anime|manga|webtoon|series)\b/gi, ' from ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    // Transliteration helper: e.g. "sato" <-> "satou", "gojo" <-> "gojou", "yuji" <-> "yuuji"
-    let variant = null;
-    if (/\bsato\b/i.test(cleanQ)) variant = cleanQ.replace(/\bsato\b/gi, 'satou');
-    else if (/\bsatou\b/i.test(cleanQ)) variant = cleanQ.replace(/\bsatou\b/gi, 'sato');
-    else if (/\bgojo\b/i.test(cleanQ)) variant = cleanQ.replace(/\bgojo\b/gi, 'gojou');
-    else if (/\byuji\b/i.test(cleanQ)) variant = cleanQ.replace(/\byuji\b/gi, 'yuuji');
+    // 2. Separate character name query and series title query
+    let charPart = null;
+    let seriesPart = null;
 
-    // First word token fallback (handles characters where last name is in alternative names, e.g. "Levi Ackerman")
-    const firstWord = words.length > 1 && words[0].length >= 3 ? words[0] : null;
+    const splitMatch = cleaned.match(/^(.*?)\s+\b(?:from|in)\b\s+(.*?)$/i);
+    if (splitMatch) {
+      charPart = splitMatch[1].trim();
+      seriesPart = splitMatch[2].trim();
+    } else {
+      charPart = cleaned;
+      seriesPart = cleaned;
+    }
+
+    // 3. Prepare candidate media titles to search (covers both anime & manga titles)
+    const mediaQueries = new Set();
+    if (seriesPart) mediaQueries.add(seriesPart);
+    if (cleaned) mediaQueries.add(cleaned);
+
+    const cleanWords = cleaned.split(' ').filter(Boolean);
+    if (cleanWords.length >= 3) {
+      mediaQueries.add(cleanWords.slice(-3).join(' ')); // e.g. "ramparts of ice"
+      mediaQueries.add(cleanWords.slice(-2).join(' '));
+      mediaQueries.add(cleanWords.slice(0, 3).join(' '));
+    } else if (cleanWords.length === 2) {
+      mediaQueries.add(cleanWords[0]);
+      mediaQueries.add(cleanWords[1]);
+    }
+
+    const validMediaQueries = Array.from(mediaQueries)
+      .filter((q) => q && q.length >= 3 && !/^(?:anime|manga|characters?)$/i.test(q));
+
+    // 4. Prepare candidate character names to search
+    const charQueries = new Set();
+    if (charPart) charQueries.add(charPart);
+    charQueries.add(cleaned);
+
+    if (charPart) {
+      const tokens = charPart.split(' ').filter((w) => w.length >= 2);
+      tokens.forEach((t) => charQueries.add(t));
+    }
+
+    // Transliteration & alias helper (e.g. yota <-> youta, koyun <-> koyuki, sato <-> satou, gojo <-> gojou)
+    const addVariants = (str) => {
+      if (!str) return;
+      const s = str.toLowerCase();
+      if (/\byota\b/.test(s)) charQueries.add(s.replace(/\byota\b/g, 'youta'));
+      if (/\byouta\b/.test(s)) charQueries.add(s.replace(/\byouta\b/g, 'yota'));
+      if (/\bkoyun\b/.test(s)) {
+        charQueries.add('koyuki');
+        charQueries.add('koyuki hikawa');
+      }
+      if (/\bsato\b/.test(s)) charQueries.add(s.replace(/\bsato\b/g, 'satou'));
+      if (/\bsatou\b/.test(s)) charQueries.add(s.replace(/\bsatou\b/g, 'sato'));
+      if (/\bgojo\b/.test(s)) charQueries.add(s.replace(/\bgojo\b/g, 'gojou'));
+      if (/\bgojou\b/.test(s)) charQueries.add(s.replace(/\bgojou\b/g, 'gojo'));
+      if (/\byuji\b/.test(s)) charQueries.add(s.replace(/\byuji\b/g, 'yuuji'));
+      if (/\byuuji\b/.test(s)) charQueries.add(s.replace(/\byuuji\b/g, 'yuji'));
+      if (/\bryota\b/.test(s)) charQueries.add(s.replace(/\bryota\b/g, 'ryouta'));
+      if (/\bryouta\b/.test(s)) charQueries.add(s.replace(/\bryouta\b/g, 'ryota'));
+      if (/\bshota\b/.test(s)) charQueries.add(s.replace(/\bshota\b/g, 'shouta'));
+      if (/\bshouta\b/.test(s)) charQueries.add(s.replace(/\bshouta\b/g, 'shota'));
+      if (/\bkota\b/.test(s)) charQueries.add(s.replace(/\bkota\b/g, 'kouta'));
+      if (/\bkouta\b/.test(s)) charQueries.add(s.replace(/\bkouta\b/g, 'kota'));
+      if (/\bsota\b/.test(s)) charQueries.add(s.replace(/\bsota\b/g, 'souta'));
+      if (/\bsouta\b/.test(s)) charQueries.add(s.replace(/\bsouta\b/g, 'sota'));
+    };
+    Array.from(charQueries).forEach(addVariants);
+
+    const validCharQueries = Array.from(charQueries)
+      .filter((q) => q && q.length >= 2 && !/^(?:anime|manga|characters?)$/i.test(q));
+
+    const mQ1 = validMediaQueries[0] || cleaned;
+    const mQ2 = validMediaQueries[1] || '';
+    const cQ1 = validCharQueries[0] || cleaned;
+    const cQ2 = validCharQueries[1] || '';
+    const cQ3 = validCharQueries[2] || '';
 
     const gqlQuery = `
-      query ($q: String, $reversed: String, $hasReversed: Boolean!, $variant: String, $hasVariant: Boolean!, $w0: String, $hasW0: Boolean!) {
-        direct: Page(page: 1, perPage: 45) {
-          characters(search: $q, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+      query (
+        $mQ1: String, $hasMQ1: Boolean!,
+        $mQ2: String, $hasMQ2: Boolean!,
+        $cQ1: String, $hasCQ1: Boolean!,
+        $cQ2: String, $hasCQ2: Boolean!,
+        $cQ3: String, $hasCQ3: Boolean!
+      ) {
+        mediaList1: Page(page: 1, perPage: 8) @include(if: $hasMQ1) {
+          media(search: $mQ1, sort: [SEARCH_MATCH, POPULARITY_DESC]) {
             id
-            name { full native alternative userPreferred first last }
-            favourites
-            image { large medium }
-            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
-              nodes { title { english romaji native } }
-            }
-          }
-        }
-        rev: Page(page: 1, perPage: 35) @include(if: $hasReversed) {
-          characters(search: $reversed, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
-            id
-            name { full native alternative userPreferred first last }
-            favourites
-            image { large medium }
-            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
-              nodes { title { english romaji native } }
-            }
-          }
-        }
-        vari: Page(page: 1, perPage: 35) @include(if: $hasVariant) {
-          characters(search: $variant, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
-            id
-            name { full native alternative userPreferred first last }
-            favourites
-            image { large medium }
-            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
-              nodes { title { english romaji native } }
-            }
-          }
-        }
-        w0Page: Page(page: 1, perPage: 25) @include(if: $hasW0) {
-          characters(search: $w0, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
-            id
-            name { full native alternative userPreferred first last }
-            favourites
-            image { large medium }
-            media(page: 1, perPage: 1, sort: POPULARITY_DESC) {
-              nodes { title { english romaji native } }
-            }
-          }
-        }
-        mediaList: Page(page: 1, perPage: 6) {
-          media(search: $q, sort: SEARCH_MATCH) {
-            id
-            title { english romaji native }
-            characters(page: 1, perPage: 18, sort: [ROLE, FAVOURITES_DESC]) {
+            type
+            format
+            title { english romaji native userPreferred }
+            synonyms
+            characters(page: 1, perPage: 25, sort: [ROLE, FAVOURITES_DESC]) {
               nodes {
                 id
                 name { full native alternative userPreferred first last }
@@ -2625,104 +2671,201 @@ export const getAnimeCharacters = async (req, res) => {
             }
           }
         }
+        mediaList2: Page(page: 1, perPage: 6) @include(if: $hasMQ2) {
+          media(search: $mQ2, sort: [SEARCH_MATCH, POPULARITY_DESC]) {
+            id
+            type
+            format
+            title { english romaji native userPreferred }
+            synonyms
+            characters(page: 1, perPage: 20, sort: [ROLE, FAVOURITES_DESC]) {
+              nodes {
+                id
+                name { full native alternative userPreferred first last }
+                image { large medium }
+                favourites
+              }
+            }
+          }
+        }
+        charList1: Page(page: 1, perPage: 50) @include(if: $hasCQ1) {
+          characters(search: $cQ1, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 4, sort: POPULARITY_DESC) {
+              nodes {
+                type
+                format
+                title { english romaji native }
+              }
+            }
+          }
+        }
+        charList2: Page(page: 1, perPage: 40) @include(if: $hasCQ2) {
+          characters(search: $cQ2, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 3, sort: POPULARITY_DESC) {
+              nodes {
+                type
+                format
+                title { english romaji native }
+              }
+            }
+          }
+        }
+        charList3: Page(page: 1, perPage: 30) @include(if: $hasCQ3) {
+          characters(search: $cQ3, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+            id
+            name { full native alternative userPreferred first last }
+            favourites
+            image { large medium }
+            media(page: 1, perPage: 3, sort: POPULARITY_DESC) {
+              nodes {
+                type
+                format
+                title { english romaji native }
+              }
+            }
+          }
+        }
       }
     `;
 
     const variables = {
-      q: cleanQ,
-      reversed: reversed || '',
-      hasReversed: Boolean(reversed),
-      variant: variant || '',
-      hasVariant: Boolean(variant),
-      w0: firstWord || '',
-      hasW0: Boolean(firstWord)
+      mQ1,
+      hasMQ1: Boolean(mQ1),
+      mQ2,
+      hasMQ2: Boolean(mQ2 && mQ2 !== mQ1),
+      cQ1,
+      hasCQ1: Boolean(cQ1),
+      cQ2,
+      hasCQ2: Boolean(cQ2 && cQ2 !== cQ1),
+      cQ3,
+      hasCQ3: Boolean(cQ3 && cQ3 !== cQ1 && cQ3 !== cQ2)
     };
 
     const alRes = await axios.post(
       'https://graphql.anilist.co',
       { query: gqlQuery, variables },
-      { headers: { 'Content-Type': 'application/json' }, timeout: 8000 }
+      { headers: { 'Content-Type': 'application/json' }, timeout: 9000 }
     );
 
     const seen = new Set();
     const formatted = [];
 
-    const registerChar = (c, seriesName = null, baseWeight = 0) => {
+    const allTokens = Array.from(
+      new Set([
+        ...cleaned.toLowerCase().split(' ').filter((w) => w.length >= 2),
+        ...validCharQueries.map((s) => s.toLowerCase()),
+        ...validMediaQueries.map((s) => s.toLowerCase())
+      ])
+    );
+
+    const registerChar = (c, seriesName = null, mediaType = 'Anime', mediaFormat = 'TV', baseWeight = 0) => {
       if (!c || seen.has(c.id)) return;
-      const imgUrl = c?.image?.large || c?.image?.medium || '';
+      const imgUrl = c.image?.large || c.image?.medium || '';
       if (!imgUrl || imgUrl.includes('default.jpg')) return;
       seen.add(c.id);
 
-      const series =
-        seriesName ||
-        c.media?.nodes?.[0]?.title?.english ||
-        c.media?.nodes?.[0]?.title?.romaji ||
-        'Anime';
-
       const fullName = c.name?.full || c.name?.userPreferred || 'Anime Character';
-      const first = c.name?.first || '';
-      const last = c.name?.last || '';
+      const first = (c.name?.first || '').trim();
+      const last = (c.name?.last || '').trim();
       const altNames = Array.isArray(c.name?.alternative) ? c.name.alternative : [];
       const allNamesStr = `${fullName} ${first} ${last} ${altNames.join(' ')}`.toLowerCase();
 
-      // Intelligent relevance scoring
-      let score = baseWeight;
-      const lowerFull = fullName.toLowerCase();
-      const lowerCleanQ = cleanQ.toLowerCase();
-      const lowerSeries = series.toLowerCase();
+      const mediaNodes = c.media?.nodes || [];
+      const mediaTitles = [
+        seriesName,
+        ...mediaNodes.map((m) => m.title?.english),
+        ...mediaNodes.map((m) => m.title?.romaji)
+      ].filter(Boolean);
+      const mediaStr = mediaTitles.join(' ').toLowerCase();
 
-      if (lowerFull === lowerCleanQ) {
-        score += 300;
-      } else if (words.every((w) => allNamesStr.includes(w.toLowerCase()))) {
-        score += 220;
-      } else if (words.every((w) => allNamesStr.includes(w.toLowerCase()) || lowerSeries.includes(w.toLowerCase()))) {
-        score += 180;
-      } else if (words.some((w) => first.toLowerCase() === w.toLowerCase() || last.toLowerCase() === w.toLowerCase())) {
-        score += 140;
-      } else if (allNamesStr.includes(lowerCleanQ)) {
-        score += 110;
-      } else if (lowerSeries.includes(lowerCleanQ)) {
-        score += 90;
+      // Determine series title, whether it's Manga or Anime, and human format
+      const displaySeries = seriesName || mediaTitles[0] || 'Anime';
+      const isManga =
+        mediaType === 'MANGA' ||
+        mediaFormat === 'MANGA' ||
+        mediaFormat === 'NOVEL' ||
+        mediaFormat === 'ONE_SHOT' ||
+        mediaNodes.some((n) => n.type === 'MANGA' || n.format === 'MANGA' || n.format === 'NOVEL');
+
+      const displayFormat = isManga ? 'Manga' : (mediaFormat || mediaNodes[0]?.format || 'Anime');
+      const categoryTag = isManga ? 'manga' : 'anime';
+
+      // Scoring
+      let score = baseWeight;
+
+      const lowerFull = fullName.toLowerCase();
+      const lowerFirst = first.toLowerCase();
+      const lowerLast = last.toLowerCase();
+
+      // Exact name matches
+      for (const tok of allTokens) {
+        if (tok.length < 2) continue;
+        if (lowerFull === tok || lowerFirst === tok || lowerLast === tok) {
+          score += 260;
+        } else if (altNames.some((a) => a.toLowerCase() === tok)) {
+          score += 240;
+        } else if (allNamesStr.includes(tok)) {
+          score += 70;
+        }
+        if (mediaStr.includes(tok)) {
+          score += 50;
+        }
       }
 
-      // Add bonus for character popularity
-      score += Math.min(Math.floor((c.favourites || 0) / 40), 50);
+      // Direct series matching boost
+      if (seriesPart && mediaStr.includes(seriesPart.toLowerCase())) {
+        score += 180;
+      }
+
+      // Popularity bonus
+      score += Math.min(Math.floor((c.favourites || 0) / 25), 45);
 
       formatted.push({
         id: `al-char-${c.id}`,
         name: fullName,
-        series,
-        prompt: `Anime character ${fullName} from ${series}, studio anime portrait`,
+        series: displaySeries,
+        format: displayFormat,
+        type: categoryTag,
+        prompt: `${displayFormat} character ${fullName} from ${displaySeries}, high quality artwork portrait`,
         url: imgUrl,
         score
       });
     };
 
-    // 1. Direct character search
-    (alRes.data?.data?.direct?.characters || []).forEach((c) => registerChar(c, null, 60));
-
-    // 2. Reversed name order
-    (alRes.data?.data?.rev?.characters || []).forEach((c) => registerChar(c, null, 50));
-
-    // 3. Transliteration variant
-    (alRes.data?.data?.vari?.characters || []).forEach((c) => registerChar(c, null, 55));
-
-    // 4. First word token fallback
-    (alRes.data?.data?.w0Page?.characters || []).forEach((c) => registerChar(c, null, 30));
-
-    // 5. Anime / Manga title matches (e.g. "cold sato san", "attack on titan")
-    (alRes.data?.data?.mediaList?.media || []).forEach((m) => {
+    // 1. Ingest media list 1 (both anime & manga)
+    (alRes.data?.data?.mediaList1?.media || []).forEach((m) => {
       const seriesTitle = m.title?.english || m.title?.romaji || 'Anime';
       (m.characters?.nodes || []).forEach((c, idx) => {
-        registerChar(c, seriesTitle, 80 - Math.min(idx * 3, 40));
+        registerChar(c, seriesTitle, m.type, m.format, 130 - Math.min(idx * 2, 40));
       });
     });
+
+    // 2. Ingest media list 2
+    (alRes.data?.data?.mediaList2?.media || []).forEach((m) => {
+      const seriesTitle = m.title?.english || m.title?.romaji || 'Anime';
+      (m.characters?.nodes || []).forEach((c, idx) => {
+        registerChar(c, seriesTitle, m.type, m.format, 100 - Math.min(idx * 2, 40));
+      });
+    });
+
+    // 3. Ingest character lists
+    (alRes.data?.data?.charList1?.characters || []).forEach((c) => registerChar(c, null, 'Anime', 'TV', 70));
+    (alRes.data?.data?.charList2?.characters || []).forEach((c) => registerChar(c, null, 'Anime', 'TV', 50));
+    (alRes.data?.data?.charList3?.characters || []).forEach((c) => registerChar(c, null, 'Anime', 'TV', 40));
 
     // Sort by calculated relevance score descending
     formatted.sort((a, b) => b.score - a.score);
 
-    // Limit to top 50 matches
-    const topResults = formatted.slice(0, 50);
+    // Provide up to top 80 rich character results
+    const topResults = formatted.slice(0, 80);
 
     animeCharactersCache.set(cacheKey, { data: topResults, timestamp: Date.now() });
     res.json(topResults);

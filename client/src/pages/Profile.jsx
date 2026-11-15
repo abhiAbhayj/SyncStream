@@ -185,18 +185,18 @@ const DEFAULT_AVATAR_COLLECTIONS = {
     ]
   },
   anime: {
-    label: 'Anime Characters',
+    label: 'Anime & Manga',
     icon: Wand2,
     iconColor: 'text-pink-400 fill-pink-400/30',
     items: [
-      { id: 'ani-seed-gojo', name: 'Satoru Gojo', series: 'Jujutsu Kaisen', prompt: 'Anime character Satoru Gojo Jujutsu Kaisen portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Gojo' },
-      { id: 'ani-seed-luffy', name: 'Monkey D. Luffy', series: 'One Piece', prompt: 'Anime character Luffy One Piece portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Luffy' },
-      { id: 'ani-seed-naruto', name: 'Naruto Uzumaki', series: 'Naruto', prompt: 'Anime character Naruto Uzumaki portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Naruto' },
-      { id: 'ani-seed-levi', name: 'Levi Ackerman', series: 'Attack on Titan', prompt: 'Anime character Levi Ackerman portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Levi' },
-      { id: 'ani-seed-tanjiro', name: 'Tanjiro', series: 'Demon Slayer', prompt: 'Anime character Tanjiro Kamado portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Tanjiro' },
-      { id: 'ani-seed-nezuko', name: 'Nezuko', series: 'Demon Slayer', prompt: 'Anime character Nezuko Kamado portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Nezuko' },
-      { id: 'ani-seed-zoro', name: 'Roronoa Zoro', series: 'One Piece', prompt: 'Anime character Roronoa Zoro portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Zoro' },
-      { id: 'ani-seed-anya', name: 'Anya Forger', series: 'Spy x Family', prompt: 'Anime character Anya Forger portrait', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Anya' }
+      { id: 'ani-seed-gojo', name: 'Satoru Gojo', series: 'Jujutsu Kaisen', prompt: 'Anime character Satoru Gojo Jujutsu Kaisen portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Gojo' },
+      { id: 'ani-seed-luffy', name: 'Monkey D. Luffy', series: 'One Piece', prompt: 'Anime character Luffy One Piece portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Luffy' },
+      { id: 'ani-seed-naruto', name: 'Naruto Uzumaki', series: 'Naruto', prompt: 'Anime character Naruto Uzumaki portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Naruto' },
+      { id: 'ani-seed-levi', name: 'Levi Ackerman', series: 'Attack on Titan', prompt: 'Anime character Levi Ackerman portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Levi' },
+      { id: 'ani-seed-tanjiro', name: 'Tanjiro', series: 'Demon Slayer', prompt: 'Anime character Tanjiro Kamado portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Tanjiro' },
+      { id: 'ani-seed-nezuko', name: 'Nezuko', series: 'Demon Slayer', prompt: 'Anime character Nezuko Kamado portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Nezuko' },
+      { id: 'ani-seed-zoro', name: 'Roronoa Zoro', series: 'One Piece', prompt: 'Anime character Roronoa Zoro portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Zoro' },
+      { id: 'ani-seed-anya', name: 'Anya Forger', series: 'Spy x Family', prompt: 'Anime character Anya Forger portrait', url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Anya' }
     ]
   }
 };
@@ -206,7 +206,7 @@ const MIN_AVATARS_PER_CATEGORY = 1;
 
 const AI_STYLE_PRESETS = [
   { id: 'emojis', label: '3D Emoji', icon: Smile, iconColor: 'text-amber-400 fill-amber-400/40', suffix: 'high resolution glossy 3D WhatsApp Apple-style emoji reaction sticker, 3D smooth plastic render, vibrant colors, studio rim lighting, dark neon background' },
-  { id: 'anime', label: 'Anime Character', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'masterpiece anime character portrait avatar, vibrant colors, detailed anime face and expressive eyes, studio anime aesthetic, sharp focus' }
+  { id: 'anime', label: 'Anime & Manga', icon: Sparkles, iconColor: 'text-pink-400 fill-pink-400', suffix: 'masterpiece anime and manga character portrait avatar, vibrant colors, detailed anime face and expressive eyes, studio anime aesthetic, sharp focus' }
 ];
 
 const PROMPT_SUGGESTIONS = [
@@ -293,13 +293,27 @@ export default function Profile() {
   const [emojiSelectedCategory, setEmojiSelectedCategory] = useState('All');
   const [emojiVisibleCount, setEmojiVisibleCount] = useState(60);
 
-  // ── Live AniList Anime Character Search & Iconic Preload ──
+  // ── Live AniList Anime & Manga Character Search & Iconic Preload ──
   const [animeSearchQuery, setAnimeSearchQuery] = useState('');
   const [animeSearchResults, setAnimeSearchResults] = useState([]);
   const [animeSearchLoading, setAnimeSearchLoading] = useState(false);
   const [animeSearchTouched, setAnimeSearchTouched] = useState(false);
   const [animeIconicLoading, setAnimeIconicLoading] = useState(false);
+  const [animeFilterType, setAnimeFilterType] = useState('All');
+  const [animeVisibleCount, setAnimeVisibleCount] = useState(25);
   const animePreloadedRef = useRef(false);
+
+  const filteredAnimeSearchResults = useMemo(() => {
+    if (animeFilterType === 'All') return animeSearchResults;
+    if (animeFilterType === 'Manga') {
+      return animeSearchResults.filter(
+        (c) => c.type === 'manga' || c.format === 'Manga' || c.format === 'MANGA' || c.format === 'NOVEL'
+      );
+    }
+    return animeSearchResults.filter(
+      (c) => c.type !== 'manga' && c.format !== 'Manga' && c.format !== 'MANGA' && c.format !== 'NOVEL'
+    );
+  }, [animeSearchResults, animeFilterType]);
 
   useEffect(() => {
     if (animePreloadedRef.current) return;
@@ -567,6 +581,7 @@ export default function Profile() {
 
     setAnimeSearchLoading(true);
     setAnimeSearchTouched(true);
+    setAnimeVisibleCount(25);
     try {
       const res = await axios.get(`/api/media/anime/characters?q=${encodeURIComponent(trimmed)}`);
       setAnimeSearchResults(Array.isArray(res.data) ? res.data : []);
@@ -1364,7 +1379,7 @@ export default function Profile() {
                 <div className="flex flex-wrap items-center justify-between gap-1.5">
                   <span className="text-[11px] font-bold text-pink-300 flex items-center gap-1.5 font-mono">
                     <Sparkles className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                    <span>Live AniList Character Search</span>
+                    <span>Live AniList Anime & Manga Universal Search</span>
                   </span>
                   {animeIconicLoading && (
                     <span className="text-[10px] text-accentCyan flex items-center gap-1">
@@ -1388,7 +1403,7 @@ export default function Profile() {
                           runAnimeCharacterSearch(animeSearchQuery);
                         }
                       }}
-                      placeholder="Search any character or anime (Koharu, Sato, Gojo, Levi)..."
+                      placeholder="Search character or anime/manga (Miki, Koyun, Yota, Ramparts of Ice, Berserk, Sato)..."
                       className="w-full bg-darkBg/90 border border-white/15 rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400/50 transition"
                     />
                     {animeSearchQuery && (
@@ -1417,9 +1432,20 @@ export default function Profile() {
                   </button>
                 </div>
 
-                {/* Quick Popular Character Queries */}
+                {/* Quick Popular Anime & Manga Character & Series Queries */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-                  {['Koharu', 'Sato', 'Gojo', 'Levi', 'Mikasa', 'Sung Jin-Woo', 'Itachi', 'Anya'].map((quickName) => (
+                  {[
+                    'Ramparts of Ice',
+                    'Koyun',
+                    'Miki',
+                    'Yota',
+                    'Koharu',
+                    'Sato',
+                    'Punpun',
+                    'Gojo',
+                    'Levi',
+                    'Sakamoto Days'
+                  ].map((quickName) => (
                     <button
                       key={quickName}
                       type="button"
@@ -1434,27 +1460,80 @@ export default function Profile() {
                   ))}
                 </div>
 
+                {/* Medium Type Filter Pills (All / Anime / Manga) */}
+                {animeSearchResults.length > 0 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                    {[
+                      { id: 'All', label: 'All Media', count: animeSearchResults.length },
+                      {
+                        id: 'Anime',
+                        label: 'Anime Only',
+                        count: animeSearchResults.filter((c) => c.type !== 'manga' && c.format !== 'Manga').length
+                      },
+                      {
+                        id: 'Manga',
+                        label: 'Manga Only',
+                        count: animeSearchResults.filter((c) => c.type === 'manga' || c.format === 'Manga').length
+                      }
+                    ].map((flt) => (
+                      <button
+                        key={flt.id}
+                        type="button"
+                        onClick={() => {
+                          setAnimeFilterType(flt.id);
+                          setAnimeVisibleCount(25);
+                        }}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap shrink-0 transition active:scale-95 border cursor-pointer flex items-center gap-1 ${
+                          animeFilterType === flt.id
+                            ? 'bg-pink-500/30 border-pink-400 text-pink-100 shadow-sm'
+                            : 'bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <span>{flt.label}</span>
+                        <span className="font-mono text-[9px] opacity-75">({flt.count})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Live Search Results */}
                 {animeSearchLoading ? (
                   <div className="flex items-center justify-center gap-2 py-4 text-xs text-gray-400">
                     <Loader2 className="w-4 h-4 animate-spin text-pink-400" />
-                    <span>Searching AniList characters...</span>
+                    <span>Searching AniList anime & manga characters...</span>
                   </div>
                 ) : animeSearchTouched && animeSearchResults.length === 0 ? (
                   <p className="text-[11px] text-gray-400 text-center py-2">
-                    No anime characters found for &quot;{animeSearchQuery}&quot;. Try another name!
+                    No anime or manga characters found for &quot;{animeSearchQuery}&quot;. Try searching by series title (e.g. &quot;Ramparts of Ice&quot;) or character name!
                   </p>
                 ) : animeSearchResults.length > 0 ? (
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                      <span>Found {animeSearchResults.length} characters — tap to use or + Pin</span>
+                      <span>
+                        Showing {Math.min(filteredAnimeSearchResults.length, animeVisibleCount)} of {filteredAnimeSearchResults.length} characters — tap to use or + Pin
+                      </span>
+                      {animeSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAnimeSearchQuery('');
+                            setAnimeSearchResults([]);
+                            setAnimeSearchTouched(false);
+                          }}
+                          className="text-pink-300 hover:underline cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
                     </div>
-                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-60 overflow-y-auto pr-0.5">
-                      {animeSearchResults.map((char) => {
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-0.5 scrollbar-thin">
+                      {filteredAnimeSearchResults.slice(0, animeVisibleCount).map((char) => {
                         const isSelected = selectedAvatar === char.url;
                         const isPinned = (avatarCollections.anime?.items || []).some(
                           (it) => it.id === char.id || it.url === char.url
                         );
+                        const isManga = char.type === 'manga' || char.format === 'Manga';
+
                         return (
                           <div
                             key={char.id}
@@ -1471,7 +1550,7 @@ export default function Profile() {
                                 alt={char.name}
                                 referrerPolicy="no-referrer"
                                 loading="lazy"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                               />
                               {isSelected && (
                                 <div className="absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow">
@@ -1481,7 +1560,7 @@ export default function Profile() {
                               <button
                                 type="button"
                                 onClick={(e) => handlePinAnimeCharacter(char, e)}
-                                title={isPinned ? 'Saved in Anime Characters' : 'Pin to Anime Characters'}
+                                title={isPinned ? 'Saved in Anime & Manga' : 'Pin to Anime & Manga'}
                                 className={`absolute top-1 left-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition shadow ${
                                   isPinned
                                     ? 'bg-emerald-500/90 text-black'
@@ -1490,15 +1569,39 @@ export default function Profile() {
                               >
                                 {isPinned ? 'Pinned' : '+ Pin'}
                               </button>
+                              <div className="absolute bottom-1 right-1">
+                                {isManga ? (
+                                  <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-emerald-500/90 text-black shadow">
+                                    Manga
+                                  </span>
+                                ) : (
+                                  <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-pink-500/90 text-white shadow">
+                                    Anime
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div className="pt-1 px-0.5">
-                              <p className="text-[10px] font-bold text-white truncate">{char.name}</p>
-                              <p className="text-[9px] text-gray-400 truncate">{char.series}</p>
+                              <p className="text-[10px] font-bold text-white truncate" title={char.name}>{char.name}</p>
+                              <p className="text-[9px] text-gray-400 truncate" title={char.series}>{char.series}</p>
                             </div>
                           </div>
                         );
                       })}
                     </div>
+
+                    {filteredAnimeSearchResults.length > animeVisibleCount && (
+                      <button
+                        type="button"
+                        onClick={() => setAnimeVisibleCount((c) => c + 30)}
+                        className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 hover:text-white transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                      >
+                        <span>+ Show More Characters</span>
+                        <span className="text-pink-300 font-mono text-[11px]">
+                          ({filteredAnimeSearchResults.length - animeVisibleCount} remaining)
+                        </span>
+                      </button>
+                    )}
                   </div>
                 ) : null}
               </div>
