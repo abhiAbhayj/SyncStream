@@ -223,6 +223,69 @@ export const removeContinueWatching = async (idOrMediaId, mediaType = null) => {
 };
 
 /**
+ * Clear all continue-watching items or clear by media type ('movie' | 'tv' | 'anime' | 'manga')
+ */
+export const clearContinueWatching = async (mediaType = null) => {
+  // 1. Update local storage
+  const localList = getLocalContinueWatching();
+  let updatedList;
+  if (mediaType && mediaType !== 'all') {
+    updatedList = localList.filter((item) => item.media_type !== mediaType);
+  } else {
+    updatedList = [];
+  }
+
+  setLocalContinueWatching(updatedList);
+  notifyContinueWatchingUpdated();
+
+  // 2. Call backend if authenticated
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const url = mediaType && mediaType !== 'all'
+        ? `/api/media/continue-watching/all?media_type=${encodeURIComponent(mediaType)}`
+        : '/api/media/continue-watching/all';
+      await axios.delete(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.warn('[ContinueWatching] Failed to clear items in MySQL backend:', err.message);
+    }
+  }
+
+  return updatedList;
+};
+
+/**
+ * Bulk restore multiple continue-watching items (e.g. for Undo of Clear All / Clear Category)
+ */
+export const restoreContinueWatchingBatch = async (items) => {
+  if (!Array.isArray(items) || items.length === 0) return;
+
+  const localList = getLocalContinueWatching();
+  const existingMap = new Map();
+  localList.forEach((it) => existingMap.set(`${it.media_type}_${it.external_media_id}`, it));
+  items.forEach((it) => existingMap.set(`${it.media_type}_${it.external_media_id}`, it));
+
+  const merged = Array.from(existingMap.values());
+  setLocalContinueWatching(merged);
+  notifyContinueWatchingUpdated();
+
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      await axios.post(
+        '/api/media/continue-watching/sync',
+        { items },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.warn('[ContinueWatching] Failed to bulk restore items to MySQL:', err.message);
+    }
+  }
+};
+
+/**
  * Sync local guest items to MySQL database when logging in
  */
 export const syncLocalContinueWatchingToServer = async () => {

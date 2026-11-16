@@ -2109,12 +2109,27 @@ export const saveContinueWatching = async (req, res) => {
   }
 };
 
-// 8c. Remove / Delete from Continue Watching
+// 8c. Remove / Delete from Continue Watching (Individual or Category / All)
 export const removeContinueWatching = async (req, res) => {
   const { id } = req.params;
   const { media_type } = req.query;
 
   try {
+    if (id === 'all') {
+      if (media_type && media_type !== 'all') {
+        await db.query(
+          'DELETE FROM continue_watching WHERE user_id = ? AND media_type = ?',
+          [req.user.id, media_type]
+        );
+      } else {
+        await db.query(
+          'DELETE FROM continue_watching WHERE user_id = ?',
+          [req.user.id]
+        );
+      }
+      return res.json({ message: 'Cleared continue watching items successfully.' });
+    }
+
     if (media_type) {
       await db.query(
         'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR (external_media_id = ? AND media_type = ?))',
