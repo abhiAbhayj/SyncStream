@@ -12,7 +12,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server } from 'lucide-react';
+import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw } from 'lucide-react';
 
 function CastAvatarCard({ member, onSelect, gridMode = false }) {
   const [imgFailed, setImgFailed] = useState(false);
