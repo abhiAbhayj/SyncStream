@@ -2008,6 +2008,186 @@ export const removeFromWatchlist = async (req, res) => {
   }
 };
 
+// ── Continue Watching Handlers ─────────────────────────────────────────────
+
+// 8a. Get User Continue Watching
+export const getContinueWatching = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, external_media_id, media_type, title, poster_path, backdrop_path,
+              season_number, episode_number, episode_title,
+              chapter_id, chapter_number, chapter_title,
+              progress_seconds, duration_seconds, last_watched_at, created_at
+       FROM continue_watching
+       WHERE user_id = ?
+       ORDER BY last_watched_at DESC
+       LIMIT 30`,
+      [req.user.id]
+    );
+
+    const healedList = await healMangaWatchlistCovers(rows);
+    res.json(healedList);
+  } catch (error) {
+    console.error('[Continue Watching GET Error]:', error);
+    res.status(500).json({ error: 'Failed to retrieve continue watching items.' });
+  }
+};
+
+// 8b. Save / Upsert Continue Watching
+export const saveContinueWatching = async (req, res) => {
+  const {
+    external_media_id,
+    media_type,
+    title,
+    poster_path,
+    backdrop_path,
+    season_number,
+    episode_number,
+    episode_title,
+    chapter_id,
+    chapter_number,
+    chapter_title,
+    progress_seconds = 0,
+    duration_seconds = 0
+  } = req.body;
+
+  if (!external_media_id || !media_type || !title) {
+    return res.status(400).json({ error: 'Missing required media details (external_media_id, media_type, title).' });
+  }
+
+  try {
+    const safePoster = (media_type !== 'manga' || isValidCoverUrl(poster_path)) ? (poster_path || null) : null;
+    const safeBackdrop = backdrop_path || null;
+
+    const parsedSeason = season_number !== undefined && season_number !== null ? parseInt(season_number, 10) : null;
+    const parsedEpisode = episode_number !== undefined && episode_number !== null ? parseInt(episode_number, 10) : null;
+    const parsedProgress = parseInt(progress_seconds || '0', 10) || 0;
+    const parsedDuration = parseInt(duration_seconds || '0', 10) || 0;
+
+    await db.query(
+      `INSERT INTO continue_watching (
+        user_id, external_media_id, media_type, title, poster_path, backdrop_path,
+        season_number, episode_number, episode_title,
+        chapter_id, chapter_number, chapter_title,
+        progress_seconds, duration_seconds, last_watched_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      ON DUPLICATE KEY UPDATE
+        title = VALUES(title),
+        poster_path = COALESCE(VALUES(poster_path), poster_path),
+        backdrop_path = COALESCE(VALUES(backdrop_path), backdrop_path),
+        season_number = COALESCE(VALUES(season_number), season_number),
+        episode_number = COALESCE(VALUES(episode_number), episode_number),
+        episode_title = COALESCE(VALUES(episode_title), episode_title),
+        chapter_id = COALESCE(VALUES(chapter_id), chapter_id),
+        chapter_number = COALESCE(VALUES(chapter_number), chapter_number),
+        chapter_title = COALESCE(VALUES(chapter_title), chapter_title),
+        progress_seconds = CASE WHEN VALUES(progress_seconds) > 0 THEN VALUES(progress_seconds) ELSE progress_seconds END,
+        duration_seconds = CASE WHEN VALUES(duration_seconds) > 0 THEN VALUES(duration_seconds) ELSE duration_seconds END,
+        last_watched_at = NOW()`,
+      [
+        req.user.id,
+        String(external_media_id),
+        media_type,
+        title,
+        safePoster,
+        safeBackdrop,
+        parsedSeason,
+        parsedEpisode,
+        episode_title || null,
+        chapter_id ? String(chapter_id) : null,
+        chapter_number ? String(chapter_number) : null,
+        chapter_title || null,
+        parsedProgress,
+        parsedDuration
+      ]
+    );
+
+    res.status(200).json({ message: 'Continue watching state saved successfully.' });
+  } catch (error) {
+    console.error('[Continue Watching POST Error]:', error);
+    res.status(500).json({ error: 'Failed to record continue watching progress.' });
+  }
+};
+
+// 8c. Remove / Delete from Continue Watching
+export const removeContinueWatching = async (req, res) => {
+  const { id } = req.params;
+  const { media_type } = req.query;
+
+  try {
+    if (media_type) {
+      await db.query(
+        'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR (external_media_id = ? AND media_type = ?))',
+        [req.user.id, id, id, media_type]
+      );
+    } else {
+      await db.query(
+        'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR external_media_id = ?)',
+        [req.user.id, id, id]
+      );
+    }
+
+    res.json({ message: 'Removed from continue watching.' });
+  } catch (error) {
+    console.error('[Continue Watching DELETE Error]:', error);
+    res.status(500).json({ error: 'Failed to remove from continue watching.' });
+  }
+};
+
+// 8d. Bulk Sync Continue Watching (e.g. on user login/register)
+export const syncContinueWatching = async (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.json({ message: 'No items to sync.' });
+  }
+
+  try {
+    for (const item of items) {
+      if (!item.external_media_id || !item.media_type || !item.title) continue;
+      const safePoster = (item.media_type !== 'manga' || isValidCoverUrl(item.poster_path)) ? (item.poster_path || null) : null;
+      await db.query(
+        `INSERT INTO continue_watching (
+          user_id, external_media_id, media_type, title, poster_path, backdrop_path,
+          season_number, episode_number, episode_title,
+          chapter_id, chapter_number, chapter_title,
+          progress_seconds, duration_seconds, last_watched_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ON DUPLICATE KEY UPDATE
+          title = VALUES(title),
+          poster_path = COALESCE(VALUES(poster_path), poster_path),
+          backdrop_path = COALESCE(VALUES(backdrop_path), backdrop_path),
+          season_number = COALESCE(VALUES(season_number), season_number),
+          episode_number = COALESCE(VALUES(episode_number), episode_number),
+          episode_title = COALESCE(VALUES(episode_title), episode_title),
+          chapter_id = COALESCE(VALUES(chapter_id), chapter_id),
+          chapter_number = COALESCE(VALUES(chapter_number), chapter_number),
+          chapter_title = COALESCE(VALUES(chapter_title), chapter_title),
+          last_watched_at = NOW()`,
+        [
+          req.user.id,
+          String(item.external_media_id),
+          item.media_type,
+          item.title,
+          safePoster,
+          item.backdrop_path || null,
+          item.season_number ? parseInt(item.season_number, 10) : null,
+          item.episode_number ? parseInt(item.episode_number, 10) : null,
+          item.episode_title || null,
+          item.chapter_id ? String(item.chapter_id) : null,
+          item.chapter_number ? String(item.chapter_number) : null,
+          item.chapter_title || null,
+          item.progress_seconds ? parseInt(item.progress_seconds, 10) : 0,
+          item.duration_seconds ? parseInt(item.duration_seconds, 10) : 0
+        ]
+      );
+    }
+    res.json({ message: 'Continue watching items synchronized.' });
+  } catch (error) {
+    console.error('[Continue Watching Sync Error]:', error);
+    res.status(500).json({ error: 'Failed to synchronize continue watching.' });
+  }
+};
+
 
 // 7. Get Deep Catalog Pagination
 export const getCatalog = async (req, res) => {

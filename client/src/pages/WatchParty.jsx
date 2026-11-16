@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
+import { recordContinueWatching } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
@@ -194,6 +195,21 @@ export default function WatchParty() {
       fetchSeason();
     }
   }, [room, activeSeason]);
+
+  // Automatically record continue watching for Watch Party sessions
+  useEffect(() => {
+    if (!room || !mediaDetail) return;
+    const isSeries = room.media_type === 'tv' || room.media_type === 'anime';
+    recordContinueWatching({
+      external_media_id: room.external_media_id,
+      media_type: room.media_type,
+      title: mediaDetail.title || mediaDetail.name,
+      poster_path: mediaDetail.poster_path,
+      backdrop_path: mediaDetail.backdrop_path,
+      season_number: isSeries ? (activeSeason || 1) : null,
+      episode_number: isSeries ? (activeEpisode || 1) : null
+    });
+  }, [room, mediaDetail, activeSeason, activeEpisode]);
 
   // 2. Join socket room & register event listeners
   useEffect(() => {

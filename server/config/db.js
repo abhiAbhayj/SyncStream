@@ -166,6 +166,30 @@ export async function initDB() {
       );
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS continue_watching (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        external_media_id VARCHAR(100) NOT NULL,
+        media_type ENUM('movie', 'tv', 'anime', 'manga') NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        poster_path TEXT DEFAULT NULL,
+        backdrop_path TEXT DEFAULT NULL,
+        season_number INT DEFAULT NULL,
+        episode_number INT DEFAULT NULL,
+        episode_title VARCHAR(255) DEFAULT NULL,
+        chapter_id VARCHAR(100) DEFAULT NULL,
+        chapter_number VARCHAR(50) DEFAULT NULL,
+        chapter_title VARCHAR(255) DEFAULT NULL,
+        progress_seconds INT DEFAULT 0,
+        duration_seconds INT DEFAULT 0,
+        last_watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_continue_media (user_id, external_media_id, media_type)
+      );
+    `);
+
     // ── Safe Auto-Migrations using INFORMATION_SCHEMA ──────────────────────
     // Check actual live column state before touching anything.
 

@@ -53,13 +53,14 @@
 - [🌌 Architecture & Data Flow](#-architecture--data-flow)
 - [⚡ Feature Highlights](#-feature-highlights)
   - [1. 🎬 10 Streaming Servers Engine](#1--10-streaming-servers-engine)
-  - [2. 🎵 Persistent Background Music Engine & Jukebox](#2--persistent-background-music-engine--jukebox)
-  - [3. 🎭 Universal Anime & Manga Character Resolver](#3--universal-anime--manga-character-resolver)
-  - [4. 🛡️ Security-First Confirmation Alert Modal](#4--security-first-confirmation-alert-modal)
-  - [5. 🎨 8 Holographic Canvas & Particle Dashboard Themes](#5--8-holographic-canvas--particle-dashboard-themes)
-  - [6. 🌐 Real-Time Synchronized Watch Parties](#6--real-time-synchronized-watch-parties)
-  - [7. 📖 Ultra-Responsive Manga Reader](#7--ultra-responsive-manga-reader)
-  - [8. 🎙️ Spotlight Instant Search & Voice AI](#8--spotlight-instant-search--voice-ai)
+  - [2. 🕒 Persistent Continue Watching & Reading (MySQL Backed)](#2--persistent-continue-watching--reading-mysql-backed)
+  - [3. 🎵 Persistent Background Music Engine & Jukebox](#3--persistent-background-music-engine--jukebox)
+  - [4. 🎭 Universal Anime & Manga Character Resolver](#4--universal-anime--manga-character-resolver)
+  - [5. 🛡️ Security-First Confirmation Alert Modal](#5--security-first-confirmation-alert-modal)
+  - [6. 🎨 8 Holographic Canvas & Particle Dashboard Themes](#6--8-holographic-canvas--particle-dashboard-themes)
+  - [7. 🌐 Real-Time Synchronized Watch Parties](#7--real-time-synchronized-watch-parties)
+  - [8. 📖 Ultra-Responsive Manga Reader](#8--ultra-responsive-manga-reader)
+  - [9. 🎙️ Spotlight Instant Search & Voice AI](#9--spotlight-instant-search--voice-ai)
 - [🕹️ User Operations Manual](#️-user-operations-manual)
 - [🛠️ Full Tech Stack Specification](#️-full-tech-stack-specification)
 - [📁 Interactive Project Tree](#-interactive-project-tree)
@@ -92,11 +93,11 @@
                     │      MySQL 8 DB         │  │  SOCKET.IO  │  │   EXTERNAL CONTENT NETWORKS        │
                     │─────────────────────────│  │   ENGINE    │  │────────────────────────────────────│
                     │ • users (bcrypt auth)   │  │─────────────│  │ • 10 Verified Streaming Mirrors    │
-                    │ • watchlist (library)   │  │ • Room Host │  │ • TMDB v3 (Metadata & Cast)        │
-                    │ • playlists & favorites │  │ • Sync Play │  │ • AniList GraphQL (All Anime/Manga)│
-                    │ • rooms (party states)  │  │ • Live Chat │  │ • MangaDex REST API (5000+ chs)    │
-                    └─────────────────────────┘  └─────────────┘  │ • YouTube Cloud Audio Stream       │
-                                                                  └────────────────────────────────────┘
+                    │ • continue_watching     │  │ • Room Host │  │ • TMDB v3 (Metadata & Cast)        │
+                    │ • watchlist (library)   │  │ • Sync Play │  │ • AniList GraphQL (All Anime/Manga)│
+                    │ • playlists & favorites │  │ • Live Chat │  │ • MangaDex REST API (5000+ chs)    │
+                    │ • rooms (party states)  │  └─────────────┘  │ • YouTube Cloud Audio Stream       │
+                    └─────────────────────────┘                   └────────────────────────────────────┘
 ```
 
 ---
@@ -126,7 +127,31 @@ Never get interrupted by dead links or slow buffering again. SyncStream features
 
 ---
 
-### 2. 🎵 Persistent Background Music Engine & Jukebox
+### 2. 🕒 Persistent Continue Watching & Reading (MySQL Backed)
+
+Never lose your place across any movie, TV series, anime, or manga. Even if you clear your browser cache, cookies, or switch devices, your in-progress media is safely preserved in the database and stays on your home page until you explicitly delete it.
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  CONTINUE WATCHING & READING (HOME PAGE CAROUSEL)                                                │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  [ 🎬 Fight Club ]          [ 📺 Breaking Bad ]           [ 📖 Ramparts of Ice ]                 │
+│  Movie • Resume Playback    S2 E4 • Grilled               Ch. 14 • Melting Point                 │
+│  [========      ] 65%       [============  ] 85%          [======        ] 45%                   │
+│  [▶ Resume]   [❌ Remove]    [▶ Resume]   [❌ Remove]      [📖 Read]   [❌ Remove]                │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+* **Indestructible MySQL Persistence**: Stored server-side in the `continue_watching` relational table tied to your user account. Clearing browser cache will **never** delete your in-progress media!
+* **Multi-Media Continuity**:
+  * **Movies**: Remembers exact title, poster/backdrop, and resume state.
+  * **TV Shows & Anime**: Automatically updates the active Season, Episode number, and Episode title as you watch.
+  * **Manga**: Captures the exact chapter ID and title, opening directly into the Manga Reader with one click.
+* **Interactive Removal with Undo Safety**: Clicking the card's "X" button prompts a confirmation modal with item preview; confirmed removals feature a floating 4.5-second undo toast to easily recover accidental clicks.
+
+---
+
+### 3. 🎵 Persistent Background Music Engine & Jukebox
 
 Listen to your favorite tracks anywhere in the app without stutter or interruption.
 
@@ -147,7 +172,7 @@ Listen to your favorite tracks anywhere in the app without stutter or interrupti
 
 ---
 
-### 3. 🎭 Universal Anime & Manga Character Resolver
+### 4. 🎭 Universal Anime & Manga Character Resolver
 
 Search for any character from any anime, manga, light novel, or visual novel in existence using natural language.
 
@@ -177,7 +202,7 @@ Search for any character from any anime, manga, light novel, or visual novel in 
 
 ---
 
-### 4. 🛡️ Security-First Confirmation Alert Modal
+### 5. 🛡️ Security-First Confirmation Alert Modal
 
 No more accidental clicks ruining your curated playlists or library!
 
@@ -212,7 +237,7 @@ No more accidental clicks ruining your curated playlists or library!
 
 ---
 
-### 5. 🎨 8 Holographic Canvas & Particle Dashboard Themes
+### 6. 🎨 8 Holographic Canvas & Particle Dashboard Themes
 
 SyncStream features 8 custom GPU-accelerated canvas particle engines and dynamic CSS palettes:
 
@@ -229,7 +254,7 @@ SyncStream features 8 custom GPU-accelerated canvas particle engines and dynamic
 
 ---
 
-### 6. 🌐 Real-Time Synchronized Watch Parties
+### 7. 🌐 Real-Time Synchronized Watch Parties
 
 Watch movies and shows with friends across the globe with millisecond-accurate sync.
 
@@ -240,7 +265,7 @@ Watch movies and shows with friends across the globe with millisecond-accurate s
 
 ---
 
-### 7. 📖 Ultra-Responsive Manga Reader
+### 8. 📖 Ultra-Responsive Manga Reader
 
 * **5,000+ Chapters Per Series**: Powered by MangaDex high-speed CDN nodes.
 * **Multiple Reading Layouts**: Choose between vertical Webtoon continuous scroll or horizontal single-page book modes.
@@ -249,7 +274,7 @@ Watch movies and shows with friends across the globe with millisecond-accurate s
 
 ---
 
-### 8. 🎙️ Spotlight Instant Search & Voice AI
+### 9. 🎙️ Spotlight Instant Search & Voice AI
 
 * **Spotlight Modal (`Ctrl + K` / `Cmd + K`)**: Universal command palette to search movies, TV shows, anime, manga, and music tracks from any page.
 * **Voice Assistant Integration**: Hands-free voice recognition allowing commands like *"Play Interstellar"*, *"Search Berserk manga"*, or *"Mute music"*.
@@ -465,6 +490,10 @@ npm run dev
 | `GET` | `/api/media/watchlist` | Get user's saved library items | ✅ |
 | `POST` | `/api/media/watchlist` | Save title to user's library | ✅ |
 | `DELETE` | `/api/media/watchlist/:id` | Remove title from user's library | ✅ |
+| `GET` | `/api/media/continue-watching` | Retrieve user's in-progress media (ordered by last watched) | ✅ |
+| `POST` | `/api/media/continue-watching` | Record or update movie, series episode, or manga progress | ✅ |
+| `DELETE` | `/api/media/continue-watching/:id` | Remove item from continue watching (persisted in DB) | ✅ |
+| `POST` | `/api/media/continue-watching/sync` | Bulk sync local guest progress into user database | ✅ |
 
 </details>
 

@@ -8,6 +8,10 @@ import {
   getWatchlist,
   addToWatchlist,
   removeFromWatchlist,
+  getContinueWatching,
+  saveContinueWatching,
+  removeContinueWatching,
+  syncContinueWatching,
   getCatalog,
   getTvSeason,
   getPersonCredits,
@@ -36,5 +40,11 @@ router.get('/catalog/:category/:type', getCatalog);
 router.get('/watchlist', authenticateToken, getWatchlist);
 router.post('/watchlist', authenticateToken, addToWatchlist);
 router.delete('/watchlist/:id', authenticateToken, removeFromWatchlist);
+
+// User Continue Watching endpoints (persisted in MySQL, survives cache clearing)
+router.get('/continue-watching', authenticateToken, getContinueWatching);
+router.post('/continue-watching', authenticateToken, saveContinueWatching);
+router.delete('/continue-watching/:id', authenticateToken, removeContinueWatching);
+router.post('/continue-watching/sync', authenticateToken, syncContinueWatching);
 
 export default router;

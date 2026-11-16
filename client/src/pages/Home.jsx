@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
 import MediaCardSkeleton from '../components/MediaCardSkeleton';
+import ContinueWatchingSection from '../components/ContinueWatchingSection';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -445,6 +446,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── Continue Watching & Reading Rail ── */}
+      <ContinueWatchingSection />
 
       {/* ── Discovery Feed Live Header Row ── */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { syncLocalContinueWatchingToServer, fetchContinueWatching } from '../utils/continueWatching';
 
 const AuthContext = createContext();
 
@@ -32,6 +33,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await axios.get('/api/auth/profile');
         setUser(res.data.user);
+        // Load Continue Watching from MySQL
+        fetchContinueWatching().catch(() => {});
       } catch (err) {
         console.error('Failed to fetch user profile:', err.message);
         logout();
@@ -50,6 +53,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', userToken);
       setToken(userToken);
       setUser(userData);
+      // Sync guest continue watching items into user's MySQL account
+      syncLocalContinueWatchingToServer().catch(() => {});
       return { success: true };
     } catch (err) {
       const status = err.response?.status;
@@ -67,6 +72,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', userToken);
       setToken(userToken);
       setUser(userData);
+      // Sync guest continue watching items into user's MySQL account
+      syncLocalContinueWatchingToServer().catch(() => {});
       return { success: true };
     } catch (err) {
       const status = err.response?.status;

@@ -9,6 +9,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
+import { recordContinueWatching } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server } from 'lucide-react';
@@ -112,6 +113,7 @@ export default function MediaDetail() {
   const urlSeason = searchParams.get('season');
   const urlEpisode = searchParams.get('episode');
   const urlPlay = searchParams.get('play');
+  const urlChapter = searchParams.get('chapter');
 
   const [detail, setDetail] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -241,7 +243,15 @@ export default function MediaDetail() {
           if (isMangaDexUuid) {
             try {
               const chaptersRes = await axios.get(`/api/media/manga/chapters/${chapterSourceId}`);
-              setChapters(chaptersRes.data || []);
+              const chList = chaptersRes.data || [];
+              setChapters(chList);
+              if (urlChapter && chList.length > 0) {
+                const found = chList.find(c => String(c.id) === String(urlChapter) || String(c.chapter) === String(urlChapter));
+                if (found) {
+                  setActiveChapterId(found.id);
+                  setActiveChapterTitle(`Chapter ${found.chapter}${found.title ? `: ${found.title}` : ''}`);
+                }
+              }
             } catch (chErr) {
               console.warn('Failed to load manga chapters list:', chErr.message);
               setChapters([]);
@@ -280,6 +290,55 @@ export default function MediaDetail() {
       fetchSeason();
     }
   }, [type, id, activeSeason]);
+
+  // Automatically record Continue Watching progress for Video Content (Movie, TV, Anime)
+  useEffect(() => {
+    if (!detail || !detail.title) return;
+
+    if (type === 'movie' && playbackMode !== 'trailer') {
+      recordContinueWatching({
+        external_media_id: id,
+        media_type: 'movie',
+        title: detail.title,
+        poster_path: detail.poster_path,
+        backdrop_path: detail.backdrop_path
+      });
+    } else if ((type === 'tv' || type === 'anime') && playbackMode !== 'trailer' && activeEpisode) {
+      const curSeasonData = seasonEpisodes?.find(e => e.episode_number === activeEpisode);
+      const curAnimeData = episodes?.find(e => parseInt(e.episode || e.number, 10) === activeEpisode);
+      const epTitle = curSeasonData?.name || curAnimeData?.title || `Episode ${activeEpisode}`;
+
+      recordContinueWatching({
+        external_media_id: id,
+        media_type: type,
+        title: detail.title,
+        poster_path: detail.poster_path,
+        backdrop_path: detail.backdrop_path,
+        season_number: activeSeason,
+        episode_number: activeEpisode,
+        episode_title: epTitle
+      });
+    }
+  }, [detail, type, id, playbackMode, activeSeason, activeEpisode, seasonEpisodes, episodes]);
+
+  // Automatically record Manga reading progress
+  useEffect(() => {
+    if (!detail || type !== 'manga' || !activeChapterId) return;
+    const currentCh = chapters?.find(c => String(c.id) === String(activeChapterId));
+    const chNum = currentCh?.chapter || '';
+    const chTitle = currentCh?.title || activeChapterTitle || (chNum ? `Chapter ${chNum}` : '');
+
+    recordContinueWatching({
+      external_media_id: id,
+      media_type: 'manga',
+      title: detail.title,
+      poster_path: detail.poster_path,
+      backdrop_path: detail.backdrop_path,
+      chapter_id: activeChapterId,
+      chapter_number: chNum,
+      chapter_title: chTitle
+    });
+  }, [detail, type, id, activeChapterId, activeChapterTitle, chapters]);
 
   const fetchWatchlistStatus = async () => {
     try {
