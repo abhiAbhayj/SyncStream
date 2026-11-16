@@ -332,7 +332,8 @@ export default function MediaDetail() {
 
   // Save an instant snapshot of Continue Watching progress including current server & timestamp
   const saveProgressSnapshot = (targetServer = null, targetTime = null) => {
-    if (!detail || !detail.title || playbackMode === 'trailer') return;
+    const mediaTitle = detail?.title || detail?.name;
+    if (!detail || !mediaTitle || playbackMode === 'trailer') return;
     const curServer = targetServer || embedServer || 'vidsrcto';
     const curTime = targetTime !== null && targetTime !== undefined
       ? targetTime
@@ -343,7 +344,7 @@ export default function MediaDetail() {
       recordContinueWatching({
         external_media_id: id,
         media_type: 'movie',
-        title: detail.title,
+        title: mediaTitle,
         poster_path: detail.poster_path,
         backdrop_path: detail.backdrop_path,
         server_key: curServer,
@@ -358,7 +359,7 @@ export default function MediaDetail() {
       recordContinueWatching({
         external_media_id: id,
         media_type: type,
-        title: detail.title,
+        title: mediaTitle,
         poster_path: detail.poster_path,
         backdrop_path: detail.backdrop_path,
         season_number: activeSeason,
@@ -436,7 +437,7 @@ export default function MediaDetail() {
     recordContinueWatching({
       external_media_id: id,
       media_type: 'manga',
-      title: detail.title,
+      title: detail.title || detail.name || 'Manga',
       poster_path: detail.poster_path,
       backdrop_path: detail.backdrop_path,
       chapter_id: activeChapterId,

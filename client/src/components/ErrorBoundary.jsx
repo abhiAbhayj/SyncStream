@@ -16,18 +16,43 @@ export default class ErrorBoundary extends React.Component {
     this.setState({ errorInfo });
   }
 
-  handleReload = () => {
-    window.location.reload();
+  handleReload = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {
+      console.warn('Cache clearing error during reload:', e);
+    }
+    // Hard refresh with query bust to bypass browser HTTP disk cache
+    window.location.href = window.location.pathname + '?_fresh=' + Date.now();
   };
 
-  handleResetAndReload = () => {
+  handleResetAndReload = async () => {
     try {
       sessionStorage.clear();
       localStorage.removeItem('syncstream_theme');
       localStorage.removeItem('syncstream_favorites_order');
       localStorage.removeItem('syncstream_last_track');
-    } catch {}
-    window.location.href = '/';
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {}
+    window.location.href = '/?_fresh=' + Date.now();
   };
 
   handleGoHome = () => {
@@ -52,6 +77,17 @@ export default class ErrorBoundary extends React.Component {
             SyncStream encountered a temporary rendering hitch. You can reload this view or return to the home sanctuary.
           </p>
 
+          {/* Outdated Cache Alert Banner */}
+          {this.state.error && (this.state.error.message?.includes('useRef') || this.state.error.message?.includes('is not defined') || this.state.error.name === 'ChunkLoadError') && (
+            <div className="mb-4 p-3.5 rounded-2xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-200 text-xs sm:text-sm max-w-lg mx-auto flex items-center gap-3 text-left">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping shrink-0" />
+              <div>
+                <p className="font-bold text-cyan-300">Outdated Browser Cache Detected</p>
+                <p className="text-[11px] sm:text-xs text-cyan-200/80">Your browser retained an earlier cached version of SyncStream. Clicking &quot;Update Now&quot; below will purge your local cache and load the latest release immediately.</p>
+              </div>
+            </div>
+          )}
+
           {/* Diagnostic Details */}
           {this.state.error && (
             <div className="mb-6 p-4 rounded-xl bg-black/80 border border-red-500/40 text-red-300 font-mono text-xs max-w-xl w-full text-left overflow-auto max-h-48 shadow-inner select-text">
@@ -69,10 +105,10 @@ export default class ErrorBoundary extends React.Component {
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <button
               onClick={this.handleReload}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-accentPurple/25 hover:opacity-90 active:scale-95 transition"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-accentPurple/25 hover:opacity-90 active:scale-95 transition cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Reload App</span>
+              <span>Update Now (Clear Cache &amp; Reload)</span>
             </button>
             <button
               onClick={this.handleResetAndReload}

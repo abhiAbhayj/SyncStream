@@ -41,8 +41,18 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').then((reg) => {
+            // Force immediate check for fresh bundle
             reg.update();
           }).catch(err => console.log('SW reg error:', err));
+        });
+
+        // Auto reload if a new service worker version took control
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
         });
       }
     </script>
