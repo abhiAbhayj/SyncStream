@@ -100,6 +100,7 @@ export const recordContinueWatching = async ({
   chapter_id = null,
   chapter_number = null,
   chapter_title = null,
+  server_key = 'vidsrcto',
   progress_seconds = 0,
   duration_seconds = 0
 }) => {
@@ -118,6 +119,7 @@ export const recordContinueWatching = async ({
     chapter_id: chapter_id ? String(chapter_id) : null,
     chapter_number: chapter_number ? String(chapter_number) : null,
     chapter_title: chapter_title || null,
+    server_key: server_key || 'vidsrcto',
     progress_seconds: parseInt(progress_seconds || '0', 10) || 0,
     duration_seconds: parseInt(duration_seconds || '0', 10) || 0,
     last_watched_at: new Date().toISOString()
@@ -141,6 +143,9 @@ export const recordContinueWatching = async ({
       chapter_id: newItem.chapter_id ?? existing.chapter_id,
       chapter_number: newItem.chapter_number ?? existing.chapter_number,
       chapter_title: newItem.chapter_title ?? existing.chapter_title,
+      server_key: newItem.server_key || existing.server_key || 'vidsrcto',
+      progress_seconds: (newItem.progress_seconds && newItem.progress_seconds > 0) ? newItem.progress_seconds : existing.progress_seconds,
+      duration_seconds: (newItem.duration_seconds && newItem.duration_seconds > 0) ? newItem.duration_seconds : existing.duration_seconds,
       poster_path: newItem.poster_path || existing.poster_path,
       backdrop_path: newItem.backdrop_path || existing.backdrop_path,
       last_watched_at: new Date().toISOString()
@@ -171,6 +176,7 @@ export const recordContinueWatching = async ({
           chapter_id,
           chapter_number,
           chapter_title,
+          server_key: server_key || 'vidsrcto',
           progress_seconds,
           duration_seconds
         },
@@ -186,40 +192,60 @@ export const recordContinueWatching = async ({
 
 /**
  * Remove an item from Continue Watching:
- * 1. Removes from local storage
- * 2. If authenticated, deletes row from MySQL database
+ * 1. Removes from local storage immediately
+ * 2. Deletes row from MySQL database (awaited so GET won't bring it back)
+ * 3. Dispatches update event after database deletion completes
  */
-export const removeContinueWatching = async (idOrMediaId, mediaType = null) => {
-  if (!idOrMediaId) return;
+export const removeContinueWatching = async (idOrTarget, mediaType = null, externalMediaId = null) => {
+  if (!idOrTarget) return;
+
+  let targetId = idOrTarget;
+  let targetType = mediaType;
+  let targetExternalId = externalMediaId;
+
+  if (typeof idOrTarget === 'object' && idOrTarget !== null) {
+    targetId = idOrTarget.id;
+    targetType = idOrTarget.media_type || mediaType;
+    targetExternalId = idOrTarget.external_media_id || externalMediaId;
+  }
 
   // 1. Remove from local storage
   const localList = getLocalContinueWatching();
   const updatedList = localList.filter((item) => {
-    if (String(item.id) === String(idOrMediaId)) return false;
-    if (String(item.external_media_id) === String(idOrMediaId)) {
-      if (mediaType) return item.media_type !== mediaType;
+    if (targetId && String(item.id) === String(targetId)) return false;
+    if (targetExternalId && String(item.external_media_id) === String(targetExternalId)) {
+      if (targetType) return item.media_type !== targetType;
+      return false;
+    }
+    if (targetId && String(item.external_media_id) === String(targetId)) {
+      if (targetType) return item.media_type !== targetType;
       return false;
     }
     return true;
   });
 
   setLocalContinueWatching(updatedList);
-  notifyContinueWatchingUpdated();
 
-  // 2. Remove from MySQL database
+  // 2. Remove from MySQL database (WAIT so subsequent queries see the deleted state)
   const token = localStorage.getItem('token');
   if (token) {
     try {
-      const url = mediaType
-        ? `/api/media/continue-watching/${encodeURIComponent(idOrMediaId)}?media_type=${encodeURIComponent(mediaType)}`
-        : `/api/media/continue-watching/${encodeURIComponent(idOrMediaId)}`;
-      await axios.delete(url, {
+      const deleteId = targetExternalId || targetId;
+      const params = new URLSearchParams();
+      if (targetType) params.append('media_type', targetType);
+      if (targetExternalId) params.append('external_id', targetExternalId);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+
+      await axios.delete(`/api/media/continue-watching/${encodeURIComponent(deleteId)}${queryStr}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
     } catch (err) {
       console.warn('[ContinueWatching] Failed to delete from MySQL backend:', err.message);
     }
   }
+
+  // 3. Notify components ONLY AFTER database delete has executed
+  notifyContinueWatchingUpdated();
 };
 
 /**
@@ -236,9 +262,8 @@ export const clearContinueWatching = async (mediaType = null) => {
   }
 
   setLocalContinueWatching(updatedList);
-  notifyContinueWatchingUpdated();
 
-  // 2. Call backend if authenticated
+  // 2. Call backend if authenticated and WAIT for completion
   const token = localStorage.getItem('token');
   if (token) {
     try {
@@ -252,6 +277,9 @@ export const clearContinueWatching = async (mediaType = null) => {
       console.warn('[ContinueWatching] Failed to clear items in MySQL backend:', err.message);
     }
   }
+
+  // 3. Notify components ONLY AFTER database clear has executed
+  notifyContinueWatchingUpdated();
 
   return updatedList;
 };
@@ -310,18 +338,23 @@ export const syncLocalContinueWatchingToServer = async () => {
 
 /**
  * Helper to build resume URL for any continue-watching item
+ * Preserves the exact server and timestamp where the user stopped.
  */
 export const getResumeUrl = (item) => {
   if (!item || !item.external_media_id || !item.media_type) return '/';
   const id = item.external_media_id;
+  const srv = item.server_key ? `&server=${encodeURIComponent(item.server_key)}` : '';
+  const time = (item.progress_seconds && Number(item.progress_seconds) > 5)
+    ? `&time=${Math.floor(Number(item.progress_seconds))}`
+    : '';
 
   if (item.media_type === 'movie') {
-    return `/media/movie/${id}?play=true`;
+    return `/media/movie/${id}?play=true${srv}${time}`;
   }
   if (item.media_type === 'tv' || item.media_type === 'anime') {
     const s = item.season_number || 1;
     const ep = item.episode_number || 1;
-    return `/media/${item.media_type}/${id}?season=${s}&episode=${ep}&play=true`;
+    return `/media/${item.media_type}/${id}?season=${s}&episode=${ep}&play=true${srv}${time}`;
   }
   if (item.media_type === 'manga') {
     if (item.chapter_id) {

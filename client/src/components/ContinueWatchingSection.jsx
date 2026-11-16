@@ -15,7 +15,8 @@ import {
   Trash2,
   ChevronDown,
   Layers,
-  Check
+  Check,
+  Server
 } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
 import { 
@@ -26,6 +27,7 @@ import {
   restoreContinueWatchingBatch,
   getResumeUrl 
 } from '../utils/continueWatching';
+import { STREAMING_SERVERS } from '../utils/streamingServers';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 
 export default function ContinueWatchingSection() {
@@ -36,6 +38,7 @@ export default function ContinueWatchingSection() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [bulkClearTarget, setBulkClearTarget] = useState(null); // { type: 'all'|'movie'|'tv'|'anime'|'manga', label: string, count: number }
   const [undoToast, setUndoToast] = useState(null); // { isBulk: boolean, item?: object, items?: object[], label: string }
+  const undoToastRef = useRef(null);
   const undoTimerRef = useRef(null);
   const railRef = useRef(null);
   const clearMenuRef = useRef(null);
@@ -65,11 +68,25 @@ export default function ContinueWatchingSection() {
     };
   }, [showClearMenu]);
 
-  // Load items from database / local storage
+  // Load items from database / local storage while respecting pending undo state
   const loadItems = async () => {
     try {
       const data = await fetchContinueWatching();
-      setItems(data || []);
+      const raw = data || [];
+      if (undoToastRef.current) {
+        const toast = undoToastRef.current;
+        if (toast.isBulk) {
+          const bulkKeys = new Set((toast.items || []).map((i) => `${i.media_type}_${i.external_media_id}`));
+          setItems(raw.filter((i) => !bulkKeys.has(`${i.media_type}_${i.external_media_id}`)));
+        } else if (toast.item) {
+          const targetKey = `${toast.item.media_type}_${toast.item.external_media_id}`;
+          setItems(raw.filter((i) => `${i.media_type}_${i.external_media_id}` !== targetKey));
+        } else {
+          setItems(raw);
+        }
+      } else {
+        setItems(raw);
+      }
     } catch (e) {
       console.warn('[ContinueWatching] Failed to load:', e);
     } finally {
@@ -131,20 +148,24 @@ export default function ContinueWatchingSection() {
     const target = itemToDelete;
     setItemToDelete(null);
 
-    // Optimistically remove from state
+    // Optimistically remove from state immediately
     setItems((prev) => prev.filter((i) => i.id !== target.id && i.external_media_id !== target.external_media_id));
-
-    // Remove from MySQL database & local storage
-    await removeContinueWatching(target.id, target.media_type);
 
     // Provide 4.5s undo window
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setUndoToast({
+    const toastData = {
       isBulk: false,
       item: target,
       label: target.title
-    });
+    };
+    undoToastRef.current = toastData;
+    setUndoToast(toastData);
+
+    // Remove from MySQL database & local storage (awaited so backend is in sync)
+    await removeContinueWatching(target, target.media_type, target.external_media_id);
+
     undoTimerRef.current = setTimeout(() => {
+      undoToastRef.current = null;
       setUndoToast(null);
     }, 4500);
   };
@@ -166,24 +187,28 @@ export default function ContinueWatchingSection() {
       ? [...items]
       : items.filter((i) => i.media_type === type);
 
-    // Optimistically update state
+    // Optimistically update state immediately
     if (type === 'all') {
       setItems([]);
     } else {
       setItems((prev) => prev.filter((i) => i.media_type !== type));
     }
 
-    // Call backend & local cache clear
-    await clearContinueWatching(type);
-
     // Provide 4.5s undo window
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setUndoToast({
+    const toastData = {
       isBulk: true,
       items: removedItems,
       label: label
-    });
+    };
+    undoToastRef.current = toastData;
+    setUndoToast(toastData);
+
+    // Call backend & local cache clear (awaited)
+    await clearContinueWatching(type);
+
     undoTimerRef.current = setTimeout(() => {
+      undoToastRef.current = null;
       setUndoToast(null);
     }, 4500);
   };
@@ -192,6 +217,7 @@ export default function ContinueWatchingSection() {
   const handleUndo = async () => {
     if (!undoToast) return;
     const toastData = undoToast;
+    undoToastRef.current = null;
     setUndoToast(null);
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
 
@@ -200,12 +226,30 @@ export default function ContinueWatchingSection() {
     } else if (toastData.item) {
       await recordContinueWatching(toastData.item);
     }
-    loadItems();
+    await loadItems();
   };
 
   if (!loading && items.length === 0) {
     return null; // Don't take up space if nothing is in continue watching
   }
+
+  const getServerLabel = (serverKey) => {
+    if (!serverKey) return null;
+    const found = STREAMING_SERVERS.find((s) => s.key === serverKey);
+    return found ? (found.name || found.label) : null;
+  };
+
+  const formatProgressTime = (seconds) => {
+    if (!seconds || Number(seconds) <= 0) return null;
+    const total = Math.floor(Number(seconds));
+    const hrs = Math.floor(total / 3600);
+    const mins = Math.floor((total % 3600) / 60);
+    const secs = total % 60;
+    if (hrs > 0) {
+      return `${hrs}h ${mins}m`;
+    }
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
 
   const getMediaBadge = (type) => {
     switch (type) {
@@ -223,13 +267,16 @@ export default function ContinueWatchingSection() {
   };
 
   const getProgressLabel = (item) => {
+    const timeFormatted = formatProgressTime(item.progress_seconds);
+    const timeBadge = timeFormatted ? ` • ${timeFormatted}` : '';
+
     if (item.media_type === 'tv' || item.media_type === 'anime') {
       const s = item.season_number || 1;
       const ep = item.episode_number || 1;
       if (item.episode_title) {
-        return `S${s} E${ep} • ${item.episode_title}`;
+        return `S${s} E${ep} • ${item.episode_title}${timeBadge}`;
       }
-      return `Season ${s} • Episode ${ep}`;
+      return `Season ${s} • Episode ${ep}${timeBadge}`;
     }
     if (item.media_type === 'manga') {
       if (item.chapter_number) {
@@ -240,7 +287,7 @@ export default function ContinueWatchingSection() {
       }
       return 'Continue Reading';
     }
-    return 'Resume Movie';
+    return timeFormatted ? `At ${timeFormatted}` : 'Resume Movie';
   };
 
   return (
@@ -530,6 +577,15 @@ export default function ContinueWatchingSection() {
                       <span className="w-1.5 h-1.5 rounded-full bg-accentCyan shrink-0 animate-ping" />
                       <span className="truncate">{progressLabel}</span>
                     </p>
+
+                    {item.server_key && item.media_type !== 'manga' && (
+                      <div className="pt-0.5">
+                        <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold text-cyan-300/90 bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.5 rounded-md truncate max-w-full">
+                          <Server className="w-2.5 h-2.5 text-cyan-400 shrink-0" />
+                          <span className="truncate">{getServerLabel(item.server_key) || item.server_key}</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Direct Action Link Row */}

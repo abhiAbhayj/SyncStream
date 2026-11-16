@@ -114,6 +114,11 @@ export default function MediaDetail() {
   const urlEpisode = searchParams.get('episode');
   const urlPlay = searchParams.get('play');
   const urlChapter = searchParams.get('chapter');
+  const urlServer = searchParams.get('server');
+  const urlTime = searchParams.get('time');
+
+  // Look up saved continue watching / reading progress
+  const savedProgress = getSavedProgress(id, type);
 
   const [detail, setDetail] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -126,13 +131,25 @@ export default function MediaDetail() {
   
   // Anime episodes tracking
   const [episodes, setEpisodes] = useState([]);
-  const [activeSeason, setActiveSeason] = useState(urlSeason ? parseInt(urlSeason, 10) : 1);
-  const [activeEpisode, setActiveEpisode] = useState(urlEpisode ? parseInt(urlEpisode, 10) : 1);
+  const [activeSeason, setActiveSeason] = useState(urlSeason ? parseInt(urlSeason, 10) : (savedProgress?.season_number || 1));
+  const [activeEpisode, setActiveEpisode] = useState(urlEpisode ? parseInt(urlEpisode, 10) : (savedProgress?.episode_number || 1));
   
-  // Streaming server source tracking (Default: VidSrc TO - 100% Sandbox Protected)
-  const [embedServer, setEmbedServer] = useState('vidsrcto');
-  const [showAllServers, setShowAllServers] = useState(false);
+  // Streaming server source tracking (Preserves user's chosen server permanently)
+  const initialServer = urlServer || savedProgress?.server_key || 'vidsrcto';
+  const [embedServer, setEmbedServer] = useState(initialServer);
+  const isExtendedServer = STREAMING_SERVERS.findIndex(s => s.key === initialServer) >= 5;
+  const [showAllServers, setShowAllServers] = useState(isExtendedServer);
   const [customUrl, setCustomUrl] = useState('');
+
+  // Playback timestamp resume tracking (resumes where user stopped)
+  const initialTime = urlTime ? parseInt(urlTime, 10) : (savedProgress?.progress_seconds || 0);
+  const [resumeTime, setResumeTime] = useState(initialTime);
+  const [showResumeBanner, setShowResumeBanner] = useState(initialTime > 15);
+  const progressTrackerRef = useRef({
+    currentTime: initialTime,
+    duration: savedProgress?.duration_seconds || 0,
+    serverKey: initialServer
+  });
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -313,19 +330,27 @@ export default function MediaDetail() {
     }
   }, [type, id, activeSeason]);
 
-  // Automatically record Continue Watching progress for Video Content (Movie, TV, Anime)
-  useEffect(() => {
-    if (!detail || !detail.title) return;
+  // Save an instant snapshot of Continue Watching progress including current server & timestamp
+  const saveProgressSnapshot = (targetServer = null, targetTime = null) => {
+    if (!detail || !detail.title || playbackMode === 'trailer') return;
+    const curServer = targetServer || embedServer || 'vidsrcto';
+    const curTime = targetTime !== null && targetTime !== undefined
+      ? targetTime
+      : (progressTrackerRef.current.currentTime || resumeTime || 0);
+    const curDuration = progressTrackerRef.current.duration || 0;
 
-    if (type === 'movie' && playbackMode !== 'trailer') {
+    if (type === 'movie') {
       recordContinueWatching({
         external_media_id: id,
         media_type: 'movie',
         title: detail.title,
         poster_path: detail.poster_path,
-        backdrop_path: detail.backdrop_path
+        backdrop_path: detail.backdrop_path,
+        server_key: curServer,
+        progress_seconds: curTime,
+        duration_seconds: curDuration
       });
-    } else if ((type === 'tv' || type === 'anime') && playbackMode !== 'trailer' && activeEpisode) {
+    } else if ((type === 'tv' || type === 'anime') && activeEpisode) {
       const curSeasonData = seasonEpisodes?.find(e => e.episode_number === activeEpisode);
       const curAnimeData = episodes?.find(e => parseInt(e.episode || e.number, 10) === activeEpisode);
       const epTitle = curSeasonData?.name || curAnimeData?.title || `Episode ${activeEpisode}`;
@@ -338,10 +363,68 @@ export default function MediaDetail() {
         backdrop_path: detail.backdrop_path,
         season_number: activeSeason,
         episode_number: activeEpisode,
-        episode_title: epTitle
+        episode_title: epTitle,
+        server_key: curServer,
+        progress_seconds: curTime,
+        duration_seconds: curDuration
       });
     }
-  }, [detail, type, id, playbackMode, activeSeason, activeEpisode, seasonEpisodes, episodes]);
+  };
+
+  // Switch server and immediately save preference
+  const handleSelectServer = (serverKey) => {
+    setEmbedServer(serverKey);
+    progressTrackerRef.current.serverKey = serverKey;
+    saveProgressSnapshot(serverKey);
+  };
+
+  // Progress update callback from EmbedPlayer / VideoPlayer
+  const handleProgressUpdate = (currentTime, duration) => {
+    if (typeof currentTime === 'number' && currentTime >= 0) {
+      progressTrackerRef.current.currentTime = currentTime;
+      if (duration) progressTrackerRef.current.duration = duration;
+    }
+  };
+
+  // Helper to format seconds to MM:SS or HH:MM:SS
+  const formatTimestamp = (seconds) => {
+    if (!seconds || seconds <= 0) return '00:00';
+    const total = Math.floor(seconds);
+    const hrs = Math.floor(total / 3600);
+    const mins = Math.floor((total % 3600) / 60);
+    const secs = total % 60;
+    if (hrs > 0) {
+      return `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  // Automatically record Continue Watching progress with periodic heartbeat and unmount save
+  useEffect(() => {
+    if (!detail || !detail.title || playbackMode === 'trailer') return;
+
+    // Save immediate state on mode switch or episode selection
+    saveProgressSnapshot();
+
+    // Heartbeat: advances watching timer and syncs progress every 10 seconds while viewing
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        progressTrackerRef.current.currentTime += 5;
+        saveProgressSnapshot();
+      }
+    }, 10000);
+
+    const handleBeforeUnload = () => {
+      saveProgressSnapshot();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      saveProgressSnapshot();
+    };
+  }, [detail, type, id, playbackMode, embedServer, activeSeason, activeEpisode]);
 
   // Automatically record Manga reading progress
   useEffect(() => {
@@ -489,7 +572,8 @@ export default function MediaDetail() {
       id,
       tmdbId: detail?.tmdb_id || id,
       season: activeSeason || 1,
-      episode: activeEpisode || 1
+      episode: activeEpisode || 1,
+      startTime: resumeTime
     });
   };
 
@@ -873,6 +957,42 @@ export default function MediaDetail() {
       {/* Video Block & Theater Controls */}
       {type !== 'manga' && (
         <div ref={playerSectionRef} id="syncstream-player-section" className="space-y-4 text-left scroll-mt-24">
+          {/* Resume Playback Notice Banner */}
+          {showResumeBanner && resumeTime > 15 && (
+            <div className="flex items-center justify-between gap-3 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-accentCyan/15 via-[#0c1224] to-accentPurple/15 border border-accentCyan/40 backdrop-blur-md shadow-lg animate-fade-in">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-accentCyan animate-ping shrink-0" />
+                <p className="text-xs sm:text-sm font-semibold text-gray-200 truncate">
+                  Resumed at <span className="text-accentCyan font-mono font-bold">{formatTimestamp(resumeTime)}</span> on <span className="text-white font-bold">{STREAMING_SERVERS.find(s => s.key === embedServer)?.label || embedServer}</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResumeTime(0);
+                    setShowResumeBanner(false);
+                    progressTrackerRef.current.currentTime = 0;
+                    saveProgressSnapshot(embedServer, 0);
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-[10px] sm:text-xs font-bold text-gray-300 hover:text-white transition active:scale-95 cursor-pointer"
+                  title="Start playback from the beginning (00:00)"
+                >
+                  <RotateCcw className="w-3 h-3 text-accentCyan" />
+                  <span>Restart (00:00)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowResumeBanner(false)}
+                  className="p-1 rounded-lg text-gray-400 hover:text-white transition cursor-pointer"
+                  aria-label="Dismiss resume notice"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Playback Mode tabs */}
           <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-2 sm:gap-4">
             <div className="flex items-center gap-1.5 sm:gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold overflow-x-auto max-w-full scrollbar-none">
@@ -954,7 +1074,7 @@ export default function MediaDetail() {
                   return (
                     <button
                       key={server.key}
-                      onClick={() => setEmbedServer(server.key)}
+                      onClick={() => handleSelectServer(server.key)}
                       className={`group relative text-left p-2.5 sm:p-3 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1.5 active:scale-[0.98] ${
                         isActive
                           ? 'border-accentCyan bg-gradient-to-b from-accentCyan/20 via-accentCyan/10 to-transparent text-white shadow-lg shadow-accentCyan/15 ring-1 ring-accentCyan/40'
@@ -1047,7 +1167,7 @@ export default function MediaDetail() {
                       return (
                         <button
                           key={server.key}
-                          onClick={() => setEmbedServer(server.key)}
+                          onClick={() => handleSelectServer(server.key)}
                           className={`group relative text-left p-2.5 sm:p-3 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1.5 active:scale-[0.98] ${
                             isActive
                               ? 'border-accentPurple bg-gradient-to-b from-accentPurple/20 via-accentPurple/10 to-transparent text-white shadow-lg shadow-accentPurple/15 ring-1 ring-accentPurple/40'
@@ -1140,6 +1260,8 @@ export default function MediaDetail() {
               <EmbedPlayer
                 embedUrl={getEmbedUrl()}
                 title={detail.title}
+                initialTime={resumeTime}
+                onProgressUpdate={handleProgressUpdate}
               />
             )}
 
@@ -1165,11 +1287,18 @@ export default function MediaDetail() {
                   <VideoPlayer
                     src={videoSrc}
                     isHost={true}
+                    initialTime={resumeTime}
+                    onProgressUpdate={handleProgressUpdate}
                   />
                 );
               } else {
                 return (
-                  <EmbedPlayer embedUrl={videoSrc} title={detail.title} />
+                  <EmbedPlayer
+                    embedUrl={videoSrc}
+                    title={detail.title}
+                    initialTime={resumeTime}
+                    onProgressUpdate={handleProgressUpdate}
+                  />
                 );
               }
             })()}

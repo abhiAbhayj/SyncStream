@@ -2017,7 +2017,7 @@ export const getContinueWatching = async (req, res) => {
       `SELECT id, external_media_id, media_type, title, poster_path, backdrop_path,
               season_number, episode_number, episode_title,
               chapter_id, chapter_number, chapter_title,
-              progress_seconds, duration_seconds, last_watched_at, created_at
+              server_key, progress_seconds, duration_seconds, last_watched_at, created_at
        FROM continue_watching
        WHERE user_id = ?
        ORDER BY last_watched_at DESC
@@ -2047,6 +2047,7 @@ export const saveContinueWatching = async (req, res) => {
     chapter_id,
     chapter_number,
     chapter_title,
+    server_key = 'vidsrcto',
     progress_seconds = 0,
     duration_seconds = 0
   } = req.body;
@@ -2063,14 +2064,15 @@ export const saveContinueWatching = async (req, res) => {
     const parsedEpisode = episode_number !== undefined && episode_number !== null ? parseInt(episode_number, 10) : null;
     const parsedProgress = parseInt(progress_seconds || '0', 10) || 0;
     const parsedDuration = parseInt(duration_seconds || '0', 10) || 0;
+    const safeServerKey = server_key && typeof server_key === 'string' ? server_key.trim() : 'vidsrcto';
 
     await db.query(
       `INSERT INTO continue_watching (
         user_id, external_media_id, media_type, title, poster_path, backdrop_path,
         season_number, episode_number, episode_title,
         chapter_id, chapter_number, chapter_title,
-        progress_seconds, duration_seconds, last_watched_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        server_key, progress_seconds, duration_seconds, last_watched_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       ON DUPLICATE KEY UPDATE
         title = VALUES(title),
         poster_path = COALESCE(VALUES(poster_path), poster_path),
@@ -2081,6 +2083,7 @@ export const saveContinueWatching = async (req, res) => {
         chapter_id = COALESCE(VALUES(chapter_id), chapter_id),
         chapter_number = COALESCE(VALUES(chapter_number), chapter_number),
         chapter_title = COALESCE(VALUES(chapter_title), chapter_title),
+        server_key = COALESCE(VALUES(server_key), server_key),
         progress_seconds = CASE WHEN VALUES(progress_seconds) > 0 THEN VALUES(progress_seconds) ELSE progress_seconds END,
         duration_seconds = CASE WHEN VALUES(duration_seconds) > 0 THEN VALUES(duration_seconds) ELSE duration_seconds END,
         last_watched_at = NOW()`,
@@ -2097,6 +2100,7 @@ export const saveContinueWatching = async (req, res) => {
         chapter_id ? String(chapter_id) : null,
         chapter_number ? String(chapter_number) : null,
         chapter_title || null,
+        safeServerKey,
         parsedProgress,
         parsedDuration
       ]
@@ -2112,7 +2116,7 @@ export const saveContinueWatching = async (req, res) => {
 // 8c. Remove / Delete from Continue Watching (Individual or Category / All)
 export const removeContinueWatching = async (req, res) => {
   const { id } = req.params;
-  const { media_type } = req.query;
+  const { media_type, external_id } = req.query;
 
   try {
     if (id === 'all') {
@@ -2130,15 +2134,16 @@ export const removeContinueWatching = async (req, res) => {
       return res.json({ message: 'Cleared continue watching items successfully.' });
     }
 
+    const extId = external_id || id;
     if (media_type) {
       await db.query(
-        'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR (external_media_id = ? AND media_type = ?))',
-        [req.user.id, id, id, media_type]
+        'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR external_media_id = ? OR (external_media_id = ? AND media_type = ?))',
+        [req.user.id, id, extId, id, media_type]
       );
     } else {
       await db.query(
         'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR external_media_id = ?)',
-        [req.user.id, id, id]
+        [req.user.id, id, extId]
       );
     }
 
@@ -2160,13 +2165,14 @@ export const syncContinueWatching = async (req, res) => {
     for (const item of items) {
       if (!item.external_media_id || !item.media_type || !item.title) continue;
       const safePoster = (item.media_type !== 'manga' || isValidCoverUrl(item.poster_path)) ? (item.poster_path || null) : null;
+      const safeServerKey = item.server_key && typeof item.server_key === 'string' ? item.server_key.trim() : 'vidsrcto';
       await db.query(
         `INSERT INTO continue_watching (
           user_id, external_media_id, media_type, title, poster_path, backdrop_path,
           season_number, episode_number, episode_title,
           chapter_id, chapter_number, chapter_title,
-          progress_seconds, duration_seconds, last_watched_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          server_key, progress_seconds, duration_seconds, last_watched_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ON DUPLICATE KEY UPDATE
           title = VALUES(title),
           poster_path = COALESCE(VALUES(poster_path), poster_path),
@@ -2177,6 +2183,9 @@ export const syncContinueWatching = async (req, res) => {
           chapter_id = COALESCE(VALUES(chapter_id), chapter_id),
           chapter_number = COALESCE(VALUES(chapter_number), chapter_number),
           chapter_title = COALESCE(VALUES(chapter_title), chapter_title),
+          server_key = COALESCE(VALUES(server_key), server_key),
+          progress_seconds = CASE WHEN VALUES(progress_seconds) > 0 THEN VALUES(progress_seconds) ELSE progress_seconds END,
+          duration_seconds = CASE WHEN VALUES(duration_seconds) > 0 THEN VALUES(duration_seconds) ELSE duration_seconds END,
           last_watched_at = NOW()`,
         [
           req.user.id,
@@ -2191,6 +2200,7 @@ export const syncContinueWatching = async (req, res) => {
           item.chapter_id ? String(item.chapter_id) : null,
           item.chapter_number ? String(item.chapter_number) : null,
           item.chapter_title || null,
+          safeServerKey,
           item.progress_seconds ? parseInt(item.progress_seconds, 10) : 0,
           item.duration_seconds ? parseInt(item.duration_seconds, 10) : 0
         ]
@@ -2198,6 +2208,10 @@ export const syncContinueWatching = async (req, res) => {
     }
     res.json({ message: 'Continue watching items synchronized.' });
   } catch (error) {
+    console.error('[Continue Watching Sync Error]:', error);
+    res.status(500).json({ error: 'Failed to synchronize continue watching.' });
+  }
+};
     console.error('[Continue Watching Sync Error]:', error);
     res.status(500).json({ error: 'Failed to synchronize continue watching.' });
   }

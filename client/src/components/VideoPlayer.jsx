@@ -6,7 +6,9 @@ export default function VideoPlayer({
   src, 
   isHost = true, 
   socketEvent = null, // { event: 'play'|'pause'|'seek', time: number, trigger: number }
-  onStateChange = null // callback: (event, time) => {}
+  onStateChange = null, // callback: (event, time) => {}
+  initialTime = 0,
+  onProgressUpdate = null
 }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
@@ -245,12 +247,20 @@ export default function VideoPlayer({
   const onTimeUpdate = () => {
     if (!videoRef.current) return;
     setCurrentTime(videoRef.current.currentTime);
+    if (onProgressUpdate) {
+      onProgressUpdate(Math.floor(videoRef.current.currentTime), Math.floor(videoRef.current.duration || 0));
+    }
   };
 
   const onLoadedMetadata = () => {
     if (!videoRef.current) return;
     setDuration(videoRef.current.duration);
     setIsLoading(false);
+    if (initialTime && Number(initialTime) > 5) {
+      const seekTarget = Math.min(Number(initialTime), videoRef.current.duration || Number(initialTime));
+      videoRef.current.currentTime = seekTarget;
+      setCurrentTime(seekTarget);
+    }
   };
 
   // 5. Volume control

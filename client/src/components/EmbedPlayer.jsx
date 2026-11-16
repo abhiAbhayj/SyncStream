@@ -1,11 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, MonitorOff, HelpCircle, ShieldCheck, Maximize, Minimize } from 'lucide-react';
 
-export default function EmbedPlayer({ embedUrl, title }) {
+export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgressUpdate = null }) {
   const [loading, setLoading] = useState(true);
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // PostMessage listener for external streaming embeds (VidLink, VidFast, Playerjs, Plyr)
+  useEffect(() => {
+    const handleWindowMessage = (e) => {
+      try {
+        let payload = e.data;
+        if (typeof payload === 'string' && (payload.startsWith('{') || payload.startsWith('['))) {
+          payload = JSON.parse(payload);
+        }
+        if (!payload) return;
+
+        // VidLink / VidFast / JW / Playerjs time extraction
+        const timeVal = payload.currentTime ?? payload.time ?? payload.progress ?? payload.data?.currentTime ?? payload.data?.time;
+        const durVal = payload.duration ?? payload.data?.duration;
+
+        if (typeof timeVal === 'number' && timeVal >= 0 && onProgressUpdate) {
+          onProgressUpdate(Math.floor(timeVal), durVal ? Math.floor(durVal) : 0);
+        }
+      } catch (err) {
+        // Silently ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener('message', handleWindowMessage);
+    return () => window.removeEventListener('message', handleWindowMessage);
+  }, [onProgressUpdate]);
 
   // Trigger matrix shutter overlay whenever stream source / server changes
   useEffect(() => {

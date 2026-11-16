@@ -97,87 +97,120 @@ export const STREAMING_SERVERS = [
   }
 ];
 
-export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie', id, tmdbId, season = 1, episode = 1 }) => {
+const appendStartTime = (url, startTime) => {
+  if (!startTime || Number(startTime) <= 5) return url;
+  const t = Math.floor(Number(startTime));
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}start=${t}&time=${t}`;
+};
+
+export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie', id, tmdbId, season = 1, episode = 1, startTime = 0 }) => {
   const activeId = tmdbId || id;
   const s = season || 1;
   const ep = episode || 1;
 
+  let baseStreamUrl = '';
+
   if (mediaType === 'movie') {
     switch (serverKey) {
       case 'vidsrcto':
-        return `https://vidsrc.to/embed/movie/${activeId}`;
+        baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
+        break;
       case 'vidlink':
       case 'videasy':
-        return `https://vidlink.pro/movie/${activeId}`;
+        baseStreamUrl = `https://vidlink.pro/movie/${activeId}`;
+        break;
       case 'vidfast':
-        return `https://vidfast.vc/movie/${activeId}`;
+        baseStreamUrl = `https://vidfast.vc/movie/${activeId}`;
+        break;
       case 'twoembed':
-        return `https://www.2embed.cc/embed/${activeId}`;
+        baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
+        break;
       case 'anyembed':
       case 'smashystream':
-        return `https://anyembed.xyz/embed/tmdb-movie-${activeId}`;
+        baseStreamUrl = `https://anyembed.xyz/embed/tmdb-movie-${activeId}`;
+        break;
       case 'movietv':
       case 'vidsrcdev':
       case 'vidsrcnet':
       case 'vidsrcme':
-        return `https://movietvapi.stream/embed/${activeId}`;
+        baseStreamUrl = `https://movietvapi.stream/embed/${activeId}`;
+        break;
       case 'embedwave':
       case 'movies111':
       case 'rgshows':
-        return `https://embedwave.cc/embed/movie/${activeId}`;
+        baseStreamUrl = `https://embedwave.cc/embed/movie/${activeId}`;
+        break;
       case 'twoembedskin':
-        return `https://www.2embed.skin/embed/${activeId}`;
+        baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
+        break;
       case 'vidsrcsh':
       case 'nontongo':
-        return `https://vidsrc.sh/embed/movie/${activeId}`;
+        baseStreamUrl = `https://vidsrc.sh/embed/movie/${activeId}`;
+        break;
       case 'vidzy':
       case 'autoembedpro':
       case 'autoembedco':
       case 'warezcdn':
       case 'vidsrcsu':
       case 'vidsrcpm':
-        return `https://vidzy.org/movie/${activeId}`;
+        baseStreamUrl = `https://vidzy.org/movie/${activeId}`;
+        break;
       default:
-        return `https://vidsrc.to/embed/movie/${activeId}`;
+        baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
+        break;
+    }
+  } else {
+    // TV Shows and Anime
+    switch (serverKey) {
+      case 'vidsrcto':
+        baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidlink':
+      case 'videasy':
+        baseStreamUrl = `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidfast':
+        baseStreamUrl = `https://vidfast.vc/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'twoembed':
+        baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
+        break;
+      case 'anyembed':
+      case 'smashystream':
+        baseStreamUrl = `https://anyembed.xyz/embed/tmdb-tv-${activeId}-${s}-${ep}`;
+        break;
+      case 'movietv':
+      case 'vidsrcdev':
+      case 'vidsrcnet':
+      case 'vidsrcme':
+        baseStreamUrl = `https://movietvapi.stream/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'embedwave':
+      case 'movies111':
+      case 'rgshows':
+        baseStreamUrl = `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'twoembedskin':
+        baseStreamUrl = `https://www.2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
+        break;
+      case 'vidsrcsh':
+      case 'nontongo':
+        baseStreamUrl = `https://vidsrc.sh/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidzy':
+      case 'autoembedpro':
+      case 'autoembedco':
+      case 'warezcdn':
+      case 'vidsrcsu':
+      case 'vidsrcpm':
+        baseStreamUrl = `https://vidzy.org/serie/${activeId}/${s}/${ep}`;
+        break;
+      default:
+        baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
+        break;
     }
   }
 
-  // TV Shows and Anime
-  switch (serverKey) {
-    case 'vidsrcto':
-      return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
-    case 'vidlink':
-    case 'videasy':
-      return `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
-    case 'vidfast':
-      return `https://vidfast.vc/tv/${activeId}/${s}/${ep}`;
-    case 'twoembed':
-      return `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
-    case 'anyembed':
-    case 'smashystream':
-      return `https://anyembed.xyz/embed/tmdb-tv-${activeId}-${s}-${ep}`;
-    case 'movietv':
-    case 'vidsrcdev':
-    case 'vidsrcnet':
-    case 'vidsrcme':
-      return `https://movietvapi.stream/embed/tv/${activeId}/${s}/${ep}`;
-    case 'embedwave':
-    case 'movies111':
-    case 'rgshows':
-      return `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
-    case 'twoembedskin':
-      return `https://www.2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
-    case 'vidsrcsh':
-    case 'nontongo':
-      return `https://vidsrc.sh/embed/tv/${activeId}/${s}/${ep}`;
-    case 'vidzy':
-    case 'autoembedpro':
-    case 'autoembedco':
-    case 'warezcdn':
-    case 'vidsrcsu':
-    case 'vidsrcpm':
-      return `https://vidzy.org/serie/${activeId}/${s}/${ep}`;
-    default:
-      return `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
-  }
+  return appendStartTime(baseStreamUrl, startTime);
 };

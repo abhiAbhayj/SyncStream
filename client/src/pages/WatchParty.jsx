@@ -207,9 +207,10 @@ export default function WatchParty() {
       poster_path: mediaDetail.poster_path,
       backdrop_path: mediaDetail.backdrop_path,
       season_number: isSeries ? (activeSeason || 1) : null,
-      episode_number: isSeries ? (activeEpisode || 1) : null
+      episode_number: isSeries ? (activeEpisode || 1) : null,
+      server_key: embedServer || 'vidsrcto'
     });
-  }, [room, mediaDetail, activeSeason, activeEpisode]);
+  }, [room, mediaDetail, activeSeason, activeEpisode, embedServer]);
 
   // 2. Join socket room & register event listeners
   useEffect(() => {

@@ -181,6 +181,7 @@ export async function initDB() {
         chapter_id VARCHAR(100) DEFAULT NULL,
         chapter_number VARCHAR(50) DEFAULT NULL,
         chapter_title VARCHAR(255) DEFAULT NULL,
+        server_key VARCHAR(50) DEFAULT 'vidsrcto',
         progress_seconds INT DEFAULT 0,
         duration_seconds INT DEFAULT 0,
         last_watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -245,6 +246,20 @@ export async function initDB() {
       }
     } catch (avatarErr) {
       console.warn('[DB] Avatar migration notice:', avatarErr.message);
+    }
+
+    // 6. Add 'server_key' to continue_watching if missing
+    try {
+      const [serverKeyCols] = await pool.query(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'continue_watching' AND COLUMN_NAME = 'server_key'`
+      );
+      if (serverKeyCols.length === 0) {
+        await pool.query('ALTER TABLE continue_watching ADD COLUMN server_key VARCHAR(50) DEFAULT "vidsrcto"');
+        console.log('[DB] Migration: Added server_key to continue_watching [OK]');
+      }
+    } catch (srvErr) {
+      console.warn('[DB] server_key migration notice:', srvErr.message);
     }
 
     console.log('[DB] Database tables and migrations initialized successfully.');
