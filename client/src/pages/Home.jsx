@@ -451,7 +451,7 @@ export default function Home() {
       <ContinueWatchingSection />
 
       {/* ── Discovery Feed Live Header Row ── */}
-      <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
+      <div className="flex items-center justify-between gap-2.5 pb-3 border-b border-white/10 flex-wrap sm:flex-nowrap">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider font-josefin">
             Discovery Feed
@@ -462,7 +462,7 @@ export default function Home() {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto sm:ml-0">
           {lastUpdated && (
             <span className="text-[11px] font-black text-slate-300 hidden sm:inline-block px-2.5 py-1.5 rounded-xl bg-darkCard/80 border border-white/15">
               Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -482,7 +482,7 @@ export default function Home() {
       </div>
 
       {/* ── Category Tabs (Sliding Magnetic Pill) ── */}
-      <div className="overflow-x-auto pb-1.5 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+      <div className="w-full overflow-x-auto pb-1.5 scrollbar-none">
         <div className="relative inline-flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-darkCard/70 border border-white/10 backdrop-blur-xl shadow-lg">
           {/* Gliding Active Neon Pill */}
           {tabPillStyle.ready && (

@@ -9,7 +9,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
-import { recordContinueWatching } from '../utils/continueWatching';
+import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server } from 'lucide-react';
@@ -120,6 +120,10 @@ export default function MediaDetail() {
   const [activeChapterId, setActiveChapterId] = useState(null);
   const [activeChapterTitle, setActiveChapterTitle] = useState('');
   
+  // Section refs for auto-scrolling on continue watching / resume
+  const playerSectionRef = useRef(null);
+  const mangaSectionRef = useRef(null);
+  
   // Anime episodes tracking
   const [episodes, setEpisodes] = useState([]);
   const [activeSeason, setActiveSeason] = useState(urlSeason ? parseInt(urlSeason, 10) : 1);
@@ -212,10 +216,23 @@ export default function MediaDetail() {
         const detailData = detailRes.data;
         setDetail(detailData);
         
+        // Check saved continue watching progress if not explicitly in URL
+        const savedProgress = getSavedProgress(id, type);
+
         if ((type === 'tv' || type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
           if (!urlSeason) {
-            const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
-            setActiveSeason(detailData.default_season || firstSeason.season_number);
+            const resumeSeason = savedProgress?.season_number;
+            const resumeEpisode = savedProgress?.episode_number;
+
+            if (resumeSeason) {
+              setActiveSeason(resumeSeason);
+              if (resumeEpisode) {
+                setActiveEpisode(resumeEpisode);
+              }
+            } else {
+              const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
+              setActiveSeason(detailData.default_season || firstSeason.season_number);
+            }
           }
         }
 
@@ -229,8 +246,12 @@ export default function MediaDetail() {
           }
         }
 
-        // Set default playback mode based on trailer presence
-        if (detailData.youtube_trailer && !urlPlay && !urlEpisode) {
+        // Set default playback mode based on trailer presence or continue watching
+        if (urlPlay === 'true' || urlEpisode || urlChapter || savedProgress) {
+          if (type !== 'manga') {
+            setPlaybackMode('solo-embed');
+          }
+        } else if (detailData.youtube_trailer) {
           setPlaybackMode('trailer');
         } else if (type !== 'manga') {
           setPlaybackMode('solo-embed');
@@ -245,8 +266,9 @@ export default function MediaDetail() {
               const chaptersRes = await axios.get(`/api/media/manga/chapters/${chapterSourceId}`);
               const chList = chaptersRes.data || [];
               setChapters(chList);
-              if (urlChapter && chList.length > 0) {
-                const found = chList.find(c => String(c.id) === String(urlChapter) || String(c.chapter) === String(urlChapter));
+              const targetChapter = urlChapter || (urlPlay === 'true' ? savedProgress?.chapter_id : null);
+              if (targetChapter && chList.length > 0) {
+                const found = chList.find(c => String(c.id) === String(targetChapter) || String(c.chapter) === String(targetChapter));
                 if (found) {
                   setActiveChapterId(found.id);
                   setActiveChapterTitle(`Chapter ${found.chapter}${found.title ? `: ${found.title}` : ''}`);
@@ -339,6 +361,21 @@ export default function MediaDetail() {
       chapter_title: chTitle
     });
   }, [detail, type, id, activeChapterId, activeChapterTitle, chapters]);
+
+  // Auto-scroll directly to player or manga reader when resuming or playing
+  useEffect(() => {
+    if (!detail) return;
+    if (urlPlay === 'true' || urlEpisode || urlChapter) {
+      const timer = setTimeout(() => {
+        if (type === 'manga' && mangaSectionRef.current) {
+          mangaSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (playerSectionRef.current) {
+          playerSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [urlPlay, urlEpisode, urlChapter, type, activeChapterId, detail]);
 
   const fetchWatchlistStatus = async () => {
     try {
@@ -835,7 +872,7 @@ export default function MediaDetail() {
 
       {/* Video Block & Theater Controls */}
       {type !== 'manga' && (
-        <div className="space-y-4 text-left">
+        <div ref={playerSectionRef} id="syncstream-player-section" className="space-y-4 text-left scroll-mt-24">
           {/* Playback Mode tabs */}
           <div className="flex items-center justify-between border-b border-darkBorder pb-3 flex-wrap gap-2 sm:gap-4">
             <div className="flex items-center gap-1.5 sm:gap-2 border border-darkBorder p-1 rounded-xl bg-black/20 font-semibold overflow-x-auto max-w-full scrollbar-none">
@@ -1415,7 +1452,7 @@ export default function MediaDetail() {
 
       {/* Manga Chapters List (Manga content) */}
       {type === 'manga' && (
-        <section className="space-y-6">
+        <section ref={mangaSectionRef} id="syncstream-manga-section" className="space-y-6 scroll-mt-24">
           <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2 font-outfit">
             <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-accentCyan" />
             MangaDex Chapters Directory

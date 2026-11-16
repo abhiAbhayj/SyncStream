@@ -18,6 +18,21 @@ export const getLocalContinueWatching = () => {
 };
 
 /**
+ * Find saved progress for a specific media item
+ */
+export const getSavedProgress = (mediaId, mediaType = null) => {
+  if (!mediaId) return null;
+  const localList = getLocalContinueWatching();
+  return localList.find((item) => {
+    if (String(item.external_media_id) === String(mediaId)) {
+      if (mediaType) return item.media_type === mediaType;
+      return true;
+    }
+    return false;
+  }) || null;
+};
+
+/**
  * Save items into local storage cache
  */
 export const setLocalContinueWatching = (items) => {
