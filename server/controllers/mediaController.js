@@ -2212,11 +2212,6 @@ export const syncContinueWatching = async (req, res) => {
     res.status(500).json({ error: 'Failed to synchronize continue watching.' });
   }
 };
-    console.error('[Continue Watching Sync Error]:', error);
-    res.status(500).json({ error: 'Failed to synchronize continue watching.' });
-  }
-};
-
 
 // 7. Get Deep Catalog Pagination
 export const getCatalog = async (req, res) => {
