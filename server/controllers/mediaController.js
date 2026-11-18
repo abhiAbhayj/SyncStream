@@ -107,6 +107,23 @@ export const isAnimeItem = (item) => {
   return Boolean(isJapanese && isAnimation);
 };
 
+// Exclude Talk (10767), News (10763), Reality (10764), Soap (10766), and Kids (10762) from scripted TV feeds
+const TV_EXCLUDED_GENRES = '10767,10763,10764,10766,10762';
+const TV_EXCLUDED_GENRE_SET = new Set([10767, 10763, 10764, 10766, 10762]);
+const isCleanScriptedTv = (item) => {
+  if (!item || isAnimeItem(item)) return false;
+  const ids = item.genre_ids || [];
+  return !ids.some((gId) => TV_EXCLUDED_GENRE_SET.has(Number(gId)));
+};
+
+const formatShortDate = (isoDate) => {
+  if (!isoDate || typeof isoDate !== 'string') return '';
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  if (isNaN(d.getTime())) return isoDate;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+};
+
 // Helper to search and map Anime titles to TMDB IDs
 const getTmdbIdForAnime = async (title, titleEnglish, releaseDate) => {
   if (!isTmdbConfigured()) return null;
@@ -925,13 +942,21 @@ let liveAnimeFeedsInflight = null;
 const animePageCache = new Map();
 const ANIME_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// Helper: compute the live current anime broadcast season (WINTER / SPRING / SUMMER / FALL)
+// Helper: compute the live current & next anime broadcast season (WINTER / SPRING / SUMMER / FALL)
 const getCurrentAnimeSeason = () => {
   const now = new Date();
   const month = now.getUTCMonth() + 1;
   const year = now.getUTCFullYear();
   const season = month <= 3 ? 'WINTER' : month <= 6 ? 'SPRING' : month <= 9 ? 'SUMMER' : 'FALL';
   return { season, year };
+};
+
+const getNextAnimeSeason = () => {
+  const { season, year } = getCurrentAnimeSeason();
+  if (season === 'WINTER') return { season: 'SPRING', year };
+  if (season === 'SPRING') return { season: 'SUMMER', year };
+  if (season === 'SUMMER') return { season: 'FALL', year };
+  return { season: 'WINTER', year: year + 1 };
 };
 
 // Helper: format relative aired-ago timing label (e.g. "Just Aired Ep 8 • 2h ago")
@@ -984,11 +1009,12 @@ const fetchLiveAniListDashboard = async (forceRefresh = false) => {
 
   liveAnimeFeedsInflight = (async () => {
     const { season, year } = getCurrentAnimeSeason();
+    const { season: nextSeason, year: nextYear } = getNextAnimeSeason();
     const nowSec = Math.floor(Date.now() / 1000);
     const twoWeeksAgoSec = nowSec - 14 * 24 * 3600;
 
     const query = `
-      query ($season: MediaSeason, $year: Int, $now: Int, $from: Int) {
+      query ($season: MediaSeason, $year: Int, $nextSeason: MediaSeason, $nextYear: Int, $now: Int, $from: Int) {
         trending: Page(page: 1, perPage: 40) {
           media(type: ANIME, status_in: [RELEASING, FINISHED], sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
             ${ANILIST_CARD_FIELDS}
@@ -1015,6 +1041,11 @@ const fetchLiveAniListDashboard = async (forceRefresh = false) => {
             ${ANILIST_CARD_FIELDS}
           }
         }
+        upcomingNextSeason: Page(page: 1, perPage: 24) {
+          media(type: ANIME, status: NOT_YET_RELEASED, season: $nextSeason, seasonYear: $nextYear, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+            ${ANILIST_CARD_FIELDS}
+          }
+        }
         upcoming: Page(page: 1, perPage: 24) {
           media(type: ANIME, status: NOT_YET_RELEASED, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
             ${ANILIST_CARD_FIELDS}
@@ -1024,7 +1055,7 @@ const fetchLiveAniListDashboard = async (forceRefresh = false) => {
     `;
 
     try {
-      const res = await postAniListGraphQL(query, { season, year, now: nowSec, from: twoWeeksAgoSec });
+      const res = await postAniListGraphQL(query, { season, year, nextSeason, nextYear, now: nowSec, from: twoWeeksAgoSec });
       const data = res.data?.data;
       if (data) {
         const schedule = (data.schedule?.media || []).map(mapAniListAnimeCard);
@@ -1058,7 +1089,17 @@ const fetchLiveAniListDashboard = async (forceRefresh = false) => {
           if (latest.length >= 24) break;
         }
 
-        const upcoming = (data.upcoming?.media || []).map(mapAniListAnimeCard);
+        const nextSeasonUp = (data.upcomingNextSeason?.media || []).map(mapAniListAnimeCard);
+        const allUp = (data.upcoming?.media || []).map(mapAniListAnimeCard);
+        const upSeen = new Set();
+        const upcoming = [];
+        for (const item of [...nextSeasonUp, ...allUp]) {
+          if (!upSeen.has(item.id)) {
+            upSeen.add(item.id);
+            upcoming.push(item);
+            if (upcoming.length >= 24) break;
+          }
+        }
 
         const result = {
           trending,
@@ -1359,8 +1400,10 @@ export const getTrending = async (req, res) => {
       try {
         const todayObj = new Date();
         const today = todayObj.toISOString().split('T')[0];
+        const tomorrow = new Date(todayObj.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const nextMonth = new Date(todayObj.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const lastMonth = new Date(todayObj.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const fiveYearsAgo = new Date(todayObj.getTime() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
         const [
           trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes,
@@ -1369,14 +1412,14 @@ export const getTrending = async (req, res) => {
           // Trending: refreshes daily by TMDB
           axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/trending/tv/day?api_key=${TMDB_API_KEY}`),
-          // Ongoing TV: on_the_air = currently airing in next 7 days
-          axios.get(`${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`),
+          // Ongoing TV: modern scripted series airing new episodes now (excludes Talk/News/Reality/Soap/Kids & 1989 sitcoms)
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&first_air_date.gte=${fiveYearsAgo}&vote_count.gte=15&sort_by=popularity.desc`),
           // Schedule: airing TODAY (Page 1 & Page 2 for rich weekly schedule)
           axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}&page=1`),
           // Upcoming movies
           axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
-          // Upcoming TV shows (first air date in future)
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`),
+          // Upcoming TV shows (scripted series premiering tomorrow or later)
+          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&first_air_date.gte=${tomorrow}&sort_by=popularity.desc`),
           // Now playing movies
           axios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}&page=2`).catch(() => ({ data: { results: [] } })),
@@ -1384,21 +1427,31 @@ export const getTrending = async (req, res) => {
         ]);
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
-        // Exclude Japanese animation from TV shows so they don't get mixed up!
-        tmdbTv = trendingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTv);
+        // Exclude Anime, Talk, News, Reality, Soap & Kids from scripted TV feeds
+        tmdbTv = trendingTvRes.data.results.filter(isCleanScriptedTv).slice(0, 20).map(mapTv);
         ongoingMovies = nowPlayingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
-        upcomingTv = upcomingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTv);
+        upcomingTv = upcomingTvRes.data.results.filter(isCleanScriptedTv).slice(0, 20).map((t) => ({
+          ...mapTv(t),
+          broadcast: t.first_air_date ? `Premieres ${formatShortDate(t.first_air_date)}` : 'Upcoming Series'
+        }));
 
-        // Combine Page 1 and Page 2 for TV schedules, strictly excluding anime
-        const allAiringTv = [
+        // Combine Page 1 and Page 2 for TV schedules, strictly excluding anime & talk/news clutter
+        const rawAiringTv = [
           ...(airingTodayTvRes.data.results || []),
           ...(airingTodayTvPage2.data?.results || [])
-        ].filter(item => !isAnimeItem(item));
+        ];
+        const cleanAiringTv = rawAiringTv.filter(isCleanScriptedTv);
+        const allAiringTv = cleanAiringTv.length >= 10 ? cleanAiringTv : rawAiringTv.filter(item => !isAnimeItem(item));
+
+        const topTrendingTvIds = new Set(tmdbTv.slice(0, 10).map(t => String(t.id)));
+        const cleanOngoingRaw = (ongoingTvRes.data.results || []).filter(isCleanScriptedTv);
+        const distinctOngoingRaw = cleanOngoingRaw.filter(item => !topTrendingTvIds.has(String(item.id)));
+        const finalOngoingRaw = (distinctOngoingRaw.length >= 10 ? distinctOngoingRaw : cleanOngoingRaw).slice(0, 20);
 
         // Enhance ongoing and scheduled TV shows with EXACT broadcast days from TMDB details
         const tvListToEnrich = [
-          ...ongoingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 15), 
+          ...finalOngoingRaw.slice(0, 15),
           ...allAiringTv.slice(0, 25)
         ];
         const uniqueTvIds = [...new Set(tvListToEnrich.map(t => t.id))];
@@ -1430,7 +1483,7 @@ export const getTrending = async (req, res) => {
           return mapped;
         };
 
-        ongoingTv = ongoingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTvWithDay);
+        ongoingTv = finalOngoingRaw.map(mapTvWithDay);
         airingTodayTv = allAiringTv.slice(0, 35).map(mapTvWithDay);
 
         // Use live AniList / Jikan anime feeds (Primary — 100% live seasonal trending & ongoing!)
@@ -1656,23 +1709,27 @@ export const searchMedia = async (req, res) => {
           if (!hasQuery) {
             // Discover Mode with dedicated live endpoints for ongoing, upcoming, latest, trending, top_rated
             let url = '';
+            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const fiveYearsAgo = new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const userRequestedUnscriptedTv = type === 'tv' && (genre === '10762' || genre === '10764');
 
             if (sort === 'ongoing') {
               if (type === 'anime') {
                 url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
               } else if (tmdbType === 'tv') {
-                url = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&first_air_date.gte=${fiveYearsAgo}&vote_count.gte=15&sort_by=popularity.desc&page=${page}`;
               } else {
                 url = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
               }
             } else if (sort === 'upcoming') {
               if (type === 'anime') {
-                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${tomorrow}&sort_by=first_air_date.asc&page=${page}`;
               } else if (tmdbType === 'tv') {
-                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&first_air_date.gte=${tomorrow}&sort_by=popularity.desc&page=${page}`;
               } else {
                 url = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
               }
@@ -1683,13 +1740,14 @@ export const searchMedia = async (req, res) => {
                 url = `${TMDB_BASE_URL}/trending/${tmdbType}/day?api_key=${TMDB_API_KEY}&page=${page}`;
               }
             } else if (sort === 'top_rated') {
-              url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&vote_count.gte=100&page=${page}`;
+              const tvExtra = type === 'tv' ? `&without_genres=${TV_EXCLUDED_GENRES}` : '';
+              url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}${tvExtra}&sort_by=vote_average.desc&vote_count.gte=200&page=${page}`;
             } else {
-              // 'latest' or default: currently airing or newly released
+              // 'latest' or default: genuinely brand-new recently premiered shows (100% distinct from Ongoing!)
               if (type === 'anime') {
                 url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${lastMonth}&air_date.lte=${today}&sort_by=first_air_date.desc&page=${page}`;
               } else if (tmdbType === 'tv') {
-                url = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&first_air_date.gte=${sixMonthsAgo}&first_air_date.lte=${today}&vote_count.gte=10&sort_by=first_air_date.desc&page=${page}`;
               } else {
                 url = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
               }
@@ -1699,6 +1757,9 @@ export const searchMedia = async (req, res) => {
             if (year || genre || selectedIso || country) {
               const sortBy = getSortBy(tmdbType);
               url = `${TMDB_BASE_URL}/discover/${tmdbType}?api_key=${TMDB_API_KEY}&sort_by=${sortBy}&page=${page}`;
+              if (type === 'tv' && !userRequestedUnscriptedTv) {
+                url += `&without_genres=${TV_EXCLUDED_GENRES}`;
+              }
 
               if (year && !isNaN(parseInt(year, 10))) {
                 const y = parseInt(year, 10);
@@ -1706,10 +1767,13 @@ export const searchMedia = async (req, res) => {
                 else url += `&first_air_date_year=${y}`;
               } else {
                 if (sort === 'ongoing') {
-                  url += `&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}`;
+                  url += `&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&vote_count.gte=5`;
                 } else if (sort === 'upcoming') {
-                  if (tmdbType === 'movie') url += `&primary_release_date.gte=${today}`;
-                  else url += `&first_air_date.gte=${today}`;
+                  if (tmdbType === 'movie') url += `&primary_release_date.gte=${tomorrow}`;
+                  else url += `&first_air_date.gte=${tomorrow}`;
+                } else if (sort === 'latest') {
+                  if (tmdbType === 'movie') url += `&primary_release_date.lte=${today}&vote_count.gte=10`;
+                  else url += `&first_air_date.gte=${sixMonthsAgo}&first_air_date.lte=${today}&vote_count.gte=5`;
                 } else {
                   if (tmdbType === 'movie') url += `&primary_release_date.lte=${today}`;
                   else url += `&first_air_date.lte=${today}`;
@@ -1741,23 +1805,33 @@ export const searchMedia = async (req, res) => {
             const searchRes = await axios.get(url);
             let discoverResults = searchRes.data.results || [];
             
-            // Strictly enforce separation: TV never contains anime, anime only contains anime
+            // Strictly enforce separation: TV never contains anime or talk/news/reality clutter (unless explicitly filtered)
             if (type === 'anime') {
               discoverResults = discoverResults.filter(isAnimeItem);
             } else if (type === 'tv') {
-              discoverResults = discoverResults.filter(r => !isAnimeItem(r));
+              discoverResults = discoverResults.filter(userRequestedUnscriptedTv ? (r => !isAnimeItem(r)) : isCleanScriptedTv);
             }
             
-            results = discoverResults.map(r => ({
-              id: r.id.toString(),
-              title: r.title || r.name,
-              overview: r.overview || '',
-              poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
-              release_date: r.release_date || r.first_air_date || '',
-              vote_average: r.vote_average || 0,
-              genre_ids: r.genre_ids || [],
-              media_type: type
-            }));
+            results = discoverResults.map(r => {
+              const relDate = r.release_date || r.first_air_date || '';
+              let broadcastHint = null;
+              if (type === 'tv') {
+                if (sort === 'upcoming') broadcastHint = relDate ? `Premieres ${formatShortDate(relDate)}` : 'Upcoming Series';
+                else if (sort === 'latest') broadcastHint = relDate ? `New • ${formatShortDate(relDate)}` : 'New Premiere';
+                else if (sort === 'ongoing') broadcastHint = 'Airing Now';
+              }
+              return {
+                id: r.id.toString(),
+                title: r.title || r.name,
+                overview: r.overview || '',
+                poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
+                release_date: relDate,
+                vote_average: r.vote_average || 0,
+                genre_ids: r.genre_ids || [],
+                media_type: type,
+                broadcast: broadcastHint
+              };
+            });
           } else {
             // Search Mode (Text query)
             if (type === 'anime') {
@@ -1918,8 +1992,17 @@ export const getMediaDetail = async (req, res) => {
     return getSongDetails(req, res);
   }
 
+  // Intercept AniList Manga details (al_m_*) before anime check
+  if (type === 'manga' && String(id).startsWith('al_m_')) {
+    const cleanMangaId = String(id).replace(/^al_m_/i, '');
+    const alMangaDetail = await getAniListMangaDetail(cleanMangaId);
+    if (alMangaDetail) {
+      return res.json(alMangaDetail);
+    }
+  }
+
   // Intercept AniList Anime details
-  if (id.startsWith('al_') || (type === 'anime' && isNaN(parseInt(id, 10)))) {
+  if ((type === 'anime' && (id.startsWith('al_') || isNaN(parseInt(id, 10)))) || (id.startsWith('al_') && !id.startsWith('al_m_'))) {
     const alId = id.replace('al_', '');
     const alDetail = await getAniListMediaDetail(alId);
     if (alDetail) {
@@ -2812,24 +2895,31 @@ export const getCatalog = async (req, res) => {
       let endpoint = '';
       const todayObj = new Date();
       const today = todayObj.toISOString().split('T')[0];
+      const tomorrow = new Date(todayObj.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const lastMonth = new Date(todayObj.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const nextMonth = new Date(todayObj.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const sixMonthsAgo = new Date(todayObj.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const fiveYearsAgo = new Date(todayObj.getTime() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const year = req.query.year && !isNaN(parseInt(req.query.year, 10)) ? parseInt(req.query.year, 10) : null;
 
       {
         // Trending: uses daily trending API for freshest data
         if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
-        // Ongoing TV: on_the_air (currently airing in next 7 days)
-        else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
+        // Ongoing TV: modern scripted series airing new episodes now
+        else if (category === 'ongoing' && type === 'tv') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&first_air_date.gte=${fiveYearsAgo}&vote_count.gte=15&sort_by=popularity.desc&page=${page}`;
         // Ongoing movies = now_playing (in theaters)
         else if (category === 'ongoing' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
         // Upcoming movies
         else if (category === 'upcoming' && type === 'movie') endpoint = `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&page=${page}`;
-        // Upcoming TV
-        else if (category === 'upcoming' && type === 'tv') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`;
+        // Upcoming TV: scripted series premiering tomorrow or later
+        else if (category === 'upcoming' && type === 'tv') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&first_air_date.gte=${tomorrow}&sort_by=popularity.desc&page=${page}`;
         // Schedule = airing today
         else if (category === 'schedule' && type === 'tv') endpoint = `${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}&page=${page}`;
-        // Latest = now playing
-        else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/${type === 'movie' ? 'movie/now_playing' : 'tv/on_the_air'}?api_key=${TMDB_API_KEY}&page=${page}`;
-        else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=${page}`;
+        // Latest TV = recently premiered scripted series (distinct from Ongoing!)
+        else if (category === 'latest' && type === 'tv') endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&without_genres=${TV_EXCLUDED_GENRES}&first_air_date.gte=${sixMonthsAgo}&first_air_date.lte=${today}&vote_count.gte=10&sort_by=first_air_date.desc&page=${page}`;
+        // Latest movies = now playing
+        else if (category === 'latest') endpoint = `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`;
+        else endpoint = `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}${type === 'tv' ? `&without_genres=${TV_EXCLUDED_GENRES}` : ''}&sort_by=popularity.desc&page=${page}`;
 
         // Apply year filter if provided
         if (year && endpoint.includes('/discover/')) {
@@ -2851,12 +2941,20 @@ export const getCatalog = async (req, res) => {
           });
         }
 
-        // Strictly exclude Japanese animation from TV catalog so they never get mixed up!
+        // Strictly exclude Japanese animation and talk/news/reality/soap/kids clutter from scripted TV catalog
         if (type === 'tv') {
-          rawResults = rawResults.filter(item => !isAnimeItem(item));
+          rawResults = rawResults.filter(isCleanScriptedTv);
         }
 
-        results = type === 'movie' ? rawResults.map(mapMovie) : rawResults.map(mapTv);
+        results = type === 'movie'
+          ? rawResults.map(mapMovie)
+          : rawResults.map(t => {
+              const mapped = mapTv(t);
+              if (category === 'upcoming') mapped.broadcast = t.first_air_date ? `Premieres ${formatShortDate(t.first_air_date)}` : 'Upcoming Series';
+              else if (category === 'latest') mapped.broadcast = t.first_air_date ? `New • ${formatShortDate(t.first_air_date)}` : 'New Premiere';
+              else if (category === 'ongoing') mapped.broadcast = 'Airing Now';
+              return mapped;
+            });
       }
     } 
     else if (type === 'manga') {

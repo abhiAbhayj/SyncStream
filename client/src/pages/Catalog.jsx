@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate, useNavigationType } from 'react-router-do
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
 import MediaCardSkeleton from '../components/MediaCardSkeleton';
-import { fetchClientLiveAnimePage } from '../utils/liveAnime';
+import { fetchClientLiveAnimePage, fetchClientLiveMangaPage } from '../utils/liveAnime';
 import { Loader2, Film, Tv, Sparkles, BookOpen, Flame, Activity, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
 
 const CACHE_TTL = 10 * 60 * 1000; // 10 min — discard stale session cache
@@ -59,7 +59,7 @@ export default function Catalog() {
 
   const fetchCatalogData = useCallback(async (pageNum, force = false) => {
     if (isFetchingRef.current && pageNum === 1) return;
-    const cacheKey = `catalog-v2-${category}-${type}`;
+    const cacheKey = `catalog-v3-${category}-${type}`;
 
     // On back-navigation, restore from cache only if it's still fresh
     if (!force && pageNum === 1 && navType === 'POP') {
@@ -92,6 +92,13 @@ export default function Catalog() {
       let fetchedResults = null;
       if (type === 'anime') {
         fetchedResults = await fetchClientLiveAnimePage({
+          category: category || 'trending',
+          page: pageNum,
+          perPage: 24,
+          forceRefresh: force
+        });
+      } else if (type === 'manga') {
+        fetchedResults = await fetchClientLiveMangaPage({
           category: category || 'trending',
           page: pageNum,
           perPage: 24,
@@ -137,7 +144,7 @@ export default function Catalog() {
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
-        const cacheKey = `catalog-v2-${category}-${type}`;
+        const cacheKey = `catalog-v3-${category}-${type}`;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
           try {
@@ -242,7 +249,7 @@ export default function Catalog() {
         </div>
       ) : (
         <div className="animate-fade-in space-y-8">
-          <MediaGrid items={items} showTimings={type === 'anime' || category === 'ongoing' || category === 'latest'} />
+          <MediaGrid items={items} showTimings={type === 'anime' || type === 'manga' || type === 'tv' || category === 'ongoing' || category === 'latest' || category === 'upcoming'} />
           
           {/* Infinite Scroll Horizon Beam (#4) */}
           {!loading && !error && items.length > 0 && page < MAX_PAGES && (

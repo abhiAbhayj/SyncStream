@@ -4,7 +4,7 @@ import MediaGrid from '../components/MediaGrid';
 import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import ContinueWatchingSection from '../components/ContinueWatchingSection';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
-import { fetchClientLiveAnimeDashboard } from '../utils/liveAnime';
+import { fetchClientLiveAnimeDashboard, fetchClientLiveMangaDashboard } from '../utils/liveAnime';
 import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -253,11 +253,12 @@ export default function Home() {
     try {
       setLoading(true);
       const url = force ? '/api/media/trending?refresh=1' : '/api/media/trending';
-      // Fetch backend dashboard AND direct browser live AniList anime in parallel
-      // (Bypasses Render shared-IP AniList 429 rate-limits so anime feeds are 100% live & distinct!)
-      const [res, liveAnime] = await Promise.all([
+      // Fetch backend dashboard AND direct browser live AniList anime + manga in parallel
+      // (Bypasses Render shared-IP AniList 429 rate-limits so anime & manga feeds are 100% live & distinct!)
+      const [res, liveAnime, liveManga] = await Promise.all([
         axios.get(url),
-        fetchClientLiveAnimeDashboard(force).catch(() => null)
+        fetchClientLiveAnimeDashboard(force).catch(() => null),
+        fetchClientLiveMangaDashboard(force).catch(() => null)
       ]);
       const merged = { ...(res.data || {}) };
       if (liveAnime && (liveAnime.trending?.length > 0 || liveAnime.ongoing?.length > 0)) {
@@ -265,6 +266,12 @@ export default function Home() {
         merged.ongoing = { ...(merged.ongoing || {}), anime: liveAnime.ongoing };
         merged.schedule = { ...(merged.schedule || {}), anime: liveAnime.schedule };
         merged.upcoming = { ...(merged.upcoming || {}), anime: liveAnime.upcoming };
+      }
+      if (liveManga && (liveManga.trending?.length > 0 || liveManga.ongoing?.length > 0)) {
+        merged.trending = { ...(merged.trending || {}), manga: liveManga.trending };
+        merged.ongoing = { ...(merged.ongoing || {}), manga: liveManga.ongoing };
+        merged.latest = { ...(merged.latest || {}), manga: liveManga.latest };
+        merged.upcoming = { ...(merged.upcoming || {}), manga: liveManga.upcoming };
       }
       setMedia(merged);
       setLastUpdated(merged._fetchedAt ? new Date(merged._fetchedAt) : new Date());
@@ -585,7 +592,7 @@ export default function Home() {
               )}
 
               <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Live Anime" seeMoreLink="/catalog/trending/anime" showTimings={true} />
-              <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink="/catalog/trending/manga" />
+              <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Top Trending Live Manga" seeMoreLink="/catalog/trending/manga" showTimings={true} />
             </div>
           )}
 
@@ -594,7 +601,7 @@ export default function Home() {
               <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink="/catalog/ongoing/movie" />
               <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink="/catalog/ongoing/tv" showTimings={true} />
               <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Live Ongoing & Airing Anime" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
-              <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Ongoing Manga Publications" seeMoreLink="/catalog/ongoing/manga" />
+              <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Popular Ongoing Manga" seeMoreLink="/catalog/ongoing/manga" showTimings={true} />
             </div>
           )}
 
@@ -748,7 +755,7 @@ export default function Home() {
                           <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentPink transition line-clamp-1">{manga.title}</h4>
                           <p className="text-xs text-gray-500 line-clamp-1">{manga.overview || 'No synopsis available.'}</p>
                           <span className="inline-block text-[10px] bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                            Recently Updated
+                            {manga.broadcast || 'Recently Updated'}
                           </span>
                         </div>
                       </Link>
@@ -762,9 +769,12 @@ export default function Home() {
           {activeTab === 'upcoming' && (
             <div className="space-y-10 sm:space-y-16 animate-fade-in">
               <MediaGrid items={media.upcoming?.movies?.slice(0, 10)} title="Upcoming Cinematic Movies" seeMoreLink="/catalog/upcoming/movie" />
-              <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink="/catalog/upcoming/tv" />
-              <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink="/catalog/upcoming/anime" />
-              <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest Chapter Uploads" seeMoreLink="/catalog/latest/manga" />
+              <MediaGrid items={media.upcoming?.tv?.slice(0, 10)} title="Upcoming TV Series" seeMoreLink="/catalog/upcoming/tv" showTimings={true} />
+              <MediaGrid items={media.upcoming?.anime?.slice(0, 10)} title="Upcoming Anime Seasons" seeMoreLink="/catalog/upcoming/anime" showTimings={true} />
+              {media.upcoming?.manga?.length > 0 && (
+                <MediaGrid items={media.upcoming.manga.slice(0, 10)} title="Upcoming Manga Releases" seeMoreLink="/catalog/upcoming/manga" showTimings={true} />
+              )}
+              <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest New Manga Series" seeMoreLink="/catalog/latest/manga" showTimings={true} />
             </div>
           )}
         </div>

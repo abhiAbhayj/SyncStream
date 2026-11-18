@@ -12,7 +12,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { fetchClientAniListDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
+import { fetchClientAniListDetail, fetchClientAniListMangaDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw } from 'lucide-react';
 
 function CastAvatarCard({ member, onSelect, gridMode = false }) {
@@ -231,11 +231,14 @@ export default function MediaDetail() {
       setActiveChapterId(null);
       try {
         let detailData = null;
-        const isAniListId = type === 'anime' && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+        const isAniListAnimeId = type === 'anime' && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+        const isAniListMangaId = type === 'manga' && (String(id).startsWith('al_m_') || /^\d+$/.test(String(id)));
 
-        // Direct Browser AniList Detail Fetch for al_* anime (bypasses Render shared-IP 429!)
-        if (isAniListId) {
+        // Direct Browser AniList Detail Fetch for al_* anime & al_m_* manga (bypasses Render shared-IP 429!)
+        if (isAniListAnimeId) {
           detailData = await fetchClientAniListDetail(id);
+        } else if (isAniListMangaId) {
+          detailData = await fetchClientAniListMangaDetail(id);
         }
 
         if (!detailData) {

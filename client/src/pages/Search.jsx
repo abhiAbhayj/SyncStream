@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
-import { fetchClientLiveAnimePage } from '../utils/liveAnime';
+import { fetchClientLiveAnimePage, fetchClientLiveMangaPage } from '../utils/liveAnime';
 
 const MUSIC_LANGUAGES = [
   { key: 'blues_rap', label: 'Blues Rap', icon: Music },
@@ -304,6 +304,43 @@ export default function Search() {
             params: {
               query: '',
               type: 'anime',
+              genre: activeGenre,
+              language: activeLanguage,
+              country: activeCountry,
+              sort: activeSort,
+              year: activeYear || undefined,
+              page: pageNum,
+              refresh: forceRefresh ? '1' : undefined
+            }
+          });
+          if (pageNum === 1) setResults(res.data || []);
+          else setResults(prev => [...prev, ...(res.data || [])]);
+        }
+      } else if (searchType === 'manga' && !searchQuery.trim()) {
+        // Direct Browser Live AniList Manga Engine (Trending, Ongoing, Latest New Series, Upcoming, Top Rated + 24 Genres)
+        const liveManga = await fetchClientLiveMangaPage({
+          category: activeSort || 'trending',
+          page: pageNum,
+          perPage: 24,
+          year: activeYear || null,
+          genre: activeGenre || null,
+          forceRefresh
+        });
+
+        if (liveManga && liveManga.length > 0) {
+          if (pageNum === 1) {
+            setResults(liveManga);
+          } else {
+            setResults(prev => {
+              const seenIds = new Set(prev.map(x => x.id));
+              return [...prev, ...liveManga.filter(x => !seenIds.has(x.id))];
+            });
+          }
+        } else {
+          const res = await axios.get('/api/media/search', {
+            params: {
+              query: '',
+              type: 'manga',
               genre: activeGenre,
               language: activeLanguage,
               country: activeCountry,
@@ -874,7 +911,7 @@ export default function Search() {
         <div className="animate-slide-up space-y-8">
           <MediaGrid
             items={results}
-            showTimings={type === 'anime' || type === 'tv' || sort === 'ongoing' || sort === 'latest'}
+            showTimings={type === 'anime' || type === 'tv' || type === 'manga' || sort === 'ongoing' || sort === 'latest' || sort === 'upcoming'}
             title={
               query
                 ? `Matches for "${query}"`
@@ -888,6 +925,26 @@ export default function Search() {
                     : sort === 'upcoming'
                     ? 'Upcoming Anime Releases'
                     : 'Top Rated Anime')
+                : type === 'manga'
+                ? (sort === 'trending'
+                    ? 'Top Trending Live Manga'
+                    : sort === 'ongoing'
+                    ? 'Popular Ongoing Manga'
+                    : sort === 'latest'
+                    ? 'Latest New Manga Series'
+                    : sort === 'upcoming'
+                    ? 'Upcoming Manga Releases'
+                    : 'Top Rated Manga')
+                : type === 'tv'
+                ? (sort === 'trending'
+                    ? 'Top Trending TV Series'
+                    : sort === 'ongoing'
+                    ? 'Live Ongoing TV Series'
+                    : sort === 'latest'
+                    ? 'Latest Premiered TV Series'
+                    : sort === 'upcoming'
+                    ? 'Upcoming TV Series'
+                    : 'Top Rated TV Series')
                 : 'Discovered Results'
             }
           />

@@ -68,10 +68,62 @@ const ANIME_FILTER_MAP = {
   'k_3133': { tag: 'Vampire' }
 };
 
+const ANILIST_MANGA_FIELDS = `
+  id
+  title { english romaji native }
+  description(asHtml: false)
+  coverImage { extraLarge large medium }
+  bannerImage
+  startDate { year month day }
+  averageScore
+  meanScore
+  status
+  format
+  chapters
+  volumes
+  countryOfOrigin
+  genres
+`;
+
+const MANGA_FILTER_MAP = {
+  '391b0423-d847-456f-aff0-8b0cfc03066b': { genre: 'Action' },
+  '87cc87cd-a395-47af-b27a-93258283bbc6': { genre: 'Adventure' },
+  '4d32cc48-9f00-4cca-9b5a-a839f0764984': { genre: 'Comedy' },
+  '423e2eae-a7a2-4a8b-ac03-a8351462d71d': { genre: 'Romance' },
+  'cdc58593-87dd-415e-bbc0-2ec27bf404cc': { genre: 'Fantasy' },
+  'b9af3a63-f058-46de-a9a0-e0c13906197a': { genre: 'Drama' },
+  '256c8bd9-4904-4360-bf4f-508a76d67183': { genre: 'Sci-Fi' },
+  'eabc5b4c-6aff-42f3-b657-3e90cbd00b75': { genre: 'Supernatural' },
+  'ace04997-f6bd-436e-b261-779182193d3d': { tag: 'Isekai' },
+  'aafb99c1-7f60-43fa-b75f-fc9502ce29c7': { tag: 'Harem' },
+  '2d1f5d56-a1e5-4d0d-a961-29734e194866': { genre: 'Ecchi' },
+  'ee968100-4191-4968-93d3-f82d72be7e46': { genre: 'Mystery' },
+  'cdad7e68-1419-41dd-bdce-27753074a640': { genre: 'Horror' },
+  '3b60b75c-a2d7-4860-ab56-05f391bb889c': { genre: 'Psychological' },
+  'e5301a23-ebd9-49dd-a0cb-2add944c7fe9': { genre: 'Slice of Life' },
+  '50880a9d-5440-4732-9afb-8f457127e836': { genre: 'Mecha' },
+  '69964a64-2f90-4d33-beeb-f3ed2875eb4c': { genre: 'Sports' },
+  '799c202e-7daa-44eb-9cf7-8a3c0441531e': { tag: 'Martial Arts' },
+  'a1f53773-c69a-4ce5-8cab-fffcd90b1565': { tag: 'Magic' },
+  '39730448-9a5f-48a2-85b0-a70db87b1233': { tag: 'Demons' },
+  'd_shounen': { tag: 'Shounen' },
+  'd_seinen': { tag: 'Seinen' },
+  'd_shoujo': { tag: 'Shoujo' },
+  'd_josei': { tag: 'Josei' }
+};
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 let dashboardCache = null;
 let dashboardCacheTs = 0;
 let dashboardInflight = null;
 const pageCache = new Map();
+
+let mangaDashboardCache = null;
+let mangaDashboardCacheTs = 0;
+let mangaDashboardInflight = null;
+const mangaPageCache = new Map();
+const mangaDetailCache = new Map();
 
 export const getCurrentAnimeSeason = () => {
   const now = new Date();
@@ -79,6 +131,44 @@ export const getCurrentAnimeSeason = () => {
   const year = now.getUTCFullYear();
   const season = month <= 3 ? 'WINTER' : month <= 6 ? 'SPRING' : month <= 9 ? 'SUMMER' : 'FALL';
   return { season, year };
+};
+
+export const getNextAnimeSeason = () => {
+  const { season, year } = getCurrentAnimeSeason();
+  if (season === 'WINTER') return { season: 'SPRING', year };
+  if (season === 'SPRING') return { season: 'SUMMER', year };
+  if (season === 'SUMMER') return { season: 'FALL', year };
+  return { season: 'WINTER', year: year + 1 };
+};
+
+const getFuzzyDateInt = (dateObj) => {
+  const y = dateObj.getUTCFullYear();
+  const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getUTCDate()).padStart(2, '0');
+  return parseInt(`${y}${m}${d}`, 10);
+};
+
+const formatPremiereLabel = (startDate, season, seasonYear) => {
+  if (startDate?.year) {
+    if (startDate.month && startDate.day) {
+      const mon = MONTH_SHORT[startDate.month - 1] || '';
+      return `Premieres ${mon} ${startDate.day}, ${startDate.year}`;
+    }
+    if (startDate.month) {
+      const mon = MONTH_SHORT[startDate.month - 1] || '';
+      return `Premieres ${mon} ${startDate.year}`;
+    }
+    if (season) {
+      const sCap = season.charAt(0) + season.slice(1).toLowerCase();
+      return `${sCap} ${startDate.year}`;
+    }
+    return `Coming ${startDate.year}`;
+  }
+  if (season && seasonYear) {
+    const sCap = season.charAt(0) + season.slice(1).toLowerCase();
+    return `${sCap} ${seasonYear}`;
+  }
+  return seasonYear ? `Coming ${seasonYear}` : 'Upcoming Release';
 };
 
 const formatDate = (startDate, seasonYear) => {
@@ -102,7 +192,9 @@ const mapAniListCard = (m) => {
 
   let broadcastDay = null;
   let broadcastText = null;
-  if (m.nextAiringEpisode?.airingAt) {
+  if (m.status === 'NOT_YET_RELEASED') {
+    broadcastText = formatPremiereLabel(m.startDate, m.season, m.seasonYear);
+  } else if (m.nextAiringEpisode?.airingAt) {
     const airDate = new Date(m.nextAiringEpisode.airingAt * 1000);
     if (!isNaN(airDate.getTime())) {
       broadcastDay = ANIME_DAYS_OF_WEEK[airDate.getDay()];
@@ -113,9 +205,6 @@ const mapAniListCard = (m) => {
   } else if (m.status === 'RELEASING') {
     broadcastDay = ANIME_DAYS_OF_WEEK[(parseInt(m.id, 10) || 0) % 7];
     broadcastText = `Live Ongoing • ${broadcastDay}`;
-  } else if (m.status === 'NOT_YET_RELEASED') {
-    const sLabel = [m.season, m.seasonYear].filter(Boolean).join(' ');
-    broadcastText = sLabel ? `Upcoming • ${sLabel}` : 'Upcoming Release';
   }
 
   const releaseDate = formatDate(m.startDate, m.seasonYear);
@@ -200,11 +289,13 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
   dashboardInflight = (async () => {
     try {
       const { season, year } = getCurrentAnimeSeason();
+      const { season: nextSeason, year: nextYear } = getNextAnimeSeason();
+      const todayInt = getFuzzyDateInt(new Date());
       const nowSec = Math.floor(Date.now() / 1000);
       const twoWeeksAgoSec = nowSec - 14 * 24 * 3600;
 
       const mainQuery = `
-        query ($season: MediaSeason, $year: Int) {
+        query ($season: MediaSeason, $year: Int, $nextSeason: MediaSeason, $nextYear: Int, $todayInt: FuzzyDateInt) {
           trending: Page(page: 1, perPage: 34) {
             media(type: ANIME, status_in: [RELEASING, FINISHED], sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
               ${ANILIST_FIELDS}
@@ -215,8 +306,13 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
               ${ANILIST_FIELDS}
             }
           }
-          upcoming: Page(page: 1, perPage: 24) {
-            media(type: ANIME, status: NOT_YET_RELEASED, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+          upcomingNextSeason: Page(page: 1, perPage: 24) {
+            media(type: ANIME, status: NOT_YET_RELEASED, season: $nextSeason, seasonYear: $nextYear, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+              ${ANILIST_FIELDS}
+            }
+          }
+          upcomingDated: Page(page: 1, perPage: 24) {
+            media(type: ANIME, status: NOT_YET_RELEASED, startDate_greater: $todayInt, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
               ${ANILIST_FIELDS}
             }
           }
@@ -245,7 +341,7 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
       `;
 
       const [mainData, schedData] = await Promise.all([
-        queryAniList(mainQuery, { season, year }),
+        queryAniList(mainQuery, { season, year, nextSeason, nextYear, todayInt }),
         queryAniList(scheduleQuery, { now: nowSec, from: twoWeeksAgoSec }).catch(() => ({}))
       ]);
 
@@ -277,7 +373,18 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
         if (latest.length >= 24) break;
       }
 
-      const upcoming = (mainData?.upcoming?.media || []).map(mapAniListCard);
+      // Prioritize NEXT broadcast season premieres first, then dated near-future premieres (no undated TBA spam at top)
+      const nextSeasonUpcoming = (mainData?.upcomingNextSeason?.media || []).map(mapAniListCard);
+      const datedUpcoming = (mainData?.upcomingDated?.media || []).map(mapAniListCard);
+      const upcomingSeen = new Set();
+      const upcoming = [];
+      for (const item of [...nextSeasonUpcoming, ...datedUpcoming]) {
+        if (!upcomingSeen.has(item.id)) {
+          upcomingSeen.add(item.id);
+          upcoming.push(item);
+          if (upcoming.length >= 24) break;
+        }
+      }
 
       const bundle = {
         trending,
@@ -411,9 +518,9 @@ export const fetchClientLiveAnimePage = async ({
   }
 
   const query = `
-    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $genre: String, $tag: String) {
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $startDateGreater: FuzzyDateInt, $genre: String, $tag: String) {
       Page(page: $page, perPage: $perPage) {
-        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, genre: $genre, tag: $tag, isAdult: false) {
+        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, startDate_greater: $startDateGreater, genre: $genre, tag: $tag, isAdult: false) {
           ${ANILIST_FIELDS}
         }
       }
@@ -432,6 +539,8 @@ export const fetchClientLiveAnimePage = async ({
     variables.seasonYear = curYear;
   } else if (year && !isNaN(parseInt(year, 10))) {
     variables.seasonYear = parseInt(year, 10);
+  } else if (normCat === 'upcoming') {
+    variables.startDateGreater = getFuzzyDateInt(new Date());
   }
   if (filterGenre) variables.genre = filterGenre;
   if (filterTag) variables.tag = filterTag;
@@ -439,9 +548,10 @@ export const fetchClientLiveAnimePage = async ({
   try {
     const data = await queryAniList(query, variables);
     let items = data?.Page?.media || [];
-    if (items.length === 0 && useCurrentSeason) {
+    if (items.length === 0 && (useCurrentSeason || variables.startDateGreater)) {
       delete variables.season;
       delete variables.seasonYear;
+      delete variables.startDateGreater;
       const retryData = await queryAniList(query, variables);
       items = retryData?.Page?.media || [];
     }
@@ -789,4 +899,504 @@ export const buildSyntheticAnimeEpisodes = (detail, seasonNum) => {
     overview: detail?.overview || '',
     episodes: eps
   };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DIRECT BROWSER LIVE MANGA ENGINE (AniList GraphQL — CORS enabled, 0% Render 429!)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getMangaFormatLabel = (m) => {
+  if (m?.countryOfOrigin === 'KR') return 'Manhwa';
+  if (m?.countryOfOrigin === 'CN') return 'Manhua';
+  if (m?.format === 'ONE_SHOT') return 'One-Shot';
+  return 'Manga';
+};
+
+const mapAniListMangaCard = (m, feedMode = 'trending') => {
+  const title = m.title?.english || m.title?.romaji || m.title?.native || 'Untitled Manga';
+  const cleanOverview = m.description
+    ? m.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+    : '';
+  const score = m.averageScore
+    ? Number((m.averageScore / 10).toFixed(1))
+    : (m.meanScore ? Number((m.meanScore / 10).toFixed(1)) : 0);
+  const formatLabel = getMangaFormatLabel(m);
+  const releaseDate = formatDate(m.startDate, m.startDate?.year);
+
+  let badgeText = `${formatLabel} • Live`;
+  if (feedMode === 'upcoming' || m.status === 'NOT_YET_RELEASED') {
+    badgeText = m.startDate?.year
+      ? formatPremiereLabel(m.startDate, null, m.startDate.year)
+      : `Upcoming • ${formatLabel}`;
+  } else if (feedMode === 'latest') {
+    if (m.startDate?.year && m.startDate?.month) {
+      const mon = MONTH_SHORT[m.startDate.month - 1] || '';
+      badgeText = `New ${mon} ${m.startDate.year} • ${formatLabel}`;
+    } else if (m.startDate?.year) {
+      badgeText = `New ${m.startDate.year} • ${formatLabel}`;
+    } else {
+      badgeText = `Fresh • ${formatLabel}`;
+    }
+  } else if (feedMode === 'ongoing') {
+    badgeText = m.chapters ? `Ongoing • ${m.chapters} Ch` : `Ongoing • ${formatLabel}`;
+  } else {
+    badgeText = m.status === 'RELEASING' ? `Trending • Ongoing` : `Trending • ${formatLabel}`;
+  }
+
+  return {
+    id: `al_m_${m.id}`,
+    external_media_id: `al_m_${m.id}`,
+    anilist_id: m.id,
+    title,
+    name: title,
+    overview: cleanOverview,
+    poster_path: m.coverImage?.extraLarge || m.coverImage?.large || m.coverImage?.medium || null,
+    backdrop_path: m.bannerImage || m.coverImage?.extraLarge || m.coverImage?.large || null,
+    release_date: releaseDate,
+    first_air_date: releaseDate,
+    vote_average: score,
+    media_type: 'manga',
+    status: m.status || null,
+    format: formatLabel,
+    chapters_count: m.chapters || null,
+    volumes_count: m.volumes || null,
+    genres: (m.genres || []).map((g) => ({ id: g, name: g })),
+    broadcast: badgeText
+  };
+};
+
+/**
+ * Fetch ALL 4 live manga feeds directly from AniList in a single batched CORS GraphQL call:
+ * - trending (Global live trending manga & manhwa spikes)
+ * - ongoing (Top ongoing serializations, strictly deduplicated against Top 10 Trending)
+ * - latest (Fresh 2025-2026 hit serializations, deduplicated against Top 10 Trending/Ongoing)
+ * - upcoming (Upcoming NOT_YET_RELEASED manga & newly launching current-year titles)
+ */
+export const fetchClientLiveMangaDashboard = async (forceRefresh = false) => {
+  const nowMs = Date.now();
+  if (!forceRefresh && mangaDashboardCache && (nowMs - mangaDashboardCacheTs < CACHE_TTL)) {
+    return mangaDashboardCache;
+  }
+  if (mangaDashboardInflight) {
+    return mangaDashboardInflight;
+  }
+
+  mangaDashboardInflight = (async () => {
+    try {
+      const now = new Date();
+      const eighteenMonthsAgo = new Date(now.getTime() - 540 * 24 * 3600 * 1000);
+      const recentStartInt = getFuzzyDateInt(eighteenMonthsAgo);
+      const thisYearStartInt = parseInt(`${now.getUTCFullYear()}0101`, 10);
+
+      const query = `
+        query ($recentStartInt: FuzzyDateInt, $thisYearStartInt: FuzzyDateInt) {
+          trending: Page(page: 1, perPage: 34) {
+            media(type: MANGA, format_in: [MANGA, ONE_SHOT], status_in: [RELEASING, FINISHED], sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
+              ${ANILIST_MANGA_FIELDS}
+            }
+          }
+          ongoing: Page(page: 1, perPage: 34) {
+            media(type: MANGA, format_in: [MANGA, ONE_SHOT], status: RELEASING, sort: [POPULARITY_DESC, SCORE_DESC], isAdult: false) {
+              ${ANILIST_MANGA_FIELDS}
+            }
+          }
+          latest: Page(page: 1, perPage: 34) {
+            media(type: MANGA, format_in: [MANGA, ONE_SHOT], status: RELEASING, startDate_greater: $recentStartInt, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+              ${ANILIST_MANGA_FIELDS}
+            }
+          }
+          upcoming: Page(page: 1, perPage: 24) {
+            media(type: MANGA, format_in: [MANGA, ONE_SHOT], status: NOT_YET_RELEASED, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+              ${ANILIST_MANGA_FIELDS}
+            }
+          }
+          upcomingLaunching: Page(page: 1, perPage: 20) {
+            media(type: MANGA, format_in: [MANGA, ONE_SHOT], status: RELEASING, startDate_greater: $thisYearStartInt, sort: [START_DATE_DESC, POPULARITY_DESC], isAdult: false) {
+              ${ANILIST_MANGA_FIELDS}
+            }
+          }
+        }
+      `;
+
+      const data = await queryAniList(query, { recentStartInt, thisYearStartInt });
+
+      const trending = (data?.trending?.media || []).slice(0, 24).map((m) => mapAniListMangaCard(m, 'trending'));
+      const topTrendingIds = new Set(trending.slice(0, 10).map((m) => m.id));
+
+      const rawOngoing = (data?.ongoing?.media || []).map((m) => mapAniListMangaCard(m, 'ongoing'));
+      const distinctOngoing = rawOngoing.filter((m) => !topTrendingIds.has(m.id));
+      const ongoing = (distinctOngoing.length >= 10 ? distinctOngoing : rawOngoing).slice(0, 24);
+      const topOngoingIds = new Set(ongoing.slice(0, 10).map((m) => m.id));
+
+      const minRecentYear = now.getUTCFullYear() - 1;
+      const rawLatest = (data?.latest?.media || [])
+        .filter((m) => !m.startDate?.year || m.startDate.year >= minRecentYear)
+        .map((m) => mapAniListMangaCard(m, 'latest'));
+      const distinctLatest = rawLatest.filter((m) => !topTrendingIds.has(m.id) && !topOngoingIds.has(m.id));
+      const latest = (distinctLatest.length >= 10 ? distinctLatest : rawLatest).slice(0, 24);
+
+      const rawUpcoming = (data?.upcoming?.media || []).map((m) => mapAniListMangaCard(m, 'upcoming'));
+      const upcomingSeen = new Set(rawUpcoming.map((m) => m.id));
+      const upcoming = [...rawUpcoming];
+      if (upcoming.length < 16) {
+        const launching = (data?.upcomingLaunching?.media || []).map((m) => mapAniListMangaCard(m, 'latest'));
+        for (const item of launching) {
+          if (upcoming.length >= 24) break;
+          if (!upcomingSeen.has(item.id)) {
+            upcomingSeen.add(item.id);
+            upcoming.push(item);
+          }
+        }
+      }
+
+      const bundle = {
+        trending,
+        ongoing,
+        latest,
+        upcoming: upcoming.slice(0, 24)
+      };
+
+      mangaDashboardCache = bundle;
+      mangaDashboardCacheTs = Date.now();
+      return bundle;
+    } catch (err) {
+      console.warn('[ClientLiveManga] Direct AniList manga dashboard fetch failed:', err.message);
+      return mangaDashboardCache || null;
+    } finally {
+      mangaDashboardInflight = null;
+    }
+  })();
+
+  return mangaDashboardInflight;
+};
+
+/**
+ * Fetch a paginated live manga feed for Search Discover Mode and Catalog "View All" pages.
+ */
+export const fetchClientLiveMangaPage = async ({
+  category = 'trending',
+  page = 1,
+  perPage = 24,
+  year = null,
+  genre = null,
+  forceRefresh = false
+}) => {
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const normCat = category || 'trending';
+  const hasFilters = Boolean(year || genre);
+
+  if (pageNum === 1 && !hasFilters && ['trending', 'ongoing', 'latest', 'upcoming'].includes(normCat)) {
+    const bundle = await fetchClientLiveMangaDashboard(forceRefresh);
+    if (bundle && bundle[normCat] && bundle[normCat].length > 0) {
+      return bundle[normCat];
+    }
+  }
+
+  const cacheKey = `manga_${normCat}_${pageNum}_${year || ''}_${genre || ''}`;
+  const cached = mangaPageCache.get(cacheKey);
+  if (!forceRefresh && cached && (Date.now() - cached.ts < CACHE_TTL)) {
+    return cached.data;
+  }
+
+  let filterGenre = null;
+  let filterTag = null;
+  if (genre) {
+    const mapped = MANGA_FILTER_MAP[String(genre)];
+    if (mapped) {
+      filterGenre = mapped.genre || null;
+      filterTag = mapped.tag || null;
+    } else if (!String(genre).includes('-') && !String(genre).startsWith('d_')) {
+      filterGenre = String(genre);
+    }
+  }
+
+  let sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
+  let status = null;
+  let statusIn = null;
+  let startDateGreater = null;
+  let startDateLesser = null;
+
+  if (normCat === 'ongoing') {
+    status = 'RELEASING';
+    sort = ['POPULARITY_DESC', 'SCORE_DESC'];
+  } else if (normCat === 'latest') {
+    status = 'RELEASING';
+    sort = ['POPULARITY_DESC', 'TRENDING_DESC'];
+    if (!year) {
+      const eighteenMonthsAgo = new Date(Date.now() - 540 * 24 * 3600 * 1000);
+      startDateGreater = getFuzzyDateInt(eighteenMonthsAgo);
+    }
+  } else if (normCat === 'upcoming') {
+    status = 'NOT_YET_RELEASED';
+    sort = ['POPULARITY_DESC', 'TRENDING_DESC'];
+  } else if (normCat === 'top_rated') {
+    sort = ['SCORE_DESC', 'POPULARITY_DESC'];
+  } else {
+    statusIn = ['RELEASING', 'FINISHED'];
+    sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
+  }
+
+  if (year && !isNaN(parseInt(year, 10))) {
+    const y = parseInt(year, 10);
+    startDateGreater = parseInt(`${y}0000`, 10);
+    startDateLesser = parseInt(`${y}9999`, 10);
+  }
+
+  const query = `
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $startDateGreater: FuzzyDateInt, $startDateLesser: FuzzyDateInt, $genre: String, $tag: String) {
+      Page(page: $page, perPage: $perPage) {
+        media(type: MANGA, format_in: [MANGA, ONE_SHOT], sort: $sort, status: $status, status_in: $statusIn, startDate_greater: $startDateGreater, startDate_lesser: $startDateLesser, genre: $genre, tag: $tag, isAdult: false) {
+          ${ANILIST_MANGA_FIELDS}
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    page: pageNum,
+    perPage: Math.min(50, perPage || 24),
+    sort
+  };
+  if (status) variables.status = status;
+  if (statusIn) variables.statusIn = statusIn;
+  if (startDateGreater) variables.startDateGreater = startDateGreater;
+  if (startDateLesser) variables.startDateLesser = startDateLesser;
+  if (filterGenre) variables.genre = filterGenre;
+  if (filterTag) variables.tag = filterTag;
+
+  try {
+    const data = await queryAniList(query, variables);
+    let items = data?.Page?.media || [];
+    if (items.length === 0 && normCat === 'upcoming' && pageNum === 1) {
+      delete variables.status;
+      variables.status = 'RELEASING';
+      variables.sort = ['START_DATE_DESC', 'POPULARITY_DESC'];
+      const retryData = await queryAniList(query, variables);
+      items = retryData?.Page?.media || [];
+    }
+    if (items.length > 0) {
+      const mapped = items.map((m) => mapAniListMangaCard(m, normCat));
+      mangaPageCache.set(cacheKey, { data: mapped, ts: Date.now() });
+      return mapped;
+    }
+  } catch (err) {
+    console.warn(`[ClientLiveManga:${normCat}] Direct AniList failed:`, err.message);
+    if (cached?.data) return cached.data;
+  }
+  return null;
+};
+
+// Helper: Resolve MangaDex UUID for a live AniList manga title so chapters load seamlessly in MangaReader
+const resolveMangaDexIdForTitle = async (titleEnglish, titleRomaji) => {
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const candidates = [];
+  [titleEnglish, titleRomaji].forEach((t) => {
+    if (t && t.trim().length >= 2 && !candidates.includes(t.trim())) {
+      candidates.push(t.trim());
+    }
+  });
+
+  for (const q of candidates.slice(0, 2)) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(
+        `/api/media/search?type=manga&query=${encodeURIComponent(q)}&page=1`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      if (!res.ok) continue;
+      const list = await res.json();
+      if (Array.isArray(list)) {
+        const lowerQ = q.toLowerCase();
+        const exact = list.find((item) => UUID_RE.test(String(item?.id || '')) && (item.title || '').toLowerCase() === lowerQ);
+        if (exact) return String(exact.id);
+        const firstUuid = list.find((item) => UUID_RE.test(String(item?.id || '')));
+        if (firstUuid) return String(firstUuid.id);
+      }
+    } catch {
+      // Ignore timeout/network blip and try next candidate
+    }
+  }
+  return null;
+};
+
+/**
+ * Fetch complete rich manga details directly from AniList GraphQL in the browser (0% Render 429!),
+ * automatically resolving MangaDex UUID in parallel so chapters load directly in MangaReader.
+ */
+export const fetchClientAniListMangaDetail = async (rawId) => {
+  const cleanId = String(rawId || '').replace(/^al_m_/i, '').replace(/^al_/i, '');
+  const numId = parseInt(cleanId, 10);
+  if (!numId || isNaN(numId)) return null;
+
+  const cached = mangaDetailCache.get(numId);
+  if (cached && (Date.now() - cached.ts < 15 * 60 * 1000)) {
+    return cached.data;
+  }
+
+  const query = `
+    query ($id: Int) {
+      Media(id: $id, type: MANGA) {
+        id
+        idMal
+        title { english romaji native }
+        description(asHtml: false)
+        coverImage { extraLarge large medium }
+        bannerImage
+        startDate { year month day }
+        averageScore
+        meanScore
+        status
+        format
+        chapters
+        volumes
+        countryOfOrigin
+        genres
+        staff(perPage: 12) {
+          edges {
+            role
+            node {
+              id
+              name { full }
+              image { large medium }
+            }
+          }
+        }
+        characters(sort: [ROLE, RELEVANCE], perPage: 16) {
+          edges {
+            role
+            node {
+              id
+              name { full }
+              image { large medium }
+            }
+          }
+        }
+        relations {
+          edges {
+            relationType
+            node {
+              id
+              type
+              title { english romaji }
+              format
+              seasonYear
+              startDate { year }
+              coverImage { extraLarge large }
+            }
+          }
+        }
+        recommendations(sort: [RATING_DESC], perPage: 10) {
+          nodes {
+            mediaRecommendation {
+              id
+              title { english romaji }
+              coverImage { large medium }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const data = await queryAniList(query, { id: numId });
+    const m = data?.Media;
+    if (!m) return null;
+
+    const fullTitle = m.title?.english || m.title?.romaji || m.title?.native || 'Untitled Manga';
+    const currentPoster = m.coverImage?.extraLarge || m.coverImage?.large || m.coverImage?.medium || null;
+    const formatLabel = getMangaFormatLabel(m);
+
+    // Resolve MangaDex UUID so readable chapters load automatically
+    const mangadexId = await resolveMangaDexIdForTitle(m.title?.english, m.title?.romaji);
+
+    const cast = [];
+    const seenPeople = new Set();
+    (m.staff?.edges || []).forEach((s) => {
+      if (!s?.node?.id) return;
+      const key = `al_staff_${s.node.id}`;
+      if (seenPeople.has(key)) return;
+      seenPeople.add(key);
+      cast.push({
+        id: String(s.node.id),
+        source: 'anilist_staff',
+        name: s.node.name?.full || 'Author',
+        character: s.role || 'Story & Art',
+        role_type: 'Crew',
+        profile_path: s.node.image?.large || s.node.image?.medium || null
+      });
+    });
+
+    (m.characters?.edges || []).forEach((c) => {
+      if (!c?.node?.id) return;
+      cast.push({
+        id: String(c.node.id),
+        source: 'anilist_char',
+        name: c.node.name?.full || 'Character',
+        character: c.role || 'Character',
+        role_type: 'Cast',
+        profile_path: c.node.image?.large || c.node.image?.medium || null
+      });
+    });
+
+    const relatedFranchise = [];
+    const seenRel = new Set([m.id]);
+    (m.relations?.edges || []).forEach((edge) => {
+      const node = edge?.node;
+      if (!node || seenRel.has(node.id)) return;
+      seenRel.add(node.id);
+      const isAnime = node.type === 'ANIME';
+      relatedFranchise.push({
+        id: isAnime ? `al_${node.id}` : `al_m_${node.id}`,
+        title: node.title?.english || node.title?.romaji || 'Related Title',
+        badge: isAnime ? 'ANIME' : (edge.relationType || 'MANGA'),
+        type: isAnime ? 'anime' : 'manga',
+        release_date: String(node.seasonYear || node.startDate?.year || ''),
+        poster_path: node.coverImage?.extraLarge || node.coverImage?.large || null,
+        overview: ''
+      });
+    });
+
+    const recommendations = (m.recommendations?.nodes || [])
+      .filter((r) => r?.mediaRecommendation)
+      .map((r) => ({
+        id: `al_m_${r.mediaRecommendation.id}`,
+        title: r.mediaRecommendation.title?.english || r.mediaRecommendation.title?.romaji || 'Manga',
+        poster_path: r.mediaRecommendation.coverImage?.large || r.mediaRecommendation.coverImage?.medium || null,
+        media_type: 'manga'
+      }));
+
+    const details = {
+      id: `al_m_${m.id}`,
+      external_media_id: `al_m_${m.id}`,
+      anilist_id: m.id,
+      mal_id: m.idMal || null,
+      mangadex_id: mangadexId || null,
+      title: fullTitle,
+      name: fullTitle,
+      overview: m.description ? m.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : 'No description available.',
+      poster_path: currentPoster,
+      backdrop_path: m.bannerImage || currentPoster,
+      release_date: formatDate(m.startDate, m.startDate?.year),
+      vote_average: m.averageScore ? Number((m.averageScore / 10).toFixed(1)) : (m.meanScore ? Number((m.meanScore / 10).toFixed(1)) : 8.0),
+      genres: (m.genres || []).map((g) => ({ id: g, name: g })),
+      media_type: 'manga',
+      status: m.status || null,
+      format: formatLabel,
+      chapters_count: m.chapters || null,
+      volumes_count: m.volumes || null,
+      youtube_trailer: null,
+      cast,
+      related_franchise: relatedFranchise,
+      recommendations
+    };
+
+    mangaDetailCache.set(numId, { data: details, ts: Date.now() });
+    return details;
+  } catch (err) {
+    console.warn('[ClientLiveManga] Direct manga detail fetch failed:', err.message);
+    return null;
+  }
 };
