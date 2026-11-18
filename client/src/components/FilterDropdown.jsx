@@ -60,14 +60,14 @@ export default function FilterDropdown({
 
   return (
     <div ref={containerRef} className={`relative ${open ? 'z-50' : 'z-10'} ${className}`}>
-      {/* Trigger Pill */}
+      {/* Solid High-Contrast Trigger Button */}
       <div
-        className={`group flex items-center justify-between gap-2 w-full rounded-xl border transition-all duration-200 backdrop-blur-md ${
+        className={`flex items-center justify-between gap-2 w-full rounded-xl border-2 transition-colors duration-150 ${
           open
-            ? 'bg-[#0e1630] border-accentCyan shadow-[0_0_20px_rgba(var(--accent-cyan),0.35)]'
+            ? 'bg-[#121c38] border-accentCyan shadow-lg'
             : isActive
-            ? 'bg-accentCyan/12 border-accentCyan/70 shadow-[0_0_14px_rgba(var(--accent-cyan),0.22)] hover:border-accentCyan'
-            : 'bg-[#0b1024]/90 border-white/15 hover:border-accentCyan/60 hover:bg-[#0f1630]'
+            ? 'bg-[#111b36] border-accentCyan'
+            : 'bg-[#0d1428] border-slate-600 hover:border-accentCyan hover:bg-[#121c38]'
         }`}
       >
         <button
@@ -75,22 +75,22 @@ export default function FilterDropdown({
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex items-center justify-between gap-2 flex-1 min-w-0 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left cursor-pointer focus:outline-none"
+          className="flex items-center justify-between gap-2 flex-1 min-w-0 px-3.5 py-2.5 text-left cursor-pointer focus:outline-none"
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             {Icon && (
               <Icon
-                className={`w-3.5 h-3.5 shrink-0 transition-colors ${
-                  isActive || open ? 'text-accentCyan' : 'text-gray-400 group-hover:text-accentCyan'
+                className={`w-4 h-4 shrink-0 ${
+                  isActive || open ? 'text-accentCyan' : 'text-cyan-400'
                 }`}
               />
             )}
-            <div className="flex flex-col min-w-0 leading-tight">
-              <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400">
+            <div className="flex flex-col min-w-0 leading-snug">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
                 {label}
               </span>
               <span
-                className={`text-xs sm:text-[13px] font-bold truncate ${
+                className={`text-sm font-bold truncate ${
                   isActive ? 'text-accentCyan' : 'text-white'
                 }`}
               >
@@ -99,8 +99,8 @@ export default function FilterDropdown({
             </div>
           </div>
           <ChevronDown
-            className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-              open ? 'rotate-180 text-accentCyan' : 'text-gray-400 group-hover:text-white'
+            className={`w-4 h-4 shrink-0 transition-transform duration-150 ${
+              open ? 'rotate-180 text-accentCyan' : 'text-slate-200'
             }`}
           />
         </button>
@@ -114,62 +114,62 @@ export default function FilterDropdown({
             }}
             title={`Clear ${label}`}
             aria-label={`Clear ${label}`}
-            className="mr-2 p-1 rounded-lg bg-white/10 hover:bg-accentPink/25 text-gray-300 hover:text-accentPink transition cursor-pointer shrink-0"
+            className="mr-2 p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-white transition cursor-pointer shrink-0"
           >
-            <X className="w-3 h-3 stroke-[2.5]" />
+            <X className="w-3.5 h-3.5 stroke-[2.5]" />
           </button>
         )}
       </div>
 
-      {/* Floating Glass Popover */}
+      {/* 100% Solid Opaque High-Contrast Dropdown Menu (Zero Glass Bleed-Through) */}
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 sm:right-auto sm:min-w-[230px] mt-2 rounded-2xl bg-[#0a0f22]/98 border border-accentCyan/40 shadow-[0_24px_60px_rgba(0,0,0,0.85),0_0_24px_rgba(var(--accent-cyan),0.18)] backdrop-blur-2xl overflow-hidden animate-fade-in z-50"
+          className="absolute left-0 right-0 sm:right-auto sm:min-w-[240px] mt-2 rounded-xl bg-[#0c1224] border-2 border-accentCyan shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden z-50"
         >
-          {/* Optional Built-in Search for Long Lists */}
+          {/* Solid Built-in Search Input for Long Lists */}
           {showSearch && (
-            <div className="p-2 border-b border-white/10 bg-white/[0.02]">
+            <div className="p-2.5 border-b border-slate-700 bg-[#090e1d]">
               <div className="relative flex items-center">
-                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 pointer-events-none" />
+                <Search className="w-4 h-4 text-slate-300 absolute left-3 pointer-events-none" />
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={`Filter ${label.toLowerCase()}...`}
-                  className="w-full bg-[#060916] border border-white/10 focus:border-accentCyan/70 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none transition"
+                  placeholder={`Search ${label.toLowerCase()}...`}
+                  className="w-full bg-[#141d38] border border-slate-500 focus:border-accentCyan rounded-lg pl-9 pr-8 py-2 text-sm font-medium text-white placeholder-slate-400 focus:outline-none"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-2 text-gray-400 hover:text-white cursor-pointer"
+                    className="absolute right-2.5 text-slate-300 hover:text-white cursor-pointer"
                     aria-label="Clear filter search"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
             </div>
           )}
 
-          {/* Scrollable Option List */}
-          <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5 scrollbar-thin">
+          {/* Scrollable High-Contrast Option List */}
+          <div className="max-h-72 overflow-y-auto p-1.5 space-y-1 bg-[#0c1224]">
             {!searchTerm.trim() && (
               <button
                 type="button"
                 role="option"
                 aria-selected={!isActive}
                 onClick={() => handleSelect('')}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg text-sm transition cursor-pointer ${
                   !isActive
-                    ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40'
-                    : 'text-gray-300 hover:bg-white/[0.07] hover:text-white border border-transparent'
+                    ? 'bg-accentCyan text-black font-extrabold'
+                    : 'bg-[#0c1224] text-white font-semibold hover:bg-[#1a2648]'
                 }`}
               >
                 <span className="truncate">{placeholder}</span>
-                {!isActive && <Check className="w-3.5 h-3.5 text-accentCyan shrink-0" />}
+                {!isActive && <Check className="w-4 h-4 text-black stroke-[2.5] shrink-0" />}
               </button>
             )}
 
@@ -183,19 +183,19 @@ export default function FilterDropdown({
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => handleSelect(String(opt.key))}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg text-sm transition cursor-pointer ${
                       isSelected
-                        ? 'bg-accentCyan/20 text-accentCyan font-bold border border-accentCyan/40'
-                        : 'text-gray-200 hover:bg-white/[0.07] hover:text-white border border-transparent'
+                        ? 'bg-accentCyan text-black font-extrabold'
+                        : 'bg-[#0c1224] text-white font-semibold hover:bg-[#1a2648]'
                     }`}
                   >
                     <span className="truncate">{opt.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-accentCyan shrink-0" />}
+                    {isSelected && <Check className="w-4 h-4 text-black stroke-[2.5] shrink-0" />}
                   </button>
                 );
               })
             ) : (
-              <div className="py-5 text-center text-xs text-gray-500 font-medium">
+              <div className="py-6 text-center text-sm text-slate-300 font-medium">
                 No matching {label.toLowerCase()}
               </div>
             )}
