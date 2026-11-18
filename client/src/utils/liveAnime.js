@@ -177,6 +177,7 @@ const resolveAniListFilter = (rawKey) => {
 };
 
 const VALID_ANIME_FORMATS = new Set(['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'TV_SHORT', 'MUSIC']);
+const VALID_ANILIST_COUNTRIES = new Set(['JP', 'CN', 'KR', 'TW']);
 
 const ANILIST_MANGA_FIELDS = `
   id
@@ -525,6 +526,7 @@ export const fetchClientLiveAnimePage = async ({
   year = null,
   genre = null,
   format = null,
+  country = null,
   forceRefresh = false
 }) => {
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -532,7 +534,10 @@ export const fetchClientLiveAnimePage = async ({
   const normFormat = format && VALID_ANIME_FORMATS.has(String(format).toUpperCase())
     ? String(format).toUpperCase()
     : null;
-  const hasFilters = Boolean(year || genre || normFormat);
+  const normCountry = country && VALID_ANILIST_COUNTRIES.has(String(country).toUpperCase())
+    ? String(country).toUpperCase()
+    : null;
+  const hasFilters = Boolean(year || genre || normFormat || normCountry);
 
   // Instant cached path for page 1 without custom filters
   if (pageNum === 1 && !hasFilters && ['trending', 'ongoing', 'latest', 'upcoming', 'schedule'].includes(normCat)) {
@@ -542,7 +547,7 @@ export const fetchClientLiveAnimePage = async ({
     }
   }
 
-  const cacheKey = `${normCat}_${pageNum}_${year || ''}_${genre || ''}_${normFormat || ''}`;
+  const cacheKey = `${normCat}_${pageNum}_${year || ''}_${genre || ''}_${normFormat || ''}_${normCountry || ''}`;
   const cached = pageCache.get(cacheKey);
   if (!forceRefresh && cached && (Date.now() - cached.ts < CACHE_TTL)) {
     return cached.data;
@@ -599,7 +604,7 @@ export const fetchClientLiveAnimePage = async ({
   if (normCat === 'ongoing') {
     status = 'RELEASING';
     sort = ['POPULARITY_DESC', 'SCORE_DESC'];
-    if (!year && !filterGenre && !filterTag && !filterTagIn && !normFormat && pageNum <= 2) {
+    if (!year && !filterGenre && !filterTag && !filterTagIn && !normFormat && !normCountry && pageNum <= 2) {
       useCurrentSeason = true;
     }
   } else if (normCat === 'latest') {
@@ -623,9 +628,9 @@ export const fetchClientLiveAnimePage = async ({
   }
 
   const query = `
-    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $startDateGreater: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String], $format: MediaFormat) {
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $startDateGreater: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String], $format: MediaFormat, $countryOfOrigin: CountryCode) {
       Page(page: $page, perPage: $perPage) {
-        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, startDate_greater: $startDateGreater, genre: $genre, tag: $tag, tag_in: $tagIn, format: $format, isAdult: false) {
+        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, startDate_greater: $startDateGreater, genre: $genre, tag: $tag, tag_in: $tagIn, format: $format, countryOfOrigin: $countryOfOrigin, isAdult: false) {
           ${ANILIST_FIELDS}
         }
       }
@@ -651,6 +656,7 @@ export const fetchClientLiveAnimePage = async ({
   if (filterTag) variables.tag = filterTag;
   if (filterTagIn) variables.tagIn = filterTagIn;
   if (normFormat) variables.format = normFormat;
+  if (normCountry) variables.countryOfOrigin = normCountry;
 
   try {
     const data = await queryAniList(query, variables);
@@ -675,7 +681,7 @@ export const fetchClientLiveAnimePage = async ({
 };
 
 /**
- * Direct Browser Live AniList Text Search for Anime (supports Type/Format: TV, MOVIE, OVA, ONA, SPECIAL + Genre + Year).
+ * Direct Browser Live AniList Text Search for Anime (supports Type: TV/MOVIE/OVA/ONA/SPECIAL + Country: JP/CN/KR + Genre + Year).
  */
 export const searchClientLiveAniListAnime = async ({
   query = '',
@@ -683,7 +689,8 @@ export const searchClientLiveAniListAnime = async ({
   perPage = 24,
   year = null,
   genre = null,
-  format = null
+  format = null,
+  country = null
 }) => {
   const q = String(query || '').trim();
   if (!q) return null;
@@ -691,12 +698,15 @@ export const searchClientLiveAniListAnime = async ({
   const normFormat = format && VALID_ANIME_FORMATS.has(String(format).toUpperCase())
     ? String(format).toUpperCase()
     : null;
+  const normCountry = country && VALID_ANILIST_COUNTRIES.has(String(country).toUpperCase())
+    ? String(country).toUpperCase()
+    : null;
   const { genre: filterGenre, tag: filterTag, tagIn: filterTagIn } = resolveAniListFilter(genre);
 
   const gql = `
-    query ($search: String, $page: Int, $perPage: Int, $seasonYear: Int, $genre: String, $tag: String, $tagIn: [String], $format: MediaFormat) {
+    query ($search: String, $page: Int, $perPage: Int, $seasonYear: Int, $genre: String, $tag: String, $tagIn: [String], $format: MediaFormat, $countryOfOrigin: CountryCode) {
       Page(page: $page, perPage: $perPage) {
-        media(search: $search, type: ANIME, sort: [SEARCH_MATCH, POPULARITY_DESC], seasonYear: $seasonYear, genre: $genre, tag: $tag, tag_in: $tagIn, format: $format, isAdult: false) {
+        media(search: $search, type: ANIME, sort: [SEARCH_MATCH, POPULARITY_DESC], seasonYear: $seasonYear, genre: $genre, tag: $tag, tag_in: $tagIn, format: $format, countryOfOrigin: $countryOfOrigin, isAdult: false) {
           ${ANILIST_FIELDS}
         }
       }
@@ -713,6 +723,7 @@ export const searchClientLiveAniListAnime = async ({
   if (filterTag) variables.tag = filterTag;
   if (filterTagIn) variables.tagIn = filterTagIn;
   if (normFormat) variables.format = normFormat;
+  if (normCountry) variables.countryOfOrigin = normCountry;
 
   try {
     const data = await queryAniList(gql, variables);
@@ -1257,11 +1268,15 @@ export const fetchClientLiveMangaPage = async ({
   perPage = 24,
   year = null,
   genre = null,
+  country = null,
   forceRefresh = false
 }) => {
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const normCat = category || 'trending';
-  const hasFilters = Boolean(year || genre);
+  const normCountry = country && VALID_ANILIST_COUNTRIES.has(String(country).toUpperCase())
+    ? String(country).toUpperCase()
+    : null;
+  const hasFilters = Boolean(year || genre || normCountry);
 
   if (pageNum === 1 && !hasFilters && ['trending', 'ongoing', 'latest', 'upcoming'].includes(normCat)) {
     const bundle = await fetchClientLiveMangaDashboard(forceRefresh);
@@ -1270,7 +1285,7 @@ export const fetchClientLiveMangaPage = async ({
     }
   }
 
-  const cacheKey = `manga_${normCat}_${pageNum}_${year || ''}_${genre || ''}`;
+  const cacheKey = `manga_${normCat}_${pageNum}_${year || ''}_${genre || ''}_${normCountry || ''}`;
   const cached = mangaPageCache.get(cacheKey);
   if (!forceRefresh && cached && (Date.now() - cached.ts < CACHE_TTL)) {
     return cached.data;
@@ -1315,9 +1330,9 @@ export const fetchClientLiveMangaPage = async ({
   }
 
   const query = `
-    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $startDateGreater: FuzzyDateInt, $startDateLesser: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String]) {
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $startDateGreater: FuzzyDateInt, $startDateLesser: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String], $countryOfOrigin: CountryCode) {
       Page(page: $page, perPage: $perPage) {
-        media(type: MANGA, format_in: [MANGA, ONE_SHOT], sort: $sort, status: $status, status_in: $statusIn, startDate_greater: $startDateGreater, startDate_lesser: $startDateLesser, genre: $genre, tag: $tag, tag_in: $tagIn, isAdult: false) {
+        media(type: MANGA, format_in: [MANGA, ONE_SHOT], sort: $sort, status: $status, status_in: $statusIn, startDate_greater: $startDateGreater, startDate_lesser: $startDateLesser, genre: $genre, tag: $tag, tag_in: $tagIn, countryOfOrigin: $countryOfOrigin, isAdult: false) {
           ${ANILIST_MANGA_FIELDS}
         }
       }
@@ -1336,6 +1351,7 @@ export const fetchClientLiveMangaPage = async ({
   if (filterGenre) variables.genre = filterGenre;
   if (filterTag) variables.tag = filterTag;
   if (filterTagIn) variables.tagIn = filterTagIn;
+  if (normCountry) variables.countryOfOrigin = normCountry;
 
   try {
     const data = await queryAniList(query, variables);
@@ -1357,6 +1373,65 @@ export const fetchClientLiveMangaPage = async ({
     if (cached?.data) return cached.data;
   }
   return null;
+};
+
+/**
+ * Direct Browser Live AniList Text Search for Manga (supports Country: JP/CN/KR + Genre + Year).
+ */
+export const searchClientLiveAniListManga = async ({
+  query = '',
+  page = 1,
+  perPage = 24,
+  year = null,
+  genre = null,
+  country = null
+}) => {
+  const q = String(query || '').trim();
+  if (!q) return null;
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const normCountry = country && VALID_ANILIST_COUNTRIES.has(String(country).toUpperCase())
+    ? String(country).toUpperCase()
+    : null;
+  const { genre: filterGenre, tag: filterTag, tagIn: filterTagIn } = resolveAniListFilter(genre);
+
+  let startDateGreater = null;
+  let startDateLesser = null;
+  if (year && !isNaN(parseInt(year, 10))) {
+    const y = parseInt(year, 10);
+    startDateGreater = parseInt(`${y}0000`, 10);
+    startDateLesser = parseInt(`${y}9999`, 10);
+  }
+
+  const gql = `
+    query ($search: String, $page: Int, $perPage: Int, $startDateGreater: FuzzyDateInt, $startDateLesser: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String], $countryOfOrigin: CountryCode) {
+      Page(page: $page, perPage: $perPage) {
+        media(search: $search, type: MANGA, format_in: [MANGA, ONE_SHOT], sort: [SEARCH_MATCH, POPULARITY_DESC], startDate_greater: $startDateGreater, startDate_lesser: $startDateLesser, genre: $genre, tag: $tag, tag_in: $tagIn, countryOfOrigin: $countryOfOrigin, isAdult: false) {
+          ${ANILIST_MANGA_FIELDS}
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    search: q,
+    page: pageNum,
+    perPage: Math.min(50, perPage || 24)
+  };
+  if (startDateGreater) variables.startDateGreater = startDateGreater;
+  if (startDateLesser) variables.startDateLesser = startDateLesser;
+  if (filterGenre) variables.genre = filterGenre;
+  if (filterTag) variables.tag = filterTag;
+  if (filterTagIn) variables.tagIn = filterTagIn;
+  if (normCountry) variables.countryOfOrigin = normCountry;
+
+  try {
+    const data = await queryAniList(gql, variables);
+    const items = data?.Page?.media || [];
+    return items.map((m) => mapAniListMangaCard(m, 'trending'));
+  } catch (err) {
+    console.warn('[ClientLiveManga:search] Direct AniList manga search failed:', err.message);
+    return null;
+  }
 };
 
 // Helper: Resolve MangaDex UUID for a live AniList manga title so chapters load seamlessly in MangaReader

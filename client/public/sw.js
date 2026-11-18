@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v12-solid-dropdowns';
+const CACHE_NAME = 'syncstream-v13-countries';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

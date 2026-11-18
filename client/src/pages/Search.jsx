@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
-import { fetchClientLiveAnimePage, fetchClientLiveMangaPage, searchClientLiveAniListAnime } from '../utils/liveAnime';
+import { fetchClientLiveAnimePage, fetchClientLiveMangaPage, searchClientLiveAniListAnime, searchClientLiveAniListManga } from '../utils/liveAnime';
 
 const MUSIC_LANGUAGES = [
   { key: 'blues_rap', label: 'Blues Rap', icon: Music },
@@ -169,20 +169,53 @@ const ANIME_TYPES = [
   { key: 'SPECIAL', label: 'Special' }
 ];
 
-const COUNTRY_OPTIONS = [
+const MOVIE_TV_COUNTRIES = [
   { key: 'US', label: 'United States' },
+  { key: 'IN', label: 'India' },
   { key: 'KR', label: 'South Korea' },
   { key: 'JP', label: 'Japan' },
-  { key: 'IN', label: 'India' },
   { key: 'GB', label: 'United Kingdom' },
+  { key: 'ID', label: 'Indonesia' },
   { key: 'CN', label: 'China' },
+  { key: 'TH', label: 'Thailand' },
+  { key: 'PH', label: 'Philippines' },
+  { key: 'TW', label: 'Taiwan' },
+  { key: 'HK', label: 'Hong Kong' },
+  { key: 'MY', label: 'Malaysia' },
+  { key: 'VN', label: 'Vietnam' },
+  { key: 'SG', label: 'Singapore' },
+  { key: 'TR', label: 'Turkey' },
   { key: 'FR', label: 'France' },
   { key: 'ES', label: 'Spain' },
-  { key: 'CA', label: 'Canada' },
   { key: 'DE', label: 'Germany' },
   { key: 'IT', label: 'Italy' },
+  { key: 'CA', label: 'Canada' },
   { key: 'AU', label: 'Australia' },
-  { key: 'TH', label: 'Thailand' }
+  { key: 'NZ', label: 'New Zealand' },
+  { key: 'BR', label: 'Brazil' },
+  { key: 'MX', label: 'Mexico' },
+  { key: 'AR', label: 'Argentina' },
+  { key: 'CO', label: 'Colombia' },
+  { key: 'RU', label: 'Russia' },
+  { key: 'SE', label: 'Sweden' },
+  { key: 'NO', label: 'Norway' },
+  { key: 'DK', label: 'Denmark' },
+  { key: 'NL', label: 'Netherlands' },
+  { key: 'BE', label: 'Belgium' },
+  { key: 'PL', label: 'Poland' },
+  { key: 'IE', label: 'Ireland' },
+  { key: 'PT', label: 'Portugal' },
+  { key: 'PK', label: 'Pakistan' },
+  { key: 'EG', label: 'Egypt' },
+  { key: 'IR', label: 'Iran' },
+  { key: 'NG', label: 'Nigeria' },
+  { key: 'ZA', label: 'South Africa' }
+];
+
+const ANIME_MANGA_COUNTRIES = [
+  { key: 'JP', label: 'Japan' },
+  { key: 'CN', label: 'China' },
+  { key: 'KR', label: 'South Korea' }
 ];
 
 const YEAR_OPTIONS = Array.from(
@@ -325,8 +358,8 @@ export default function Search() {
         } else {
           setResults(prev => [...prev, ...musicItems]);
         }
-      } else if (searchType === 'anime' && !searchQuery.trim() && !activeCountry) {
-        // Direct Browser Live AniList Discover Engine (Trending, Ongoing, Latest Episode, Upcoming, Top Rated + 52 Genres + TV/Movie/OVA/ONA/Special)
+      } else if (searchType === 'anime' && !searchQuery.trim()) {
+        // Direct Browser Live AniList Discover Engine (Trending, Ongoing, Latest Episode, Upcoming, Top Rated + 52 Genres + Type + Japan/China/Korea)
         const liveAnime = await fetchClientLiveAnimePage({
           category: activeSort || 'trending',
           page: pageNum,
@@ -334,6 +367,7 @@ export default function Search() {
           year: activeYear || null,
           genre: activeGenre || null,
           format: activeFormat || null,
+          country: activeCountry || null,
           forceRefresh
         });
 
@@ -365,15 +399,16 @@ export default function Search() {
           if (pageNum === 1) setResults(res.data || []);
           else setResults(prev => [...prev, ...(res.data || [])]);
         }
-      } else if (searchType === 'anime' && searchQuery.trim() && !activeCountry) {
-        // Direct Browser Live AniList Text Search (supports Type: TV, Movie, OVA, ONA, Special + Genre + Year!)
+      } else if (searchType === 'anime' && searchQuery.trim()) {
+        // Direct Browser Live AniList Text Search (supports Type: TV/Movie/OVA/ONA/Special + Country: JP/CN/KR + Genre + Year!)
         const liveAnimeSearch = await searchClientLiveAniListAnime({
           query: searchQuery.trim(),
           page: pageNum,
           perPage: 24,
           year: activeYear || null,
           genre: activeGenre || null,
-          format: activeFormat || null
+          format: activeFormat || null,
+          country: activeCountry || null
         });
 
         if (liveAnimeSearch && liveAnimeSearch.length > 0) {
@@ -404,13 +439,14 @@ export default function Search() {
           else setResults(prev => [...prev, ...(res.data || [])]);
         }
       } else if (searchType === 'manga' && !searchQuery.trim()) {
-        // Direct Browser Live AniList Manga Engine (Trending, Ongoing, Latest New Series, Upcoming, Top Rated + 52 Genres)
+        // Direct Browser Live AniList Manga Engine (Trending, Ongoing, Latest New Series, Upcoming, Top Rated + 52 Genres + Japan/China/Korea)
         const liveManga = await fetchClientLiveMangaPage({
           category: activeSort || 'trending',
           page: pageNum,
           perPage: 24,
           year: activeYear || null,
           genre: activeGenre || null,
+          country: activeCountry || null,
           forceRefresh
         });
 
@@ -427,6 +463,43 @@ export default function Search() {
           const res = await axios.get('/api/media/search', {
             params: {
               query: '',
+              type: 'manga',
+              genre: activeGenre,
+              language: activeLanguage,
+              country: activeCountry,
+              sort: activeSort,
+              year: activeYear || undefined,
+              page: pageNum,
+              refresh: forceRefresh ? '1' : undefined
+            }
+          });
+          if (pageNum === 1) setResults(res.data || []);
+          else setResults(prev => [...prev, ...(res.data || [])]);
+        }
+      } else if (searchType === 'manga' && searchQuery.trim() && (activeCountry || activeGenre || activeYear)) {
+        // Direct Browser Live AniList Manga Text Search when Country/Genre/Year filter is active
+        const liveMangaSearch = await searchClientLiveAniListManga({
+          query: searchQuery.trim(),
+          page: pageNum,
+          perPage: 24,
+          year: activeYear || null,
+          genre: activeGenre || null,
+          country: activeCountry || null
+        });
+
+        if (liveMangaSearch && liveMangaSearch.length > 0) {
+          if (pageNum === 1) {
+            setResults(liveMangaSearch);
+          } else {
+            setResults(prev => {
+              const seenIds = new Set(prev.map(x => x.id));
+              return [...prev, ...liveMangaSearch.filter(x => !seenIds.has(x.id))];
+            });
+          }
+        } else {
+          const res = await axios.get('/api/media/search', {
+            params: {
+              query: searchQuery.trim(),
               type: 'manga',
               genre: activeGenre,
               language: activeLanguage,
@@ -836,16 +909,16 @@ export default function Search() {
               />
             )}
 
-            {/* 4. MOVIE / TV: Country Filter */}
-            {(type === 'movie' || type === 'tv') && (
+            {/* 4. Country Filter (40 Countries for Movie/TV; Japan, China, South Korea for Anime/Manga) */}
+            {(type === 'movie' || type === 'tv' || type === 'anime' || type === 'manga') && (
               <FilterDropdown
                 label="Country"
                 icon={Globe}
                 value={country}
                 onChange={handleCountryChange}
-                options={COUNTRY_OPTIONS}
+                options={type === 'anime' || type === 'manga' ? ANIME_MANGA_COUNTRIES : MOVIE_TV_COUNTRIES}
                 placeholder="All Countries"
-                searchable={true}
+                searchable={type === 'movie' || type === 'tv'}
                 className="w-full sm:w-48"
               />
             )}

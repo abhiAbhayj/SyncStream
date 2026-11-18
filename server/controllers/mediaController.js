@@ -1983,7 +1983,12 @@ export const searchMedia = async (req, res) => {
                   const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi', 'mr'];
                   combinedResults = combinedResults.filter(r => r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language));
                 } else {
-                  const countryToLang = { 'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de' };
+                  const countryToLang = {
+                    'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de',
+                    'ID': 'id', 'TH': 'th', 'TR': 'tr', 'RU': 'ru', 'BR': 'pt', 'PT': 'pt', 'MX': 'es',
+                    'AR': 'es', 'CO': 'es', 'TW': 'zh', 'HK': 'cn', 'PH': 'tl', 'VN': 'vi', 'MY': 'ms',
+                    'SE': 'sv', 'NO': 'no', 'DK': 'da', 'NL': 'nl', 'PL': 'pl', 'IR': 'fa', 'EG': 'ar', 'PK': 'ur'
+                  };
                   const expectedLang = countryToLang[country];
                   combinedResults = combinedResults.filter(r => r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang));
                 }
@@ -2012,7 +2017,12 @@ export const searchMedia = async (req, res) => {
                   const allowedLangs = ['ta', 'te', 'kn', 'ml', 'hi', 'mr'];
                   combinedResults = combinedResults.filter(r => r.origin_country?.includes('IN') || allowedLangs.includes(r.original_language));
                 } else {
-                  const countryToLang = { 'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de' };
+                  const countryToLang = {
+                    'KR': 'ko', 'JP': 'ja', 'ES': 'es', 'FR': 'fr', 'CN': 'zh', 'IT': 'it', 'DE': 'de',
+                    'ID': 'id', 'TH': 'th', 'TR': 'tr', 'RU': 'ru', 'BR': 'pt', 'PT': 'pt', 'MX': 'es',
+                    'AR': 'es', 'CO': 'es', 'TW': 'zh', 'HK': 'cn', 'PH': 'tl', 'VN': 'vi', 'MY': 'ms',
+                    'SE': 'sv', 'NO': 'no', 'DK': 'da', 'NL': 'nl', 'PL': 'pl', 'IR': 'fa', 'EG': 'ar', 'PK': 'ur'
+                  };
                   const expectedLang = countryToLang[country];
                   combinedResults = combinedResults.filter(r => r.origin_country?.includes(country) || (expectedLang && r.original_language === expectedLang));
                 }
