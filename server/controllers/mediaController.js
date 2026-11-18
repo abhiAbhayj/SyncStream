@@ -900,17 +900,27 @@ const TMDB_TO_ANILIST_GENRE = {
   'g_10749': 'Romance'
 };
 
-// Single batched GraphQL call to fetch all live anime dashboard sections (trending, ongoing, schedule, upcoming)
+// Helper: compute the live current anime broadcast season (WINTER / SPRING / SUMMER / FALL)
+const getCurrentAnimeSeason = () => {
+  const now = new Date();
+  const month = now.getUTCMonth() + 1;
+  const year = now.getUTCFullYear();
+  const season = month <= 3 ? 'WINTER' : month <= 6 ? 'SPRING' : month <= 9 ? 'SUMMER' : 'FALL';
+  return { season, year };
+};
+
+// Single batched GraphQL call to fetch all live anime dashboard sections (distinct trending vs ongoing!)
 const fetchLiveAniListDashboard = async () => {
+  const { season, year } = getCurrentAnimeSeason();
   const query = `
-    query {
-      trending: Page(page: 1, perPage: 20) {
-        media(type: ANIME, sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
+    query ($season: MediaSeason, $year: Int) {
+      trending: Page(page: 1, perPage: 40) {
+        media(type: ANIME, status_in: [RELEASING, FINISHED], sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
           ${ANILIST_CARD_FIELDS}
         }
       }
-      ongoing: Page(page: 1, perPage: 20) {
-        media(type: ANIME, status: RELEASING, sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
+      ongoingSeason: Page(page: 1, perPage: 25) {
+        media(type: ANIME, status: RELEASING, season: $season, seasonYear: $year, sort: [POPULARITY_DESC, SCORE_DESC], isAdult: false) {
           ${ANILIST_CARD_FIELDS}
         }
       }
@@ -930,16 +940,39 @@ const fetchLiveAniListDashboard = async () => {
   try {
     const res = await axios.post(
       'https://graphql.anilist.co',
-      { query },
+      { query, variables: { season, year } },
       { headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, timeout: 9000 }
     );
     const data = res.data?.data;
     if (data) {
+      const schedule = (data.schedule?.media || []).map(mapAniListAnimeCard);
+
+      // 1. Live Ongoing: Top current-season releasing anime (e.g. Fall 2026 hits) sorted by popularity & rating
+      const seasonOngoing = (data.ongoingSeason?.media || []).map(mapAniListAnimeCard);
+      const ongoingIds = new Set(seasonOngoing.map((a) => a.id));
+      const ongoing = [...seasonOngoing];
+      // Top up to 20 if current season just started and has < 20 entries
+      for (const item of schedule) {
+        if (ongoing.length >= 20) break;
+        if (!ongoingIds.has(item.id)) {
+          ongoingIds.add(item.id);
+          ongoing.push(item);
+        }
+      }
+
+      // 2. Top Trending Live Anime: Strictly deduplicated against the Top 10 Ongoing cards so Home tabs never look identical!
+      const topOngoingIds = new Set(ongoing.slice(0, 10).map((a) => a.id));
+      const rawTrending = (data.trending?.media || []).map(mapAniListAnimeCard);
+      const distinctTrending = rawTrending.filter((a) => !topOngoingIds.has(a.id));
+      const trending = (distinctTrending.length >= 10 ? distinctTrending : rawTrending).slice(0, 20);
+
+      const upcoming = (data.upcoming?.media || []).map(mapAniListAnimeCard);
+
       return {
-        trending: (data.trending?.media || []).map(mapAniListAnimeCard),
-        ongoing: (data.ongoing?.media || []).map(mapAniListAnimeCard),
-        schedule: (data.schedule?.media || []).map(mapAniListAnimeCard),
-        upcoming: (data.upcoming?.media || []).map(mapAniListAnimeCard)
+        trending,
+        ongoing: ongoing.slice(0, 20),
+        schedule,
+        upcoming
       };
     }
   } catch (err) {
@@ -948,8 +981,8 @@ const fetchLiveAniListDashboard = async () => {
 
   // Fallback to Jikan (MyAnimeList live API)
   try {
-    const [topAiringRes, seasonNowRes, seasonUpRes] = await Promise.all([
-      axios.get('https://api.jikan.moe/v4/top/anime?filter=airing&limit=20', { timeout: 8000 }).catch(() => ({ data: { data: [] } })),
+    const [topPopularRes, seasonNowRes, seasonUpRes] = await Promise.all([
+      axios.get('https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=25', { timeout: 8000 }).catch(() => ({ data: { data: [] } })),
       axios.get('https://api.jikan.moe/v4/seasons/now?limit=20', { timeout: 8000 }).catch(() => ({ data: { data: [] } })),
       axios.get('https://api.jikan.moe/v4/seasons/upcoming?limit=20', { timeout: 8000 }).catch(() => ({ data: { data: [] } }))
     ]);
@@ -972,8 +1005,9 @@ const fetchLiveAniListDashboard = async () => {
       };
     };
 
-    const trending = (topAiringRes.data?.data || []).map(mapJikan);
     const ongoing = (seasonNowRes.data?.data || []).map(mapJikan);
+    const ongoingIdSet = new Set(ongoing.slice(0, 10).map((a) => a.id));
+    const trending = (topPopularRes.data?.data || []).map(mapJikan).filter((a) => !ongoingIdSet.has(a.id)).slice(0, 20);
     const upcoming = (seasonUpRes.data?.data || []).map(mapJikan);
 
     if (trending.length > 0 || ongoing.length > 0) {
@@ -993,12 +1027,22 @@ const fetchLiveAniListDashboard = async () => {
 
 // Paginated live AniList fetcher for Catalog & Search Discover mode
 const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perPage = 24, year = null, genre = null }) => {
+  const { season: curSeason, year: curYear } = getCurrentAnimeSeason();
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
   let sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
   let status = null;
+  let statusIn = null;
+  let useCurrentSeason = false;
 
-  if (category === 'ongoing' || category === 'latest') {
+  if (category === 'ongoing') {
     status = 'RELEASING';
-    sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
+    sort = ['POPULARITY_DESC', 'SCORE_DESC'];
+    if (!year && pageNum <= 2) {
+      useCurrentSeason = true;
+    }
+  } else if (category === 'latest') {
+    status = 'RELEASING';
+    sort = ['UPDATED_AT_DESC', 'TRENDING_DESC'];
   } else if (category === 'schedule') {
     status = 'RELEASING';
     sort = ['POPULARITY_DESC', 'TRENDING_DESC'];
@@ -1008,7 +1052,8 @@ const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perP
   } else if (category === 'top_rated') {
     sort = ['SCORE_DESC', 'POPULARITY_DESC'];
   } else {
-    // 'trending' or default
+    // 'trending' or default — live global trending across releasing & finished hits
+    statusIn = ['RELEASING', 'FINISHED'];
     sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
   }
 
@@ -1017,9 +1062,9 @@ const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perP
     : null;
 
   const query = `
-    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $seasonYear: Int, $genre: String) {
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $genre: String) {
       Page(page: $page, perPage: $perPage) {
-        media(type: ANIME, sort: $sort, status: $status, seasonYear: $seasonYear, genre: $genre, isAdult: false) {
+        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, genre: $genre, isAdult: false) {
           ${ANILIST_CARD_FIELDS}
         }
       }
@@ -1027,12 +1072,18 @@ const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perP
   `;
 
   const variables = {
-    page: Math.max(1, parseInt(page, 10) || 1),
+    page: pageNum,
     perPage: Math.min(50, perPage || 24),
     sort
   };
   if (status) variables.status = status;
-  if (year && !isNaN(parseInt(year, 10))) variables.seasonYear = parseInt(year, 10);
+  if (statusIn) variables.statusIn = statusIn;
+  if (useCurrentSeason) {
+    variables.season = curSeason;
+    variables.seasonYear = curYear;
+  } else if (year && !isNaN(parseInt(year, 10))) {
+    variables.seasonYear = parseInt(year, 10);
+  }
   if (mappedGenre) variables.genre = mappedGenre;
 
   try {
@@ -1044,6 +1095,18 @@ const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perP
     const items = res.data?.data?.Page?.media || [];
     if (items.length > 0) {
       return items.map(mapAniListAnimeCard);
+    }
+    // If seasonal page ran out, retry without season filter for deeper pagination
+    if (useCurrentSeason) {
+      delete variables.season;
+      delete variables.seasonYear;
+      const retryRes = await axios.post(
+        'https://graphql.anilist.co',
+        { query, variables },
+        { headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, timeout: 9000 }
+      );
+      const retryItems = retryRes.data?.data?.Page?.media || [];
+      if (retryItems.length > 0) return retryItems.map(mapAniListAnimeCard);
     }
   } catch (err) {
     console.warn(`[Live Anime Catalog:${category}] AniList failed:`, err.message);
