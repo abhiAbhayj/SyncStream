@@ -185,6 +185,7 @@ const ANILIST_MANGA_FIELDS = `
   coverImage { extraLarge large medium }
   bannerImage
   startDate { year month day }
+  updatedAt
   averageScore
   meanScore
   status
@@ -275,15 +276,19 @@ const mapAniListCard = (m) => {
 
   let broadcastDay = null;
   let broadcastText = null;
+  let broadcastTime = null;
+  let hasExactSchedule = false;
   if (m.status === 'NOT_YET_RELEASED') {
     broadcastText = formatPremiereLabel(m.startDate, m.season, m.seasonYear);
   } else if (m.nextAiringEpisode?.airingAt) {
     const airDate = new Date(m.nextAiringEpisode.airingAt * 1000);
     if (!isNaN(airDate.getTime())) {
+      hasExactSchedule = true;
       broadcastDay = ANIME_DAYS_OF_WEEK[airDate.getDay()];
+      broadcastTime = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dayShort = broadcastDay.slice(0, -1);
       const nextEp = m.nextAiringEpisode.episode;
-      broadcastText = nextEp ? `Ep ${nextEp} • Airs ${dayShort}` : `Airs every ${dayShort}`;
+      broadcastText = nextEp ? `Ep ${nextEp} • ${dayShort} ${broadcastTime}` : `Airs ${dayShort} ${broadcastTime}`;
     }
   } else if (m.status === 'RELEASING') {
     broadcastDay = ANIME_DAYS_OF_WEEK[(parseInt(m.id, 10) || 0) % 7];
@@ -310,6 +315,9 @@ const mapAniListCard = (m) => {
     episodes_count: m.episodes || null,
     next_episode: m.nextAiringEpisode?.episode || null,
     airing_at: m.nextAiringEpisode?.airingAt || null,
+    time_until_airing: m.nextAiringEpisode?.timeUntilAiring || null,
+    broadcast_time: broadcastTime,
+    has_exact_schedule: hasExactSchedule,
     duration: m.duration || null,
     runtime: m.duration || null,
     genres: (m.genres || []).map((g) => ({ id: g, name: g })),
@@ -415,7 +423,12 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
               }
             }
           }
-          schedule: Page(page: 1, perPage: 36) {
+          schedule: Page(page: 1, perPage: 50) {
+            media(type: ANIME, status: RELEASING, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+              ${ANILIST_FIELDS}
+            }
+          }
+          scheduleMore: Page(page: 2, perPage: 35) {
             media(type: ANIME, status: RELEASING, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
               ${ANILIST_FIELDS}
             }
@@ -428,7 +441,18 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
         queryAniList(scheduleQuery, { now: nowSec, from: twoWeeksAgoSec }).catch(() => ({}))
       ]);
 
-      const schedule = (schedData?.schedule?.media || []).map(mapAniListCard);
+      const rawSchedule = [
+        ...(schedData?.schedule?.media || []),
+        ...(schedData?.scheduleMore?.media || [])
+      ].map(mapAniListCard);
+      const scheduleSeen = new Set();
+      const schedule = [];
+      for (const item of rawSchedule) {
+        if (!scheduleSeen.has(item.id)) {
+          scheduleSeen.add(item.id);
+          schedule.push(item);
+        }
+      }
       const seasonOngoing = (mainData?.ongoingSeason?.media || []).map(mapAniListCard);
       const ongoingIds = new Set(seasonOngoing.map((a) => a.id));
       const ongoing = [...seasonOngoing];
@@ -1182,10 +1206,31 @@ export const fetchClientLiveMangaDashboard = async (forceRefresh = false) => {
         }
       }
 
+      const formatMangaRelativeUpdate = (updatedAtSec) => {
+        if (!updatedAtSec) return 'Live Ongoing';
+        const diffSec = Math.max(60, Math.floor(Date.now() / 1000) - updatedAtSec);
+        const mins = Math.floor(diffSec / 60);
+        if (mins < 60) return `Updated ${mins}m ago`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return `Updated ${hrs}h ago`;
+        const days = Math.floor(hrs / 24);
+        return days === 1 ? 'Updated Yesterday' : `Updated ${days}d ago`;
+      };
+
+      const scheduleManga = (data?.trending?.media || [])
+        .filter((m) => m.status === 'RELEASING')
+        .slice(0, 16)
+        .map((m) => ({
+          ...mapAniListMangaCard(m, 'ongoing'),
+          updated_at: m.updatedAt || null,
+          broadcast: formatMangaRelativeUpdate(m.updatedAt)
+        }));
+
       const bundle = {
         trending,
         ongoing,
         latest,
+        schedule: scheduleManga.length > 0 ? scheduleManga : ongoing.slice(0, 16),
         upcoming: upcoming.slice(0, 24)
       };
 

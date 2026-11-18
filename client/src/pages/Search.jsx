@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
 import MediaCardSkeleton from '../components/MediaCardSkeleton';
+import FilterDropdown from '../components/FilterDropdown';
 import {
   Search as SearchIcon,
   Film,
@@ -167,6 +168,30 @@ const ANIME_TYPES = [
   { key: 'ONA', label: 'ONA' },
   { key: 'SPECIAL', label: 'Special' }
 ];
+
+const COUNTRY_OPTIONS = [
+  { key: 'US', label: 'United States' },
+  { key: 'KR', label: 'South Korea' },
+  { key: 'JP', label: 'Japan' },
+  { key: 'IN', label: 'India' },
+  { key: 'GB', label: 'United Kingdom' },
+  { key: 'CN', label: 'China' },
+  { key: 'FR', label: 'France' },
+  { key: 'ES', label: 'Spain' },
+  { key: 'CA', label: 'Canada' },
+  { key: 'DE', label: 'Germany' },
+  { key: 'IT', label: 'Italy' },
+  { key: 'AU', label: 'Australia' },
+  { key: 'TH', label: 'Thailand' }
+];
+
+const YEAR_OPTIONS = Array.from(
+  { length: new Date().getFullYear() - 1949 },
+  (_, i) => {
+    const y = String(new Date().getFullYear() - i);
+    return { key: y, label: y };
+  }
+);
 
 const SEARCH_TYPEWRITER_HINTS = {
   movie: ['Search Interstellar...', 'Search Dune: Part Two...', 'Search Avengers: Endgame...', 'Search Oppenheimer...'],
@@ -613,7 +638,7 @@ export default function Search() {
       </div>
 
       {/* Search and Filters Console (with integrated category tabs) */}
-      <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto space-y-4 bg-darkCard/90 border-2 border-accentCyan/40 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl shadow-2xl">
+      <form onSubmit={handleSearchSubmit} className="relative z-30 max-w-4xl mx-auto space-y-4 bg-darkCard/90 border-2 border-accentCyan/40 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl shadow-2xl">
         
         {/* Category Selector Tabs (Movies, TV Shows, Anime, Manga, Music) */}
         <div className="space-y-1.5 border-b-2 border-white/10 pb-3">
@@ -768,127 +793,92 @@ export default function Search() {
           </div>
         )}
 
-        {/* Filter controls row */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:flex-wrap gap-2.5 sm:gap-4 items-center text-xs pt-1">
-
-          {/* 1. MUSIC: Show Languages Dropdown */}
-          {type === 'music' ? (
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <Globe className="w-3.5 h-3.5 text-accentCyan" />
-                <span>Language:</span>
-              </span>
-              <select
+        {/* Sleek Glassmorphic Filter Dropdowns Row */}
+        <div className="pt-2 border-t border-white/10">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3">
+            {/* 1. MUSIC: Language Filter */}
+            {type === 'music' ? (
+              <FilterDropdown
+                label="Language"
+                icon={Globe}
                 value={language}
-                onChange={(e) => handleLanguageChange(e.target.value)}
-                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md truncate"
-              >
-                <option value="">All Hits</option>
-                {MUSIC_LANGUAGES.map(lang => (
-                  <option key={lang.key} value={lang.key} className="bg-darkBg text-white">
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            /* 2. MOVIES/TV/ANIME/MANGA: Show Genre Dropdown */
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <Filter className="w-3.5 h-3.5 text-accentCyan" />
-                <span>Genre:</span>
-              </span>
-              <select
+                onChange={handleLanguageChange}
+                options={MUSIC_LANGUAGES}
+                placeholder="All Languages"
+                searchable={true}
+                className="w-full sm:w-52"
+              />
+            ) : (
+              /* 2. MOVIES / TV / ANIME / MANGA: Genre Filter */
+              <FilterDropdown
+                label="Genre"
+                icon={Filter}
                 value={genre}
-                onChange={(e) => handleGenreChange(e.target.value)}
-                className="flex-1 sm:flex-initial min-w-0 sm:max-w-[200px] px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black truncate shadow-md"
-              >
-                <option value="">All Genres</option>
-                {currentGenres.map(g => (
-                  <option key={g.key} value={g.key} className="bg-darkBg text-white">{g.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
+                onChange={handleGenreChange}
+                options={currentGenres}
+                placeholder="All Genres"
+                searchable={true}
+                className="w-full sm:w-52"
+              />
+            )}
 
-          {/* Anime Type / Format filter (TV, Movie, OVA, ONA, Special) */}
-          {type === 'anime' && (
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <Layers className="w-3.5 h-3.5 text-accentCyan" />
-                <span>Type:</span>
-              </span>
-              <select
+            {/* 3. ANIME: Type / Format Filter (TV, Movie, OVA, ONA, Special) */}
+            {type === 'anime' && (
+              <FilterDropdown
+                label="Type"
+                icon={Layers}
                 value={animeFormat}
-                onChange={(e) => handleFormatChange(e.target.value)}
-                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
-              >
-                <option value="">All Types</option>
-                {ANIME_TYPES.map(tOpt => (
-                  <option key={tOpt.key} value={tOpt.key} className="bg-darkBg text-white">{tOpt.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
+                onChange={handleFormatChange}
+                options={ANIME_TYPES}
+                placeholder="All Types"
+                searchable={false}
+                className="w-full sm:w-44"
+              />
+            )}
 
-          {/* Country select (only for Movie/TV) */}
-          {(type === 'movie' || type === 'tv') && (
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-              <span className="text-accentCyan font-black uppercase tracking-wider shrink-0">Country:</span>
-              <select
+            {/* 4. MOVIE / TV: Country Filter */}
+            {(type === 'movie' || type === 'tv') && (
+              <FilterDropdown
+                label="Country"
+                icon={Globe}
                 value={country}
-                onChange={(e) => handleCountryChange(e.target.value)}
-                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md truncate"
-              >
-                <option value="">All Countries</option>
-                {[
-                  { key: 'US', label: 'United States' },
-                  { key: 'KR', label: 'South Korea' },
-                  { key: 'JP', label: 'Japan' },
-                  { key: 'IN', label: 'India' },
-                  { key: 'GB', label: 'United Kingdom' },
-                  { key: 'CN', label: 'China' },
-                  { key: 'FR', label: 'France' },
-                  { key: 'ES', label: 'Spain' },
-                  { key: 'CA', label: 'Canada' },
-                  { key: 'DE', label: 'Germany' },
-                  { key: 'IT', label: 'Italy' },
-                  { key: 'AU', label: 'Australia' },
-                  { key: 'TH', label: 'Thailand' }
-                ].map(c => (
-                  <option key={c.key} value={c.key} className="bg-darkBg text-white">{c.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
+                onChange={handleCountryChange}
+                options={COUNTRY_OPTIONS}
+                placeholder="All Countries"
+                searchable={true}
+                className="w-full sm:w-48"
+              />
+            )}
 
-          {/* Year filter (for movie/tv/anime/manga, not music) */}
-          {(type === 'movie' || type === 'tv' || type === 'anime' || type === 'manga') && (
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-              <span className="text-accentCyan font-black uppercase tracking-wider shrink-0">Year:</span>
-              <select
+            {/* 5. Year Filter (Movies, TV, Anime, Manga) */}
+            {(type === 'movie' || type === 'tv' || type === 'anime' || type === 'manga') && (
+              <FilterDropdown
+                label="Year"
+                icon={Calendar}
                 value={year}
-                onChange={(e) => handleYearChange(e.target.value)}
-                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
-              >
-                <option value="">All Years</option>
-                {Array.from({ length: new Date().getFullYear() - 1949 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                  <option key={y} value={String(y)} className="bg-darkBg text-white">{y}</option>
-                ))}
-              </select>
-            </div>
-          )}
+                onChange={handleYearChange}
+                options={YEAR_OPTIONS}
+                placeholder="All Years"
+                searchable={true}
+                className="w-full sm:w-40"
+              />
+            )}
 
-          {/* Reset Filters button */}
-          {(genre || animeFormat || language || country || year) && (
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="col-span-full text-xs font-bold text-accentPink hover:underline sm:ml-auto text-right justify-self-end"
-            >
-              Clear Filters
-            </button>
-          )}
+            {/* Active Filter Count + Clear Filters Pill */}
+            {(genre || animeFormat || language || country || year) && (() => {
+              const activeCount = [genre, animeFormat, language, country, year].filter(Boolean).length;
+              return (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="col-span-full sm:ml-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-accentPink/15 hover:bg-accentPink/25 border border-accentPink/45 hover:border-accentPink text-accentPink text-xs font-extrabold transition active:scale-95 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Reset ({activeCount})</span>
+                </button>
+              );
+            })()}
+          </div>
         </div>
       </form>
 

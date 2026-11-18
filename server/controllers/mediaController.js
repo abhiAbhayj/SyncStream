@@ -1508,24 +1508,49 @@ export const getTrending = async (req, res) => {
         const tvDetailsResponses = await Promise.all(tvDetailsPromises);
         
         const daysOfWeek = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
-        const tvAirDays = {};
+        const tvAirMeta = {};
         tvDetailsResponses.forEach(res => {
           if (res && res.data) {
-            const ep = res.data.next_episode_to_air || res.data.last_episode_to_air;
+            const nextEp = res.data.next_episode_to_air;
+            const lastEp = res.data.last_episode_to_air;
+            const ep = nextEp || lastEp;
+            const networkName = res.data.networks?.[0]?.name || null;
+            let day = null;
             if (ep && ep.air_date) {
-              const date = new Date(ep.air_date);
+              const date = new Date(`${ep.air_date}T00:00:00Z`);
               if (!isNaN(date.getTime())) {
-                tvAirDays[res.data.id] = daysOfWeek[date.getDay()];
+                day = daysOfWeek[date.getUTCDay()];
               }
             }
+            const epLabel = ep?.season_number && ep?.episode_number
+              ? `S${ep.season_number} E${ep.episode_number}`
+              : null;
+            tvAirMeta[res.data.id] = {
+              day,
+              air_date: ep?.air_date || null,
+              episode_label: epLabel,
+              episode_name: ep?.name || null,
+              network: networkName,
+              has_exact_schedule: Boolean(day),
+              is_next_episode: Boolean(nextEp)
+            };
           }
         });
 
         const mapTvWithDay = item => {
           const mapped = mapTv(item);
-          const day = tvAirDays[item.id] || daysOfWeek[(parseInt(item.id, 10) || 0) % 7];
+          const meta = tvAirMeta[item.id] || {};
+          const day = meta.day || daysOfWeek[(parseInt(item.id, 10) || 0) % 7];
+          const dayShort = day.slice(0, -1);
           mapped.broadcast_day = day;
-          mapped.broadcast = `Airs every ${day.slice(0, -1)}`;
+          mapped.network = meta.network || null;
+          mapped.episode_label = meta.episode_label || null;
+          mapped.episode_name = meta.episode_name || null;
+          mapped.air_date = meta.air_date || null;
+          mapped.has_exact_schedule = Boolean(meta.has_exact_schedule);
+          mapped.broadcast = meta.episode_label
+            ? `${meta.episode_label} • Airs ${dayShort}`
+            : `Airs every ${dayShort}`;
           return mapped;
         };
 

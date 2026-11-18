@@ -5,7 +5,7 @@ import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import ContinueWatchingSection from '../components/ContinueWatchingSection';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { fetchClientLiveAnimeDashboard, fetchClientLiveMangaDashboard } from '../utils/liveAnime';
-import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
+import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw, Star, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Home() {
@@ -105,6 +105,65 @@ export default function Home() {
     const currentDayIndex = new Date().getDay();
     return daysOfWeek[currentDayIndex];
   });
+  const [scheduleFilter, setScheduleFilter] = useState('all');
+  const [nowTick, setNowTick] = useState(() => Date.now());
+
+  // Live clock tick every 30s so Release Schedule clock & episode countdowns stay live
+  useEffect(() => {
+    if (activeTab !== 'schedule') return;
+    setNowTick(Date.now());
+    const id = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, [activeTab]);
+
+  // Compute real calendar dates for the current week (Mon..Sun)
+  const getWeekDayDates = (baseMs) => {
+    const now = new Date(baseMs);
+    const jsDay = now.getDay(); // 0=Sun..6=Sat
+    const mondayOffset = jsDay === 0 ? -6 : 1 - jsDay;
+    const monday = new Date(now);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(now.getDate() + mondayOffset);
+    const order = [
+      { key: 'Mondays', label: 'Mon', short: 'Monday' },
+      { key: 'Tuesdays', label: 'Tue', short: 'Tuesday' },
+      { key: 'Wednesdays', label: 'Wed', short: 'Wednesday' },
+      { key: 'Thursdays', label: 'Thu', short: 'Thursday' },
+      { key: 'Fridays', label: 'Fri', short: 'Friday' },
+      { key: 'Saturdays', label: 'Sat', short: 'Saturday' },
+      { key: 'Sundays', label: 'Sun', short: 'Sunday' }
+    ];
+    return order.map((d, idx) => {
+      const dt = new Date(monday);
+      dt.setDate(monday.getDate() + idx);
+      return {
+        ...d,
+        dateNum: dt.getDate(),
+        monthShort: dt.toLocaleDateString([], { month: 'short' }),
+        isToday: dt.toDateString() === now.toDateString()
+      };
+    });
+  };
+
+  const formatCountdownPill = (airingAtSec, baseMs) => {
+    if (!airingAtSec) return null;
+    const diffSec = Math.floor(airingAtSec - baseMs / 1000);
+    if (diffSec <= 0) {
+      const agoMin = Math.max(1, Math.floor(Math.abs(diffSec) / 60));
+      if (agoMin < 60) return { label: `Aired ${agoMin}m ago`, tone: 'aired' };
+      const agoHr = Math.floor(agoMin / 60);
+      if (agoHr < 24) return { label: `Aired ${agoHr}h ago`, tone: 'aired' };
+      return { label: 'Recently Aired', tone: 'aired' };
+    }
+    const mins = Math.floor(diffSec / 60);
+    if (mins < 60) return { label: `In ${mins}m`, tone: 'soon' };
+    const hrs = Math.floor(mins / 60);
+    const remMin = mins % 60;
+    if (hrs < 24) return { label: remMin > 0 ? `In ${hrs}h ${remMin}m` : `In ${hrs}h`, tone: hrs <= 3 ? 'soon' : 'today' };
+    const days = Math.floor(hrs / 24);
+    const remHr = hrs % 24;
+    return { label: remHr > 0 ? `In ${days}d ${remHr}h` : `In ${days}d`, tone: 'upcoming' };
+  };
 
   const getSchedulesByDay = (animeList) => {
     const grouped = {
@@ -121,9 +180,14 @@ export default function Home() {
       animeList.forEach(item => {
         let matchedDay = null;
 
-        if (item.broadcast_day && grouped[item.broadcast_day]) {
+        if (item.airing_at) {
+          const d = new Date(item.airing_at * 1000);
+          if (!isNaN(d.getTime())) matchedDay = daysOfWeek[d.getDay()];
+        }
+
+        if (!matchedDay && item.broadcast_day && grouped[item.broadcast_day]) {
           matchedDay = item.broadcast_day;
-        } else if (item.broadcast) {
+        } else if (!matchedDay && item.broadcast) {
           const broadcastStr = String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || '')).toLowerCase();
           const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
           for (const day of dayNames) {
@@ -134,7 +198,7 @@ export default function Home() {
           }
         }
 
-        // Fallback: assign scheduled day based on numeric digits in item ID
+        // Only use deterministic fallback if no real airing day exists
         if (!matchedDay || !grouped[matchedDay]) {
           const numericId = parseInt(String(item.id || '').replace(/\D/g, ''), 10) || 0;
           const dayIndex = numericId % 7;
@@ -144,6 +208,21 @@ export default function Home() {
         grouped[matchedDay].push({
           ...item,
           broadcast: String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || `Airs every ${matchedDay.slice(0, -1)}`))
+        });
+      });
+
+      // Sort each day: exact-timestamp live anime first, ordered chronologically by local air time
+      Object.keys(grouped).forEach((dayKey) => {
+        grouped[dayKey].sort((a, b) => {
+          const aExact = a.airing_at ? 1 : 0;
+          const bExact = b.airing_at ? 1 : 0;
+          if (aExact !== bExact) return bExact - aExact;
+          if (a.airing_at && b.airing_at) {
+            const da = new Date(a.airing_at * 1000);
+            const db = new Date(b.airing_at * 1000);
+            return (da.getHours() * 60 + da.getMinutes()) - (db.getHours() * 60 + db.getMinutes());
+          }
+          return (b.vote_average || 0) - (a.vote_average || 0);
         });
       });
     }
@@ -165,9 +244,10 @@ export default function Home() {
       });
     };
     
-    // Prioritize live currently-airing anime with real next-episode broadcast schedules
+    // Prioritize live currently-airing anime with real next-episode timestamps + just-aired today
     addItems(media.schedule?.anime);
     addItems(media.ongoing?.anime);
+    addItems(media.latest?.anime);
     if (combined.length === 0) {
       addItems(media.trending?.anime);
     }
@@ -190,10 +270,12 @@ export default function Home() {
       });
     };
     
+    // Only live airing & ongoing scripted TV series (never dump finished/upcoming clutter!)
     addItems(media.schedule?.tv);
     addItems(media.ongoing?.tv);
-    addItems(media.upcoming?.tv);
-    addItems(media.trending?.tv);
+    if (combined.length < 7) {
+      addItems(media.trending?.tv);
+    }
     
     return combined;
   };
@@ -235,6 +317,15 @@ export default function Home() {
           broadcast: String(typeof item.broadcast === 'string' ? item.broadcast : (item.broadcast?.string || item.broadcast?.day || `Airs every ${matchedDay.slice(0, -1)}`))
         });
       });
+
+      Object.keys(grouped).forEach((dayKey) => {
+        grouped[dayKey].sort((a, b) => {
+          const aExact = a.has_exact_schedule ? 1 : 0;
+          const bExact = b.has_exact_schedule ? 1 : 0;
+          if (aExact !== bExact) return bExact - aExact;
+          return (b.vote_average || 0) - (a.vote_average || 0);
+        });
+      });
     }
     return grouped;
   };
@@ -264,6 +355,7 @@ export default function Home() {
       if (liveAnime && (liveAnime.trending?.length > 0 || liveAnime.ongoing?.length > 0)) {
         merged.trending = { ...(merged.trending || {}), anime: liveAnime.trending };
         merged.ongoing = { ...(merged.ongoing || {}), anime: liveAnime.ongoing };
+        merged.latest = { ...(merged.latest || {}), anime: liveAnime.latest };
         merged.schedule = { ...(merged.schedule || {}), anime: liveAnime.schedule };
         merged.upcoming = { ...(merged.upcoming || {}), anime: liveAnime.upcoming };
       }
@@ -271,6 +363,7 @@ export default function Home() {
         merged.trending = { ...(merged.trending || {}), manga: liveManga.trending };
         merged.ongoing = { ...(merged.ongoing || {}), manga: liveManga.ongoing };
         merged.latest = { ...(merged.latest || {}), manga: liveManga.latest };
+        merged.schedule = { ...(merged.schedule || {}), manga: liveManga.schedule };
         merged.upcoming = { ...(merged.upcoming || {}), manga: liveManga.upcoming };
       }
       setMedia(merged);
@@ -310,7 +403,7 @@ export default function Home() {
     { id: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' },
     { id: 'ongoing', label: 'Ongoing & Airing', icon: Activity, color: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]' },
     { id: 'schedule', label: 'Release Schedules', icon: Calendar, color: 'text-cyan-400 fill-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]' },
-    { id: 'upcoming', label: 'Upcoming & Latest', icon: CalendarDays, color: 'text-fuchsia-400 fill-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]' }
+    { id: 'upcoming', label: 'Upcoming Releases', icon: CalendarDays, color: 'text-fuchsia-400 fill-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]' }
   ];
 
   return (
@@ -605,166 +698,424 @@ export default function Home() {
             </div>
           )}
 
-          {activeTab === 'schedule' && (
-            <div className="space-y-6 sm:space-y-8 animate-fade-in">
-              <div className="space-y-1.5 sm:space-y-2">
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2 border-l-4 border-accentCyan pl-3 font-outfit">
-                  Weekly Release Schedules
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-400 pl-4">
-                  Select a day of the week to view TV and Anime releases scheduled for that day.
-                </p>
-              </div>
+          {activeTab === 'schedule' && (() => {
+            const weekDays = getWeekDayDates(nowTick);
+            const tvByDay = getTvSchedulesByDay(getCombinedTvSchedules());
+            const animeByDay = getSchedulesByDay(getCombinedAnimeSchedules());
+            const selectedTvList = tvByDay[selectedDay] || [];
+            const selectedAnimeList = animeByDay[selectedDay] || [];
+            const liveMangaList = (media.schedule?.manga || media.latest?.manga || []).slice(0, 12);
+            const selectedDayInfo = weekDays.find((d) => d.key === selectedDay);
+            const nowDateObj = new Date(nowTick);
+            const liveClockStr = nowDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const liveDateStr = nowDateObj.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
-              {/* Day selection calendar row */}
-              <div className="grid grid-cols-7 gap-1 sm:gap-2 max-w-2xl mx-auto p-1 sm:p-1.5 bg-darkCard/50 border border-darkBorder rounded-2xl shadow-xl">
-                {[
-                  { key: 'Mondays', label: 'Mon' },
-                  { key: 'Tuesdays', label: 'Tue' },
-                  { key: 'Wednesdays', label: 'Wed' },
-                  { key: 'Thursdays', label: 'Thu' },
-                  { key: 'Fridays', label: 'Fri' },
-                  { key: 'Saturdays', label: 'Sat' },
-                  { key: 'Sundays', label: 'Sun' }
-                ].map(day => {
-                  const isSelected = selectedDay === day.key;
-                  const todayDayIndex = new Date().getDay();
-                  const isToday = daysOfWeek[todayDayIndex] === day.key;
-                  
-                  return (
-                    <button
-                      key={day.key}
-                      onClick={() => setSelectedDay(day.key)}
-                      className={`flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl transition-all duration-300 relative ${
-                        isSelected
-                          ? 'bg-gradient-to-br from-accentCyan to-accentPurple text-black font-extrabold shadow-lg shadow-accentCyan/15 scale-102'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <span className="text-[10px] xs:text-xs uppercase tracking-wider font-semibold">{day.label}</span>
-                      {isToday && (
-                        <span className={`absolute bottom-0.5 sm:bottom-1 w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full ${isSelected ? 'bg-black' : 'bg-accentCyan'}`}></span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+            return (
+              <div className="space-y-6 sm:space-y-8 animate-fade-in">
+                {/* ── Live Broadcast Timetable Header Panel ── */}
+                <div className="relative rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-[#0d142a]/90 via-[#0a0f22]/95 to-[#13102b]/90 p-4 sm:p-6 shadow-2xl overflow-hidden">
+                  <div className="absolute -top-20 -right-16 w-56 h-56 rounded-full bg-accentCyan/10 blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-20 -left-16 w-56 h-56 rounded-full bg-accentPurple/10 blur-3xl pointer-events-none" />
 
-              {/* Airing Lists for selected day */}
-              <div className="space-y-8 pt-2 sm:pt-4">
-                {/* TV Shows Airing on Selected Day */}
-                <div className="space-y-4">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-200 flex items-center gap-2 pl-2 border-l-2 border-cyan-400 font-outfit">
-                    <Tv className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>TV Series Releasing on {selectedDay}</span>
-                  </h3>
-                  
-                  {getTvSchedulesByDay(getCombinedTvSchedules())[selectedDay]?.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {getTvSchedulesByDay(getCombinedTvSchedules())[selectedDay].map(show => (
-                        <Link
-                          key={`schedule-tv-${show.id}`}
-                          to={`/media/tv/${show.id}`}
-                          className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentCyan/30 rounded-2xl hover:bg-darkCard/60 transition group min-w-0 overflow-hidden"
-                        >
-                          <img
-                            src={formatMediaPoster({ ...show, media_type: 'tv' })}
-                            alt={show.title}
-                            className="w-12 sm:w-14 h-[72px] object-cover rounded-xl border border-white/5 shrink-0"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => handlePosterError(e, { ...show, media_type: 'tv' })}
-                          />
-                          <div className="space-y-1 min-w-0 flex-1">
-                            <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{show.title}</h4>
-                            <p className="text-xs text-gray-500 line-clamp-1">{show.overview}</p>
-                            <span className="inline-block text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                              Weekly Releases
+                  <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/70 text-emerald-300 text-[10px] font-mono font-black uppercase tracking-wider shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                          Live Broadcast
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-gray-200 text-[11px] font-mono font-bold">
+                          <Clock className="w-3 h-3 text-accentCyan" />
+                          <span>{liveDateStr} • {liveClockStr}</span>
+                        </span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-outfit">
+                        Weekly Release Schedules
+                      </h2>
+                      <p className="text-xs sm:text-sm text-gray-400">
+                        Real-time airing schedule synced to your local time across Anime, TV Series, and Manga.
+                      </p>
+                    </div>
+
+                    {/* Section Filter Pills */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[
+                        { id: 'all', label: 'All Live', count: selectedAnimeList.length + selectedTvList.length + liveMangaList.length, activeCls: 'bg-accentCyan text-black border-accentCyan shadow-[0_0_14px_rgba(var(--accent-cyan),0.45)]' },
+                        { id: 'anime', label: 'Anime', count: selectedAnimeList.length, activeCls: 'bg-purple-500 text-white border-purple-400 shadow-[0_0_14px_rgba(168,85,247,0.45)]' },
+                        { id: 'tv', label: 'TV Series', count: selectedTvList.length, activeCls: 'bg-sky-400 text-black border-sky-300 shadow-[0_0_14px_rgba(56,189,248,0.45)]' },
+                        { id: 'manga', label: 'Manga', count: liveMangaList.length, activeCls: 'bg-pink-500 text-white border-pink-400 shadow-[0_0_14px_rgba(236,72,153,0.45)]' }
+                      ].map((f) => {
+                        const active = scheduleFilter === f.id;
+                        return (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => setScheduleFilter(f.id)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border transition active:scale-95 cursor-pointer ${
+                              active
+                                ? f.activeCls
+                                : 'bg-white/[0.04] border-white/15 text-gray-300 hover:text-white hover:border-white/35'
+                            }`}
+                          >
+                            <span>{f.label}</span>
+                            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${active ? 'bg-black/25' : 'bg-white/10 text-gray-300'}`}>
+                              {f.count}
                             </span>
-                          </div>
-                        </Link>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    <div className="glass-panel border border-darkBorder rounded-2xl p-8 sm:p-10 text-center text-gray-500">
-                      <p className="text-sm">No TV series releases scheduled for {selectedDay}.</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* Anime Airing on Selected Day */}
-                <div className="space-y-4">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-200 flex items-center gap-2 pl-2 border-l-2 border-accentPurple font-outfit">
-                    <Sparkles className="w-4 h-4 text-accentPurple shrink-0" />
-                    <span>Anime Releasing on {selectedDay}</span>
-                  </h3>
-                  
-                  {getSchedulesByDay(getCombinedAnimeSchedules())[selectedDay]?.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {getSchedulesByDay(getCombinedAnimeSchedules())[selectedDay].map(anime => (
-                        <Link
-                          key={`schedule-anime-${anime.id}`}
-                          to={`/media/anime/${anime.id}`}
-                          className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPurple/30 rounded-2xl hover:bg-darkCard/60 transition group min-w-0 overflow-hidden"
+                  {/* Interactive 7-Day Calendar Strip */}
+                  <div className="relative z-10 grid grid-cols-7 gap-1.5 sm:gap-2.5 mt-5 pt-4 border-t border-white/10">
+                    {weekDays.map((day) => {
+                      const isSelected = selectedDay === day.key;
+                      const dayTotal = (animeByDay[day.key]?.length || 0) + (tvByDay[day.key]?.length || 0);
+                      return (
+                        <button
+                          key={day.key}
+                          type="button"
+                          onClick={() => setSelectedDay(day.key)}
+                          className={`group relative flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-1 rounded-xl sm:rounded-2xl border transition-all duration-200 cursor-pointer active:scale-95 ${
+                            isSelected
+                              ? 'bg-gradient-to-br from-accentCyan via-sky-400 to-accentPurple text-black border-accentCyan shadow-[0_0_22px_rgba(var(--accent-cyan),0.4)] -translate-y-0.5'
+                              : day.isToday
+                              ? 'bg-accentCyan/10 border-accentCyan/45 text-white hover:bg-accentCyan/20'
+                              : 'bg-white/[0.03] border-white/10 text-gray-300 hover:text-white hover:bg-white/[0.08] hover:border-white/25'
+                          }`}
                         >
-                          <img
-                            src={formatMediaPoster({ ...anime, media_type: 'anime' })}
-                            alt={anime.title}
-                            className="w-12 sm:w-14 h-[72px] object-cover rounded-xl border border-white/5 shrink-0"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => handlePosterError(e, { ...anime, media_type: 'anime' })}
-                          />
-                          <div className="space-y-1 min-w-0 flex-1">
-                            <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentCyan transition line-clamp-1">{anime.title}</h4>
-                            <p className="text-xs text-gray-500 line-clamp-1">{anime.overview || 'No synopsis available.'}</p>
-                            <div className="flex items-center gap-1 text-xs text-accentCyan font-semibold min-w-0">
-                              <Clock className="w-3.5 h-3.5 text-accentCyan shrink-0" />
-                              <span className="truncate">{anime.broadcast}</span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="glass-panel border border-darkBorder rounded-2xl p-8 sm:p-10 text-center text-gray-500">
-                      <p className="text-sm">No anime releases scheduled for {selectedDay}.</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Latest Manga Updates */}
-                <div className="space-y-4 pt-6 sm:pt-8 border-t border-darkBorder/40">
-                  <h3 className="text-base sm:text-lg font-bold text-pink-400 flex items-center gap-2 pl-2 border-l-2 border-pink-500 font-outfit">
-                    <BookOpen className="w-4 h-4 shrink-0" />
-                    <span>Latest Manga Chapters</span>
-                  </h3>
-                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    {media.latest?.manga?.slice(0, 10).map(manga => (
-                      <Link
-                        key={`latest-manga-${manga.id}`}
-                        to={`/media/manga/${manga.id}`}
-                        className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 bg-darkCard/40 border border-darkBorder/60 hover:border-accentPink/30 rounded-2xl hover:bg-darkCard/60 transition group min-w-0 overflow-hidden"
-                      >
-                        <img
-                          src={formatMediaPoster({ ...manga, media_type: 'manga' })}
-                          alt={manga.title}
-                          className="w-12 sm:w-14 h-[72px] object-cover rounded-xl border border-white/5 shrink-0"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => handlePosterError(e, { ...manga, media_type: 'manga' })}
-                        />
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <h4 className="font-bold text-sm text-gray-100 group-hover:text-accentPink transition line-clamp-1">{manga.title}</h4>
-                          <p className="text-xs text-gray-500 line-clamp-1">{manga.overview || 'No synopsis available.'}</p>
-                          <span className="inline-block text-[10px] bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                            {manga.broadcast || 'Recently Updated'}
+                          {day.isToday && (
+                            <span className={`text-[8px] sm:text-[9px] font-mono font-black uppercase tracking-wider px-1.5 rounded-full mb-0.5 ${
+                              isSelected ? 'bg-black/25 text-black' : 'bg-accentCyan/25 text-accentCyan'
+                            }`}>
+                              Today
+                            </span>
+                          )}
+                          <span className={`text-[10px] sm:text-xs font-extrabold uppercase tracking-wider ${isSelected ? 'text-black' : 'text-gray-400 group-hover:text-white'}`}>
+                            {day.label}
                           </span>
-                        </div>
-                      </Link>
-                    ))}
+                          <span className={`text-sm sm:text-lg font-black leading-tight tabular-nums ${isSelected ? 'text-black' : 'text-white'}`}>
+                            {day.dateNum}
+                          </span>
+                          <span className={`mt-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
+                            isSelected
+                              ? 'bg-black/20 text-black'
+                              : 'bg-white/[0.06] text-gray-400'
+                          }`}>
+                            {dayTotal} live
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* ── Live Airing Lists for Selected Day ── */}
+                <div className="space-y-8 sm:space-y-10">
+                  {/* 1. Live Anime Schedule */}
+                  {(scheduleFilter === 'all' || scheduleFilter === 'anime') && (
+                    <section className="space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-400/35 text-purple-300 shrink-0">
+                            <Sparkles className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-base sm:text-lg font-extrabold text-white font-outfit truncate">
+                              Anime Airing on {selectedDayInfo?.short || selectedDay}
+                              {selectedDayInfo ? ` • ${selectedDayInfo.monthShort} ${selectedDayInfo.dateNum}` : ''}
+                            </h3>
+                            <p className="text-[11px] text-gray-400">
+                              Live AniList broadcast schedule in your local timezone
+                            </p>
+                          </div>
+                        </div>
+                        <Link
+                          to="/catalog/ongoing/anime"
+                          className="text-xs font-bold text-purple-300 hover:text-accentCyan inline-flex items-center gap-1 shrink-0 transition"
+                        >
+                          <span>All Ongoing</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
+                      {selectedAnimeList.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                          {selectedAnimeList.slice(0, 12).map((anime) => {
+                            const countdown = formatCountdownPill(anime.airing_at, nowTick);
+                            const score = Number(anime.vote_average || 0);
+                            return (
+                              <Link
+                                key={`schedule-anime-${anime.id}`}
+                                to={`/media/anime/${anime.id}`}
+                                className="group relative flex items-stretch gap-3.5 p-3 rounded-2xl bg-[#0b1124]/85 border border-white/[0.08] hover:border-purple-400/60 hover:bg-[#101834]/95 hover:shadow-[0_12px_32px_rgba(168,85,247,0.18)] hover:-translate-y-0.5 transition-all duration-200 min-w-0 overflow-hidden"
+                              >
+                                <div className="relative w-16 h-24 sm:w-[74px] sm:h-[108px] rounded-xl overflow-hidden border border-white/10 shrink-0 bg-darkBg">
+                                  <img
+                                    src={formatMediaPoster({ ...anime, media_type: 'anime' })}
+                                    alt={anime.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => handlePosterError(e, { ...anime, media_type: 'anime' })}
+                                  />
+                                  {score > 0 && (
+                                    <span className="absolute top-1 left-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[10px] font-black text-amber-400">
+                                      <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                      {score.toFixed(1)}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="flex flex-col justify-between min-w-0 flex-1 py-0.5">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 border border-purple-400/35 text-purple-200 text-[10px] font-mono font-bold uppercase">
+                                        {anime.format || 'TV'}
+                                      </span>
+                                      {anime.next_episode && (
+                                        <span className="px-1.5 py-0.5 rounded-md bg-accentCyan/15 border border-accentCyan/35 text-accentCyan text-[10px] font-mono font-extrabold">
+                                          EP {anime.next_episode}
+                                        </span>
+                                      )}
+                                      {anime.broadcast_time && (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-gray-300 ml-auto">
+                                          <Clock className="w-3 h-3 text-accentCyan" />
+                                          {anime.broadcast_time}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <h4 className="font-extrabold text-sm sm:text-[15px] text-white group-hover:text-accentCyan transition line-clamp-1">
+                                      {anime.title}
+                                    </h4>
+                                    <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                      {anime.overview || 'Currently airing this season.'}
+                                    </p>
+                                  </div>
+
+                                  <div className="flex items-center justify-between gap-2 pt-2">
+                                    {countdown ? (
+                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black uppercase tracking-wide border ${
+                                        countdown.tone === 'soon'
+                                          ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-300'
+                                          : countdown.tone === 'aired'
+                                          ? 'bg-amber-500/15 border-amber-400/45 text-amber-300'
+                                          : 'bg-cyan-500/15 border-cyan-400/40 text-cyan-300'
+                                      }`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${
+                                          countdown.tone === 'soon' ? 'bg-emerald-400 animate-ping' : countdown.tone === 'aired' ? 'bg-amber-400' : 'bg-cyan-400'
+                                        }`} />
+                                        {countdown.label}
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-300 truncate">
+                                        <Clock className="w-3 h-3 shrink-0" />
+                                        <span className="truncate">{anime.broadcast}</span>
+                                      </span>
+                                    )}
+                                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-accentCyan group-hover:translate-x-0.5 transition shrink-0" />
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl bg-darkCard/50 border border-white/10 p-8 text-center text-gray-400">
+                          <p className="text-sm font-medium">No anime broadcasts scheduled for {selectedDay}.</p>
+                        </div>
+                      )}
+                    </section>
+                  )}
+
+                  {/* 2. Live TV Series Schedule */}
+                  {(scheduleFilter === 'all' || scheduleFilter === 'tv') && (
+                    <section className="space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="p-2 rounded-xl bg-sky-500/15 border border-sky-400/35 text-sky-300 shrink-0">
+                            <Tv className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-base sm:text-lg font-extrabold text-white font-outfit truncate">
+                              TV Series Airing on {selectedDayInfo?.short || selectedDay}
+                              {selectedDayInfo ? ` • ${selectedDayInfo.monthShort} ${selectedDayInfo.dateNum}` : ''}
+                            </h3>
+                            <p className="text-[11px] text-gray-400">
+                              Live scripted TV episodes &amp; network airings
+                            </p>
+                          </div>
+                        </div>
+                        <Link
+                          to="/catalog/ongoing/tv"
+                          className="text-xs font-bold text-sky-300 hover:text-accentCyan inline-flex items-center gap-1 shrink-0 transition"
+                        >
+                          <span>All Ongoing</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
+                      {selectedTvList.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                          {selectedTvList.slice(0, 10).map((show) => {
+                            const score = Number(show.vote_average || 0);
+                            return (
+                              <Link
+                                key={`schedule-tv-${show.id}`}
+                                to={`/media/tv/${show.id}`}
+                                className="group relative flex items-stretch gap-3.5 p-3 rounded-2xl bg-[#0b1124]/85 border border-white/[0.08] hover:border-sky-400/60 hover:bg-[#101834]/95 hover:shadow-[0_12px_32px_rgba(56,189,248,0.16)] hover:-translate-y-0.5 transition-all duration-200 min-w-0 overflow-hidden"
+                              >
+                                <div className="relative w-16 h-24 sm:w-[74px] sm:h-[108px] rounded-xl overflow-hidden border border-white/10 shrink-0 bg-darkBg">
+                                  <img
+                                    src={formatMediaPoster({ ...show, media_type: 'tv' })}
+                                    alt={show.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => handlePosterError(e, { ...show, media_type: 'tv' })}
+                                  />
+                                  {score > 0 && (
+                                    <span className="absolute top-1 left-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[10px] font-black text-amber-400">
+                                      <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                      {score.toFixed(1)}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="flex flex-col justify-between min-w-0 flex-1 py-0.5">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      {show.network ? (
+                                        <span className="px-1.5 py-0.5 rounded-md bg-sky-500/20 border border-sky-400/35 text-sky-200 text-[10px] font-mono font-bold uppercase truncate max-w-[130px]">
+                                          {show.network}
+                                        </span>
+                                      ) : (
+                                        <span className="px-1.5 py-0.5 rounded-md bg-sky-500/15 border border-sky-400/30 text-sky-300 text-[10px] font-mono font-bold uppercase">
+                                          TV Series
+                                        </span>
+                                      )}
+                                      {show.episode_label && (
+                                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-[10px] font-mono font-extrabold">
+                                          {show.episode_label}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <h4 className="font-extrabold text-sm sm:text-[15px] text-white group-hover:text-sky-300 transition line-clamp-1">
+                                      {show.title}
+                                    </h4>
+                                    <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                      {show.episode_name ? `Episode: "${show.episode_name}" — ${show.overview || ''}` : (show.overview || 'Currently airing new weekly episodes.')}
+                                    </p>
+                                  </div>
+
+                                  <div className="flex items-center justify-between gap-2 pt-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-[10px] font-mono font-black uppercase tracking-wide">
+                                      <span className={`w-1.5 h-1.5 rounded-full bg-cyan-400 ${selectedDayInfo?.isToday ? 'animate-ping' : ''}`} />
+                                      {selectedDayInfo?.isToday ? 'Airing Today' : (show.broadcast || `Airs ${selectedDayInfo?.short || selectedDay}`)}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-sky-300 group-hover:translate-x-0.5 transition shrink-0" />
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl bg-darkCard/50 border border-white/10 p-8 text-center text-gray-400">
+                          <p className="text-sm font-medium">No scripted TV series releases scheduled for {selectedDay}.</p>
+                        </div>
+                      )}
+                    </section>
+                  )}
+
+                  {/* 3. Live Manga & Manhwa Updates */}
+                  {(scheduleFilter === 'all' || scheduleFilter === 'manga') && (
+                    <section className="space-y-4 pt-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="p-2 rounded-xl bg-pink-500/15 border border-pink-400/35 text-pink-300 shrink-0">
+                            <BookOpen className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-base sm:text-lg font-extrabold text-white font-outfit truncate">
+                              Live Manga &amp; Manhwa Releases
+                            </h3>
+                            <p className="text-[11px] text-gray-400">
+                              Active ongoing serializations &amp; recent chapter drops
+                            </p>
+                          </div>
+                        </div>
+                        <Link
+                          to="/catalog/ongoing/manga"
+                          className="text-xs font-bold text-pink-300 hover:text-accentPink inline-flex items-center gap-1 shrink-0 transition"
+                        >
+                          <span>All Ongoing</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                        {liveMangaList.map((manga) => {
+                          const score = Number(manga.vote_average || 0);
+                          return (
+                            <Link
+                              key={`schedule-manga-${manga.id}`}
+                              to={`/media/manga/${manga.id}`}
+                              className="group relative flex items-stretch gap-3.5 p-3 rounded-2xl bg-[#0b1124]/85 border border-white/[0.08] hover:border-pink-400/60 hover:bg-[#101834]/95 hover:shadow-[0_12px_32px_rgba(236,72,153,0.16)] hover:-translate-y-0.5 transition-all duration-200 min-w-0 overflow-hidden"
+                            >
+                              <div className="relative w-16 h-24 sm:w-[74px] sm:h-[108px] rounded-xl overflow-hidden border border-white/10 shrink-0 bg-darkBg">
+                                <img
+                                  src={formatMediaPoster({ ...manga, media_type: 'manga' })}
+                                  alt={manga.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => handlePosterError(e, { ...manga, media_type: 'manga' })}
+                                />
+                                {score > 0 && (
+                                  <span className="absolute top-1 left-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[10px] font-black text-amber-400">
+                                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                    {score.toFixed(1)}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex flex-col justify-between min-w-0 flex-1 py-0.5">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="px-1.5 py-0.5 rounded-md bg-pink-500/20 border border-pink-400/35 text-pink-200 text-[10px] font-mono font-bold uppercase">
+                                      {manga.format || 'Manga'}
+                                    </span>
+                                    {manga.chapters_count && (
+                                      <span className="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-gray-200 text-[10px] font-mono font-bold">
+                                        {manga.chapters_count} Ch
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="font-extrabold text-sm sm:text-[15px] text-white group-hover:text-pink-300 transition line-clamp-1">
+                                    {manga.title}
+                                  </h4>
+                                  <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                    {manga.overview || 'Ongoing serialization with active chapter updates.'}
+                                  </p>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 pt-2">
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-pink-500/15 border border-pink-400/45 text-pink-300 text-[10px] font-mono font-black uppercase tracking-wide">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
+                                    {manga.broadcast || 'Live Ongoing'}
+                                  </span>
+                                  <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-pink-300 group-hover:translate-x-0.5 transition shrink-0" />
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {activeTab === 'upcoming' && (
             <div className="space-y-10 sm:space-y-16 animate-fade-in">
@@ -774,7 +1125,6 @@ export default function Home() {
               {media.upcoming?.manga?.length > 0 && (
                 <MediaGrid items={media.upcoming.manga.slice(0, 10)} title="Upcoming Manga Releases" seeMoreLink="/catalog/upcoming/manga" showTimings={true} />
               )}
-              <MediaGrid items={media.latest?.manga?.slice(0, 10)} title="Latest New Manga Series" seeMoreLink="/catalog/latest/manga" showTimings={true} />
             </div>
           )}
         </div>
