@@ -456,3 +456,337 @@ export const fetchClientLiveAnimePage = async ({
   }
   return null;
 };
+
+const detailCache = new Map();
+
+// Helper: Resolve numeric TMDB ID for an AniList anime via backend TMDB search (never blocked!)
+const resolveTmdbIdForAnimeTitle = async (titleEnglish, titleRomaji, format) => {
+  const candidates = [];
+  const addCandidate = (t) => {
+    if (!t) return;
+    const clean = t
+      .replace(/season\s*\d+|\d+(?:nd|rd|th)?\s*season|part\s*\d+|\d+(?:nd|rd|th)?\s*cour|final\s*season/gi, '')
+      .replace(/[:\-–—]\s*$/, '')
+      .trim();
+    if (clean && clean.length >= 2 && !candidates.includes(clean)) candidates.push(clean);
+    if (t.trim() && !candidates.includes(t.trim())) candidates.push(t.trim());
+  };
+  addCandidate(titleEnglish);
+  addCandidate(titleRomaji);
+
+  const searchType = format === 'MOVIE' ? 'movie' : 'anime';
+  for (const q of candidates.slice(0, 3)) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(
+        `/api/media/search?type=${encodeURIComponent(searchType)}&query=${encodeURIComponent(q)}&page=1`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      if (!res.ok) continue;
+      const list = await res.json();
+      if (Array.isArray(list)) {
+        // Prefer numeric TMDB ID (not al_ prefixed)
+        const numericMatch = list.find((item) => item?.id && /^\d+$/.test(String(item.id)));
+        if (numericMatch) {
+          return String(numericMatch.id);
+        }
+      }
+    } catch {
+      // Ignore abort / network hiccup and try next candidate
+    }
+  }
+  return null;
+};
+
+/**
+ * Fetch complete rich anime details directly from AniList GraphQL in the browser (0% Render IP throttling!)
+ * Automatically resolves numeric TMDB ID in parallel so all 10 streaming servers work seamlessly.
+ */
+export const fetchClientAniListDetail = async (rawId) => {
+  const cleanId = String(rawId || '').replace(/^al_/i, '');
+  const numId = parseInt(cleanId, 10);
+  if (!numId || isNaN(numId)) return null;
+
+  const cached = detailCache.get(numId);
+  if (cached && (Date.now() - cached.ts < 15 * 60 * 1000)) {
+    return cached.data;
+  }
+
+  const query = `
+    query ($id: Int) {
+      Media(id: $id, type: ANIME) {
+        id
+        idMal
+        title { english romaji native }
+        description(asHtml: false)
+        coverImage { extraLarge large medium }
+        bannerImage
+        startDate { year month day }
+        season
+        seasonYear
+        averageScore
+        meanScore
+        status
+        format
+        episodes
+        duration
+        genres
+        trailer { id site }
+        nextAiringEpisode { episode airingAt timeUntilAiring }
+        relations {
+          edges {
+            relationType
+            node {
+              id
+              title { english romaji }
+              format
+              episodes
+              seasonYear
+              coverImage { extraLarge large }
+            }
+          }
+        }
+        characters(sort: [ROLE, RELEVANCE], perPage: 20) {
+          edges {
+            role
+            node {
+              id
+              name { full }
+              image { large medium }
+            }
+            voiceActors(language: JAPANESE, sort: [RELEVANCE]) {
+              id
+              name { full }
+              image { large medium }
+            }
+          }
+        }
+        staff(perPage: 10) {
+          edges {
+            role
+            node {
+              id
+              name { full }
+              image { large medium }
+            }
+          }
+        }
+        recommendations(sort: [RATING_DESC], perPage: 10) {
+          nodes {
+            mediaRecommendation {
+              id
+              title { english romaji }
+              coverImage { large medium }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const data = await queryAniList(query, { id: numId });
+    const m = data?.Media;
+    if (!m) return null;
+
+    const fullTitle = m.title?.english || m.title?.romaji || m.title?.native || 'Untitled Anime';
+    const currentPoster = m.coverImage?.extraLarge || m.coverImage?.large || m.coverImage?.medium || null;
+    const epCount = m.episodes || (m.nextAiringEpisode?.episode ? Math.max(12, m.nextAiringEpisode.episode) : 12);
+
+    // Detect season number from title (e.g. "Season 3", "2nd Season", "3rd Season")
+    const sMatch = fullTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+    const detectedSeason = sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : 1;
+
+    // Resolve TMDB ID for all 10 streaming mirrors (safe, never throws)
+    const tmdbId = await resolveTmdbIdForAnimeTitle(m.title?.english, m.title?.romaji, m.format);
+
+    // Build seasons map from current entry + AniList relations
+    const seasonsMap = new Map();
+    seasonsMap.set(detectedSeason, {
+      id: m.id,
+      season_number: detectedSeason,
+      name: fullTitle.toLowerCase().includes('season') ? fullTitle : `Season ${detectedSeason}`,
+      episode_count: epCount,
+      poster_path: currentPoster,
+      air_date: formatDate(m.startDate, m.seasonYear)
+    });
+
+    const relatedFranchise = [];
+    const seenRel = new Set([m.id]);
+    (m.relations?.edges || []).forEach((edge) => {
+      const node = edge?.node;
+      if (!node || node.format === 'MANGA' || node.format === 'NOVEL' || node.format === 'ONE_SHOT') return;
+      const relTitle = node.title?.english || node.title?.romaji || '';
+      if (!seenRel.has(node.id)) {
+        seenRel.add(node.id);
+        relatedFranchise.push({
+          id: `al_${node.id}`,
+          title: relTitle,
+          badge: node.format === 'MOVIE' ? 'MOVIE' : (edge.relationType || 'ANIME'),
+          type: 'anime',
+          release_date: node.seasonYear ? String(node.seasonYear) : '',
+          poster_path: node.coverImage?.extraLarge || node.coverImage?.large || null,
+          overview: ''
+        });
+      }
+
+      const relMatch = relTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+      let sNum = relMatch ? parseInt(relMatch[1] || relMatch[2], 10) : null;
+      if (!sNum) {
+        if (edge.relationType === 'SEQUEL') sNum = detectedSeason + 1;
+        else if (edge.relationType === 'PREQUEL' && detectedSeason > 1) sNum = detectedSeason - 1;
+      }
+      if (sNum && !seasonsMap.has(sNum)) {
+        seasonsMap.set(sNum, {
+          id: `al_${node.id}`,
+          season_number: sNum,
+          name: relTitle || `Season ${sNum}`,
+          episode_count: node.episodes || 12,
+          poster_path: node.coverImage?.extraLarge || node.coverImage?.large || currentPoster,
+          air_date: node.seasonYear ? `${node.seasonYear}-01-01` : ''
+        });
+      }
+    });
+
+    if (detectedSeason > 1 && !seasonsMap.has(1)) {
+      seasonsMap.set(1, {
+        id: 1,
+        season_number: 1,
+        name: 'Season 1',
+        episode_count: 12,
+        poster_path: currentPoster,
+        air_date: ''
+      });
+    }
+
+    const seasons = Array.from(seasonsMap.values()).sort((a, b) => a.season_number - b.season_number);
+
+    // Build Cast & Crew
+    const cast = [];
+    const seenPersonKeys = new Set();
+    (m.characters?.edges || []).forEach((c) => {
+      const va = c.voiceActors?.[0] || null;
+      const charName = c.node?.name?.full || 'Character';
+      if (va?.id) {
+        const key = `al_staff_${va.id}`;
+        if (!seenPersonKeys.has(key)) {
+          seenPersonKeys.add(key);
+          cast.push({
+            id: String(va.id),
+            source: 'anilist_staff',
+            name: va.name?.full || charName,
+            character: va.name?.full ? `Voice of ${charName}` : (c.role || 'Voice Actor'),
+            role_type: 'Cast',
+            profile_path: c.node?.image?.large || va.image?.large || c.node?.image?.medium || null,
+            person_avatar: va.image?.large || va.image?.medium || null
+          });
+        }
+      } else if (c.node?.id) {
+        cast.push({
+          id: String(c.node.id),
+          source: 'anilist_char',
+          name: charName,
+          character: c.role || 'Character',
+          role_type: 'Cast',
+          profile_path: c.node?.image?.large || c.node?.image?.medium || null
+        });
+      }
+    });
+
+    (m.staff?.edges || []).forEach((s) => {
+      if (!s.node?.id) return;
+      const key = `al_staff_${s.node.id}`;
+      if (seenPersonKeys.has(key)) return;
+      seenPersonKeys.add(key);
+      cast.push({
+        id: String(s.node.id),
+        source: 'anilist_staff',
+        name: s.node.name?.full || 'Staff',
+        character: s.role || 'Staff',
+        role_type: 'Crew',
+        profile_path: s.node.image?.large || s.node.image?.medium || null
+      });
+    });
+
+    const recommendations = (m.recommendations?.nodes || [])
+      .filter((r) => r?.mediaRecommendation)
+      .map((r) => ({
+        id: `al_${r.mediaRecommendation.id}`,
+        title: r.mediaRecommendation.title?.english || r.mediaRecommendation.title?.romaji || 'Anime',
+        poster_path: r.mediaRecommendation.coverImage?.large || r.mediaRecommendation.coverImage?.medium || null,
+        media_type: 'anime'
+      }));
+
+    const details = {
+      id: `al_${m.id}`,
+      external_media_id: `al_${m.id}`,
+      anilist_id: m.id,
+      mal_id: m.idMal || null,
+      tmdb_id: tmdbId || null,
+      title: fullTitle,
+      name: fullTitle,
+      overview: m.description ? m.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '',
+      poster_path: currentPoster,
+      backdrop_path: m.bannerImage || currentPoster,
+      release_date: formatDate(m.startDate, m.seasonYear),
+      vote_average: m.averageScore ? Number((m.averageScore / 10).toFixed(1)) : (m.meanScore ? Number((m.meanScore / 10).toFixed(1)) : 8.0),
+      genres: (m.genres || []).map((g) => ({ id: g, name: g })),
+      media_type: 'anime',
+      status: m.status || null,
+      format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
+      episodes_count: epCount,
+      duration: m.duration || 24,
+      runtime: m.duration || 24,
+      number_of_seasons: seasons.filter((s) => s.season_number > 0).length || 1,
+      number_of_episodes: epCount,
+      default_season: detectedSeason,
+      seasons,
+      related_franchise: relatedFranchise,
+      youtube_trailer: m.trailer?.site?.toLowerCase() === 'youtube' ? m.trailer.id : null,
+      cast,
+      recommendations,
+      video_url: null,
+      embed_url: tmdbId
+        ? (m.format === 'MOVIE'
+            ? `https://vidsrc.to/embed/movie/${tmdbId}`
+            : `https://vidsrc.to/embed/tv/${tmdbId}/${detectedSeason}/1`)
+        : null
+    };
+
+    detailCache.set(numId, { data: details, ts: Date.now() });
+    return details;
+  } catch (err) {
+    console.warn('[ClientLiveAnime] Direct detail fetch failed:', err.message);
+    return null;
+  }
+};
+
+/**
+ * Generate clean fallback episodes array when TMDB doesn't have a brand-new anime season yet.
+ */
+export const buildSyntheticAnimeEpisodes = (detail, seasonNum) => {
+  const sNum = parseInt(seasonNum, 10) || 1;
+  const targetSeason = detail?.seasons?.find((s) => s.season_number === sNum);
+  const epCount = Math.min(200, targetSeason?.episode_count || detail?.episodes_count || 12);
+  const still = targetSeason?.poster_path || detail?.backdrop_path || detail?.poster_path || null;
+  const eps = [];
+  for (let ep = 1; ep <= epCount; ep++) {
+    eps.push({
+      id: `${detail?.id || 'anime'}_s${sNum}_e${ep}`,
+      episode_number: ep,
+      season_number: sNum,
+      name: `Episode ${ep}`,
+      overview: '',
+      still_path: still
+    });
+  }
+  return {
+    name: targetSeason?.name || `Season ${sNum}`,
+    season_number: sNum,
+    poster_path: still,
+    overview: detail?.overview || '',
+    episodes: eps
+  };
+};

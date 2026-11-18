@@ -12,6 +12,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
+import { fetchClientAniListDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw } from 'lucide-react';
 
 function CastAvatarCard({ member, onSelect, gridMode = false }) {
@@ -229,8 +230,22 @@ export default function MediaDetail() {
       setError(null);
       setActiveChapterId(null);
       try {
-        const detailRes = await axios.get(`/api/media/detail/${type}/${id}`);
-        const detailData = detailRes.data;
+        let detailData = null;
+        const isAniListId = type === 'anime' && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+
+        // Direct Browser AniList Detail Fetch for al_* anime (bypasses Render shared-IP 429!)
+        if (isAniListId) {
+          detailData = await fetchClientAniListDetail(id);
+        }
+
+        if (!detailData) {
+          const detailRes = await axios.get(`/api/media/detail/${type}/${id}`);
+          detailData = detailRes.data;
+        }
+
+        if (!detailData) {
+          throw new Error('Empty media detail payload');
+        }
         setDetail(detailData);
         
         // Check saved continue watching progress if not explicitly in URL
@@ -250,16 +265,6 @@ export default function MediaDetail() {
               const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
               setActiveSeason(detailData.default_season || firstSeason.season_number);
             }
-          }
-        }
-
-        // Anime episodes list loading
-        if (type === 'anime') {
-          try {
-            const epsRes = await axios.get(`/api/media/anime/episodes/${id}`);
-            setEpisodes(epsRes.data || []);
-          } catch (epsErr) {
-            console.warn('Failed to load anime episodes list:', epsErr.message);
           }
         }
 
@@ -317,18 +322,33 @@ export default function MediaDetail() {
 
   useEffect(() => {
     if ((type === 'tv' || type === 'anime') && activeSeason !== null) {
+      const isAniListId = String(id).startsWith('al_') || isNaN(parseInt(id, 10));
+      if (isAniListId && !detail) return; // Wait for client AniList detail to resolve tmdb_id/seasons
+
       const fetchSeason = async () => {
-        try {
-          const res = await axios.get(`/api/media/tv/${id}/season/${activeSeason}`);
-          setCurrentSeasonData(res.data);
-          setSeasonEpisodes(res.data.episodes || []);
-        } catch (err) {
-          console.error('Failed to load season details:', err);
+        const seasonLookupId = isAniListId ? detail?.tmdb_id : id;
+        if (seasonLookupId) {
+          try {
+            const res = await axios.get(`/api/media/tv/${seasonLookupId}/season/${activeSeason}`);
+            if (res.data?.episodes?.length > 0) {
+              setCurrentSeasonData(res.data);
+              setSeasonEpisodes(res.data.episodes);
+              return;
+            }
+          } catch (err) {
+            console.warn('TMDB season fallback notice:', err.message);
+          }
+        }
+        // Fallback: build clean synthetic episodes directly from AniList detail
+        if (detail) {
+          const synthetic = buildSyntheticAnimeEpisodes(detail, activeSeason);
+          setCurrentSeasonData(synthetic);
+          setSeasonEpisodes(synthetic.episodes);
         }
       };
       fetchSeason();
     }
-  }, [type, id, activeSeason]);
+  }, [type, id, activeSeason, detail]);
 
   // Save an instant snapshot of Continue Watching progress including current server & timestamp
   const saveProgressSnapshot = (targetServer = null, targetTime = null) => {

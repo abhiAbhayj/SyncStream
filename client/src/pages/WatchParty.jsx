@@ -6,6 +6,7 @@ import { useSocket } from '../context/SocketContext';
 import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import { recordContinueWatching } from '../utils/continueWatching';
+import { fetchClientAniListDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
@@ -140,9 +141,16 @@ export default function WatchParty() {
         const roomData = roomRes.data.room;
         setRoom(roomData);
 
-        // B. Fetch Media details
-        const mediaRes = await axios.get(`/api/media/detail/${roomData.media_type}/${roomData.external_media_id}`);
-        const detailData = mediaRes.data;
+        // B. Fetch Media details (use direct browser AniList for al_* anime to bypass Render IP throttling)
+        let detailData = null;
+        const isAniListId = roomData.media_type === 'anime' && (String(roomData.external_media_id).startsWith('al_') || isNaN(parseInt(roomData.external_media_id, 10)));
+        if (isAniListId) {
+          detailData = await fetchClientAniListDetail(roomData.external_media_id);
+        }
+        if (!detailData) {
+          const mediaRes = await axios.get(`/api/media/detail/${roomData.media_type}/${roomData.external_media_id}`);
+          detailData = mediaRes.data;
+        }
         setMediaDetail(detailData);
 
         // Set default playback mode based on trailer presence
@@ -155,17 +163,7 @@ export default function WatchParty() {
         // TV / Anime series seasons initialization
         if ((roomData.media_type === 'tv' || roomData.media_type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
           const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
-          setActiveSeason(firstSeason.season_number);
-        }
-
-        // Anime episodes list loading
-        if (roomData.media_type === 'anime') {
-          try {
-            const epsRes = await axios.get(`/api/media/anime/episodes/${roomData.external_media_id}`);
-            setEpisodes(epsRes.data || []);
-          } catch (epsErr) {
-            console.warn('Failed to load anime episodes list:', epsErr.message);
-          }
+          setActiveSeason(detailData.default_season || firstSeason.season_number);
         }
       } catch (err) {
         console.error('Watch party init failed:', err);
@@ -183,18 +181,32 @@ export default function WatchParty() {
   // 1.5 Fetch Season Episodes for TV & Anime
   useEffect(() => {
     if ((room?.media_type === 'tv' || room?.media_type === 'anime') && activeSeason !== null) {
+      const isAniListId = String(room.external_media_id).startsWith('al_') || isNaN(parseInt(room.external_media_id, 10));
+      if (isAniListId && !mediaDetail) return;
+
       const fetchSeason = async () => {
-        try {
-          const res = await axios.get(`/api/media/tv/${room.external_media_id}/season/${activeSeason}`);
-          setCurrentSeasonData(res.data);
-          setSeasonEpisodes(res.data.episodes || []);
-        } catch (err) {
-          console.error('Failed to load season details:', err);
+        const lookupId = isAniListId ? mediaDetail?.tmdb_id : room.external_media_id;
+        if (lookupId) {
+          try {
+            const res = await axios.get(`/api/media/tv/${lookupId}/season/${activeSeason}`);
+            if (res.data?.episodes?.length > 0) {
+              setCurrentSeasonData(res.data);
+              setSeasonEpisodes(res.data.episodes);
+              return;
+            }
+          } catch (err) {
+            console.warn('WatchParty season lookup notice:', err.message);
+          }
+        }
+        if (mediaDetail) {
+          const synthetic = buildSyntheticAnimeEpisodes(mediaDetail, activeSeason);
+          setCurrentSeasonData(synthetic);
+          setSeasonEpisodes(synthetic.episodes);
         }
       };
       fetchSeason();
     }
-  }, [room, activeSeason]);
+  }, [room, activeSeason, mediaDetail]);
 
   // Automatically record continue watching for Watch Party sessions
   useEffect(() => {
