@@ -168,9 +168,9 @@ export default function Navbar() {
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 <img
-                  src="/logo.png"
+                  src="/logo.png?v=2"
                   alt="SyncStream"
-                  className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
+                  className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <span className={`${location.pathname !== '/' ? 'hidden xs:inline' : 'inline'} font-josefin font-extrabold text-sm xs:text-base sm:text-xl tracking-wide xs:tracking-wider text-gradient-aurora uppercase`}>

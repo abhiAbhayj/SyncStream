@@ -75,9 +75,9 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
             <Link to="/" className="inline-flex items-center gap-2 group shrink-0">
               <img 
-                src="/logo.png" 
+                src="/logo.png?v=2" 
                 alt="SyncStream" 
-                className="w-7 h-7 rounded-xl object-cover border border-accentCyan/50 shadow-[0_0_12px_rgba(var(--accent-cyan),0.35)] group-hover:scale-105 transition-transform" 
+                className="w-8 h-8 rounded-xl object-cover border border-accentCyan/50 shadow-[0_0_12px_rgba(var(--accent-cyan),0.35)] group-hover:scale-105 transition-transform" 
               />
               <span className="font-extrabold text-lg tracking-wider text-white font-outfit">
                 Sync<span className="text-accentCyan">Stream</span>
