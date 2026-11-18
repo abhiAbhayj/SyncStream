@@ -75,22 +75,22 @@ export default function FilterDropdown({
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex items-center justify-between gap-2 flex-1 min-w-0 px-3.5 py-2.5 text-left cursor-pointer focus:outline-none"
+          className="flex items-center justify-between gap-1.5 flex-1 min-w-0 px-2.5 py-1.5 sm:px-3 sm:py-2 text-left cursor-pointer focus:outline-none"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {Icon && (
               <Icon
-                className={`w-4 h-4 shrink-0 ${
+                className={`w-3.5 h-3.5 shrink-0 ${
                   isActive || open ? 'text-accentCyan' : 'text-cyan-400'
                 }`}
               />
             )}
-            <div className="flex flex-col min-w-0 leading-snug">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
+            <div className="flex flex-col min-w-0 leading-tight">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
                 {label}
               </span>
               <span
-                className={`text-sm font-bold truncate ${
+                className={`text-xs sm:text-[13px] font-bold truncate ${
                   isActive ? 'text-accentCyan' : 'text-white'
                 }`}
               >
@@ -99,7 +99,7 @@ export default function FilterDropdown({
             </div>
           </div>
           <ChevronDown
-            className={`w-4 h-4 shrink-0 transition-transform duration-150 ${
+            className={`w-3.5 h-3.5 shrink-0 transition-transform duration-150 ${
               open ? 'rotate-180 text-accentCyan' : 'text-slate-200'
             }`}
           />
@@ -114,9 +114,9 @@ export default function FilterDropdown({
             }}
             title={`Clear ${label}`}
             aria-label={`Clear ${label}`}
-            className="mr-2 p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-white transition cursor-pointer shrink-0"
+            className="mr-1.5 p-1 rounded-md bg-slate-800 hover:bg-rose-600 text-white transition cursor-pointer shrink-0"
           >
-            <X className="w-3.5 h-3.5 stroke-[2.5]" />
+            <X className="w-3 h-3 stroke-[2.5]" />
           </button>
         )}
       </div>

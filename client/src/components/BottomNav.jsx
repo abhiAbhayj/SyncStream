@@ -48,7 +48,7 @@ export default function BottomNav() {
   }, [location.pathname, user]);
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 border-t border-white/[0.12] px-1.5 py-1 bg-[#090d1e]/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-[#090d1e]/90 pb-[max(0.35rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.7)] select-none">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 border-t border-white/15 px-2 py-1 bg-[#080c1c]/95 backdrop-blur-2xl pb-[max(0.35rem,env(safe-area-inset-bottom))] shadow-[0_-8px_28px_rgba(0,0,0,0.75)] select-none">
       <div ref={containerRef} className="relative flex items-center justify-between w-full max-w-lg mx-auto">
         {/* Sliding Gooey Neon Active Pill & Top Notch */}
         {indicator.visible && (

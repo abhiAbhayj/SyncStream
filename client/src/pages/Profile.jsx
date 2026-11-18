@@ -961,95 +961,97 @@ export default function Profile() {
   const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.emojis;
 
   return (
-    <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-8 sm:pb-12">
+    <div className="max-w-5xl mx-auto py-4 sm:py-6 px-3 sm:px-5 md:px-6 lg:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-8 sm:pb-12">
       {/* Title */}
-      <div className="space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
-          <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-accentPurple" />
-          Profile &amp; Avatar Studio
+      <div className="space-y-0.5">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
+          <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-accentPurple shrink-0" />
+          <span>Profile &amp; Avatar Studio</span>
         </h1>
         <p className="text-xs sm:text-sm text-gray-400">
-          Create, edit, and manage avatars across all styles with AI prompts, and customize your animated theme.
+          Customize your identity, manage avatars with AI prompts, and switch animated themes.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8 items-start">
-        {/* Left Side: Active Avatar & Studio Controls */}
-        <div className="md:col-span-1 glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-center space-y-3.5 sm:space-y-4 shadow-xl">
-          {/* Orbit Aura Studio Preview */}
-          <div className="relative inline-flex items-center justify-center p-2.5 sm:p-3">
-            {/* Ambient radial glow */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-1 rounded-full bg-gradient-to-tr from-accentCyan/25 via-accentPurple/20 to-accentPink/25 blur-xl animate-pulse pointer-events-none"
-            />
-            {/* Outer Orbit Ring (CW) */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 rounded-full border border-dashed border-accentCyan/55 animate-orbit-cw pointer-events-none"
-            >
-              <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-accentCyan shadow-[0_0_10px_rgba(var(--accent-cyan),0.95)]" />
-            </div>
-            {/* Inner Orbit Ring (CCW) */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-1.5 rounded-full border border-accentPurple/45 border-t-accentPink/85 animate-orbit-ccw pointer-events-none"
-            >
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentPink shadow-[0_0_8px_rgba(var(--accent-pink),0.9)]" />
-            </div>
-            {/* Selection Shockwave Burst */}
-            {avatarBurstKey > 0 && (
-              <span
-                key={avatarBurstKey}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+        {/* Left Side: Active Avatar & Studio Controls (Horizontal Banner on Tablet, Sidebar on Desktop) */}
+        <div className="lg:col-span-4 glass-panel border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row lg:flex-col items-center sm:justify-between lg:justify-center gap-4 text-center sm:text-left lg:text-center">
+          <div className="flex flex-col sm:flex-row lg:flex-col items-center gap-3 sm:gap-4">
+            {/* Orbit Aura Studio Preview */}
+            <div className="relative inline-flex items-center justify-center p-2 shrink-0">
+              {/* Ambient radial glow */}
+              <div
                 aria-hidden="true"
-                className="absolute inset-2 rounded-full border-2 border-accentCyan/80 animate-shockwave pointer-events-none"
+                className="absolute inset-1 rounded-full bg-gradient-to-tr from-accentCyan/25 via-accentPurple/20 to-accentPink/25 blur-xl animate-pulse pointer-events-none"
               />
-            )}
-
-            <img
-              src={selectedAvatar}
-              alt="Profile avatar preview"
-              referrerPolicy="no-referrer"
-              className={`relative z-10 w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-accentCyan mx-auto shadow-2xl transition-transform duration-300 ${
-                isEmojiAvatarUrl(selectedAvatar)
-                  ? 'bg-gradient-to-br from-accentCyan/20 via-[#0d142c] to-accentPurple/25 object-contain p-3 sm:p-4 shadow-[inset_0_0_24px_rgba(var(--accent-cyan),0.22),0_0_28px_rgba(var(--accent-purple),0.28)]'
-                  : 'bg-darkBg object-cover p-1'
-              }`}
-            />
-            <div className="z-20 absolute bottom-2 right-2 bg-accentPurple text-white p-1.5 sm:p-2 rounded-full shadow-lg border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
-            </div>
-          </div>
-
-          <div className="space-y-0.5 sm:space-y-1">
-            <h3 className="font-bold text-base sm:text-lg text-white truncate">{user?.username}</h3>
-            <p className="text-[11px] sm:text-xs text-gray-400 font-medium flex items-center justify-center gap-1.5">
-              {isCustomUploaded ? (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 text-accentGold" />
-                  <span>Custom / AI Avatar</span>
-                </>
-              ) : (
-                <>
-                  <Palette className="w-3.5 h-3.5 text-accentCyan" />
-                  <span>Preset Identity</span>
-                </>
+              {/* Outer Orbit Ring (CW) */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full border border-dashed border-accentCyan/55 animate-orbit-cw pointer-events-none"
+              >
+                <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_10px_rgba(var(--accent-cyan),0.95)]" />
+              </div>
+              {/* Inner Orbit Ring (CCW) */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-1.5 rounded-full border border-accentPurple/45 border-t-accentPink/85 animate-orbit-ccw pointer-events-none"
+              >
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentPink shadow-[0_0_8px_rgba(var(--accent-pink),0.9)]" />
+              </div>
+              {/* Selection Shockwave Burst */}
+              {avatarBurstKey > 0 && (
+                <span
+                  key={avatarBurstKey}
+                  aria-hidden="true"
+                  className="absolute inset-2 rounded-full border-2 border-accentCyan/80 animate-shockwave pointer-events-none"
+                />
               )}
-            </p>
-            {user?.created_at && (
-              <p className="text-[10px] text-gray-500">Joined {new Date(user.created_at).toLocaleDateString()}</p>
-            )}
+
+              <img
+                src={selectedAvatar}
+                alt="Profile avatar preview"
+                referrerPolicy="no-referrer"
+                className={`relative z-10 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full border-2 border-accentCyan mx-auto shadow-2xl transition-transform duration-300 ${
+                  isEmojiAvatarUrl(selectedAvatar)
+                    ? 'bg-gradient-to-br from-accentCyan/20 via-[#0d142c] to-accentPurple/25 object-contain p-2.5 sm:p-3 shadow-[inset_0_0_24px_rgba(var(--accent-cyan),0.22),0_0_28px_rgba(var(--accent-purple),0.28)]'
+                    : 'bg-darkBg object-cover p-1'
+                }`}
+              />
+              <div className="z-20 absolute bottom-1.5 right-1.5 bg-accentPurple text-white p-1.5 rounded-full shadow-lg border border-white/20">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse" />
+              </div>
+            </div>
+
+            <div className="space-y-0.5 min-w-0">
+              <h3 className="font-bold text-base sm:text-lg text-white truncate">{user?.username}</h3>
+              <p className="text-[11px] sm:text-xs text-gray-300 font-medium flex items-center justify-center sm:justify-start lg:justify-center gap-1.5">
+                {isCustomUploaded ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-accentGold shrink-0" />
+                    <span>Custom / AI Avatar</span>
+                  </>
+                ) : (
+                  <>
+                    <Palette className="w-3.5 h-3.5 text-accentCyan shrink-0" />
+                    <span>Preset Identity</span>
+                  </>
+                )}
+              </p>
+              {user?.created_at && (
+                <p className="text-[10px] text-gray-400">Joined {new Date(user.created_at).toLocaleDateString()}</p>
+              )}
+            </div>
           </div>
 
           {/* Quick Studio Actions */}
-          <div className="space-y-2 pt-2 border-t border-white/5">
+          <div className="w-full sm:w-52 lg:w-full space-y-2 pt-3 sm:pt-0 lg:pt-3 border-t sm:border-t-0 lg:border-t border-white/10 shrink-0">
             {/* AI Generator Trigger */}
             <button
               type="button"
               onClick={() => openAiGeneratorForCategory(activeAvatarTab)}
-              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-accentPurple to-accentCyan text-black font-extrabold text-xs transition flex items-center justify-center gap-2 active:scale-95 shadow-md hover:opacity-90"
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-accentPurple to-accentCyan text-black font-extrabold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 shadow-md hover:opacity-90 cursor-pointer"
             >
-              <Wand2 className="w-4 h-4 text-black" />
+              <Wand2 className="w-3.5 h-3.5 text-black" />
               <span>Generate AI Avatar</span>
             </button>
 
@@ -1065,20 +1067,18 @@ export default function Profile() {
               type="button"
               disabled={uploadingImage}
               onClick={() => fileInputRef.current?.click()}
-              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-200 font-bold text-xs transition flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-200 font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
             >
               {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               <span>Upload Photo File</span>
             </button>
-          </div>
 
-          <div className="pt-2 border-t border-white/5">
             <button
               onClick={handleSignOut}
-              className="w-full py-2 sm:py-2.5 rounded-xl border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs font-bold transition flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-2 px-3 rounded-xl border border-red-500/25 text-red-400 hover:text-red-200 hover:bg-red-500/15 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Sign Out Account
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
@@ -1086,7 +1086,7 @@ export default function Profile() {
         {/* Right Side: Form, Avatar Studio & Animated Themes */}
         <form
           onSubmit={handleSave}
-          className="md:col-span-2 glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 shadow-xl"
+          className="lg:col-span-8 glass-panel border border-white/10 rounded-2xl p-4 sm:p-6 space-y-5 shadow-xl"
         >
           {/* Notifications */}
           {success && (
@@ -1303,7 +1303,7 @@ export default function Profile() {
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-0.5 scrollbar-thin">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-0.5 scrollbar-thin">
                         {filteredEmojis.slice(0, emojiVisibleCount).map((emoji) => {
                           const emojiUrl = `${EMOJI_CDN}/${emoji.image}`;
                           const isSelected = selectedAvatar === emojiUrl;
@@ -1526,7 +1526,7 @@ export default function Profile() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-0.5 scrollbar-thin">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-0.5 scrollbar-thin">
                       {filteredAnimeSearchResults.slice(0, animeVisibleCount).map((char) => {
                         const isSelected = selectedAvatar === char.url;
                         const isPinned = (avatarCollections.anime?.items || []).some(
@@ -1608,7 +1608,7 @@ export default function Profile() {
             )}
 
             {/* Category Avatar Grid with Add, Edit, Delete Actions */}
-            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-black/40 border border-white/10">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-2.5 p-2 sm:p-3 rounded-2xl bg-black/40 border border-white/10">
               {/* Add New AI Avatar Tile in this category */}
               <button
                 type="button"
@@ -1707,7 +1707,7 @@ export default function Profile() {
               <span>Live Animated Dashboard Themes ({THEME_OPTIONS.length})</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               {THEME_OPTIONS.map((t) => {
                 const isSelected = theme === t.id;
                 return (
@@ -1715,7 +1715,7 @@ export default function Profile() {
                     key={t.id}
                     type="button"
                     onClick={(e) => handleThemeChange(t.id, e)}
-                    className={`group relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] cursor-pointer ${
+                    className={`group relative p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] cursor-pointer ${
                       isSelected
                         ? 'ring-1 ring-white/20'
                         : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-0.5 hover:shadow-xl'
@@ -1736,7 +1736,7 @@ export default function Profile() {
                     {/* Animated Theme Preview Mini-Mockup Stage */}
                     <div
                       aria-hidden="true"
-                      className="relative mb-3 h-16 sm:h-20 rounded-xl border border-white/10 bg-[#04060f]/95 p-2 flex flex-col justify-between overflow-hidden shadow-inner"
+                      className="relative mb-2.5 h-14 sm:h-16 rounded-xl border border-white/10 bg-[#04060f]/95 p-2 flex flex-col justify-between overflow-hidden shadow-inner"
                     >
                       {/* Theme Ambient Glow Orbs */}
                       <div

@@ -1022,53 +1022,54 @@ export default function Music() {
       </div>
 
       {/* ── Top Header Banner & Navigation Tabs ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-3 border-b border-white/20">
-        <div className="space-y-1.5 flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1 rounded-full bg-gradient-to-r from-accentCyan/30 to-accentPurple/30 border border-accentCyan/60 text-white text-[10px] xs:text-[11px] font-black uppercase tracking-wider font-mono shadow-[0_0_15px_rgba(99,210,255,0.35)]">
-              <Radio className="w-3.5 h-3.5 animate-pulse text-accentCyan" />
-              <span>Dual-Engine: YouTube Music + Studio Masters 320kbps</span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-5 pb-3 border-b border-white/15">
+        <div className="space-y-1 flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-accentCyan/25 to-accentPurple/25 border border-accentCyan/50 text-white text-[10px] font-black uppercase tracking-wider font-mono">
+              <Radio className="w-3 h-3 animate-pulse text-accentCyan shrink-0" />
+              <span className="sm:hidden">320kbps Studio Audio</span>
+              <span className="hidden sm:inline">YouTube Music &bull; Studio 320kbps</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-mono text-[11px] font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/80 text-emerald-300 font-mono text-[10px] font-black shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
               Live Hits
             </span>
             <button
               type="button"
               onClick={handleRefreshAll}
               disabled={isRefreshing || loading}
-              className="p-1.5 sm:p-2 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_15px_rgba(var(--accent-cyan),0.4)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+              className="p-1.5 rounded-xl border border-accentCyan/70 bg-[#0d1428] text-accentCyan hover:bg-accentCyan hover:text-black transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
               title="Live Refresh Hits & Charts"
               aria-label="Live Refresh"
             >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
             </button>
           </div>
-          <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black text-white font-outfit tracking-tight drop-shadow-md">
+          <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-black text-white font-outfit tracking-tight">
             SyncStream Music &amp; Playlists
           </h1>
-          <p className="text-xs sm:text-sm text-slate-200 font-medium">
-            Search by Artist, Movie, TV Series, Anime or Song name &bull; Universal Catalog auto-updated with latest hits.
+          <p className="text-xs text-slate-300 font-medium hidden sm:block">
+            Search by Artist, Movie, TV Series, Anime or Song &bull; Auto-updated with live hits.
           </p>
         </div>
 
         {/* Global Search Bar */}
-        <div className="flex flex-col gap-2 max-w-md w-full">
+        <div className="flex flex-col gap-1.5 lg:max-w-md w-full">
           <form onSubmit={handleSearch} className="neon-beam-wrapper w-full shadow-lg">
             <div className="neon-beam-inner relative flex items-center w-full">
-              <Search className="w-4 h-4 text-accentCyan absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+              <Search className="w-4 h-4 text-accentCyan absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchInputChange(e.target.value)}
-                placeholder="Search by Artist, Movie, Anime, Series or Song..."
-                className="w-full bg-transparent pl-10 pr-[5.75rem] sm:pr-24 py-2.5 sm:py-3 text-xs sm:text-sm text-white focus:outline-none placeholder:text-slate-300 font-semibold"
+                placeholder="Search Artist, Movie, Anime, or Song..."
+                className="w-full bg-transparent pl-9 pr-[5.25rem] sm:pr-24 py-2 sm:py-2.5 text-xs sm:text-sm text-white focus:outline-none placeholder:text-slate-400 font-semibold"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="absolute right-[4.75rem] sm:right-20 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition z-10"
+                  className="absolute right-[4.35rem] sm:right-[4.75rem] top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-200 hover:text-white hover:bg-white/20 transition z-10"
                   title="Clear search"
                 >
                   <X className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -1076,7 +1077,7 @@ export default function Music() {
               )}
               <button
                 type="submit"
-                className="btn-shimmer absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-xs font-black hover:shadow-[0_0_18px_rgba(99,210,255,0.7)] transition active:scale-95 z-10"
+                className="btn-shimmer absolute right-1.5 top-1/2 -translate-y-1/2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-lg bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black text-[11px] sm:text-xs font-black transition active:scale-95 z-10 cursor-pointer"
               >
                 Search
               </button>
@@ -1084,14 +1085,14 @@ export default function Music() {
           </form>
 
           {/* Quick Search Suggestions */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] text-slate-200 py-0.5">
-            <span className="font-extrabold text-slate-300 shrink-0">Popular:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[10px] text-slate-200 py-0.5">
+            <span className="font-extrabold text-slate-400 shrink-0">Popular:</span>
             {(SUGGESTIONS_BY_CATEGORY[searchCategory] || SUGGESTIONS_BY_CATEGORY.all).map((tag) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => handleSuggestionClick(tag)}
-                className="px-2.5 py-0.5 rounded-full bg-[#20294d] hover:bg-accentCyan hover:text-black border border-white/25 hover:border-accentCyan whitespace-nowrap transition active:scale-95 text-[10.5px] font-bold text-slate-100 shadow-sm"
+                className="px-2 py-0.5 rounded-full bg-[#141d38] hover:bg-accentCyan hover:text-black border border-white/15 hover:border-accentCyan whitespace-nowrap transition active:scale-95 text-[10px] font-bold text-slate-200 cursor-pointer"
               >
                 {tag}
               </button>
@@ -1101,44 +1102,44 @@ export default function Music() {
       </div>
 
       {/* ── Main Navigation Switcher (Discover, Liked Songs, My Playlists) ── */}
-      <div className="flex items-center gap-2 border-b border-white/20 pb-3 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-white/15 pb-2.5 overflow-x-auto scrollbar-none">
         <button
           type="button"
           onClick={() => { setActiveTab('discover'); setSelectedPlaylistDetails(null); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
+          className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-[13px] font-extrabold transition active:scale-95 border shrink-0 cursor-pointer ${
             activeTab === 'discover'
-              ? 'bg-gradient-to-r from-accentCyan/40 via-[#38bdf8]/30 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_20px_rgba(99,210,255,0.45)]'
-              : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
+              ? 'bg-gradient-to-r from-accentCyan/35 via-[#38bdf8]/25 to-accentPurple/35 border-accentCyan text-white shadow-[0_0_16px_rgba(99,210,255,0.35)]'
+              : 'bg-[#121933] border-white/15 text-slate-200 hover:text-white hover:bg-[#1c264a] hover:border-white/30'
           }`}
         >
-          <Flame className="w-4 h-4 text-accentCyan" />
+          <Flame className="w-3.5 h-3.5 text-accentCyan" />
           <span>Discover &amp; Charts</span>
         </button>
 
         <button
           type="button"
           onClick={() => { setActiveTab('favorites'); setSelectedPlaylistDetails(null); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
+          className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-[13px] font-extrabold transition active:scale-95 border shrink-0 cursor-pointer ${
             activeTab === 'favorites'
-              ? 'bg-gradient-to-r from-red-500/40 via-pink-500/30 to-purple-500/40 border-2 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.45)]'
-              : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
+              ? 'bg-gradient-to-r from-red-500/35 via-pink-500/25 to-purple-500/35 border-red-400 text-white shadow-[0_0_16px_rgba(239,68,68,0.35)]'
+              : 'bg-[#121933] border-white/15 text-slate-200 hover:text-white hover:bg-[#1c264a] hover:border-white/30'
           }`}
         >
-          <Heart className="w-4 h-4 text-red-400 fill-current" />
-          <span>Liked Songs / Favorites ({favorites.length})</span>
+          <Heart className="w-3.5 h-3.5 text-red-400 fill-current" />
+          <span>Liked Songs ({favorites.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => { setActiveTab('playlists'); setSelectedPlaylistDetails(null); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95 border shrink-0 ${
+          className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-[13px] font-extrabold transition active:scale-95 border shrink-0 cursor-pointer ${
             activeTab === 'playlists'
-              ? 'bg-gradient-to-r from-purple-500/40 via-indigo-500/30 to-accentCyan/30 border-2 border-accentPurple text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'
-              : 'bg-[#1c2446] border border-white/25 text-slate-100 hover:text-white hover:bg-[#283460] hover:border-white/40 shadow-md'
+              ? 'bg-gradient-to-r from-purple-500/35 via-indigo-500/25 to-accentCyan/25 border-accentPurple text-white shadow-[0_0_16px_rgba(168,85,247,0.35)]'
+              : 'bg-[#121933] border-white/15 text-slate-200 hover:text-white hover:bg-[#1c264a] hover:border-white/30'
           }`}
         >
-          <ListMusic className="w-4 h-4 text-accentPurple" />
-          <span>My Playlists ({playlists.length})</span>
+          <ListMusic className="w-3.5 h-3.5 text-accentPurple" />
+          <span>Playlists ({playlists.length})</span>
         </button>
       </div>
 
@@ -1146,17 +1147,15 @@ export default function Music() {
           TAB 1: DISCOVER & CHARTS
          ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'discover' && (
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-5 sm:space-y-6">
           {/* Multi-Faceted Category Filter Pills */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-black text-slate-200 uppercase tracking-wider font-mono">
-                <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
-                <span>Search by Category</span>
-              </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black text-slate-300 uppercase tracking-wider font-mono">
+              <Sparkles className="w-3 h-3 text-accentCyan" />
+              <span>Category</span>
             </div>
 
-            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
               {SEARCH_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = searchCategory === cat.id;
@@ -1165,14 +1164,14 @@ export default function Music() {
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-200 border active:scale-95 ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 sm:px-2.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all duration-150 border active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'bg-gradient-to-r from-accentCyan via-[#38bdf8] to-accentPurple text-black border-2 border-white shadow-[0_0_20px_rgba(99,210,255,0.7)]'
-                        : 'bg-[#1c2548] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/70 hover:bg-[#283564] shadow-md'
+                        ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_14px_rgba(99,210,255,0.45)]'
+                        : 'bg-[#121933] border-white/15 text-slate-200 hover:text-white hover:border-accentCyan/60 hover:bg-[#1a2548]'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-black stroke-[2.5]' : cat.color || ''}`} />
-                    <span>{cat.label}</span>
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-black stroke-[2.5]' : cat.color || ''}`} />
+                    <span className="truncate">{cat.label}</span>
                   </button>
                 );
               })}
@@ -1181,18 +1180,7 @@ export default function Music() {
 
           {/* Language Selector */}
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
-              <button
-                type="button"
-                onClick={handleRefreshAll}
-                disabled={isRefreshing || loading}
-                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all border-2 border-accentCyan/70 bg-accentCyan/30 hover:bg-accentCyan/45 text-white active:scale-95 shrink-0 shadow-[0_0_15px_rgba(99,210,255,0.4)]"
-                title="Refresh live trending hits & charts"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 text-accentCyan ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
-                <span>Live Refresh</span>
-              </button>
-
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
               {LANGUAGES.map((lang) => {
                 const isSelected = selectedLang === lang.id;
                 const IconComponent = lang.icon;
@@ -1207,15 +1195,14 @@ export default function Music() {
                       setHasMore(true);
                       fetchTrending(lang.id, 1, true);
                     }}
-                    className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 border active:scale-95 shrink-0 ${
+                    className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all duration-200 border active:scale-95 shrink-0 cursor-pointer ${
                       isSelected
-                        ? 'bg-gradient-to-r from-accentCyan/40 to-accentPurple/40 border-2 border-accentCyan text-white shadow-[0_0_18px_rgba(99,210,255,0.45)]'
-                        : 'bg-[#1a2244] border border-white/25 text-slate-100 hover:text-white hover:border-accentCyan/60 hover:bg-[#26325e] shadow-sm'
+                        ? 'bg-accentCyan/25 border-accentCyan text-white shadow-[0_0_12px_rgba(99,210,255,0.35)]'
+                        : 'bg-[#121933] border-white/15 text-slate-200 hover:text-white hover:border-accentCyan/60 hover:bg-[#1a2548]'
                     }`}
                   >
                     {IconComponent && <IconComponent className={`w-3.5 h-3.5 shrink-0 ${lang.color || 'text-accentCyan'}`} />}
                     <span>{lang.label}</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5 shrink-0" title="Live Regularly Updated" />
                   </button>
                 );
               })}
@@ -1224,14 +1211,14 @@ export default function Music() {
 
           {/* Featured Spotlight (when no search query) */}
           {featuredSong && !searchQuery && (
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-white/25 p-4 sm:p-7 bg-gradient-to-r from-[#1c2548] via-[#141b36] to-[#1c2548] shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col sm:flex-row items-center gap-4 sm:gap-6 group">
+            <div className="relative rounded-2xl overflow-hidden border border-white/15 p-3.5 sm:p-5 bg-gradient-to-r from-[#141c38] via-[#0e152c] to-[#141c38] shadow-xl flex flex-col sm:flex-row items-center gap-3.5 sm:gap-5 group">
               <div
-                className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 pointer-events-none group-hover:opacity-40 transition-opacity"
+                className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-25 pointer-events-none group-hover:opacity-35 transition-opacity"
                 style={{ backgroundImage: `url(${featuredSong.image || FALLBACK_COVER})` }}
               />
 
               {/* Cover Art */}
-              <div className="relative w-28 h-28 sm:w-44 sm:h-44 rounded-2xl overflow-hidden shrink-0 border-2 border-white/30 shadow-2xl group-hover:scale-105 transition-transform duration-500 bg-black">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-xl group-hover:scale-105 transition-transform duration-300 bg-black">
                 <img
                   src={featuredSong.image || FALLBACK_COVER}
                   alt={featuredSong.title}
@@ -1239,31 +1226,31 @@ export default function Music() {
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                 />
                 {currentTrack?.id === featuredSong.id && isPlaying && (
-                  <div className="absolute bottom-2 right-2 px-2 py-1 rounded-full bg-black/80 backdrop-blur-md border border-accentCyan/50 shadow-[0_0_12px_rgba(var(--accent-cyan),0.6)] flex items-center gap-1">
+                  <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-black/80 border border-accentCyan/50 flex items-center gap-1">
                     <EqualizerBars isPlaying={true} size="sm" bars={4} />
                   </div>
                 )}
               </div>
 
               {/* Meta Details */}
-              <div className="relative z-10 flex-1 text-center sm:text-left space-y-2.5 sm:space-y-3.5">
-                <div className="space-y-1 sm:space-y-1.5">
-                  <span className="uppercase text-[9px] sm:text-[10px] font-black px-3 py-1 rounded-full bg-accentCyan/30 text-white border border-accentCyan/60 tracking-wider font-mono shadow-sm">
-                    Featured Spotlight &bull; {featuredSong.language}
+              <div className="relative z-10 flex-1 min-w-0 text-center sm:text-left space-y-2">
+                <div className="space-y-1">
+                  <span className="inline-block uppercase text-[9px] sm:text-[10px] font-black px-2.5 py-0.5 rounded-full bg-accentCyan/25 text-white border border-accentCyan/50 tracking-wider font-mono">
+                    Featured &bull; {featuredSong.language}
                   </span>
-                  <h2 className="text-base sm:text-2xl font-black text-white font-outfit tracking-tight leading-snug drop-shadow-md">
+                  <h2 className="text-base sm:text-xl font-black text-white font-outfit tracking-tight leading-snug line-clamp-1">
                     {featuredSong.title}
                   </h2>
-                  <p className="text-xs sm:text-sm text-slate-200 font-semibold truncate">
+                  <p className="text-xs sm:text-sm text-slate-300 font-semibold truncate">
                     {featuredSong.artist}
                   </p>
                 </div>
 
                 {/* Quick Play & Action Buttons */}
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-0.5">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-0.5">
                   <button
                     onClick={(e) => handleSongPlayClick(featuredSong, songs, e)}
-                    className="btn-shimmer relative overflow-visible flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,210,255,0.6)] hover:shadow-[0_0_30px_rgba(99,210,255,0.8)] transition active:scale-95"
+                    className="btn-shimmer relative overflow-visible flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-accentCyan to-accentPurple text-black text-xs font-black shadow-[0_0_16px_rgba(99,210,255,0.45)] transition active:scale-95 cursor-pointer"
                   >
                     {playRipple.id === featuredSong.id && (
                       <span
@@ -1274,12 +1261,12 @@ export default function Music() {
                     )}
                     {currentTrack?.id === featuredSong.id && isPlaying ? (
                       <>
-                        <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
+                        <Pause className="w-3.5 h-3.5 fill-current" />
                         <span>Pause</span>
                       </>
                     ) : (
                       <>
-                        <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
+                        <Play className="w-3.5 h-3.5 fill-current" />
                         <span>Play Now</span>
                       </>
                     )}
@@ -1287,30 +1274,30 @@ export default function Music() {
 
                   <button
                     onClick={() => playQueue(songs, 0)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black border border-white/25 transition active:scale-95 shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition active:scale-95 cursor-pointer"
                   >
-                    <Disc3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accentCyan" />
+                    <Disc3 className="w-3.5 h-3.5 text-accentCyan" />
                     <span>Play All ({songs.length})</span>
                   </button>
 
                   <button
                     onClick={() => toggleFavorite(featuredSong)}
-                    className={`p-2.5 rounded-full border-2 transition active:scale-95 shadow-sm ${
+                    className={`p-2 rounded-full border transition active:scale-95 cursor-pointer ${
                       isFavorite(featuredSong.id)
-                        ? 'bg-red-500/30 border-red-500/70 text-red-300'
-                        : 'bg-white/15 border-white/25 text-slate-100 hover:text-white hover:bg-white/25'
+                        ? 'bg-red-500/25 border-red-400 text-red-300'
+                        : 'bg-white/10 border-white/20 text-slate-100 hover:text-white hover:bg-white/20'
                     }`}
                     title={isFavorite(featuredSong.id) ? 'Liked' : 'Add to Favorites'}
                   >
-                    <Heart className={`w-4 h-4 ${isFavorite(featuredSong.id) ? 'fill-current text-red-400' : ''}`} />
+                    <Heart className={`w-3.5 h-3.5 ${isFavorite(featuredSong.id) ? 'fill-current text-red-400' : ''}`} />
                   </button>
 
                   <button
                     onClick={() => setSongToAddToPlaylist(featuredSong)}
-                    className="p-2.5 rounded-full bg-white/15 border-2 border-white/25 text-slate-100 hover:text-white hover:bg-white/25 transition active:scale-95 shadow-sm"
+                    className="p-2 rounded-full bg-white/10 border border-white/20 text-slate-100 hover:text-white hover:bg-white/20 transition active:scale-95 cursor-pointer"
                     title="Add to Playlist"
                   >
-                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 </div>
               </div>
@@ -1318,11 +1305,11 @@ export default function Music() {
           )}
 
           {/* Songs Grid */}
-          <div id="music-songs-section" className="space-y-3 sm:space-y-4 pt-2">
+          <div id="music-songs-section" className="space-y-3 pt-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h3 className="text-base sm:text-xl font-black text-white font-outfit flex items-center gap-2">
-                  <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-accentPink" />
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm sm:text-lg font-black text-white font-outfit flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-accentPink" />
                   <span>
                     {searchQuery
                       ? `Results for "${searchQuery}" (${SEARCH_CATEGORIES.find(c => c.id === searchCategory)?.label || 'All'})`
@@ -1330,45 +1317,45 @@ export default function Music() {
                   </span>
                 </h3>
                 {!searchQuery && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono shadow-[0_0_12px_rgba(16,185,129,0.35)]">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 font-mono">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Live &bull; Regularly Updated
+                    Live
                   </span>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
                 {/* View Mode Toggle: Card vs Compact List */}
-                <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
+                <div className="flex items-center gap-0.5 bg-[#0e152c] p-0.5 rounded-lg border border-white/15">
                   <button
                     type="button"
                     onClick={() => handleSetViewMode('card')}
-                    className={`p-1.5 rounded-lg transition-all ${
+                    className={`p-1.5 rounded-md transition-all cursor-pointer ${
                       viewMode === 'card'
-                        ? 'bg-accentCyan text-black font-bold shadow-md'
+                        ? 'bg-accentCyan text-black font-bold'
                         : 'text-slate-300 hover:text-white hover:bg-white/10'
                     }`}
                     title="Card (Grid) View"
                     aria-label="Card View"
                   >
-                    <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <LayoutGrid className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetViewMode('list')}
-                    className={`p-1.5 rounded-lg transition-all ${
+                    className={`p-1.5 rounded-md transition-all cursor-pointer ${
                       viewMode === 'list'
-                        ? 'bg-accentCyan text-black font-bold shadow-md'
+                        ? 'bg-accentCyan text-black font-bold'
                         : 'text-slate-300 hover:text-white hover:bg-white/10'
                     }`}
                     title="Compact List View"
                     aria-label="Compact List View"
                   >
-                    <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <List className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <span className="text-[11px] xs:text-xs font-mono font-black text-white px-2.5 xs:px-3.5 py-1 xs:py-1.5 rounded-full bg-white/15 border-2 border-white/25 shadow-md">
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-200 px-2.5 py-1 rounded-full bg-[#121933] border border-white/15">
                   {songs.length} Tracks
                 </span>
               </div>
@@ -1403,16 +1390,16 @@ export default function Music() {
                       return (
                         <div
                           key={`${song.id}-${idx}`}
-                          className={`group relative rounded-xl sm:rounded-2xl border-2 p-2 sm:p-3 transition-all duration-300 flex flex-col gap-2 overflow-hidden shadow-xl backdrop-blur-md ${
+                          className={`group relative rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 transition-all duration-200 flex flex-col gap-2 overflow-hidden shadow-lg ${
                             isCurrent
-                              ? 'bg-accentCyan/25 border-accentCyan shadow-[0_0_25px_rgba(99,210,255,0.45)] ring-2 ring-accentCyan/60'
-                              : 'border-white/20 bg-[#18203c]/95 hover:border-accentCyan/70 hover:bg-[#202b52] hover:shadow-[0_10px_30px_rgba(0,245,255,0.25)]'
+                              ? 'bg-accentCyan/20 border-accentCyan shadow-[0_0_20px_rgba(99,210,255,0.4)] ring-1 ring-accentCyan/60'
+                              : 'border-white/15 bg-[#121933] hover:border-accentCyan/70 hover:bg-[#1a2448] hover:shadow-[0_8px_24px_rgba(0,245,255,0.18)]'
                           }`}
                         >
                           {/* Square Album Cover */}
                           <div
                             onClick={(e) => handleSongPlayClick(song, songs, e)}
-                            className="relative w-full aspect-square rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md cursor-pointer group-hover:scale-102 transition-transform bg-black/40"
+                            className="relative w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden shrink-0 border border-white/15 shadow-md cursor-pointer group-hover:scale-[1.02] transition-transform bg-black/40"
                           >
                             <img
                               src={song.image || FALLBACK_COVER}

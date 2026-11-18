@@ -666,35 +666,35 @@ export default function Search() {
     : MANGA_GENRES;
 
   return (
-    <div className="max-w-7xl mx-auto py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 space-y-6 sm:space-y-8 min-h-[75vh]">
+    <div className="max-w-7xl mx-auto py-3.5 sm:py-6 px-3 sm:px-5 md:px-6 lg:px-8 space-y-5 sm:space-y-6 min-h-[75vh]">
       
-      {/* ── Title, Live Status & Live Refresh Icon (Only Icon) ── */}
-      <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-outfit">
+      {/* ── Title, Live Status & Live Refresh Icon ── */}
+      <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b border-white/10">
+        <div className="space-y-0.5 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight text-white font-outfit">
               Federated Discovery Engine
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/25 border border-emerald-400 text-emerald-300 font-mono shadow-[0_0_12px_rgba(16,185,129,0.4)]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-400/80 text-emerald-300 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
               Live
             </span>
             {searched && (
               <span
                 key={`${type}-${genre}-${animeFormat}-${language}-${country}-${year}-${results.length}`}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#0f162d] border border-accentCyan/50 text-white font-mono tabular-nums animate-badge-pulse"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[#0f162d] border border-accentCyan/45 text-white font-mono tabular-nums animate-badge-pulse"
               >
                 <span className="text-accentCyan animate-digit-roll">{results.length}</span>
                 <span className="text-gray-300">Matches</span>
               </span>
             )}
           </div>
-          <p className="text-xs sm:text-sm text-slate-300 hidden sm:block">
-            Query multiple global and regional catalogs simultaneously across movies, TV series, anime, manga, and music.
+          <p className="text-xs text-slate-300 hidden sm:block">
+            Explore global &amp; regional catalogs across movies, TV series, anime, manga, and music.
           </p>
         </div>
 
-        {/* Live Refresh Icon Button (Only Icon) */}
+        {/* Live Refresh Icon Button */}
         <button
           type="button"
           onClick={() => {
@@ -702,28 +702,28 @@ export default function Search() {
             executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true, animeFormat);
           }}
           disabled={loading}
-          className="p-2 sm:p-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+          className="p-2 rounded-xl border border-accentCyan/70 bg-[#0d1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_12px_rgba(var(--accent-cyan),0.3)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
           title="Live Refresh"
           aria-label="Live Refresh"
         >
-          <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} strokeWidth={2.5} />
         </button>
       </div>
 
       {/* Search and Filters Console (with integrated category tabs) */}
-      <form onSubmit={handleSearchSubmit} className="relative z-30 max-w-4xl mx-auto space-y-4 bg-darkCard/90 border-2 border-accentCyan/40 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl shadow-2xl">
+      <form onSubmit={handleSearchSubmit} className="relative z-30 max-w-4xl mx-auto space-y-3 sm:space-y-3.5 bg-[#0b1022]/95 border border-accentCyan/35 p-3 sm:p-5 rounded-2xl shadow-2xl">
         
         {/* Category Selector Tabs (Movies, TV Shows, Anime, Manga, Music) */}
-        <div className="space-y-1.5 border-b-2 border-white/10 pb-3">
+        <div className="space-y-1.5 border-b border-white/10 pb-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-accentCyan">
-              Select Category:
+            <span className="text-[10px] font-black uppercase tracking-wider text-accentCyan">
+              Category
             </span>
             <span className="text-[10px] text-gray-400 font-semibold hidden sm:inline">
-              Currently searching: <strong className="text-white capitalize">{type}</strong>
+              Searching: <strong className="text-white capitalize">{type}</strong>
             </span>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
             {filterTabs.map((tab) => {
               const Icon = tab.icon;
               const isSelected = type === tab.key;
@@ -732,13 +732,13 @@ export default function Search() {
                   key={tab.key}
                   type="button"
                   onClick={() => handleTypeChange(tab.key)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-200 active:scale-95 shrink-0 border-2 cursor-pointer shadow-md ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all duration-150 active:scale-95 shrink-0 border cursor-pointer ${
                     isSelected
-                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_16px_rgba(var(--accent-cyan),0.6)] ring-1 ring-accentCyan'
-                      : 'text-white border-2 border-accentCyan/50 bg-[#12182f] hover:text-white hover:border-accentCyan hover:bg-accentCyan/20 shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)]'
+                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_14px_rgba(var(--accent-cyan),0.45)]'
+                      : 'text-white border-white/15 bg-[#121933] hover:border-accentCyan/70 hover:bg-[#192347]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isSelected ? 'text-black stroke-[2.5]' : tab.color || ''}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-black stroke-[2.5]' : tab.color || ''}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -747,42 +747,42 @@ export default function Search() {
         </div>
 
         {/* Search Input Row (Rotating Neon Beam Search Capsule + Smart Typewriter) */}
-        <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="neon-beam-wrapper flex-grow">
             <div className="neon-beam-inner relative flex items-center">
-              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accentCyan w-4 sm:w-5 h-4 sm:h-5 pointer-events-none z-20" />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-accentCyan w-4 h-4 pointer-events-none z-20" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder=""
                 aria-label={`Search ${type}`}
-                className="relative z-10 w-full bg-transparent pl-10 sm:pl-12 pr-20 sm:pr-24 py-3 sm:py-3.5 text-sm sm:text-base text-white focus:outline-none font-semibold"
+                className="relative z-10 w-full bg-transparent pl-9 sm:pl-10 pr-16 sm:pr-20 py-2.5 text-xs sm:text-sm text-white focus:outline-none font-semibold"
               />
               {/* Smart Typewriter Animated Placeholder */}
               {query === '' && (
-                <div className="absolute left-10 sm:left-12 right-16 sm:right-20 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-sm sm:text-base text-gray-400 font-medium truncate">
+                <div className="absolute left-9 sm:left-10 right-16 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-xs sm:text-sm text-gray-400 font-medium truncate">
                   <span>{hintText || `Search ${type}...`}</span>
-                  <span className="inline-block w-[2px] h-4 sm:h-5 bg-accentCyan ml-0.5 animate-cursor-blink shadow-[0_0_8px_rgba(var(--accent-cyan),0.9)]" />
+                  <span className="inline-block w-[1.5px] h-3.5 sm:h-4 bg-accentCyan ml-0.5 animate-cursor-blink" />
                 </div>
               )}
 
-              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1 sm:gap-1.5">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1">
                 {query && (
                   <button
                     type="button"
                     onClick={handleClearQuery}
-                    className="p-1 sm:p-1.5 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer shadow-sm"
+                    className="p-1 rounded-full text-slate-300 hover:text-white bg-white/10 hover:bg-white/25 transition active:scale-90 cursor-pointer"
                     title="Clear search"
                     aria-label="Clear search"
                   >
-                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new CustomEvent('open-spotlight-search', { detail: { query, type } }))}
-                  className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg bg-white/[0.08] hover:bg-accentCyan hover:text-black border border-white/15 text-[10px] font-mono font-bold text-gray-200 transition active:scale-95 cursor-pointer"
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white/[0.08] hover:bg-accentCyan hover:text-black border border-white/15 text-[10px] font-mono font-bold text-gray-200 transition active:scale-95 cursor-pointer"
                   title="Open Spotlight Command Palette (Ctrl+K)"
                 >
                   ⌘K
@@ -792,7 +792,7 @@ export default function Search() {
           </div>
           <button
             type="submit"
-            className="btn-shimmer px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-accentCyan hover:opacity-90 text-black font-black shadow-lg shadow-[0_0_20px_rgba(var(--accent-cyan),0.4)] active:scale-95 transition flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+            className="btn-shimmer px-5 sm:px-6 py-2.5 rounded-xl bg-accentCyan hover:opacity-90 text-black font-black shadow-[0_0_16px_rgba(var(--accent-cyan),0.35)] active:scale-95 transition flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer shrink-0"
           >
             Search
           </button>
@@ -836,14 +836,14 @@ export default function Search() {
 
         {/* Feed Selector Clips (Trending, Ongoing Anime, Latest, Upcoming, Top Rated) */}
         {type !== 'music' && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
-            <span className="text-accentCyan font-black uppercase tracking-wider shrink-0 mr-1 text-[11px]">Feed:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+            <span className="text-accentCyan font-black uppercase tracking-wider shrink-0 mr-0.5 text-[10px]">Feed:</span>
             {[
-              { key: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' },
-              { key: 'ongoing', label: type === 'anime' ? 'Ongoing Anime' : type === 'tv' ? 'Ongoing TV Shows' : type === 'manga' ? 'Ongoing Manga' : 'Now In Theaters', icon: Zap, color: 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]' },
-              { key: 'latest', label: type === 'anime' ? 'Latest Episode' : type === 'manga' ? 'Latest Chapter' : type === 'tv' ? 'Latest Aired' : 'Latest Release', icon: Calendar, color: 'text-cyan-400 fill-cyan-400/40 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]' },
-              { key: 'upcoming', label: 'Upcoming Releases', icon: Rocket, color: 'text-fuchsia-400 fill-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]' },
-              { key: 'top_rated', label: 'Top Rated', icon: Star, color: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]' },
+              { key: 'trending', label: 'Trending Hits', icon: Flame, color: 'text-orange-500 fill-orange-500' },
+              { key: 'ongoing', label: type === 'anime' ? 'Ongoing Anime' : type === 'tv' ? 'Ongoing TV' : type === 'manga' ? 'Ongoing Manga' : 'In Theaters', icon: Zap, color: 'text-yellow-400 fill-yellow-400' },
+              { key: 'latest', label: type === 'anime' ? 'Latest Episode' : type === 'manga' ? 'Latest Manga' : type === 'tv' ? 'Latest Aired' : 'Latest Release', icon: Calendar, color: 'text-cyan-400 fill-cyan-400/40' },
+              { key: 'upcoming', label: 'Upcoming', icon: Rocket, color: 'text-fuchsia-400 fill-fuchsia-400' },
+              { key: 'top_rated', label: 'Top Rated', icon: Star, color: 'text-amber-400 fill-amber-400' },
             ].map(s => {
               const SortIcon = s.icon;
               const isSortSelected = sort === s.key;
@@ -852,13 +852,13 @@ export default function Search() {
                   key={s.key}
                   type="button"
                   onClick={() => handleSortChange(s.key)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 border-2 cursor-pointer shadow-sm ${
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition active:scale-95 border cursor-pointer ${
                     isSortSelected
-                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_12px_rgba(var(--accent-cyan),0.5)]'
-                      : 'bg-darkSurf/80 border-white/20 text-slate-200 hover:text-white hover:border-accentCyan'
+                      ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_10px_rgba(var(--accent-cyan),0.4)]'
+                      : 'bg-[#121933] border-white/15 text-slate-200 hover:text-white hover:border-accentCyan/70'
                   }`}
                 >
-                  {SortIcon && <SortIcon className={`w-3.5 h-3.5 shrink-0 ${isSortSelected ? 'text-black stroke-[2.5]' : s.color || ''}`} />}
+                  {SortIcon && <SortIcon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${isSortSelected ? 'text-black stroke-[2.5]' : s.color || ''}`} />}
                   <span>{s.label}</span>
                 </button>
               );
@@ -866,9 +866,9 @@ export default function Search() {
           </div>
         )}
 
-        {/* Sleek Glassmorphic Filter Dropdowns Row */}
+        {/* Solid High-Contrast Filter Dropdowns Row (2-col mobile, 4-col tablet/desktop) */}
         <div className="pt-2 border-t border-white/10">
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap items-center gap-2 sm:gap-2.5">
             {/* 1. MUSIC: Language Filter */}
             {type === 'music' ? (
               <FilterDropdown
@@ -879,7 +879,7 @@ export default function Search() {
                 options={MUSIC_LANGUAGES}
                 placeholder="All Languages"
                 searchable={true}
-                className="w-full sm:w-52"
+                className="w-full md:w-48"
               />
             ) : (
               /* 2. MOVIES / TV / ANIME / MANGA: Genre Filter */
@@ -891,7 +891,7 @@ export default function Search() {
                 options={currentGenres}
                 placeholder="All Genres"
                 searchable={true}
-                className="w-full sm:w-52"
+                className="w-full md:w-44"
               />
             )}
 
@@ -905,7 +905,7 @@ export default function Search() {
                 options={ANIME_TYPES}
                 placeholder="All Types"
                 searchable={false}
-                className="w-full sm:w-44"
+                className="w-full md:w-36"
               />
             )}
 
@@ -919,7 +919,7 @@ export default function Search() {
                 options={type === 'anime' || type === 'manga' ? ANIME_MANGA_COUNTRIES : MOVIE_TV_COUNTRIES}
                 placeholder="All Countries"
                 searchable={type === 'movie' || type === 'tv'}
-                className="w-full sm:w-48"
+                className="w-full md:w-44"
               />
             )}
 
@@ -933,7 +933,7 @@ export default function Search() {
                 options={YEAR_OPTIONS}
                 placeholder="All Years"
                 searchable={true}
-                className="w-full sm:w-40"
+                className="w-full md:w-36"
               />
             )}
 
@@ -944,7 +944,7 @@ export default function Search() {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="col-span-full sm:ml-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-accentPink/15 hover:bg-accentPink/25 border border-accentPink/45 hover:border-accentPink text-accentPink text-xs font-extrabold transition active:scale-95 cursor-pointer"
+                  className="col-span-full md:ml-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/50 text-rose-300 hover:text-white text-xs font-extrabold transition active:scale-95 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>Reset ({activeCount})</span>

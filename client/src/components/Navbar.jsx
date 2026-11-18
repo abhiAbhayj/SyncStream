@@ -140,47 +140,47 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 transition-all duration-500 ${
+        className={`sticky top-0 z-50 transition-all duration-300 border-b ${
           scrolled
-            ? 'bg-[rgba(5,5,12,0.85)] backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.4)]'
-            : 'bg-transparent'
+            ? 'bg-[#060916]/90 backdrop-blur-2xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.55)]'
+            : 'bg-[#060916]/55 hover:bg-[#080d20]/85 backdrop-blur-xl border-white/[0.06] hover:border-white/10'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-2.5 xs:px-3.5 sm:px-6 md:px-8 h-16 flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-3">
+        <div className="max-w-7xl mx-auto px-2.5 xs:px-3.5 sm:px-5 md:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-2.5">
 
           {/* ── Brand Logo & Back Navigation ── */}
-          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
             {location.pathname !== '/' && (
               <button
                 onClick={() => {
                   if (window.history.state && window.history.state.idx > 0) navigate(-1);
                   else navigate('/');
                 }}
-                className="p-1.5 sm:p-2 rounded-xl border border-accentCyan/60 bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_12px_rgba(var(--accent-cyan),0.35)] transition-all duration-200 active:scale-95 cursor-pointer group flex items-center justify-center shrink-0"
+                className="p-1.5 sm:p-2 rounded-xl border border-accentCyan/50 bg-[#0d1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_10px_rgba(var(--accent-cyan),0.25)] transition-all duration-200 active:scale-95 cursor-pointer group flex items-center justify-center shrink-0"
                 title="Go Back"
                 aria-label="Go Back"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-accentCyan group-hover:text-black transition-colors" strokeWidth={2.5} />
+                <ArrowLeft className="w-4 h-4 text-accentCyan group-hover:text-black transition-colors" strokeWidth={2.5} />
               </button>
             )}
 
-            <Link to="/" className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 group shrink-0">
+            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-55 group-hover:opacity-100 transition-opacity duration-300" />
                 <img
                   src="/logo.png?v=2"
                   alt="SyncStream"
-                  className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
+                  className="relative w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <span className={`${location.pathname !== '/' ? 'hidden xs:inline' : 'inline'} font-josefin font-extrabold text-sm xs:text-base sm:text-xl tracking-wide xs:tracking-wider text-gradient-aurora uppercase`}>
+              <span className={`${location.pathname !== '/' ? 'hidden xs:inline' : 'inline'} font-josefin font-extrabold text-sm sm:text-base lg:text-lg tracking-wide text-gradient-aurora uppercase`}>
                 SyncStream
               </span>
             </Link>
           </div>
 
-          {/* ── Desktop Nav ── */}
-          <div className="hidden lg:flex items-center gap-1">
+          {/* ── Tablet & Desktop Nav (md+) with Frosted Glass Hover Pill ── */}
+          <div className="hidden md:flex items-center gap-0.5 lg:gap-1.5">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = isActive(link.path);
@@ -188,16 +188,16 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`nav-link relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 font-manrope tracking-wider uppercase text-[12px] font-bold ${
+                  className={`group nav-link relative flex items-center gap-1.5 px-2.5 lg:px-3.5 py-1.5 lg:py-2 rounded-xl font-manrope tracking-wider uppercase text-[11px] lg:text-xs font-bold border transition-all duration-200 ${
                     active
-                      ? 'text-white bg-white/[0.07]'
-                      : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'text-white bg-white/[0.11] border-white/20 backdrop-blur-md shadow-[0_4px_18px_rgba(var(--accent-cyan),0.18)]'
+                      : 'text-gray-300 border-transparent hover:text-white hover:bg-white/[0.08] hover:border-white/15 hover:backdrop-blur-md hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? (link.color || 'text-accentCyan') : 'text-gray-400 group-hover:text-white'}`} />
-                  {link.label}
+                  <Icon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 transition-transform duration-200 group-hover:scale-110 ${active ? (link.color || 'text-accentCyan') : 'text-gray-400 group-hover:text-accentCyan'}`} />
+                  <span>{link.label}</span>
                   {active && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_6px_rgba(99,210,255,0.8)]" />
+                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-accentCyan shadow-[0_0_8px_rgba(99,210,255,0.9)]" />
                   )}
                 </Link>
               );
@@ -205,9 +205,9 @@ export default function Navbar() {
           </div>
 
           {/* ── Right Actions ── */}
-          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-            {/* Morphing Search Icon Capsule (All Screens: 320px Mobile, Tablet & Desktop) */}
+            {/* Morphing Search Icon Capsule (All Screens: Mobile, Tablet & Desktop) */}
             <form
               ref={morphFormRef}
               onSubmit={handleMorphSearchSubmit}
@@ -217,10 +217,10 @@ export default function Navbar() {
                   setMorphOpen(false);
                 }
               }}
-              className={`flex items-center rounded-full border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden shrink-0 ${
+              className={`flex items-center rounded-full border transition-all duration-300 overflow-hidden shrink-0 ${
                 morphOpen || quickQuery
-                  ? 'max-sm:absolute max-sm:inset-x-2.5 max-sm:top-2.5 max-sm:h-11 max-sm:z-40 sm:w-56 md:w-64 lg:w-72 px-3 py-1.5 border-accentCyan/80 bg-[#0b1022]/98 backdrop-blur-2xl shadow-[0_0_24px_rgba(var(--accent-cyan),0.38)]'
-                  : 'w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 px-0 justify-center border-accentCyan/40 sm:border-white/15 bg-accentCyan/10 sm:bg-white/[0.05] hover:border-accentCyan/70 cursor-pointer shadow-[0_0_10px_rgba(var(--accent-cyan),0.2)] sm:shadow-none'
+                  ? 'max-sm:absolute max-sm:inset-x-2.5 max-sm:top-2 max-sm:h-10 max-sm:z-40 sm:w-44 md:w-48 lg:w-64 px-3 py-1.5 border-accentCyan bg-[#0c1224] shadow-[0_0_20px_rgba(var(--accent-cyan),0.32)]'
+                  : 'w-8 h-8 sm:w-9 sm:h-9 px-0 justify-center border-white/15 bg-white/[0.06] hover:bg-white/[0.12] hover:border-accentCyan/70 cursor-pointer'
               }`}
             >
               <button
@@ -302,13 +302,13 @@ export default function Navbar() {
             {/* Join Party (Sweep-Shimmer CTA) */}
             <button
               onClick={() => setShowJoinModal(true)}
-              className="btn-shimmer flex items-center gap-1 sm:gap-1.5 px-2 xs:px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] xs:text-xs sm:text-sm font-bold border transition-all duration-300
-                         border-accentPurple/40 text-accentPurple bg-accentPurple/[0.12]
-                         hover:bg-accentPurple/[0.24] hover:border-accentPurple/70 active:scale-95 shrink-0"
+              className="btn-shimmer flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition-all duration-200
+                         border-accentPurple/45 text-purple-200 bg-accentPurple/[0.14]
+                         hover:bg-accentPurple/[0.26] hover:border-accentPurple/80 hover:text-white active:scale-95 shrink-0 cursor-pointer"
               title="Join Watch Party by Code"
             >
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)] shrink-0" />
-              <span className="hidden xs:inline">Join </span><span>Party</span>
+              <Users className="w-3.5 h-3.5 text-purple-400 fill-purple-400 shrink-0" />
+              <span className="hidden lg:inline">Join </span><span>Party</span>
             </button>
 
             {/* Auth */}
@@ -316,10 +316,10 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className={`flex items-center gap-1 xs:gap-1.5 sm:gap-2 p-0.5 pr-1.5 xs:p-1 xs:pr-2 sm:pr-3 rounded-full border transition-all duration-300 ${
+                  className={`flex items-center gap-1.5 p-0.5 pr-2 sm:p-1 sm:pr-2.5 rounded-full border transition-all duration-200 cursor-pointer ${
                     dropdownOpen
-                      ? 'border-accentPurple/80 bg-accentPurple/15 shadow-[0_0_15px_rgba(149,100,255,0.35)] ring-1 ring-accentPurple/50'
-                      : 'border-white/10 hover:border-accentPurple/50 bg-darkCard/80 hover:bg-darkCard'
+                      ? 'border-accentPurple bg-accentPurple/20 shadow-[0_0_14px_rgba(149,100,255,0.35)]'
+                      : 'border-white/15 hover:border-accentPurple/60 bg-[#0d1428] hover:bg-[#131c38]'
                   }`}
                   aria-expanded={dropdownOpen}
                   aria-label="User profile menu"
@@ -329,17 +329,17 @@ export default function Navbar() {
                       src={user.avatar_url || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png'}
                       alt={user.username}
                       referrerPolicy="no-referrer"
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-accentCyan/15 via-darkBg to-accentPurple/20 ring-1 ring-white/20 shadow-md ${
+                      className={`w-7 h-7 rounded-full bg-gradient-to-br from-accentCyan/15 via-darkBg to-accentPurple/20 ring-1 ring-white/20 shadow-md ${
                         user.avatar_url?.includes('emoji-datasource-apple') ? 'object-contain p-1' : 'object-cover'
                       }`}
                     />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-darkBg" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-[#0d1428]" />
                   </div>
-                  <span className="hidden sm:inline text-xs sm:text-sm font-bold text-white max-w-[90px] sm:max-w-[120px] truncate">
+                  <span className="hidden lg:inline text-xs font-bold text-white max-w-[100px] truncate">
                     {user.username}
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${
+                    className={`w-3.5 h-3.5 text-gray-300 transition-transform duration-200 ${
                       dropdownOpen ? 'rotate-180 text-accentPurple' : ''
                     }`}
                   />
@@ -350,8 +350,8 @@ export default function Navbar() {
                     {/* Click-away backdrop */}
                     <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
 
-                    {/* Prominent High-Contrast Dropdown Menu */}
-                    <div className="absolute right-0 top-full mt-2.5 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl p-2.5 z-50 animate-scale-in shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_25px_rgba(0,0,0,0.8)] border border-white/20 bg-[#0e1222] bg-opacity-98 backdrop-blur-2xl ring-1 ring-white/10">
+                    {/* Solid High-Contrast User Menu */}
+                    <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1.5rem)] rounded-2xl p-2 z-50 animate-scale-in shadow-[0_20px_50px_rgba(0,0,0,0.95)] border-2 border-slate-600 bg-[#0c1224]">
                       {/* User Info Header Card */}
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-2">
                         <img
