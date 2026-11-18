@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
+import { fetchClientLiveAnimePage } from '../utils/liveAnime';
 
 const MUSIC_LANGUAGES = [
   { key: 'blues_rap', label: 'Blues Rap', icon: Music },
@@ -276,6 +277,44 @@ export default function Search() {
           setResults(musicItems);
         } else {
           setResults(prev => [...prev, ...musicItems]);
+        }
+      } else if (searchType === 'anime' && !searchQuery.trim() && !activeCountry) {
+        // Direct Browser Live AniList Discover Engine (Trending, Ongoing, Latest Episode, Upcoming, Top Rated + 24 Genres)
+        const liveAnime = await fetchClientLiveAnimePage({
+          category: activeSort || 'trending',
+          page: pageNum,
+          perPage: 24,
+          year: activeYear || null,
+          genre: activeGenre || null,
+          forceRefresh
+        });
+
+        if (liveAnime && liveAnime.length > 0) {
+          if (pageNum === 1) {
+            setResults(liveAnime);
+          } else {
+            setResults(prev => {
+              const seenIds = new Set(prev.map(x => x.id));
+              return [...prev, ...liveAnime.filter(x => !seenIds.has(x.id))];
+            });
+          }
+        } else {
+          // Backend fallback if direct AniList is ever blocked by a corporate network
+          const res = await axios.get('/api/media/search', {
+            params: {
+              query: '',
+              type: 'anime',
+              genre: activeGenre,
+              language: activeLanguage,
+              country: activeCountry,
+              sort: activeSort,
+              year: activeYear || undefined,
+              page: pageNum,
+              refresh: forceRefresh ? '1' : undefined
+            }
+          });
+          if (pageNum === 1) setResults(res.data || []);
+          else setResults(prev => [...prev, ...(res.data || [])]);
         }
       } else {
         const res = await axios.get('/api/media/search', {

@@ -4,6 +4,7 @@ import MediaGrid from '../components/MediaGrid';
 import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import ContinueWatchingSection from '../components/ContinueWatchingSection';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
+import { fetchClientLiveAnimeDashboard } from '../utils/liveAnime';
 import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -252,9 +253,21 @@ export default function Home() {
     try {
       setLoading(true);
       const url = force ? '/api/media/trending?refresh=1' : '/api/media/trending';
-      const res = await axios.get(url);
-      setMedia(res.data);
-      setLastUpdated(res.data._fetchedAt ? new Date(res.data._fetchedAt) : new Date());
+      // Fetch backend dashboard AND direct browser live AniList anime in parallel
+      // (Bypasses Render shared-IP AniList 429 rate-limits so anime feeds are 100% live & distinct!)
+      const [res, liveAnime] = await Promise.all([
+        axios.get(url),
+        fetchClientLiveAnimeDashboard(force).catch(() => null)
+      ]);
+      const merged = { ...(res.data || {}) };
+      if (liveAnime && (liveAnime.trending?.length > 0 || liveAnime.ongoing?.length > 0)) {
+        merged.trending = { ...(merged.trending || {}), anime: liveAnime.trending };
+        merged.ongoing = { ...(merged.ongoing || {}), anime: liveAnime.ongoing };
+        merged.schedule = { ...(merged.schedule || {}), anime: liveAnime.schedule };
+        merged.upcoming = { ...(merged.upcoming || {}), anime: liveAnime.upcoming };
+      }
+      setMedia(merged);
+      setLastUpdated(merged._fetchedAt ? new Date(merged._fetchedAt) : new Date());
       lastFetchRef.current = Date.now();
     } catch (err) {
       console.error('Failed to load home catalog:', err);

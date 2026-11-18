@@ -1440,17 +1440,22 @@ export const getTrending = async (req, res) => {
           scheduleAnime = liveAnimeData.schedule;
           upcomingAnime = liveAnimeData.upcoming;
         } else {
-          // Last-resort TMDB fallback if both AniList & Jikan are unreachable
+          // Last-resort TMDB fallback if both AniList & Jikan are unreachable:
+          // STRICTLY exclude Kids genre (10762) and old evergreen shows (Doraemon, Chibi Maruko-chan, Conan, etc.)
+          const twoYearsAgo = new Date(todayObj.getTime() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const EVERGREEN_KIDS_IDS = new Set(['65733', '57775', '30983', '46260', '65930', '60572']);
+          const isModernAnime = (a) => isAnimeItem(a) && !EVERGREEN_KIDS_IDS.has(String(a.id)) && !(a.genre_ids || []).includes(10762);
           const [fallbackTrending, fallbackOngoing, fallbackUpcoming] = await Promise.all([
-            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&sort_by=popularity.desc`).catch(() => ({ data: { results: [] } })),
-            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc`).catch(() => ({ data: { results: [] } })),
-            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc`).catch(() => ({ data: { results: [] } }))
+            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&vote_count.gte=15&sort_by=popularity.desc`).catch(() => ({ data: { results: [] } })),
+            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&sort_by=popularity.desc`).catch(() => ({ data: { results: [] } })),
+            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${today}&sort_by=first_air_date.asc`).catch(() => ({ data: { results: [] } }))
           ]);
           const mapFallbackAnime = (a) => ({ ...mapTv(a), media_type: 'anime' });
-          trendingAnime = (fallbackTrending.data.results || []).filter(isAnimeItem).slice(0, 20).map(mapFallbackAnime);
-          ongoingAnime = (fallbackOngoing.data.results || []).filter(isAnimeItem).slice(0, 20).map(mapFallbackAnime);
+          ongoingAnime = (fallbackOngoing.data.results || []).filter(isModernAnime).slice(0, 20).map(mapFallbackAnime);
+          const ongoingSet = new Set(ongoingAnime.slice(0, 10).map(a => a.id));
+          trendingAnime = (fallbackTrending.data.results || []).filter(isModernAnime).map(mapFallbackAnime).filter(a => !ongoingSet.has(a.id)).slice(0, 20);
           scheduleAnime = ongoingAnime;
-          upcomingAnime = (fallbackUpcoming.data.results || []).filter(isAnimeItem).slice(0, 20).map(mapFallbackAnime);
+          upcomingAnime = (fallbackUpcoming.data.results || []).filter(isModernAnime).slice(0, 20).map(mapFallbackAnime);
         }
       } catch (err) {
         console.warn('TMDB dashboard fetch failed:', err.message);
@@ -1653,10 +1658,11 @@ export const searchMedia = async (req, res) => {
             let url = '';
             const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
             if (sort === 'ongoing') {
               if (type === 'anime') {
-                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
               } else if (tmdbType === 'tv') {
                 url = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
               } else {
@@ -1664,7 +1670,7 @@ export const searchMedia = async (req, res) => {
               }
             } else if (sort === 'upcoming') {
               if (type === 'anime') {
-                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
               } else if (tmdbType === 'tv') {
                 url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`;
               } else {
@@ -1672,7 +1678,7 @@ export const searchMedia = async (req, res) => {
               }
             } else if (sort === 'trending') {
               if (type === 'anime') {
-                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&sort_by=popularity.desc&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&vote_count.gte=15&sort_by=popularity.desc&page=${page}`;
               } else {
                 url = `${TMDB_BASE_URL}/trending/${tmdbType}/day?api_key=${TMDB_API_KEY}&page=${page}`;
               }
@@ -1681,7 +1687,7 @@ export const searchMedia = async (req, res) => {
             } else {
               // 'latest' or default: currently airing or newly released
               if (type === 'anime') {
-                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${today}&sort_by=popularity.desc&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${lastMonth}&air_date.lte=${today}&sort_by=first_air_date.desc&page=${page}`;
               } else if (tmdbType === 'tv') {
                 url = `${TMDB_BASE_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`;
               } else {
@@ -2780,23 +2786,25 @@ export const getCatalog = async (req, res) => {
       if (liveAnime && liveAnime.length > 0) {
         results = liveAnime;
       } else if (isTmdbConfigured()) {
-        // Fallback to TMDB discover (never broken /trending/tv/week!)
+        // Fallback to modern TMDB discover (NEVER Doraemon / Chibi Maruko-chan / Kids 10762!)
         const todayObj = new Date();
         const today = todayObj.toISOString().split('T')[0];
         const nextMonth = new Date(todayObj.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const lastMonth = new Date(todayObj.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        let endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc&page=${page}`;
+        const twoYearsAgo = new Date(todayObj.getTime() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        let endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&vote_count.gte=15&sort_by=popularity.desc&page=${page}`;
         if (category === 'ongoing') {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc&page=${page}`;
+          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
         } else if (category === 'upcoming') {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
+          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
         } else if (category === 'schedule') {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
+          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&without_genres=10762&first_air_date.gte=${twoYearsAgo}&air_date.gte=${today}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
         }
         if (year) endpoint += `&first_air_date_year=${year}`;
         const tmdbRes = await axios.get(endpoint);
+        const EVERGREEN_KIDS_IDS = new Set(['65733', '57775', '30983', '46260', '65930', '60572']);
         results = (tmdbRes.data.results || [])
-          .filter(isAnimeItem)
+          .filter(item => isAnimeItem(item) && !EVERGREEN_KIDS_IDS.has(String(item.id)) && !(item.genre_ids || []).includes(10762))
           .map(item => ({ ...mapTv(item), media_type: 'anime' }));
       }
     }
