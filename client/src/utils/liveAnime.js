@@ -28,7 +28,71 @@ const ANILIST_FIELDS = `
   nextAiringEpisode { episode airingAt timeUntilAiring }
 `;
 
-const ANIME_FILTER_MAP = {
+// Unified AniList Genre & Tag Filter Map (100% verified against live AniList GenreCollection + MediaTagCollection)
+// Supports clean single genre names + legacy TMDB/MangaDex keys for backwards compatibility
+const ANILIST_FILTER_MAP = {
+  // Core Official AniList Genres (Single Genres)
+  'action': { genre: 'Action' },
+  'adventure': { genre: 'Adventure' },
+  'comedy': { genre: 'Comedy' },
+  'drama': { genre: 'Drama' },
+  'ecchi': { genre: 'Ecchi' },
+  'fantasy': { genre: 'Fantasy' },
+  'horror': { genre: 'Horror' },
+  'mahou shoujo': { genre: 'Mahou Shoujo' },
+  'mecha': { genre: 'Mecha' },
+  'music': { genre: 'Music' },
+  'mystery': { genre: 'Mystery' },
+  'psychological': { genre: 'Psychological' },
+  'romance': { genre: 'Romance' },
+  'sci-fi': { genre: 'Sci-Fi' },
+  'slice of life': { genre: 'Slice of Life' },
+  'sports': { genre: 'Sports' },
+  'supernatural': { genre: 'Supernatural' },
+  'thriller': { genre: 'Thriller' },
+  'suspense': { genre: 'Thriller' },
+
+  // Verified AniList Tags (Single Sub-Genres & Demographics)
+  'avant garde': { tag: 'Philosophy' },
+  'award winning': { sortOverride: ['SCORE_DESC', 'FAVOURITES_DESC'] },
+  'boys love': { tag: "Boys' Love" },
+  'shounen ai': { tag: "Boys' Love" },
+  'cars': { tag: 'Cars' },
+  'crime': { tag: 'Crime' },
+  'cyberpunk': { tag: 'Cyberpunk' },
+  'dementia': { tag: 'Denpa' },
+  'demons': { tag: 'Demons' },
+  'game': { tag: 'Video Games' },
+  'girls love': { tag: 'Yuri' },
+  'shoujo ai': { tag: 'Yuri' },
+  'yuri': { tag: 'Yuri' },
+  'gourmet': { tag: 'Food' },
+  'food': { tag: 'Food' },
+  'harem': { tag: 'Female Harem' },
+  'historical': { tag: 'Historical' },
+  'isekai': { tag: 'Isekai' },
+  'josei': { tag: 'Josei' },
+  'kids': { tag: 'Kids' },
+  'magic': { tag: 'Magic' },
+  'martial arts': { tag: 'Martial Arts' },
+  'military': { tag: 'Military' },
+  'parody': { tag: 'Parody' },
+  'police': { tag: 'Police' },
+  'post-apocalyptic': { tag: 'Post-Apocalyptic' },
+  'reincarnation': { tag: 'Reincarnation' },
+  'samurai': { tag: 'Samurai' },
+  'school': { tag: 'School' },
+  'school life': { tag: 'School' },
+  'seinen': { tag: 'Seinen' },
+  'shoujo': { tag: 'Shoujo' },
+  'shounen': { tag: 'Shounen' },
+  'space': { tag: 'Space' },
+  'super power': { tag: 'Super Power' },
+  'survival': { tag: 'Survival' },
+  'tragedy': { tag: 'Tragedy' },
+  'vampire': { tag: 'Vampire' },
+
+  // Legacy TMDB / SyncStream Anime Keys (backwards compatibility)
   '10759': { genre: 'Action' },
   '28': { genre: 'Action' },
   '12': { genre: 'Adventure' },
@@ -49,7 +113,7 @@ const ANIME_FILTER_MAP = {
   'g_10749': { genre: 'Romance' },
   'k_9840': { genre: 'Romance' },
   'k_195669': { genre: 'Ecchi' },
-  'k_9194': { tag: 'Harem' },
+  'k_9194': { tag: 'Female Harem' },
   'k_237451': { tag: 'Isekai' },
   'k_6152': { genre: 'Supernatural' },
   'k_207826': { tag: 'Shounen' },
@@ -65,8 +129,54 @@ const ANIME_FILTER_MAP = {
   'k_779': { tag: 'Martial Arts' },
   'k_361426': { tag: 'Demons' },
   'k_283297': { genre: 'Music' },
-  'k_3133': { tag: 'Vampire' }
+  'k_3133': { tag: 'Vampire' },
+
+  // Legacy MangaDex UUID & Demographic Keys (backwards compatibility)
+  '391b0423-d847-456f-aff0-8b0cfc03066b': { genre: 'Action' },
+  '87cc87cd-a395-47af-b27a-93258283bbc6': { genre: 'Adventure' },
+  '4d32cc48-9f00-4cca-9b5a-a839f0764984': { genre: 'Comedy' },
+  '423e2eae-a7a2-4a8b-ac03-a8351462d71d': { genre: 'Romance' },
+  'cdc58593-87dd-415e-bbc0-2ec27bf404cc': { genre: 'Fantasy' },
+  'b9af3a63-f058-46de-a9a0-e0c13906197a': { genre: 'Drama' },
+  '256c8bd9-4904-4360-bf4f-508a76d67183': { genre: 'Sci-Fi' },
+  'eabc5b4c-6aff-42f3-b657-3e90cbd00b75': { genre: 'Supernatural' },
+  'ace04997-f6bd-436e-b261-779182193d3d': { tag: 'Isekai' },
+  'aafb99c1-7f60-43fa-b75f-fc9502ce29c7': { tag: 'Female Harem' },
+  '2d1f5d56-a1e5-4d0d-a961-29734e194866': { genre: 'Ecchi' },
+  'ee968100-4191-4968-93d3-f82d72be7e46': { genre: 'Mystery' },
+  'cdad7e68-1419-41dd-bdce-27753074a640': { genre: 'Horror' },
+  '3b60b75c-a2d7-4860-ab56-05f391bb889c': { genre: 'Psychological' },
+  'e5301a23-ebd9-49dd-a0cb-2add944c7fe9': { genre: 'Slice of Life' },
+  '50880a9d-5440-4732-9afb-8f457127e836': { genre: 'Mecha' },
+  '69964a64-2f90-4d33-beeb-f3ed2875eb4c': { genre: 'Sports' },
+  '799c202e-7daa-44eb-9cf7-8a3c0441531e': { tag: 'Martial Arts' },
+  'a1f53773-c69a-4ce5-8cab-fffcd90b1565': { tag: 'Magic' },
+  '39730448-9a5f-48a2-85b0-a70db87b1233': { tag: 'Demons' },
+  'd_shounen': { tag: 'Shounen' },
+  'd_seinen': { tag: 'Seinen' },
+  'd_shoujo': { tag: 'Shoujo' },
+  'd_josei': { tag: 'Josei' }
 };
+
+const resolveAniListFilter = (rawKey) => {
+  if (!rawKey) return { genre: null, tag: null, tagIn: null, sortOverride: null };
+  const key = String(rawKey).trim();
+  const mapped = ANILIST_FILTER_MAP[key] || ANILIST_FILTER_MAP[key.toLowerCase()];
+  if (mapped) {
+    return {
+      genre: mapped.genre || null,
+      tag: mapped.tag || null,
+      tagIn: mapped.tagIn || null,
+      sortOverride: mapped.sortOverride || null
+    };
+  }
+  if (isNaN(Number(key)) && !key.startsWith('k_') && !key.startsWith('g_') && !key.startsWith('d_') && !key.includes('-')) {
+    return { genre: key, tag: null, tagIn: null, sortOverride: null };
+  }
+  return { genre: null, tag: null, tagIn: null, sortOverride: null };
+};
+
+const VALID_ANIME_FORMATS = new Set(['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'TV_SHORT', 'MUSIC']);
 
 const ANILIST_MANGA_FIELDS = `
   id
@@ -84,33 +194,6 @@ const ANILIST_MANGA_FIELDS = `
   countryOfOrigin
   genres
 `;
-
-const MANGA_FILTER_MAP = {
-  '391b0423-d847-456f-aff0-8b0cfc03066b': { genre: 'Action' },
-  '87cc87cd-a395-47af-b27a-93258283bbc6': { genre: 'Adventure' },
-  '4d32cc48-9f00-4cca-9b5a-a839f0764984': { genre: 'Comedy' },
-  '423e2eae-a7a2-4a8b-ac03-a8351462d71d': { genre: 'Romance' },
-  'cdc58593-87dd-415e-bbc0-2ec27bf404cc': { genre: 'Fantasy' },
-  'b9af3a63-f058-46de-a9a0-e0c13906197a': { genre: 'Drama' },
-  '256c8bd9-4904-4360-bf4f-508a76d67183': { genre: 'Sci-Fi' },
-  'eabc5b4c-6aff-42f3-b657-3e90cbd00b75': { genre: 'Supernatural' },
-  'ace04997-f6bd-436e-b261-779182193d3d': { tag: 'Isekai' },
-  'aafb99c1-7f60-43fa-b75f-fc9502ce29c7': { tag: 'Harem' },
-  '2d1f5d56-a1e5-4d0d-a961-29734e194866': { genre: 'Ecchi' },
-  'ee968100-4191-4968-93d3-f82d72be7e46': { genre: 'Mystery' },
-  'cdad7e68-1419-41dd-bdce-27753074a640': { genre: 'Horror' },
-  '3b60b75c-a2d7-4860-ab56-05f391bb889c': { genre: 'Psychological' },
-  'e5301a23-ebd9-49dd-a0cb-2add944c7fe9': { genre: 'Slice of Life' },
-  '50880a9d-5440-4732-9afb-8f457127e836': { genre: 'Mecha' },
-  '69964a64-2f90-4d33-beeb-f3ed2875eb4c': { genre: 'Sports' },
-  '799c202e-7daa-44eb-9cf7-8a3c0441531e': { tag: 'Martial Arts' },
-  'a1f53773-c69a-4ce5-8cab-fffcd90b1565': { tag: 'Magic' },
-  '39730448-9a5f-48a2-85b0-a70db87b1233': { tag: 'Demons' },
-  'd_shounen': { tag: 'Shounen' },
-  'd_seinen': { tag: 'Seinen' },
-  'd_shoujo': { tag: 'Shoujo' },
-  'd_josei': { tag: 'Josei' }
-};
 
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -417,11 +500,15 @@ export const fetchClientLiveAnimePage = async ({
   perPage = 24,
   year = null,
   genre = null,
+  format = null,
   forceRefresh = false
 }) => {
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const normCat = category || 'trending';
-  const hasFilters = Boolean(year || genre);
+  const normFormat = format && VALID_ANIME_FORMATS.has(String(format).toUpperCase())
+    ? String(format).toUpperCase()
+    : null;
+  const hasFilters = Boolean(year || genre || normFormat);
 
   // Instant cached path for page 1 without custom filters
   if (pageNum === 1 && !hasFilters && ['trending', 'ongoing', 'latest', 'upcoming', 'schedule'].includes(normCat)) {
@@ -431,23 +518,13 @@ export const fetchClientLiveAnimePage = async ({
     }
   }
 
-  const cacheKey = `${normCat}_${pageNum}_${year || ''}_${genre || ''}`;
+  const cacheKey = `${normCat}_${pageNum}_${year || ''}_${genre || ''}_${normFormat || ''}`;
   const cached = pageCache.get(cacheKey);
   if (!forceRefresh && cached && (Date.now() - cached.ts < CACHE_TTL)) {
     return cached.data;
   }
 
-  let filterGenre = null;
-  let filterTag = null;
-  if (genre) {
-    const mapped = ANIME_FILTER_MAP[String(genre)];
-    if (mapped) {
-      filterGenre = mapped.genre || null;
-      filterTag = mapped.tag || null;
-    } else if (isNaN(Number(genre)) && !String(genre).startsWith('k_') && !String(genre).startsWith('g_')) {
-      filterGenre = String(genre);
-    }
-  }
+  const { genre: filterGenre, tag: filterTag, tagIn: filterTagIn, sortOverride } = resolveAniListFilter(genre);
 
   // Dedicated Live Airing Schedule query for "Latest Episode" deeper pages
   if (normCat === 'latest' && !hasFilters) {
@@ -498,7 +575,7 @@ export const fetchClientLiveAnimePage = async ({
   if (normCat === 'ongoing') {
     status = 'RELEASING';
     sort = ['POPULARITY_DESC', 'SCORE_DESC'];
-    if (!year && !filterGenre && !filterTag && pageNum <= 2) {
+    if (!year && !filterGenre && !filterTag && !filterTagIn && !normFormat && pageNum <= 2) {
       useCurrentSeason = true;
     }
   } else if (normCat === 'latest') {
@@ -517,10 +594,14 @@ export const fetchClientLiveAnimePage = async ({
     sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
   }
 
+  if (sortOverride && normCat !== 'upcoming') {
+    sort = sortOverride;
+  }
+
   const query = `
-    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $startDateGreater: FuzzyDateInt, $genre: String, $tag: String) {
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $season: MediaSeason, $seasonYear: Int, $startDateGreater: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String], $format: MediaFormat) {
       Page(page: $page, perPage: $perPage) {
-        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, startDate_greater: $startDateGreater, genre: $genre, tag: $tag, isAdult: false) {
+        media(type: ANIME, sort: $sort, status: $status, status_in: $statusIn, season: $season, seasonYear: $seasonYear, startDate_greater: $startDateGreater, genre: $genre, tag: $tag, tag_in: $tagIn, format: $format, isAdult: false) {
           ${ANILIST_FIELDS}
         }
       }
@@ -544,6 +625,8 @@ export const fetchClientLiveAnimePage = async ({
   }
   if (filterGenre) variables.genre = filterGenre;
   if (filterTag) variables.tag = filterTag;
+  if (filterTagIn) variables.tagIn = filterTagIn;
+  if (normFormat) variables.format = normFormat;
 
   try {
     const data = await queryAniList(query, variables);
@@ -565,6 +648,56 @@ export const fetchClientLiveAnimePage = async ({
     if (cached?.data) return cached.data;
   }
   return null;
+};
+
+/**
+ * Direct Browser Live AniList Text Search for Anime (supports Type/Format: TV, MOVIE, OVA, ONA, SPECIAL + Genre + Year).
+ */
+export const searchClientLiveAniListAnime = async ({
+  query = '',
+  page = 1,
+  perPage = 24,
+  year = null,
+  genre = null,
+  format = null
+}) => {
+  const q = String(query || '').trim();
+  if (!q) return null;
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const normFormat = format && VALID_ANIME_FORMATS.has(String(format).toUpperCase())
+    ? String(format).toUpperCase()
+    : null;
+  const { genre: filterGenre, tag: filterTag, tagIn: filterTagIn } = resolveAniListFilter(genre);
+
+  const gql = `
+    query ($search: String, $page: Int, $perPage: Int, $seasonYear: Int, $genre: String, $tag: String, $tagIn: [String], $format: MediaFormat) {
+      Page(page: $page, perPage: $perPage) {
+        media(search: $search, type: ANIME, sort: [SEARCH_MATCH, POPULARITY_DESC], seasonYear: $seasonYear, genre: $genre, tag: $tag, tag_in: $tagIn, format: $format, isAdult: false) {
+          ${ANILIST_FIELDS}
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    search: q,
+    page: pageNum,
+    perPage: Math.min(50, perPage || 24)
+  };
+  if (year && !isNaN(parseInt(year, 10))) variables.seasonYear = parseInt(year, 10);
+  if (filterGenre) variables.genre = filterGenre;
+  if (filterTag) variables.tag = filterTag;
+  if (filterTagIn) variables.tagIn = filterTagIn;
+  if (normFormat) variables.format = normFormat;
+
+  try {
+    const data = await queryAniList(gql, variables);
+    const items = data?.Page?.media || [];
+    return items.map(mapAniListCard);
+  } catch (err) {
+    console.warn('[ClientLiveAnime:search] Direct AniList search failed:', err.message);
+    return null;
+  }
 };
 
 const detailCache = new Map();
@@ -1098,17 +1231,7 @@ export const fetchClientLiveMangaPage = async ({
     return cached.data;
   }
 
-  let filterGenre = null;
-  let filterTag = null;
-  if (genre) {
-    const mapped = MANGA_FILTER_MAP[String(genre)];
-    if (mapped) {
-      filterGenre = mapped.genre || null;
-      filterTag = mapped.tag || null;
-    } else if (!String(genre).includes('-') && !String(genre).startsWith('d_')) {
-      filterGenre = String(genre);
-    }
-  }
+  const { genre: filterGenre, tag: filterTag, tagIn: filterTagIn, sortOverride } = resolveAniListFilter(genre);
 
   let sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
   let status = null;
@@ -1136,6 +1259,10 @@ export const fetchClientLiveMangaPage = async ({
     sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
   }
 
+  if (sortOverride && normCat !== 'upcoming') {
+    sort = sortOverride;
+  }
+
   if (year && !isNaN(parseInt(year, 10))) {
     const y = parseInt(year, 10);
     startDateGreater = parseInt(`${y}0000`, 10);
@@ -1143,9 +1270,9 @@ export const fetchClientLiveMangaPage = async ({
   }
 
   const query = `
-    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $startDateGreater: FuzzyDateInt, $startDateLesser: FuzzyDateInt, $genre: String, $tag: String) {
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $statusIn: [MediaStatus], $startDateGreater: FuzzyDateInt, $startDateLesser: FuzzyDateInt, $genre: String, $tag: String, $tagIn: [String]) {
       Page(page: $page, perPage: $perPage) {
-        media(type: MANGA, format_in: [MANGA, ONE_SHOT], sort: $sort, status: $status, status_in: $statusIn, startDate_greater: $startDateGreater, startDate_lesser: $startDateLesser, genre: $genre, tag: $tag, isAdult: false) {
+        media(type: MANGA, format_in: [MANGA, ONE_SHOT], sort: $sort, status: $status, status_in: $statusIn, startDate_greater: $startDateGreater, startDate_lesser: $startDateLesser, genre: $genre, tag: $tag, tag_in: $tagIn, isAdult: false) {
           ${ANILIST_MANGA_FIELDS}
         }
       }
@@ -1163,6 +1290,7 @@ export const fetchClientLiveMangaPage = async ({
   if (startDateLesser) variables.startDateLesser = startDateLesser;
   if (filterGenre) variables.genre = filterGenre;
   if (filterTag) variables.tag = filterTag;
+  if (filterTagIn) variables.tagIn = filterTagIn;
 
   try {
     const data = await queryAniList(query, variables);

@@ -116,6 +116,52 @@ const isCleanScriptedTv = (item) => {
   return !ids.some((gId) => TV_EXCLUDED_GENRE_SET.has(Number(gId)));
 };
 
+// Split TMDB combined TV genres (10759 Action & Adventure, 10765 Sci-Fi & Fantasy, 10768 War & Politics) into clean single genres
+const TV_SINGLE_GENRE_MAP = {
+  'tv_action': { with_genres: '10759', matchGenreId: 10759 },
+  'tv_adventure': { with_genres: '10759', with_keywords: '322942|6054|175428|320073|10084', matchGenreId: 10759 },
+  'tv_scifi': { with_genres: '10765', with_keywords: '9882|4565|9951|161176|2964|388006', matchGenreId: 10765 },
+  'tv_fantasy': { with_genres: '10765', with_keywords: '2343|12554|177912|14643|3205|293198', matchGenreId: 10765 },
+  'tv_horror': { with_keywords: '315058|12377|3133|15001' },
+  'tv_thriller': { with_keywords: '316362|10683|10714|10410' },
+  'tv_war': { with_genres: '10768', with_keywords: '1956|6092|1465|10085|273967', matchGenreId: 10768 },
+  'tv_politics': { with_genres: '10768', with_keywords: '6078|6086|5923|156091', matchGenreId: 10768 }
+};
+
+const splitCombinedTmdbGenres = (genres = [], mediaType = 'tv') => {
+  const out = [];
+  const seen = new Set();
+  const pushUnique = (id, name) => {
+    const key = name.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push({ id, name });
+    }
+  };
+  for (const g of genres) {
+    const gId = String(g.id);
+    if (mediaType === 'tv' && gId === '10759') {
+      pushUnique('tv_action', 'Action');
+      pushUnique('tv_adventure', 'Adventure');
+    } else if (mediaType === 'tv' && gId === '10765') {
+      pushUnique('tv_scifi', 'Sci-Fi');
+      pushUnique('tv_fantasy', 'Fantasy');
+    } else if (mediaType === 'tv' && gId === '10768') {
+      pushUnique('tv_war', 'War');
+      pushUnique('tv_politics', 'Politics');
+    } else if (mediaType === 'anime' && gId === '10759') {
+      pushUnique('Action', 'Action');
+      pushUnique('Adventure', 'Adventure');
+    } else if (mediaType === 'anime' && gId === '10765') {
+      pushUnique('Sci-Fi', 'Sci-Fi');
+      pushUnique('Fantasy', 'Fantasy');
+    } else {
+      pushUnique(gId, g.name);
+    }
+  }
+  return out;
+};
+
 const formatShortDate = (isoDate) => {
   if (!isoDate || typeof isoDate !== 'string') return '';
   const d = new Date(`${isoDate}T00:00:00Z`);
@@ -1646,7 +1692,7 @@ export const getTrending = async (req, res) => {
 };
 
 export const searchMedia = async (req, res) => {
-  const { query, type = 'movie', genre, country, language, sort, year } = req.query;
+  const { query, type = 'movie', genre, country, language, sort, year, format } = req.query;
   const page = parseInt(req.query.page || '1', 10);
   const today = new Date().toISOString().split('T')[0];
 
@@ -1790,7 +1836,11 @@ export const searchMedia = async (req, res) => {
               } else {
                 if (selectedIso) url += `&with_original_language=${selectedIso}`;
                 if (genre) {
-                  if (genre.startsWith('k_')) url += `&with_keywords=${genre.replace('k_', '')}`;
+                  const tvMapped = type === 'tv' ? TV_SINGLE_GENRE_MAP[String(genre)] : null;
+                  if (tvMapped) {
+                    if (tvMapped.with_genres) url += `&with_genres=${tvMapped.with_genres}`;
+                    if (tvMapped.with_keywords) url += `&with_keywords=${tvMapped.with_keywords}`;
+                  } else if (genre.startsWith('k_')) url += `&with_keywords=${genre.replace('k_', '')}`;
                   else if (genre.startsWith('g_')) url += `&with_genres=${genre.replace('g_', '')}`;
                   else url += `&with_genres=${genre}`;
                 }
@@ -1804,6 +1854,12 @@ export const searchMedia = async (req, res) => {
             
             const searchRes = await axios.get(url);
             let discoverResults = searchRes.data.results || [];
+            // If a split single TV genre with keywords returned very few results on deep filters, relax to its parent genre
+            if (discoverResults.length === 0 && type === 'tv' && genre && TV_SINGLE_GENRE_MAP[String(genre)]?.with_genres && url.includes('&with_keywords=')) {
+              const relaxedUrl = url.replace(/&with_keywords=[^&]+/, '');
+              const retryRes = await axios.get(relaxedUrl);
+              discoverResults = retryRes.data.results || [];
+            }
             
             // Strictly enforce separation: TV never contains anime or talk/news/reality clutter (unless explicitly filtered)
             if (type === 'anime') {
@@ -1869,7 +1925,17 @@ export const searchMedia = async (req, res) => {
                 }
               });
 
-              results = merged;
+              if (format) {
+                const wantFmt = String(format).toUpperCase();
+                results = merged.filter((item) => {
+                  const f = String(item.format || '').toUpperCase();
+                  if (wantFmt === 'MOVIE') return f === 'MOVIE';
+                  if (wantFmt === 'TV') return f === 'TV' || f.startsWith('SEASON ');
+                  return f === wantFmt;
+                });
+              } else {
+                results = merged;
+              }
             } else if (type === 'tv') {
               // TV Shows
               let url = `${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query.trim())}&page=${page}`;
@@ -1883,7 +1949,8 @@ export const searchMedia = async (req, res) => {
                 combinedResults = combinedResults.filter(r => r.original_language === selectedIso);
               }
               if (genre) {
-                const gId = parseInt(genre.replace('k_', '').replace('g_', ''), 10);
+                const tvMapped = TV_SINGLE_GENRE_MAP[String(genre)];
+                const gId = tvMapped?.matchGenreId || parseInt(String(genre).replace('k_', '').replace('g_', ''), 10);
                 if (!isNaN(gId)) combinedResults = combinedResults.filter(r => r.genre_ids?.includes(gId));
               }
               if (country) {
@@ -2117,10 +2184,7 @@ export const getMediaDetail = async (req, res) => {
             media_type: type
           })) || [];
 
-          const tmdbGenres = (d.genres || []).map(g => ({
-            id: g.id.toString(),
-            name: g.name
-          }));
+          const tmdbGenres = splitCombinedTmdbGenres(d.genres || [], type);
 
           const keywordsList = d.keywords?.keywords || d.keywords?.results || [];
           const subGenreKeywords = {

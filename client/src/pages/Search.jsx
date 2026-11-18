@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
-import { fetchClientLiveAnimePage, fetchClientLiveMangaPage } from '../utils/liveAnime';
+import { fetchClientLiveAnimePage, fetchClientLiveMangaPage, searchClientLiveAniListAnime } from '../utils/liveAnime';
 
 const MUSIC_LANGUAGES = [
   { key: 'blues_rap', label: 'Blues Rap', icon: Music },
@@ -76,80 +76,96 @@ const MOVIE_GENRES = [
 ];
 
 const TV_GENRES = [
-  { key: '10759', label: 'Action & Adventure' },
+  { key: 'tv_action', label: 'Action' },
+  { key: 'tv_adventure', label: 'Adventure' },
   { key: '16', label: 'Animation' },
   { key: '35', label: 'Comedy' },
   { key: '80', label: 'Crime' },
   { key: '99', label: 'Documentary' },
   { key: '18', label: 'Drama' },
   { key: '10751', label: 'Family' },
+  { key: 'tv_fantasy', label: 'Fantasy' },
+  { key: 'tv_horror', label: 'Horror' },
   { key: '10762', label: 'Kids' },
+  { key: 'k_10771', label: 'Legal Drama' },
+  { key: 'k_10770', label: 'Medical Drama' },
   { key: '9648', label: 'Mystery' },
+  { key: 'tv_politics', label: 'Politics' },
   { key: '10764', label: 'Reality' },
-  { key: '10765', label: 'Sci-Fi & Fantasy' },
   { key: 'k_9840', label: 'Romance' },
-  { key: 'k_315058', label: 'Horror & Thriller' },
+  { key: 'tv_scifi', label: 'Sci-Fi' },
+  { key: 'k_9755', label: 'Sitcom' },
   { key: 'k_9715', label: 'Superhero' },
   { key: 'k_6152', label: 'Supernatural' },
-  { key: 'k_10770', label: 'Medical Drama' },
-  { key: 'k_10771', label: 'Legal Drama' },
-  { key: '10768', label: 'War & Politics' },
-  { key: '37', label: 'Western' },
-  { key: 'k_9755', label: 'Sitcom' }
+  { key: 'tv_thriller', label: 'Thriller' },
+  { key: 'tv_war', label: 'War' },
+  { key: '37', label: 'Western' }
 ];
 
-const ANIME_GENRES = [
-  { key: 'g_10759', label: 'Action' },
-  { key: 'g_35', label: 'Comedy' },
-  { key: 'g_18', label: 'Drama' },
-  { key: 'g_10765', label: 'Sci-Fi & Fantasy' },
-  { key: 'k_9840', label: 'Romance' },
-  { key: 'k_195669', label: 'Ecchi' },
-  { key: 'k_9194', label: 'Harem' },
-  { key: 'k_237451', label: 'Isekai' },
-  { key: 'k_6152', label: 'Supernatural' },
-  { key: 'k_207826', label: 'Shounen' },
-  { key: 'k_195668', label: 'Seinen' },
-  { key: 'k_206437', label: 'Shoujo' },
-  { key: 'k_10873', label: 'School Life' },
-  { key: 'k_9914', label: 'Slice of Life' },
-  { key: 'k_10046', label: 'Mecha' },
-  { key: 'k_6075', label: 'Sports' },
-  { key: 'g_9648', label: 'Mystery' },
-  { key: 'k_315058', label: 'Horror' },
-  { key: 'k_272553', label: 'Psychological' },
-  { key: 'k_2343', label: 'Magic' },
-  { key: 'k_779', label: 'Martial Arts' },
-  { key: 'k_361426', label: 'Demons' },
-  { key: 'k_283297', label: 'Music' },
-  { key: 'k_3133', label: 'Vampire' }
+const ANIME_MANGA_GENRES = [
+  { key: 'Action', label: 'Action' },
+  { key: 'Adventure', label: 'Adventure' },
+  { key: 'Avant Garde', label: 'Avant Garde' },
+  { key: 'Award Winning', label: 'Award Winning' },
+  { key: 'Boys Love', label: 'Boys Love' },
+  { key: 'Cars', label: 'Cars' },
+  { key: 'Comedy', label: 'Comedy' },
+  { key: 'Crime', label: 'Crime' },
+  { key: 'Cyberpunk', label: 'Cyberpunk' },
+  { key: 'Dementia', label: 'Dementia' },
+  { key: 'Demons', label: 'Demons' },
+  { key: 'Drama', label: 'Drama' },
+  { key: 'Ecchi', label: 'Ecchi' },
+  { key: 'Fantasy', label: 'Fantasy' },
+  { key: 'Game', label: 'Game' },
+  { key: 'Girls Love', label: 'Girls Love' },
+  { key: 'Gourmet', label: 'Gourmet' },
+  { key: 'Harem', label: 'Harem' },
+  { key: 'Historical', label: 'Historical' },
+  { key: 'Horror', label: 'Horror' },
+  { key: 'Isekai', label: 'Isekai' },
+  { key: 'Josei', label: 'Josei' },
+  { key: 'Kids', label: 'Kids' },
+  { key: 'Magic', label: 'Magic' },
+  { key: 'Mahou Shoujo', label: 'Mahou Shoujo' },
+  { key: 'Martial Arts', label: 'Martial Arts' },
+  { key: 'Mecha', label: 'Mecha' },
+  { key: 'Military', label: 'Military' },
+  { key: 'Music', label: 'Music' },
+  { key: 'Mystery', label: 'Mystery' },
+  { key: 'Parody', label: 'Parody' },
+  { key: 'Police', label: 'Police' },
+  { key: 'Post-Apocalyptic', label: 'Post-Apocalyptic' },
+  { key: 'Psychological', label: 'Psychological' },
+  { key: 'Reincarnation', label: 'Reincarnation' },
+  { key: 'Romance', label: 'Romance' },
+  { key: 'Samurai', label: 'Samurai' },
+  { key: 'School', label: 'School' },
+  { key: 'Sci-Fi', label: 'Sci-Fi' },
+  { key: 'Seinen', label: 'Seinen' },
+  { key: 'Shoujo', label: 'Shoujo' },
+  { key: 'Shoujo Ai', label: 'Shoujo Ai' },
+  { key: 'Shounen', label: 'Shounen' },
+  { key: 'Shounen Ai', label: 'Shounen Ai' },
+  { key: 'Slice of Life', label: 'Slice of Life' },
+  { key: 'Space', label: 'Space' },
+  { key: 'Sports', label: 'Sports' },
+  { key: 'Super Power', label: 'Super Power' },
+  { key: 'Supernatural', label: 'Supernatural' },
+  { key: 'Suspense', label: 'Suspense' },
+  { key: 'Thriller', label: 'Thriller' },
+  { key: 'Vampire', label: 'Vampire' }
 ];
 
-const MANGA_GENRES = [
-  { key: '391b0423-d847-456f-aff0-8b0cfc03066b', label: 'Action' },
-  { key: '87cc87cd-a395-47af-b27a-93258283bbc6', label: 'Adventure' },
-  { key: '4d32cc48-9f00-4cca-9b5a-a839f0764984', label: 'Comedy' },
-  { key: '423e2eae-a7a2-4a8b-ac03-a8351462d71d', label: 'Romance' },
-  { key: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc', label: 'Fantasy' },
-  { key: 'b9af3a63-f058-46de-a9a0-e0c13906197a', label: 'Drama' },
-  { key: '256c8bd9-4904-4360-bf4f-508a76d67183', label: 'Sci-Fi' },
-  { key: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75', label: 'Supernatural' },
-  { key: 'ace04997-f6bd-436e-b261-779182193d3d', label: 'Isekai' },
-  { key: 'aafb99c1-7f60-43fa-b75f-fc9502ce29c7', label: 'Harem' },
-  { key: '2d1f5d56-a1e5-4d0d-a961-29734e194866', label: 'Ecchi' },
-  { key: 'ee968100-4191-4968-93d3-f82d72be7e46', label: 'Mystery' },
-  { key: 'cdad7e68-1419-41dd-bdce-27753074a640', label: 'Horror' },
-  { key: '3b60b75c-a2d7-4860-ab56-05f391bb889c', label: 'Psychological' },
-  { key: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9', label: 'Slice of Life' },
-  { key: '50880a9d-5440-4732-9afb-8f457127e836', label: 'Mecha' },
-  { key: '69964a64-2f90-4d33-beeb-f3ed2875eb4c', label: 'Sports' },
-  { key: '799c202e-7daa-44eb-9cf7-8a3c0441531e', label: 'Martial Arts' },
-  { key: 'a1f53773-c69a-4ce5-8cab-fffcd90b1565', label: 'Magic' },
-  { key: '39730448-9a5f-48a2-85b0-a70db87b1233', label: 'Demons' },
-  { key: 'd_shounen', label: 'Shounen' },
-  { key: 'd_seinen', label: 'Seinen' },
-  { key: 'd_shoujo', label: 'Shoujo' },
-  { key: 'd_josei', label: 'Josei' }
+const ANIME_GENRES = ANIME_MANGA_GENRES;
+const MANGA_GENRES = ANIME_MANGA_GENRES;
+
+const ANIME_TYPES = [
+  { key: 'TV', label: 'TV' },
+  { key: 'MOVIE', label: 'Movie' },
+  { key: 'OVA', label: 'OVA' },
+  { key: 'ONA', label: 'ONA' },
+  { key: 'SPECIAL', label: 'Special' }
 ];
 
 const SEARCH_TYPEWRITER_HINTS = {
@@ -179,6 +195,7 @@ export default function Search() {
   const [country, setCountry] = useState(initialCountry);
   const [sort, setSort] = useState(searchParams.get('sort') || 'trending');
   const [year, setYear] = useState(searchParams.get('year') || '');
+  const [animeFormat, setAnimeFormat] = useState(searchParams.get('format') || '');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -226,14 +243,18 @@ export default function Search() {
     const l = searchParams.get('lang') || searchParams.get('language') || '';
     const c = searchParams.get('country') || '';
     const y = searchParams.get('year') || '';
+    const f = searchParams.get('format') || '';
     const s = searchParams.get('sort') || sort || 'trending';
 
-    // If genre was passed as a label (e.g. 'Action'), resolve it to key
-    if (g && !g.startsWith('k_') && !g.startsWith('g_') && !g.startsWith('d_') && isNaN(parseInt(g, 10))) {
+    // If genre was passed as a label (e.g. 'Action') or legacy key, normalize it to the active dropdown key
+    if (g) {
       const allGenresForType = t === 'movie' ? MOVIE_GENRES : (t === 'tv' ? TV_GENRES : (t === 'anime' ? ANIME_GENRES : MANGA_GENRES));
-      const matched = allGenresForType.find(x => x.label.toLowerCase() === g.toLowerCase());
-      if (matched) {
-        g = matched.key;
+      const exactKey = allGenresForType.find(x => x.key === g);
+      if (!exactKey) {
+        const matchedByLabel = allGenresForType.find(x => x.label.toLowerCase() === g.toLowerCase());
+        if (matchedByLabel) {
+          g = matchedByLabel.key;
+        }
       }
     }
 
@@ -243,13 +264,14 @@ export default function Search() {
     setLanguage(l);
     setCountry(c);
     setYear(y);
+    setAnimeFormat(f);
     setSort(s);
     setPage(1);
     
-    executeSearch(q, t, g, l, c, 1, s, 'all', y);
+    executeSearch(q, t, g, l, c, 1, s, 'all', y, false, f);
   }, [searchParams]);
 
-  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory, activeYear = year, forceRefresh = false) => {
+  const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory, activeYear = year, forceRefresh = false, activeFormat = animeFormat) => {
     if (pageNum === 1) setLoading(true);
     else setLoadingMore(true);
     setSearched(true);
@@ -279,13 +301,14 @@ export default function Search() {
           setResults(prev => [...prev, ...musicItems]);
         }
       } else if (searchType === 'anime' && !searchQuery.trim() && !activeCountry) {
-        // Direct Browser Live AniList Discover Engine (Trending, Ongoing, Latest Episode, Upcoming, Top Rated + 24 Genres)
+        // Direct Browser Live AniList Discover Engine (Trending, Ongoing, Latest Episode, Upcoming, Top Rated + 52 Genres + TV/Movie/OVA/ONA/Special)
         const liveAnime = await fetchClientLiveAnimePage({
           category: activeSort || 'trending',
           page: pageNum,
           perPage: 24,
           year: activeYear || null,
           genre: activeGenre || null,
+          format: activeFormat || null,
           forceRefresh
         });
 
@@ -305,6 +328,45 @@ export default function Search() {
               query: '',
               type: 'anime',
               genre: activeGenre,
+              format: activeFormat || undefined,
+              language: activeLanguage,
+              country: activeCountry,
+              sort: activeSort,
+              year: activeYear || undefined,
+              page: pageNum,
+              refresh: forceRefresh ? '1' : undefined
+            }
+          });
+          if (pageNum === 1) setResults(res.data || []);
+          else setResults(prev => [...prev, ...(res.data || [])]);
+        }
+      } else if (searchType === 'anime' && searchQuery.trim() && !activeCountry) {
+        // Direct Browser Live AniList Text Search (supports Type: TV, Movie, OVA, ONA, Special + Genre + Year!)
+        const liveAnimeSearch = await searchClientLiveAniListAnime({
+          query: searchQuery.trim(),
+          page: pageNum,
+          perPage: 24,
+          year: activeYear || null,
+          genre: activeGenre || null,
+          format: activeFormat || null
+        });
+
+        if (liveAnimeSearch && liveAnimeSearch.length > 0) {
+          if (pageNum === 1) {
+            setResults(liveAnimeSearch);
+          } else {
+            setResults(prev => {
+              const seenIds = new Set(prev.map(x => x.id));
+              return [...prev, ...liveAnimeSearch.filter(x => !seenIds.has(x.id))];
+            });
+          }
+        } else {
+          const res = await axios.get('/api/media/search', {
+            params: {
+              query: searchQuery.trim(),
+              type: 'anime',
+              genre: activeGenre,
+              format: activeFormat || undefined,
               language: activeLanguage,
               country: activeCountry,
               sort: activeSort,
@@ -317,7 +379,7 @@ export default function Search() {
           else setResults(prev => [...prev, ...(res.data || [])]);
         }
       } else if (searchType === 'manga' && !searchQuery.trim()) {
-        // Direct Browser Live AniList Manga Engine (Trending, Ongoing, Latest New Series, Upcoming, Top Rated + 24 Genres)
+        // Direct Browser Live AniList Manga Engine (Trending, Ongoing, Latest New Series, Upcoming, Top Rated + 52 Genres)
         const liveManga = await fetchClientLiveMangaPage({
           category: activeSort || 'trending',
           page: pageNum,
@@ -359,6 +421,7 @@ export default function Search() {
             query: searchQuery.trim(), 
             type: searchType, 
             genre: activeGenre,
+            format: activeFormat || undefined,
             language: activeLanguage, 
             country: activeCountry,
             sort: activeSort,
@@ -387,7 +450,7 @@ export default function Search() {
     if (!loading && !loadingMore && page < MAX_PAGES) {
       const nextPage = page + 1;
       setPage(nextPage);
-      executeSearch(query, type, genre, language, country, nextPage, sort, musicCategory, year);
+      executeSearch(query, type, genre, language, country, nextPage, sort, musicCategory, year, false, animeFormat);
     }
   };
   loadMoreRef.current = loadMore;
@@ -410,7 +473,7 @@ export default function Search() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
-    setSearchParams({ q: query, type, sort, genre, lang: language, country, year });
+    setSearchParams({ q: query, type, sort, genre, format: animeFormat, lang: language, country, year });
   };
 
   const handleTypeChange = (newType) => {
@@ -419,6 +482,7 @@ export default function Search() {
     setLanguage('');
     setCountry('');
     setYear('');
+    setAnimeFormat('');
     setPage(1);
     setSearchParams({ q: query, type: newType, sort });
   };
@@ -426,25 +490,31 @@ export default function Search() {
   const handleGenreChange = (newGenre) => {
     setGenre(newGenre);
     setPage(1);
-    setSearchParams({ q: query, type, sort, genre: newGenre, lang: language, country, year });
+    setSearchParams({ q: query, type, sort, genre: newGenre, format: animeFormat, lang: language, country, year });
+  };
+
+  const handleFormatChange = (newFormat) => {
+    setAnimeFormat(newFormat);
+    setPage(1);
+    setSearchParams({ q: query, type, sort, genre, format: newFormat, lang: language, country, year });
   };
 
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
     setPage(1);
-    setSearchParams({ q: query, type, sort, genre, lang: newLang, country, year });
+    setSearchParams({ q: query, type, sort, genre, format: animeFormat, lang: newLang, country, year });
   };
 
   const handleCountryChange = (newCountry) => {
     setCountry(newCountry);
     setPage(1);
-    setSearchParams({ q: query, type, sort, genre, lang: language, country: newCountry, year });
+    setSearchParams({ q: query, type, sort, genre, format: animeFormat, lang: language, country: newCountry, year });
   };
 
   const handleYearChange = (newYear) => {
     setYear(newYear);
     setPage(1);
-    setSearchParams({ q: query, type, sort, genre, lang: language, country, year: newYear });
+    setSearchParams({ q: query, type, sort, genre, format: animeFormat, lang: language, country, year: newYear });
   };
 
   const handleClearQuery = () => {
@@ -462,6 +532,7 @@ export default function Search() {
     setLanguage('');
     setCountry('');
     setYear('');
+    setAnimeFormat('');
     setPage(1);
     setSearchParams({ q: query, type, sort });
   };
@@ -473,6 +544,7 @@ export default function Search() {
     if (query && query.trim()) setQuery('');
     const nextParams = { type, sort: newSort };
     if (genre) nextParams.genre = genre;
+    if (animeFormat) nextParams.format = animeFormat;
     if (language) nextParams.lang = language;
     if (country) nextParams.country = country;
     if (year) nextParams.year = year;
@@ -511,7 +583,7 @@ export default function Search() {
             </span>
             {searched && (
               <span
-                key={`${type}-${genre}-${language}-${country}-${year}-${results.length}`}
+                key={`${type}-${genre}-${animeFormat}-${language}-${country}-${year}-${results.length}`}
                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#0f162d] border border-accentCyan/50 text-white font-mono tabular-nums animate-badge-pulse"
               >
                 <span className="text-accentCyan animate-digit-roll">{results.length}</span>
@@ -529,7 +601,7 @@ export default function Search() {
           type="button"
           onClick={() => {
             setPage(1);
-            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true);
+            executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year, true, animeFormat);
           }}
           disabled={loading}
           className="p-2 sm:p-2.5 rounded-xl border-2 border-accentCyan bg-[#0f1428] text-accentCyan hover:bg-accentCyan hover:text-black shadow-[0_0_15px_rgba(var(--accent-cyan),0.5)] transition active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
@@ -739,6 +811,26 @@ export default function Search() {
             </div>
           )}
 
+          {/* Anime Type / Format filter (TV, Movie, OVA, ONA, Special) */}
+          {type === 'anime' && (
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <span className="text-accentCyan font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
+                <Layers className="w-3.5 h-3.5 text-accentCyan" />
+                <span>Type:</span>
+              </span>
+              <select
+                value={animeFormat}
+                onChange={(e) => handleFormatChange(e.target.value)}
+                className="flex-1 sm:flex-initial min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-darkBg border-2 border-accentCyan/50 hover:border-accentCyan rounded-xl text-white focus:outline-none focus:border-accentCyan transition cursor-pointer font-black shadow-md"
+              >
+                <option value="">All Types</option>
+                {ANIME_TYPES.map(tOpt => (
+                  <option key={tOpt.key} value={tOpt.key} className="bg-darkBg text-white">{tOpt.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Country select (only for Movie/TV) */}
           {(type === 'movie' || type === 'tv') && (
             <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
@@ -788,7 +880,7 @@ export default function Search() {
           )}
 
           {/* Reset Filters button */}
-          {(genre || language || country || year) && (
+          {(genre || animeFormat || language || country || year) && (
             <button
               type="button"
               onClick={handleResetFilters}
@@ -831,50 +923,58 @@ export default function Search() {
             const quickList = type === 'movie'
               ? [
                   { label: 'Action', key: '28' },
+                  { label: 'Adventure', key: '12' },
                   { label: 'Comedy', key: '35' },
                   { label: 'Sci-Fi', key: '878' },
+                  { label: 'Fantasy', key: '14' },
                   { label: 'Horror', key: '27' },
                   { label: 'Romance', key: '10749' },
                   { label: 'Thriller', key: '53' },
                   { label: 'Animation', key: '16' },
-                  { label: 'Superhero', key: 'k_9715' },
-                  { label: 'Fantasy', key: '14' }
+                  { label: 'Superhero', key: 'k_9715' }
                 ]
               : type === 'tv'
               ? [
-                  { label: 'Action & Adventure', key: '10759' },
+                  { label: 'Action', key: 'tv_action' },
+                  { label: 'Adventure', key: 'tv_adventure' },
+                  { label: 'Sci-Fi', key: 'tv_scifi' },
+                  { label: 'Fantasy', key: 'tv_fantasy' },
                   { label: 'Comedy', key: '35' },
-                  { label: 'Sci-Fi & Fantasy', key: '10765' },
                   { label: 'Drama', key: '18' },
                   { label: 'Crime', key: '80' },
                   { label: 'Mystery', key: '9648' },
-                  { label: 'Romance', key: 'k_9840' },
-                  { label: 'Horror & Thriller', key: 'k_315058' },
-                  { label: 'Superhero', key: 'k_9715' }
+                  { label: 'Horror', key: 'tv_horror' },
+                  { label: 'Thriller', key: 'tv_thriller' },
+                  { label: 'Romance', key: 'k_9840' }
                 ]
               : type === 'anime'
               ? [
-                  { label: 'Action', key: 'g_10759' },
-                  { label: 'Comedy', key: 'g_35' },
-                  { label: 'Romance', key: 'k_9840' },
-                  { label: 'Ecchi', key: 'k_195669' },
-                  { label: 'Harem', key: 'k_9194' },
-                  { label: 'Isekai', key: 'k_237451' },
-                  { label: 'Supernatural', key: 'k_6152' },
-                  { label: 'Shounen', key: 'k_207826' },
-                  { label: 'Slice of Life', key: 'k_9914' },
-                  { label: 'Mecha', key: 'k_10046' }
+                  { label: 'Action', key: 'Action' },
+                  { label: 'Adventure', key: 'Adventure' },
+                  { label: 'Fantasy', key: 'Fantasy' },
+                  { label: 'Sci-Fi', key: 'Sci-Fi' },
+                  { label: 'Comedy', key: 'Comedy' },
+                  { label: 'Romance', key: 'Romance' },
+                  { label: 'Isekai', key: 'Isekai' },
+                  { label: 'Harem', key: 'Harem' },
+                  { label: 'Supernatural', key: 'Supernatural' },
+                  { label: 'Shounen', key: 'Shounen' },
+                  { label: 'Seinen', key: 'Seinen' },
+                  { label: 'Slice of Life', key: 'Slice of Life' }
                 ]
               : [
-                  { label: 'Action', key: '391b0423-d847-456f-aff0-8b0cfc03066b' },
-                  { label: 'Romance', key: '423e2eae-a7a2-4a8b-ac03-a8351462d71d' },
-                  { label: 'Comedy', key: '4d32cc48-9f00-4cca-9b5a-a839f0764984' },
-                  { label: 'Fantasy', key: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc' },
-                  { label: 'Isekai', key: 'ace04997-f6bd-436e-b261-779182193d3d' },
-                  { label: 'Harem', key: 'aafb99c1-7f60-43fa-b75f-fc9502ce29c7' },
-                  { label: 'Ecchi', key: '2d1f5d56-a1e5-4d0d-a961-29734e194866' },
-                  { label: 'Supernatural', key: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75' },
-                  { label: 'Shounen', key: 'd_shounen' }
+                  { label: 'Action', key: 'Action' },
+                  { label: 'Adventure', key: 'Adventure' },
+                  { label: 'Fantasy', key: 'Fantasy' },
+                  { label: 'Sci-Fi', key: 'Sci-Fi' },
+                  { label: 'Romance', key: 'Romance' },
+                  { label: 'Comedy', key: 'Comedy' },
+                  { label: 'Isekai', key: 'Isekai' },
+                  { label: 'Harem', key: 'Harem' },
+                  { label: 'Supernatural', key: 'Supernatural' },
+                  { label: 'Shounen', key: 'Shounen' },
+                  { label: 'Seinen', key: 'Seinen' },
+                  { label: 'Psychological', key: 'Psychological' }
                 ];
 
             return quickList.map((item) => {
@@ -886,7 +986,7 @@ export default function Search() {
                   onClick={() => {
                     const nextG = isSelected ? '' : item.key;
                     setGenre(nextG);
-                    setSearchParams({ q: query, type, sort, genre: nextG, country, lang: language, year });
+                    setSearchParams({ q: query, type, sort, genre: nextG, format: animeFormat, country, lang: language, year });
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold border transition active:scale-95 cursor-pointer ${
                     isSelected
