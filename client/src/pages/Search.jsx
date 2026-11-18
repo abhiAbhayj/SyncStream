@@ -176,7 +176,7 @@ export default function Search() {
   const [genre, setGenre] = useState(initialGenre);
   const [language, setLanguage] = useState(initialLanguage);
   const [country, setCountry] = useState(initialCountry);
-  const [sort, setSort] = useState('latest');
+  const [sort, setSort] = useState(searchParams.get('sort') || 'trending');
   const [year, setYear] = useState(searchParams.get('year') || '');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -225,6 +225,7 @@ export default function Search() {
     const l = searchParams.get('lang') || searchParams.get('language') || '';
     const c = searchParams.get('country') || '';
     const y = searchParams.get('year') || '';
+    const s = searchParams.get('sort') || sort || 'trending';
 
     // If genre was passed as a label (e.g. 'Action'), resolve it to key
     if (g && !g.startsWith('k_') && !g.startsWith('g_') && !g.startsWith('d_') && isNaN(parseInt(g, 10))) {
@@ -241,9 +242,10 @@ export default function Search() {
     setLanguage(l);
     setCountry(c);
     setYear(y);
+    setSort(s);
     setPage(1);
     
-    executeSearch(q, t, g, l, c, 1, sort, 'all', y);
+    executeSearch(q, t, g, l, c, 1, s, 'all', y);
   }, [searchParams]);
 
   const executeSearch = async (searchQuery, searchType, activeGenre = genre, activeLanguage = language, activeCountry = country, pageNum = 1, activeSort = sort, activeMusicCat = musicCategory, activeYear = year, forceRefresh = false) => {
@@ -285,7 +287,8 @@ export default function Search() {
             country: activeCountry,
             sort: activeSort,
             year: activeYear || undefined,
-            page: pageNum
+            page: pageNum,
+            refresh: forceRefresh ? '1' : undefined
           }
         });
         
@@ -331,8 +334,7 @@ export default function Search() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: language, country, year });
-    executeSearch(query, type, genre, language, country, 1, sort, musicCategory, year);
+    setSearchParams({ q: query, type, sort, genre, lang: language, country, year });
   };
 
   const handleTypeChange = (newType) => {
@@ -342,36 +344,31 @@ export default function Search() {
     setCountry('');
     setYear('');
     setPage(1);
-    setSearchParams({ q: query, type: newType });
-    executeSearch(query, newType, '', '', '', 1, sort, musicCategory, '');
+    setSearchParams({ q: query, type: newType, sort });
   };
 
   const handleGenreChange = (newGenre) => {
     setGenre(newGenre);
     setPage(1);
-    setSearchParams({ q: query, type, genre: newGenre, lang: language, country, year });
-    executeSearch(query, type, newGenre, language, country, 1, sort, musicCategory, year);
+    setSearchParams({ q: query, type, sort, genre: newGenre, lang: language, country, year });
   };
 
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: newLang, country, year });
-    executeSearch(query, type, genre, newLang, country, 1, sort, musicCategory, year);
+    setSearchParams({ q: query, type, sort, genre, lang: newLang, country, year });
   };
 
   const handleCountryChange = (newCountry) => {
     setCountry(newCountry);
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: language, country: newCountry, year });
-    executeSearch(query, type, genre, language, newCountry, 1, sort, musicCategory, year);
+    setSearchParams({ q: query, type, sort, genre, lang: language, country: newCountry, year });
   };
 
   const handleYearChange = (newYear) => {
     setYear(newYear);
     setPage(1);
-    setSearchParams({ q: query, type, genre, lang: language, country, year: newYear });
-    executeSearch(query, type, genre, language, country, 1, sort, musicCategory, newYear);
+    setSearchParams({ q: query, type, sort, genre, lang: language, country, year: newYear });
   };
 
   const handleClearQuery = () => {
@@ -381,7 +378,6 @@ export default function Search() {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('q');
       setSearchParams(newParams);
-      executeSearch('', type, genre, language, country, 1, sort, musicCategory, year);
     }
   };
 
@@ -391,22 +387,20 @@ export default function Search() {
     setCountry('');
     setYear('');
     setPage(1);
-    setSearchParams({ q: query, type });
-    executeSearch(query, type, '', '', '', 1, sort, musicCategory, '');
+    setSearchParams({ q: query, type, sort });
   };
 
   const handleSortChange = (newSort) => {
     setSort(newSort);
     setPage(1);
-    // If user clicks a feed clip (e.g. Ongoing Anime, Trending) while a text query is present,
-    // clear the text query so the full category feed is loaded cleanly
-    if (query && query.trim()) {
-      setQuery('');
-      setSearchParams({ type, genre, lang: language, country, year });
-      executeSearch('', type, genre, language, country, 1, newSort, musicCategory, year);
-    } else {
-      executeSearch(query, type, genre, language, country, 1, newSort, musicCategory, year);
-    }
+    // Clear active text query when picking a feed clip (Trending, Ongoing Anime, Latest Episode, etc.)
+    if (query && query.trim()) setQuery('');
+    const nextParams = { type, sort: newSort };
+    if (genre) nextParams.genre = genre;
+    if (language) nextParams.lang = language;
+    if (country) nextParams.country = country;
+    if (year) nextParams.year = year;
+    setSearchParams(nextParams);
   };
 
   const filterTabs = [
@@ -816,8 +810,7 @@ export default function Search() {
                   onClick={() => {
                     const nextG = isSelected ? '' : item.key;
                     setGenre(nextG);
-                    setSearchParams({ q: query, type, genre: nextG, country, lang: language });
-                    executeSearch(query, type, nextG, language, country, 1);
+                    setSearchParams({ q: query, type, sort, genre: nextG, country, lang: language, year });
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold border transition active:scale-95 cursor-pointer ${
                     isSelected
@@ -840,7 +833,25 @@ export default function Search() {
         </div>
       ) : searched && results.length > 0 ? (
         <div className="animate-slide-up space-y-8">
-          <MediaGrid items={results} title={query ? `Matches for "${query}"` : "Discovered Results"} />
+          <MediaGrid
+            items={results}
+            showTimings={type === 'anime' || type === 'tv' || sort === 'ongoing' || sort === 'latest'}
+            title={
+              query
+                ? `Matches for "${query}"`
+                : type === 'anime'
+                ? (sort === 'trending'
+                    ? 'Top Trending Live Anime'
+                    : sort === 'ongoing'
+                    ? 'Live Ongoing & Airing Anime'
+                    : sort === 'latest'
+                    ? 'Latest Aired Anime Episodes'
+                    : sort === 'upcoming'
+                    ? 'Upcoming Anime Releases'
+                    : 'Top Rated Anime')
+                : 'Discovered Results'
+            }
+          />
           
           {/* Infinite Scroll Horizon Beam (#4) */}
           {!loading && page < MAX_PAGES && (
