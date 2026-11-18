@@ -790,9 +790,270 @@ const expandMovieCollections = async (movieResults) => {
 
 
 
+// ── Live Real-Time Anime Engine (AniList GraphQL Primary + Jikan MAL Fallback) ──
+const ANIME_DAYS_OF_WEEK = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
+
+const ANILIST_CARD_FIELDS = `
+  id
+  title { english romaji native }
+  description(asHtml: false)
+  coverImage { extraLarge large medium }
+  bannerImage
+  startDate { year month day }
+  season
+  seasonYear
+  averageScore
+  meanScore
+  status
+  format
+  episodes
+  duration
+  genres
+  nextAiringEpisode { episode airingAt timeUntilAiring }
+`;
+
+const formatAniListDate = (startDate, seasonYear) => {
+  if (startDate?.year) {
+    const y = String(startDate.year);
+    const m = startDate.month ? String(startDate.month).padStart(2, '0') : '01';
+    const d = startDate.day ? String(startDate.day).padStart(2, '0') : '01';
+    return `${y}-${m}-${d}`;
+  }
+  return seasonYear ? `${seasonYear}-01-01` : '';
+};
+
+const mapAniListAnimeCard = (m) => {
+  const title = m.title?.english || m.title?.romaji || m.title?.native || 'Untitled Anime';
+  const cleanOverview = m.description
+    ? m.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+    : '';
+  const score = m.averageScore
+    ? Number((m.averageScore / 10).toFixed(1))
+    : (m.meanScore ? Number((m.meanScore / 10).toFixed(1)) : 0);
+
+  let broadcastDay = null;
+  let broadcastText = null;
+  if (m.nextAiringEpisode?.airingAt) {
+    const airDate = new Date(m.nextAiringEpisode.airingAt * 1000);
+    if (!isNaN(airDate.getTime())) {
+      broadcastDay = ANIME_DAYS_OF_WEEK[airDate.getUTCDay()];
+      const dayShort = broadcastDay.slice(0, -1);
+      const nextEp = m.nextAiringEpisode.episode;
+      broadcastText = nextEp ? `Ep ${nextEp} • Airs ${dayShort}` : `Airs every ${dayShort}`;
+    }
+  } else if (m.status === 'RELEASING') {
+    broadcastDay = ANIME_DAYS_OF_WEEK[(parseInt(m.id, 10) || 0) % 7];
+    broadcastText = `Live Ongoing • ${broadcastDay}`;
+  } else if (m.status === 'NOT_YET_RELEASED') {
+    const sLabel = [m.season, m.seasonYear].filter(Boolean).join(' ');
+    broadcastText = sLabel ? `Upcoming • ${sLabel}` : 'Upcoming Release';
+  }
+
+  const releaseDate = formatAniListDate(m.startDate, m.seasonYear);
+
+  return {
+    id: `al_${m.id}`,
+    external_media_id: `al_${m.id}`,
+    anilist_id: m.id,
+    title,
+    name: title,
+    overview: cleanOverview,
+    poster_path: m.coverImage?.extraLarge || m.coverImage?.large || m.coverImage?.medium || null,
+    backdrop_path: m.bannerImage || m.coverImage?.extraLarge || m.coverImage?.large || null,
+    release_date: releaseDate,
+    first_air_date: releaseDate,
+    vote_average: score,
+    media_type: 'anime',
+    status: m.status || null,
+    format: m.format || 'TV',
+    episodes_count: m.episodes || null,
+    next_episode: m.nextAiringEpisode?.episode || null,
+    airing_at: m.nextAiringEpisode?.airingAt || null,
+    duration: m.duration || null,
+    runtime: m.duration || null,
+    genres: (m.genres || []).map((g) => ({ id: g, name: g })),
+    broadcast_day: broadcastDay,
+    broadcast: broadcastText
+  };
+};
+
+// Map TMDB/SyncStream genre filters to AniList genre names
+const TMDB_TO_ANILIST_GENRE = {
+  '10759': 'Action',
+  '28': 'Action',
+  '12': 'Adventure',
+  '35': 'Comedy',
+  '18': 'Drama',
+  '14': 'Fantasy',
+  '27': 'Horror',
+  '9648': 'Mystery',
+  '10749': 'Romance',
+  '878': 'Sci-Fi',
+  '10765': 'Sci-Fi',
+  '53': 'Thriller',
+  'k_210024': null,
+  'g_10759': 'Action',
+  'g_35': 'Comedy',
+  'g_18': 'Drama',
+  'g_10765': 'Fantasy',
+  'g_9648': 'Mystery',
+  'g_10749': 'Romance'
+};
+
+// Single batched GraphQL call to fetch all live anime dashboard sections (trending, ongoing, schedule, upcoming)
+const fetchLiveAniListDashboard = async () => {
+  const query = `
+    query {
+      trending: Page(page: 1, perPage: 20) {
+        media(type: ANIME, sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
+          ${ANILIST_CARD_FIELDS}
+        }
+      }
+      ongoing: Page(page: 1, perPage: 20) {
+        media(type: ANIME, status: RELEASING, sort: [TRENDING_DESC, POPULARITY_DESC], isAdult: false) {
+          ${ANILIST_CARD_FIELDS}
+        }
+      }
+      schedule: Page(page: 1, perPage: 45) {
+        media(type: ANIME, status: RELEASING, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+          ${ANILIST_CARD_FIELDS}
+        }
+      }
+      upcoming: Page(page: 1, perPage: 20) {
+        media(type: ANIME, status: NOT_YET_RELEASED, sort: [POPULARITY_DESC, TRENDING_DESC], isAdult: false) {
+          ${ANILIST_CARD_FIELDS}
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await axios.post(
+      'https://graphql.anilist.co',
+      { query },
+      { headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, timeout: 9000 }
+    );
+    const data = res.data?.data;
+    if (data) {
+      return {
+        trending: (data.trending?.media || []).map(mapAniListAnimeCard),
+        ongoing: (data.ongoing?.media || []).map(mapAniListAnimeCard),
+        schedule: (data.schedule?.media || []).map(mapAniListAnimeCard),
+        upcoming: (data.upcoming?.media || []).map(mapAniListAnimeCard)
+      };
+    }
+  } catch (err) {
+    console.warn('[Live Anime] AniList dashboard fetch failed, trying Jikan fallback:', err.message);
+  }
+
+  // Fallback to Jikan (MyAnimeList live API)
+  try {
+    const [topAiringRes, seasonNowRes, seasonUpRes] = await Promise.all([
+      axios.get('https://api.jikan.moe/v4/top/anime?filter=airing&limit=20', { timeout: 8000 }).catch(() => ({ data: { data: [] } })),
+      axios.get('https://api.jikan.moe/v4/seasons/now?limit=20', { timeout: 8000 }).catch(() => ({ data: { data: [] } })),
+      axios.get('https://api.jikan.moe/v4/seasons/upcoming?limit=20', { timeout: 8000 }).catch(() => ({ data: { data: [] } }))
+    ]);
+
+    const mapJikan = (item) => {
+      const bDay = item.broadcast?.day || null;
+      return {
+        id: String(item.mal_id),
+        title: item.title_english || item.title,
+        name: item.title_english || item.title,
+        overview: item.synopsis || '',
+        poster_path: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || null,
+        backdrop_path: item.images?.jpg?.large_image_url || null,
+        release_date: item.aired?.from ? item.aired.from.split('T')[0] : '',
+        vote_average: item.score || 0,
+        media_type: 'anime',
+        episodes_count: item.episodes || null,
+        broadcast_day: bDay,
+        broadcast: item.broadcast?.string || (bDay ? `Airs ${bDay}` : 'Airing Live')
+      };
+    };
+
+    const trending = (topAiringRes.data?.data || []).map(mapJikan);
+    const ongoing = (seasonNowRes.data?.data || []).map(mapJikan);
+    const upcoming = (seasonUpRes.data?.data || []).map(mapJikan);
+
+    if (trending.length > 0 || ongoing.length > 0) {
+      return {
+        trending: trending.length > 0 ? trending : ongoing,
+        ongoing: ongoing.length > 0 ? ongoing : trending,
+        schedule: ongoing.length > 0 ? ongoing : trending,
+        upcoming
+      };
+    }
+  } catch (jikanErr) {
+    console.warn('[Live Anime] Jikan fallback also failed:', jikanErr.message);
+  }
+
+  return null;
+};
+
+// Paginated live AniList fetcher for Catalog & Search Discover mode
+const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perPage = 24, year = null, genre = null }) => {
+  let sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
+  let status = null;
+
+  if (category === 'ongoing' || category === 'latest') {
+    status = 'RELEASING';
+    sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
+  } else if (category === 'schedule') {
+    status = 'RELEASING';
+    sort = ['POPULARITY_DESC', 'TRENDING_DESC'];
+  } else if (category === 'upcoming') {
+    status = 'NOT_YET_RELEASED';
+    sort = ['POPULARITY_DESC', 'TRENDING_DESC'];
+  } else if (category === 'top_rated') {
+    sort = ['SCORE_DESC', 'POPULARITY_DESC'];
+  } else {
+    // 'trending' or default
+    sort = ['TRENDING_DESC', 'POPULARITY_DESC'];
+  }
+
+  const mappedGenre = genre
+    ? (TMDB_TO_ANILIST_GENRE[String(genre)] !== undefined ? TMDB_TO_ANILIST_GENRE[String(genre)] : (isNaN(Number(genre)) && !String(genre).startsWith('k_') && !String(genre).startsWith('g_') ? String(genre) : null))
+    : null;
+
+  const query = `
+    query ($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus, $seasonYear: Int, $genre: String) {
+      Page(page: $page, perPage: $perPage) {
+        media(type: ANIME, sort: $sort, status: $status, seasonYear: $seasonYear, genre: $genre, isAdult: false) {
+          ${ANILIST_CARD_FIELDS}
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    page: Math.max(1, parseInt(page, 10) || 1),
+    perPage: Math.min(50, perPage || 24),
+    sort
+  };
+  if (status) variables.status = status;
+  if (year && !isNaN(parseInt(year, 10))) variables.seasonYear = parseInt(year, 10);
+  if (mappedGenre) variables.genre = mappedGenre;
+
+  try {
+    const res = await axios.post(
+      'https://graphql.anilist.co',
+      { query, variables },
+      { headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, timeout: 9000 }
+    );
+    const items = res.data?.data?.Page?.media || [];
+    if (items.length > 0) {
+      return items.map(mapAniListAnimeCard);
+    }
+  } catch (err) {
+    console.warn(`[Live Anime Catalog:${category}] AniList failed:`, err.message);
+  }
+  return null;
+};
+
 let dashboardCache = null;
 let lastCacheTime = 0;
-const CACHE_DURATION = 10 * 60 * 1000; // 10 min cache — TMDB trending refreshes multiple times/day
+const CACHE_DURATION = 5 * 60 * 1000; // 5 min live cache — keeps Trending & Ongoing Anime fresh!
 let dashboardPromise = null;
 
 // 1. Get Trending/Dashboard Grid Content
@@ -852,6 +1113,9 @@ export const getTrending = async (req, res) => {
       duration: t.runtime || (t.episode_run_time && t.episode_run_time[0]) || null
     });
 
+    // Fetch LIVE real-time Anime feeds (AniList GraphQL + Jikan MAL fallback) in parallel with TMDB
+    const liveAnimePromise = fetchLiveAniListDashboard();
+
     if (isTmdbConfigured()) {
       try {
         const todayObj = new Date();
@@ -861,8 +1125,7 @@ export const getTrending = async (req, res) => {
 
         const [
           trendingMoviesRes, trendingTvRes, ongoingTvRes, airingTodayTvRes, upcomingMoviesRes, upcomingTvRes,
-          trendingAnimeRes, ongoingAnimeRes, upcomingAnimeRes, airingTodayAnimeRes, nowPlayingMoviesRes,
-          airingTodayTvPage2, airingTodayAnimePage2
+          nowPlayingMoviesRes, airingTodayTvPage2, liveAnimeData
         ] = await Promise.all([
           // Trending: refreshes daily by TMDB
           axios.get(`${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}`),
@@ -875,18 +1138,10 @@ export const getTrending = async (req, res) => {
           axios.get(`${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}`),
           // Upcoming TV shows (first air date in future)
           axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&first_air_date.gte=${today}&sort_by=popularity.desc`),
-          // Anime: Trending (weekly popular Japanese animation)
-          axios.get(`${TMDB_BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16`),
-          // Ongoing Anime: currently on_the_air + Japanese animation genre
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc`),
-          // Upcoming Anime: first_air_date in the future
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc`),
-          // Airing Anime: airing this month (Page 1 & 2 for full 7-day calendar)
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=1`),
           // Now playing movies
           axios.get(`${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`),
           axios.get(`${TMDB_BASE_URL}/tv/airing_today?api_key=${TMDB_API_KEY}&page=2`).catch(() => ({ data: { results: [] } })),
-          axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=2`).catch(() => ({ data: { results: [] } }))
+          liveAnimePromise
         ]);
 
         tmdbMovies = trendingMoviesRes.data.results.slice(0, 20).map(mapMovie);
@@ -895,33 +1150,17 @@ export const getTrending = async (req, res) => {
         ongoingMovies = nowPlayingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingMovies = upcomingMoviesRes.data.results.slice(0, 20).map(mapMovie);
         upcomingTv = upcomingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTv);
-        
-        trendingAnime = trendingAnimeRes.data.results
-          .filter(isAnimeItem)
-          .slice(0, 20)
-          .map(a => ({...mapTv(a), media_type: 'anime'}));
-        upcomingAnime = upcomingAnimeRes.data.results
-          .filter(isAnimeItem)
-          .slice(0, 20)
-          .map(a => ({...mapTv(a), media_type: 'anime'}));
 
-        // Combine Page 1 and Page 2 for TV and Anime schedules, strictly separating them
+        // Combine Page 1 and Page 2 for TV schedules, strictly excluding anime
         const allAiringTv = [
           ...(airingTodayTvRes.data.results || []),
           ...(airingTodayTvPage2.data?.results || [])
         ].filter(item => !isAnimeItem(item));
 
-        const allAiringAnime = [
-          ...(airingTodayAnimeRes.data.results || []),
-          ...(airingTodayAnimePage2.data?.results || [])
-        ].filter(isAnimeItem);
-
-        // Enhance ongoing and scheduled TV/Anime shows with EXACT broadcast days from TMDB details
+        // Enhance ongoing and scheduled TV shows with EXACT broadcast days from TMDB details
         const tvListToEnrich = [
           ...ongoingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 15), 
-          ...allAiringTv.slice(0, 25),
-          ...ongoingAnimeRes.data.results.filter(isAnimeItem).slice(0, 15),
-          ...allAiringAnime.slice(0, 25)
+          ...allAiringTv.slice(0, 25)
         ];
         const uniqueTvIds = [...new Set(tvListToEnrich.map(t => t.id))];
         
@@ -934,7 +1173,6 @@ export const getTrending = async (req, res) => {
         const tvAirDays = {};
         tvDetailsResponses.forEach(res => {
           if (res && res.data) {
-            // Prefer next_episode_to_air for accurate airing day, fallback to last_episode_to_air
             const ep = res.data.next_episode_to_air || res.data.last_episode_to_air;
             if (ep && ep.air_date) {
               const date = new Date(ep.air_date);
@@ -953,26 +1191,48 @@ export const getTrending = async (req, res) => {
           return mapped;
         };
 
-        const mapAnimeWithDay = item => {
-          const mapped = mapTv(item);
-          mapped.media_type = 'anime';
-          const day = tvAirDays[item.id] || daysOfWeek[(parseInt(item.id, 10) || 0) % 7];
-          mapped.broadcast_day = day;
-          mapped.broadcast = `Airs every ${day.slice(0, -1)}`;
-          return mapped;
-        };
-
         ongoingTv = ongoingTvRes.data.results.filter(item => !isAnimeItem(item)).slice(0, 20).map(mapTvWithDay);
         airingTodayTv = allAiringTv.slice(0, 35).map(mapTvWithDay);
-        ongoingAnime = ongoingAnimeRes.data.results.filter(isAnimeItem).slice(0, 20).map(mapAnimeWithDay);
-        scheduleAnime = allAiringAnime.slice(0, 35).map(mapAnimeWithDay);
+
+        // Use live AniList / Jikan anime feeds (Primary — 100% live seasonal trending & ongoing!)
+        if (liveAnimeData && (liveAnimeData.trending.length > 0 || liveAnimeData.ongoing.length > 0)) {
+          trendingAnime = liveAnimeData.trending;
+          ongoingAnime = liveAnimeData.ongoing;
+          scheduleAnime = liveAnimeData.schedule;
+          upcomingAnime = liveAnimeData.upcoming;
+        } else {
+          // Last-resort TMDB fallback if both AniList & Jikan are unreachable
+          const [fallbackTrending, fallbackOngoing, fallbackUpcoming] = await Promise.all([
+            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&sort_by=popularity.desc`).catch(() => ({ data: { results: [] } })),
+            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc`).catch(() => ({ data: { results: [] } })),
+            axios.get(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc`).catch(() => ({ data: { results: [] } }))
+          ]);
+          const mapFallbackAnime = (a) => ({ ...mapTv(a), media_type: 'anime' });
+          trendingAnime = (fallbackTrending.data.results || []).filter(isAnimeItem).slice(0, 20).map(mapFallbackAnime);
+          ongoingAnime = (fallbackOngoing.data.results || []).filter(isAnimeItem).slice(0, 20).map(mapFallbackAnime);
+          scheduleAnime = ongoingAnime;
+          upcomingAnime = (fallbackUpcoming.data.results || []).filter(isAnimeItem).slice(0, 20).map(mapFallbackAnime);
+        }
       } catch (err) {
         console.warn('TMDB dashboard fetch failed:', err.message);
-        // No mock fallback — leave arrays empty
+        // Even if TMDB fails, still populate live anime from AniList!
+        const liveAnimeData = await liveAnimePromise.catch(() => null);
+        if (liveAnimeData) {
+          trendingAnime = liveAnimeData.trending;
+          ongoingAnime = liveAnimeData.ongoing;
+          scheduleAnime = liveAnimeData.schedule;
+          upcomingAnime = liveAnimeData.upcoming;
+        }
       }
     } else {
-      console.warn('TMDB API key not configured. Dashboard will show empty sections.');
-      // No mock fallback — leave arrays empty
+      console.warn('TMDB API key not configured. Loading live AniList anime only.');
+      const liveAnimeData = await liveAnimePromise.catch(() => null);
+      if (liveAnimeData) {
+        trendingAnime = liveAnimeData.trending;
+        ongoingAnime = liveAnimeData.ongoing;
+        scheduleAnime = liveAnimeData.schedule;
+        upcomingAnime = liveAnimeData.upcoming;
+      }
     }
 
     // C. Fetch Manga (MangaDex API metadata + browser-safe AniList/Kitsu/MU covers)
@@ -1126,9 +1386,24 @@ export const searchMedia = async (req, res) => {
     let results = [];
 
     if (type === 'movie' || type === 'tv' || type === 'anime') {
+      const hasQuery = query && query.trim() !== '';
+
+      // Live AniList GraphQL Discover Mode for Anime (Trending, Ongoing, Upcoming, Top Rated, Latest)
+      if (type === 'anime' && !hasQuery && !country) {
+        const liveAnimeDiscover = await fetchLiveAniListAnimePage({
+          category: sort || 'trending',
+          page,
+          perPage: 24,
+          year,
+          genre
+        });
+        if (liveAnimeDiscover && liveAnimeDiscover.length > 0) {
+          return res.json(liveAnimeDiscover);
+        }
+      }
+
       if (isTmdbConfigured()) {
         try {
-          const hasQuery = query && query.trim() !== '';
           const tmdbType = type === 'anime' ? 'tv' : type;
           
           if (!hasQuery) {
@@ -1155,7 +1430,7 @@ export const searchMedia = async (req, res) => {
               }
             } else if (sort === 'trending') {
               if (type === 'anime') {
-                url = `${TMDB_BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&page=${page}`;
+                url = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&sort_by=popularity.desc&page=${page}`;
               } else {
                 url = `${TMDB_BASE_URL}/trending/${tmdbType}/day?api_key=${TMDB_API_KEY}&page=${page}`;
               }
@@ -2251,52 +2526,45 @@ export const getCatalog = async (req, res) => {
       broadcast: item.broadcast?.string || null
     });
 
-    if ((type === 'movie' || type === 'tv' || type === 'anime') && isTmdbConfigured()) {
+    if (type === 'anime') {
+      const year = req.query.year && !isNaN(parseInt(req.query.year, 10)) ? parseInt(req.query.year, 10) : null;
+      const liveAnime = await fetchLiveAniListAnimePage({
+        category: category || 'trending',
+        page,
+        perPage: 24,
+        year
+      });
+
+      if (liveAnime && liveAnime.length > 0) {
+        results = liveAnime;
+      } else if (isTmdbConfigured()) {
+        // Fallback to TMDB discover (never broken /trending/tv/week!)
+        const todayObj = new Date();
+        const today = todayObj.toISOString().split('T')[0];
+        const nextMonth = new Date(todayObj.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const lastMonth = new Date(todayObj.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        let endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc&page=${page}`;
+        if (category === 'ongoing') {
+          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc&page=${page}`;
+        } else if (category === 'upcoming') {
+          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
+        } else if (category === 'schedule') {
+          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
+        }
+        if (year) endpoint += `&first_air_date_year=${year}`;
+        const tmdbRes = await axios.get(endpoint);
+        results = (tmdbRes.data.results || [])
+          .filter(isAnimeItem)
+          .map(item => ({ ...mapTv(item), media_type: 'anime' }));
+      }
+    }
+    else if ((type === 'movie' || type === 'tv') && isTmdbConfigured()) {
       let endpoint = '';
       const todayObj = new Date();
       const today = todayObj.toISOString().split('T')[0];
-      const nextMonth = new Date(todayObj.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const lastMonth = new Date(todayObj.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const year = req.query.year && !isNaN(parseInt(req.query.year, 10)) ? parseInt(req.query.year, 10) : null;
 
-      if (type === 'anime') {
-        // Trending anime: weekly trending Japanese animation
-        if (category === 'trending') {
-          endpoint = `${TMDB_BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&page=${page}`;
-        }
-        // Ongoing: currently airing within 30-day window
-        else if (category === 'ongoing') {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${lastMonth}&air_date.lte=${nextMonth}&with_status=0&sort_by=popularity.desc&page=${page}`;
-        }
-        // Upcoming: first air date in the future, sorted by soonest first
-        else if (category === 'upcoming') {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&first_air_date.gte=${today}&sort_by=first_air_date.asc&page=${page}`;
-        }
-        // Schedule: airing this month (dynamic)
-        else if (category === 'schedule') {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&air_date.gte=${today}&air_date.lte=${nextMonth}&sort_by=popularity.desc&page=${page}`;
-        }
-        else {
-          endpoint = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&sort_by=popularity.desc&page=${page}`;
-        }
-
-        // Apply year filter if provided
-        if (year) {
-          if (!endpoint.includes('trending/')) {
-            endpoint += `&first_air_date_year=${year}`;
-          }
-        }
-        
-        const tmdbRes = await axios.get(endpoint);
-        results = tmdbRes.data.results
-          .filter(isAnimeItem)
-          .filter(item => !year || (item.first_air_date && item.first_air_date.startsWith(String(year))))
-          .map(item => {
-            const mapped = mapTv(item);
-            mapped.media_type = 'anime';
-            return mapped;
-          });
-      } else {
+      {
         // Trending: uses daily trending API for freshest data
         if (category === 'trending') endpoint = `${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&page=${page}`;
         // Ongoing TV: on_the_air (currently airing in next 7 days)

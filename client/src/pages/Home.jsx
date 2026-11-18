@@ -133,9 +133,10 @@ export default function Home() {
           }
         }
 
-        // Fallback: assign scheduled day based on item ID so NO day of the week is ever empty
+        // Fallback: assign scheduled day based on numeric digits in item ID
         if (!matchedDay || !grouped[matchedDay]) {
-          const dayIndex = (parseInt(item.id, 10) || 0) % 7;
+          const numericId = parseInt(String(item.id || '').replace(/\D/g, ''), 10) || 0;
+          const dayIndex = numericId % 7;
           matchedDay = daysOfWeek[dayIndex];
         }
 
@@ -163,10 +164,12 @@ export default function Home() {
       });
     };
     
+    // Prioritize live currently-airing anime with real next-episode broadcast schedules
     addItems(media.schedule?.anime);
     addItems(media.ongoing?.anime);
-    addItems(media.upcoming?.anime);
-    addItems(media.trending?.anime);
+    if (combined.length === 0) {
+      addItems(media.trending?.anime);
+    }
     
     return combined;
   };
@@ -238,7 +241,7 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const lastFetchRef = React.useRef(0);
   const isFetchingRef = React.useRef(false);
-  const STALE_AFTER = 10 * 60 * 1000; // 10 min — matches server cache TTL
+  const STALE_AFTER = 5 * 60 * 1000; // 5 min — matches live backend cache TTL
 
   // Stable fetch function via ref — never goes stale, no dep issues
   const doFetch = async (force = false) => {
@@ -568,7 +571,7 @@ export default function Home() {
                 <MediaGrid items={media.trending.music} title="Trending Music Hits" seeMoreLink="/music" />
               )}
 
-              <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Anime Releases" seeMoreLink="/catalog/trending/anime" />
+              <MediaGrid items={media.trending?.anime?.slice(0, 10)} title="Top Trending Live Anime" seeMoreLink="/catalog/trending/anime" showTimings={true} />
               <MediaGrid items={media.trending?.manga?.slice(0, 10)} title="Most Followed Manga Series" seeMoreLink="/catalog/trending/manga" />
             </div>
           )}
@@ -577,7 +580,7 @@ export default function Home() {
             <div className="space-y-10 sm:space-y-16 animate-fade-in">
               <MediaGrid items={media.ongoing?.movies?.slice(0, 10)} title="Now Playing in Theaters" seeMoreLink="/catalog/ongoing/movie" />
               <MediaGrid items={media.ongoing?.tv?.slice(0, 10)} title="Ongoing TV Broadcasts" seeMoreLink="/catalog/ongoing/tv" showTimings={true} />
-              <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Currently Airing Anime (MAL)" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
+              <MediaGrid items={media.ongoing?.anime?.slice(0, 10)} title="Live Ongoing & Airing Anime" seeMoreLink="/catalog/ongoing/anime" showTimings={true} />
               <MediaGrid items={media.ongoing?.manga?.slice(0, 10)} title="Ongoing Manga Publications" seeMoreLink="/catalog/ongoing/manga" />
             </div>
           )}
