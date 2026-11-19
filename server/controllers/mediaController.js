@@ -3724,7 +3724,15 @@ export const getAnimeCharacters = async (req, res) => {
       const lowerFirst = first.toLowerCase();
       const lowerLast = last.toLowerCase();
 
-      // Exact name matches
+      // Exact query match boost (character name, alias or alternative e.g. "Grid", "Greed", "Sung Jin-Woo")
+      const lowerRawQ = rawQ.toLowerCase();
+      if (lowerFull === lowerRawQ || altNames.some((a) => String(a).toLowerCase() === lowerRawQ)) {
+        score += 500;
+      } else if (lowerFull.includes(lowerRawQ) || altNames.some((a) => String(a).toLowerCase().includes(lowerRawQ))) {
+        score += 250;
+      }
+
+      // Exact token matches
       for (const tok of allTokens) {
         if (tok.length < 2) continue;
         if (lowerFull === tok || lowerFirst === tok || lowerLast === tok) {

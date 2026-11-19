@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v14-ui-sizing';
+const CACHE_NAME = 'syncstream-v15-avatar-search';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

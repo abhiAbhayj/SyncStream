@@ -1648,3 +1648,286 @@ export const fetchClientAniListMangaDetail = async (rawId) => {
     return null;
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Direct Browser Anime & Manga Character Search Engine (AniList GraphQL)
+// Runs directly from the user's browser IP (CORS: Access-Control-Allow-Origin: *)
+// Zero Render IP 429 throttling, 100% case-insensitive, supports character names,
+// aliases, alternative names (e.g. "Grid", "Greed", "Sung Jin-Woo"), and series titles.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const clientAnimeCharCache = new Map();
+
+/**
+ * Live search anime & manga characters directly from AniList
+ * Fully case-insensitive, checks full names, aliases/alternative names, and media titles
+ * @param {string} queryText Character or series query (e.g. "grid", "Grid", "overgeared", "ramparts of ice")
+ * @returns {Promise<Array>} Array of character avatar objects
+ */
+export const searchClientLiveAnimeCharacters = async (queryText) => {
+  const rawQuery = (queryText || '').trim();
+  if (!rawQuery) return [];
+
+  const normalized = rawQuery.toLowerCase();
+  const cacheKey = `char_${normalized}`;
+
+  if (clientAnimeCharCache.has(cacheKey)) {
+    const cached = clientAnimeCharCache.get(cacheKey);
+    if (Date.now() - cached.ts < 10 * 60 * 1000) {
+      return cached.data;
+    }
+  }
+
+  // Dual search query: character search + media character nodes search
+  const gql = `
+    query($q: String) {
+      charSearch: Page(page: 1, perPage: 40) {
+        characters(search: $q, sort: [SEARCH_MATCH, FAVOURITES_DESC]) {
+          id
+          name { full userPreferred native alternative first last }
+          image { large medium }
+          favourites
+          media(page: 1, perPage: 4, sort: POPULARITY_DESC) {
+            nodes {
+              id
+              type
+              format
+              title { english romaji native userPreferred }
+              synonyms
+            }
+          }
+        }
+      }
+      mediaSearch: Page(page: 1, perPage: 8) {
+        media(search: $q, sort: [SEARCH_MATCH, POPULARITY_DESC]) {
+          id
+          type
+          format
+          title { english romaji native userPreferred }
+          synonyms
+          characters(page: 1, perPage: 25, sort: [ROLE, FAVOURITES_DESC]) {
+            nodes {
+              id
+              name { full userPreferred native alternative first last }
+              image { large medium }
+              favourites
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await fetch(ANILIST_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ query: gql, variables: { q: rawQuery } })
+    });
+
+    if (!res.ok) {
+      throw new Error(`AniList HTTP ${res.status}`);
+    }
+
+    const json = await res.json();
+    if (json.errors && !json.data) {
+      throw new Error(json.errors[0]?.message || 'AniList GraphQL error');
+    }
+
+    const seen = new Set();
+    const results = [];
+    const tokens = normalized.split(/\s+/).filter((t) => t.length >= 2);
+
+    const ingestChar = (c, defaultSeries = null, defaultType = 'anime', defaultFormat = 'TV', boost = 0) => {
+      if (!c || !c.id || seen.has(c.id)) return;
+      const imgUrl = c.image?.large || c.image?.medium || '';
+      if (!imgUrl || imgUrl.includes('default.jpg')) return;
+      seen.add(c.id);
+
+      const fullName = c.name?.full || c.name?.userPreferred || 'Anime Character';
+      const altNames = Array.isArray(c.name?.alternative)
+        ? c.name.alternative.filter(Boolean)
+        : [];
+      const mediaNodes = c.media?.nodes || [];
+
+      const isManga =
+        String(defaultType).toLowerCase() === 'manga' ||
+        String(defaultFormat).toLowerCase() === 'manga' ||
+        String(defaultFormat).toLowerCase() === 'novel' ||
+        String(defaultFormat).toLowerCase() === 'one_shot' ||
+        String(defaultFormat).toLowerCase() === 'manhwa' ||
+        String(defaultFormat).toLowerCase() === 'manhua' ||
+        mediaNodes.some((m) => {
+          const t = String(m?.type || '').toLowerCase();
+          const f = String(m?.format || '').toLowerCase();
+          return t === 'manga' || f === 'manga' || f === 'novel' || f === 'one_shot';
+        });
+
+      const primaryMedia = mediaNodes[0];
+      const seriesTitle =
+        defaultSeries ||
+        primaryMedia?.title?.english ||
+        primaryMedia?.title?.romaji ||
+        primaryMedia?.title?.userPreferred ||
+        'Anime & Manga';
+
+      const formatTag = isManga ? 'Manga' : (primaryMedia?.format || defaultFormat || 'Anime');
+      const typeTag = isManga ? 'manga' : 'anime';
+
+      // 100% case-insensitive relevance scoring
+      let score = boost;
+      const lowerFull = fullName.toLowerCase();
+      const lowerAlts = altNames.map((a) => String(a).toLowerCase());
+      const lowerSeries = seriesTitle.toLowerCase();
+
+      // Check exact query match in full name or alternative names (e.g. "grid", "Grid", "GRID")
+      if (lowerFull === normalized || lowerAlts.includes(normalized)) {
+        score += 500;
+      } else if (lowerFull.includes(normalized) || lowerAlts.some((a) => a.includes(normalized))) {
+        score += 250;
+      }
+
+      // Check query tokens
+      for (const tok of tokens) {
+        if (lowerFull.includes(tok)) score += 60;
+        if (lowerAlts.some((a) => a.includes(tok))) score += 70;
+        if (lowerSeries.includes(tok)) score += 40;
+      }
+
+      // Popularity bonus
+      score += Math.min(Math.floor((c.favourites || 0) / 20), 50);
+
+      results.push({
+        id: `al-char-${c.id}`,
+        name: fullName,
+        series: seriesTitle,
+        format: formatTag,
+        type: typeTag,
+        url: imgUrl,
+        score,
+        prompt: `${formatTag} character ${fullName} from ${seriesTitle}, high quality artwork portrait`
+      });
+    };
+
+    // 1. Ingest direct character search results
+    (json.data?.charSearch?.characters || []).forEach((c, idx) => {
+      ingestChar(c, null, 'anime', 'TV', 120 - Math.min(idx * 2, 40));
+    });
+
+    // 2. Ingest series/media match characters
+    (json.data?.mediaSearch?.media || []).forEach((m, mIdx) => {
+      const sTitle = m.title?.english || m.title?.romaji || m.title?.userPreferred || 'Anime';
+      const isMangaMedia =
+        m.type === 'MANGA' ||
+        m.format === 'MANGA' ||
+        m.format === 'NOVEL' ||
+        m.format === 'ONE_SHOT';
+
+      (m.characters?.nodes || []).forEach((c, cIdx) => {
+        ingestChar(
+          c,
+          sTitle,
+          isMangaMedia ? 'manga' : 'anime',
+          m.format || (isMangaMedia ? 'Manga' : 'TV'),
+          150 - Math.min(mIdx * 15 + cIdx * 3, 60)
+        );
+      });
+    });
+
+    // Sort by relevance score descending
+    results.sort((a, b) => b.score - a.score);
+
+    const finalResults = results.slice(0, 80);
+    clientAnimeCharCache.set(cacheKey, { data: finalResults, ts: Date.now() });
+    return finalResults;
+  } catch (err) {
+    console.warn('[searchClientLiveAnimeCharacters] Direct search error:', err.message);
+    return [];
+  }
+};
+
+/**
+ * Fetch top iconic anime and manga characters for profile studio initial load
+ */
+export const fetchClientLiveIconicAnimeCharacters = async () => {
+  const cacheKey = 'iconic_characters';
+  if (clientAnimeCharCache.has(cacheKey)) {
+    const cached = clientAnimeCharCache.get(cacheKey);
+    if (Date.now() - cached.ts < 30 * 60 * 1000) {
+      return cached.data;
+    }
+  }
+
+  const gql = `
+    query {
+      Page(page: 1, perPage: 30) {
+        characters(sort: FAVOURITES_DESC) {
+          id
+          name { full native userPreferred alternative }
+          favourites
+          image { large medium }
+          media(page: 1, perPage: 2, sort: POPULARITY_DESC) {
+            nodes {
+              type
+              format
+              title { english romaji native userPreferred }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await fetch(ANILIST_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ query: gql })
+    });
+
+    if (!res.ok) throw new Error(`AniList HTTP ${res.status}`);
+    const json = await res.json();
+    const rawChars = json.data?.Page?.characters || [];
+
+    const formatted = rawChars
+      .filter((c) => {
+        const img = c?.image?.large || c?.image?.medium || '';
+        return Boolean(img && !img.includes('default.jpg'));
+      })
+      .map((c) => {
+        const primaryMedia = c.media?.nodes?.[0];
+        const series =
+          primaryMedia?.title?.english ||
+          primaryMedia?.title?.romaji ||
+          primaryMedia?.title?.userPreferred ||
+          'Anime';
+        const fullName = c.name?.full || c.name?.userPreferred || 'Anime Character';
+        const isManga =
+          primaryMedia?.type === 'MANGA' ||
+          primaryMedia?.format === 'MANGA' ||
+          primaryMedia?.format === 'NOVEL';
+        const formatTag = isManga ? 'Manga' : (primaryMedia?.format || 'Anime');
+        return {
+          id: `al-char-${c.id}`,
+          name: fullName,
+          series,
+          format: formatTag,
+          type: isManga ? 'manga' : 'anime',
+          prompt: `${formatTag} character ${fullName} from ${series}, high quality studio portrait`,
+          url: c.image.large || c.image.medium
+        };
+      });
+
+    clientAnimeCharCache.set(cacheKey, { data: formatted, ts: Date.now() });
+    return formatted;
+  } catch (err) {
+    console.warn('[fetchClientLiveIconicAnimeCharacters] Error:', err.message);
+    return [];
+  }
+};

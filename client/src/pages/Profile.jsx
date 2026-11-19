@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import axios from 'axios';
 import ALL_WHATSAPP_EMOJIS from '../data/whatsapp_emojis.json';
+import { searchClientLiveAnimeCharacters, fetchClientLiveIconicAnimeCharacters } from '../utils/liveAnime';
 import { useAuth } from '../context/AuthContext';
 import {
   User,
@@ -303,16 +304,18 @@ export default function Profile() {
   const [animeVisibleCount, setAnimeVisibleCount] = useState(25);
   const animePreloadedRef = useRef(false);
 
+  const isMangaItem = (c) => {
+    const t = String(c?.type || '').toLowerCase();
+    const f = String(c?.format || '').toLowerCase();
+    return t === 'manga' || f === 'manga' || f === 'novel' || f === 'one_shot' || f === 'manhwa' || f === 'manhua';
+  };
+
   const filteredAnimeSearchResults = useMemo(() => {
     if (animeFilterType === 'All') return animeSearchResults;
     if (animeFilterType === 'Manga') {
-      return animeSearchResults.filter(
-        (c) => c.type === 'manga' || c.format === 'Manga' || c.format === 'MANGA' || c.format === 'NOVEL'
-      );
+      return animeSearchResults.filter(isMangaItem);
     }
-    return animeSearchResults.filter(
-      (c) => c.type !== 'manga' && c.format !== 'Manga' && c.format !== 'MANGA' && c.format !== 'NOVEL'
-    );
+    return animeSearchResults.filter((c) => !isMangaItem(c));
   }, [animeSearchResults, animeFilterType]);
 
   useEffect(() => {
@@ -323,10 +326,26 @@ export default function Profile() {
     const loadIconicAnimeCharacters = async () => {
       try {
         setAnimeIconicLoading(true);
-        const res = await axios.get('/api/media/anime/characters');
-        if (cancelled || !Array.isArray(res.data) || res.data.length === 0) return;
+        let iconicPicks = [];
 
-        const iconicPicks = res.data.slice(0, 12);
+        // 1. Primary: Direct browser AniList engine (0% Render 429 throttling)
+        try {
+          iconicPicks = await fetchClientLiveIconicAnimeCharacters();
+        } catch {}
+
+        // 2. Fallback: Backend endpoint
+        if (!Array.isArray(iconicPicks) || iconicPicks.length === 0) {
+          try {
+            const res = await axios.get('/api/media/anime/characters');
+            if (Array.isArray(res.data) && res.data.length > 0) {
+              iconicPicks = res.data;
+            }
+          } catch {}
+        }
+
+        if (cancelled || !Array.isArray(iconicPicks) || iconicPicks.length === 0) return;
+
+        const picks = iconicPicks.slice(0, 12);
         setAvatarCollections((prev) => {
           const currentItems = prev.anime?.items || [];
           const hasOnlySeedsOrFewReal =
@@ -336,9 +355,9 @@ export default function Profile() {
           if (!hasOnlySeedsOrFewReal) return prev;
 
           const customOrPinned = currentItems.filter(
-            (it) => !String(it.id).startsWith('ani-seed-') && !iconicPicks.some((p) => p.id === it.id)
+            (it) => !String(it.id).startsWith('ani-seed-') && !picks.some((p) => p.id === it.id)
           );
-          const mergedItems = [...customOrPinned, ...iconicPicks].slice(0, MAX_AVATARS_PER_CATEGORY);
+          const mergedItems = [...customOrPinned, ...picks].slice(0, MAX_AVATARS_PER_CATEGORY);
 
           return {
             ...prev,
@@ -570,7 +589,7 @@ export default function Profile() {
     setShowAiModal(true);
   };
 
-  // Live AniList Anime Character Search
+  // Live AniList Anime & Manga Character Search (Runs directly in browser with backend fallback)
   const runAnimeCharacterSearch = async (queryText) => {
     const trimmed = (queryText || '').trim();
     if (!trimmed) {
@@ -582,9 +601,24 @@ export default function Profile() {
     setAnimeSearchLoading(true);
     setAnimeSearchTouched(true);
     setAnimeVisibleCount(25);
+    // Auto-reset to 'All' so results aren't hidden if user previously clicked Anime/Manga filter
+    setAnimeFilterType('All');
+
     try {
-      const res = await axios.get(`/api/media/anime/characters?q=${encodeURIComponent(trimmed)}`);
-      setAnimeSearchResults(Array.isArray(res.data) ? res.data : []);
+      // 1. Direct Browser Client-Side AniList Character Search (100% case-insensitive, zero Render 429 rate-limiting)
+      let results = await searchClientLiveAnimeCharacters(trimmed);
+
+      // 2. Fallback to server endpoint if direct client search returns empty or fails
+      if (!Array.isArray(results) || results.length === 0) {
+        try {
+          const res = await axios.get(`/api/media/anime/characters?q=${encodeURIComponent(trimmed)}`);
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            results = res.data;
+          }
+        } catch {}
+      }
+
+      setAnimeSearchResults(Array.isArray(results) ? results : []);
     } catch (err) {
       setAnimeSearchResults([]);
     } finally {
@@ -1435,15 +1469,16 @@ export default function Profile() {
                 {/* Quick Popular Anime & Manga Character & Series Queries */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
                   {[
+                    'Grid',
+                    'Sung Jin-Woo',
+                    'Overgeared',
                     'Ramparts of Ice',
                     'Koyun',
                     'Miki',
-                    'Yota',
-                    'Koharu',
-                    'Sato',
-                    'Punpun',
                     'Gojo',
                     'Levi',
+                    'Luffy',
+                    'Zoro',
                     'Sakamoto Days'
                   ].map((quickName) => (
                     <button
@@ -1468,12 +1503,12 @@ export default function Profile() {
                       {
                         id: 'Anime',
                         label: 'Anime Only',
-                        count: animeSearchResults.filter((c) => c.type !== 'manga' && c.format !== 'Manga').length
+                        count: animeSearchResults.filter((c) => !isMangaItem(c)).length
                       },
                       {
                         id: 'Manga',
                         label: 'Manga Only',
-                        count: animeSearchResults.filter((c) => c.type === 'manga' || c.format === 'Manga').length
+                        count: animeSearchResults.filter(isMangaItem).length
                       }
                     ].map((flt) => (
                       <button
@@ -1504,8 +1539,21 @@ export default function Profile() {
                   </div>
                 ) : animeSearchTouched && animeSearchResults.length === 0 ? (
                   <p className="text-[11px] text-gray-400 text-center py-2">
-                    No anime or manga characters found for &quot;{animeSearchQuery}&quot;. Try searching by series title (e.g. &quot;Ramparts of Ice&quot;) or character name!
+                    No anime or manga characters found for &quot;{animeSearchQuery}&quot;. Try searching by series title (e.g. &quot;Overgeared&quot;, &quot;Ramparts of Ice&quot;) or character name!
                   </p>
+                ) : animeSearchResults.length > 0 && filteredAnimeSearchResults.length === 0 ? (
+                  <div className="text-center py-3 space-y-1.5">
+                    <p className="text-[11px] text-gray-300">
+                      No characters found under <span className="font-bold text-pink-300">&quot;{animeFilterType}&quot;</span> for &quot;{animeSearchQuery}&quot;.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setAnimeFilterType('All')}
+                      className="px-3 py-1 rounded-lg bg-pink-500/20 border border-pink-500/40 text-pink-200 text-xs font-semibold hover:bg-pink-500/30 transition cursor-pointer"
+                    >
+                      Show all {animeSearchResults.length} results in All Media
+                    </button>
+                  </div>
                 ) : animeSearchResults.length > 0 ? (
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
@@ -1532,7 +1580,7 @@ export default function Profile() {
                         const isPinned = (avatarCollections.anime?.items || []).some(
                           (it) => it.id === char.id || it.url === char.url
                         );
-                        const isManga = char.type === 'manga' || char.format === 'Manga';
+                        const isManga = isMangaItem(char);
 
                         return (
                           <div
