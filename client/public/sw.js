@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v19-stable-watchparty';
+const CACHE_NAME = 'syncstream-v20-clean-themes';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

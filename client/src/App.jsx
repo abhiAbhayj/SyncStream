@@ -12,7 +12,6 @@ import ServerWakeup from './components/ServerWakeup';
 import MusicPlayerBar from './components/MusicPlayerBar';
 import MusicModal from './components/MusicModal';
 import AddToPlaylistModal from './components/AddToPlaylistModal';
-import ThemeBackground from './components/ThemeBackground';
 
 // Pages
 import Home from './pages/Home';
@@ -45,6 +44,12 @@ function AppContent() {
 
   React.useEffect(() => {
     const ALL_THEMES = [
+      'theme-cinema-slate',
+      'theme-midnight-velvet',
+      'theme-nordic-monolith',
+      'theme-emerald-noir',
+      'theme-royal-amethyst',
+      // Legacy classes
       'theme-cryo-glacial',
       'theme-magma-thermal',
       'theme-emerald-biogrid',
@@ -53,7 +58,6 @@ function AppContent() {
       'theme-obsidian-void',
       'theme-cyberpunk-synthwave',
       'theme-mystic-amethyst',
-      // Legacy classes
       'theme-storm-thunder',
       'theme-synthwave',
       'theme-cryo-vault',
@@ -66,39 +70,39 @@ function AppContent() {
       'theme-yokohama-night'
     ];
     const validThemes = [
-      'cryo-glacial',
-      'magma-thermal',
-      'emerald-biogrid',
-      'cobalt-quantum',
-      'golden-sunfire',
-      'obsidian-void',
-      'cyberpunk-synthwave',
-      'mystic-amethyst'
+      'cinema-slate',
+      'midnight-velvet',
+      'nordic-monolith',
+      'emerald-noir',
+      'royal-amethyst'
     ];
-    let savedTheme = localStorage.getItem('syncstream_theme') || 'cryo-glacial';
+    let savedTheme = localStorage.getItem('syncstream_theme') || 'cinema-slate';
     const legacyMap = {
-      'storm-thunder': 'cobalt-quantum',
-      synthwave: 'cyberpunk-synthwave',
-      'cryo-vault': 'cryo-glacial',
-      'solar-flare': 'magma-thermal',
-      'cosmic-singularity': 'mystic-amethyst',
-      'plasma-web': 'emerald-biogrid',
-      'cyber-foundry': 'golden-sunfire',
-      'bioluminescent-trench': 'mystic-amethyst',
-      'windy-sakura': 'cyberpunk-synthwave',
-      'yokohama-night': 'cyberpunk-synthwave',
-      aurora: 'cryo-glacial',
-      'neon-frost': 'cobalt-quantum',
-      'abyssal-trench': 'mystic-amethyst',
-      'nebula-drift': 'mystic-amethyst',
-      'citrus-arcade': 'golden-sunfire'
+      'cryo-glacial': 'cinema-slate',
+      'cryo-vault': 'cinema-slate',
+      'obsidian-void': 'nordic-monolith',
+      'magma-thermal': 'midnight-velvet',
+      'solar-flare': 'midnight-velvet',
+      'emerald-biogrid': 'emerald-noir',
+      'plasma-web': 'emerald-noir',
+      'cobalt-quantum': 'royal-amethyst',
+      'storm-thunder': 'royal-amethyst',
+      'mystic-amethyst': 'royal-amethyst',
+      'golden-sunfire': 'cinema-slate',
+      'cyberpunk-synthwave': 'royal-amethyst',
+      synthwave: 'royal-amethyst',
+      aurora: 'cinema-slate',
+      'neon-frost': 'nordic-monolith',
+      'abyssal-trench': 'royal-amethyst',
+      'nebula-drift': 'royal-amethyst',
+      'citrus-arcade': 'cinema-slate'
     };
     if (legacyMap[savedTheme]) {
       savedTheme = legacyMap[savedTheme];
       localStorage.setItem('syncstream_theme', savedTheme);
     } else if (!validThemes.includes(savedTheme)) {
-      savedTheme = 'cryo-glacial';
-      localStorage.setItem('syncstream_theme', 'cryo-glacial');
+      savedTheme = 'cinema-slate';
+      localStorage.setItem('syncstream_theme', 'cinema-slate');
     }
     ALL_THEMES.forEach(cls => document.body.classList.remove(cls));
     document.body.classList.add(`theme-${savedTheme}`);
@@ -106,7 +110,6 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen relative overflow-x-clip w-full max-w-full">
-      <ThemeBackground />
       <ScrollRestoration />
       <Navbar />
       <main className="flex-grow transition-all duration-300">

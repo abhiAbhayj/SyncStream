@@ -30,11 +30,17 @@ import {
   Moon,
   Layers,
   Compass,
-  Search
+  Search,
+  Film
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ALL_THEME_CLASSES = [
+  'theme-cinema-slate',
+  'theme-midnight-velvet',
+  'theme-nordic-monolith',
+  'theme-emerald-noir',
+  'theme-royal-amethyst',
   'theme-cryo-glacial',
   'theme-magma-thermal',
   'theme-emerald-biogrid',
@@ -43,7 +49,6 @@ const ALL_THEME_CLASSES = [
   'theme-obsidian-void',
   'theme-cyberpunk-synthwave',
   'theme-mystic-amethyst',
-  // Legacy aliases
   'theme-storm-thunder',
   'theme-synthwave',
   'theme-cryo-vault',
@@ -58,93 +63,55 @@ const ALL_THEME_CLASSES = [
 
 const THEME_OPTIONS = [
   {
-    id: 'cryo-glacial',
-    name: 'Cryo-Prismatic Glacial Shatter',
-    vibe: 'Ice Blue, Cyan & Frost White',
-    icon: Snowflake,
-    iconColor: 'text-sky-400 fill-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.8)]',
+    id: 'cinema-slate',
+    name: 'Cinema Slate',
+    vibe: 'Apple TV+ Minimalist',
+    icon: Film,
+    iconColor: 'text-sky-400',
     iconBg: 'bg-sky-500/10 border-sky-400/30',
-    desc: 'Sub-Zero Glacial Frost with intricate six-fold ice snowflakes, drifting crystalline needle shards, and refractive cyan beam halos',
-    animation: 'Crystalline Ice Flakes & Frost Prism',
-    swatch: ['#020617', '#38bdf8', '#06b6d4', '#081226', '#ffffff'],
+    desc: 'Deep slate studio dark theme with sky blue accents. Crisp typography and maximum movie poster focus.',
+    swatch: ['#0b0f17', '#151b26', '#38bdf8', '#f8fafc', '#f59e0b']
   },
   {
-    id: 'magma-thermal',
-    name: 'Magma Thermal Convection Waves',
-    vibe: 'Red',
+    id: 'midnight-velvet',
+    name: 'Midnight Velvet',
+    vibe: 'Netflix Luxe',
     icon: Flame,
-    iconColor: 'text-red-500 fill-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]',
+    iconColor: 'text-red-500',
     iconBg: 'bg-red-500/10 border-red-500/30',
-    desc: 'Molten Core Heat-Haze Distortion with atmospheric heat shimmer and molten convective waves rising from volcanic ash',
-    animation: 'Molten Core Heat-Haze Distortion',
-    swatch: ['#090505', '#ef4444', '#f97316', '#170a0a', '#fafafa'],
+    desc: 'Pitch matte black background with cinema red accents. Bold, authoritative, and theatrical.',
+    swatch: ['#09090b', '#18181b', '#ef4444', '#fafafa', '#fbbf24']
   },
   {
-    id: 'emerald-biogrid',
-    name: 'Emerald Matrix Biogrid',
-    vibe: 'Cyber Jade & Electric Mint',
-    icon: Activity,
-    iconColor: 'text-emerald-400 fill-emerald-400 drop-shadow-[0_0_8px_rgba(0,245,160,0.7)]',
-    iconBg: 'bg-emerald-500/10 border-emerald-500/30',
-    desc: 'Full-Screen Cyber Matrix Synapse Flow with cascading bio-digital rain, horizontal laser bus highways, and branching Tesla arcs',
-    animation: 'Cyber Matrix Synapse Flow',
-    swatch: ['#020905', '#00f5a0', '#2dd4bf', '#061d10', '#ffffff'],
-  },
-  {
-    id: 'cobalt-quantum',
-    name: 'Cobalt Quantum Wave',
-    vibe: 'Ultraviolet, Neon Lime & Photon White',
-    icon: Atom,
-    iconColor: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.7)]',
-    iconBg: 'bg-purple-500/10 border-lime-400/30',
-    desc: 'Harmonic Quantum Field with 3D undulating Lissajous wave vortexes, orbital probability rings, and quantum entanglement arcs',
-    animation: 'Harmonic Quantum Vortex & String Loom',
-    swatch: ['#050510', '#8b5cf6', '#a3e635', '#bef264', '#ffffff'],
-  },
-  {
-    id: 'golden-sunfire',
-    name: 'Golden Sunfire Monolith',
-    vibe: 'Golden',
-    icon: Crown,
-    iconColor: 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.7)]',
-    iconBg: 'bg-amber-500/10 border-amber-500/30',
-    desc: 'Opposing Thermal Gradient Streams with descending frost-vapor and rising golden solar micro-ember dust',
-    animation: 'Opposing Thermal Gradient Streams',
-    swatch: ['#060606', '#eab308', '#f59e0b', '#141414', '#ffffff'],
-  },
-  {
-    id: 'obsidian-void',
-    name: 'Obsidian Shadow Void',
-    vibe: 'Onyx Black, Cosmic Blue & Meteor Grey',
-    icon: Moon,
-    iconColor: 'text-blue-400 fill-blue-400 drop-shadow-[0_0_10px_rgba(37,99,235,0.8)]',
-    iconBg: 'bg-blue-900/20 border-blue-600/30',
-    desc: 'Deep Space Cosmic Void with hyper-velocity burning meteors, 3D tumbling geometric asteroids, and dark-blue ion trails',
-    animation: 'Space Meteors & Polyhedral Asteroids',
-    swatch: ['#000000', '#1d4ed8', '#64748b', '#080c18', '#ffffff'],
-  },
-  {
-    id: 'cyberpunk-synthwave',
-    name: 'Cyberpunk Synthwave Neon',
-    vibe: 'Neon Pink & Teal',
-    icon: Layers,
-    iconColor: 'text-pink-500 fill-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.7)]',
-    iconBg: 'bg-pink-500/10 border-pink-500/30',
-    desc: 'Slow-Gliding Neon Horizon Grid with retro-futuristic wireframe floor sliding forward with magenta horizon glow',
-    animation: 'Slow-Gliding Neon Horizon Grid',
-    swatch: ['#05050c', '#ec4899', '#06b6d4', '#121022', '#ffffff'],
-  },
-  {
-    id: 'mystic-amethyst',
-    name: 'Mystic Amethyst Portal',
-    vibe: 'Royal Purple & Emerald',
+    id: 'nordic-monolith',
+    name: 'Nordic Monolith',
+    vibe: 'Linear / Vercel Clean',
     icon: Compass,
-    iconColor: 'text-purple-400 fill-purple-400 drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]',
-    iconBg: 'bg-purple-500/10 border-purple-500/30',
-    desc: 'Full-Screen Cosmic Nebula Filament Web with sinuous corner-to-corner arcane energy currents and resonating emerald constellations',
-    animation: 'Cosmic Nebula Web & Arcane Currents',
-    swatch: ['#040208', '#9333ea', '#10b981', '#110c1d', '#f8fafc'],
+    iconColor: 'text-cyan-400',
+    iconBg: 'bg-cyan-500/10 border-cyan-400/30',
+    desc: 'True void black with electric frost cyan. High-contrast monochromatic precision with zero visual noise.',
+    swatch: ['#000000', '#111111', '#06b6d4', '#ededed', '#10b981']
   },
+  {
+    id: 'emerald-noir',
+    name: 'Emerald Noir',
+    vibe: 'Spotify Premium',
+    icon: Sparkles,
+    iconColor: 'text-emerald-400',
+    iconBg: 'bg-emerald-500/10 border-emerald-500/30',
+    desc: 'Deep dark night forest with fresh mint emerald accents. Relaxing, organic, and ultra-smooth on the eyes.',
+    swatch: ['#080e0d', '#121c1a', '#10b981', '#f1f5f9', '#facc15']
+  },
+  {
+    id: 'royal-amethyst',
+    name: 'Royal Amethyst',
+    vibe: 'Disney+ / Twitch Studio',
+    icon: Crown,
+    iconColor: 'text-purple-400',
+    iconBg: 'bg-purple-500/10 border-purple-500/30',
+    desc: 'Deep cosmic abyss navy with royal violet and ice white accents. Rich, modern, and cinematic.',
+    swatch: ['#0a0a16', '#131428', '#8b5cf6', '#ffffff', '#f43f5e']
+  }
 ];
 
 const EMOJI_CDN = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64';
@@ -242,20 +209,23 @@ export default function Profile() {
   const [theme, setTheme] = useState(() => {
     let saved = localStorage.getItem('syncstream_theme');
     const legacy = {
-      'storm-thunder': 'cobalt-quantum',
-      synthwave: 'cyberpunk-synthwave',
-      'cryo-vault': 'cryo-glacial',
-      'solar-flare': 'magma-thermal',
-      'cosmic-singularity': 'mystic-amethyst',
-      'plasma-web': 'emerald-biogrid',
-      'cyber-foundry': 'golden-sunfire',
-      'bioluminescent-trench': 'mystic-amethyst',
-      'windy-sakura': 'cyberpunk-synthwave',
-      'yokohama-night': 'cyberpunk-synthwave'
+      'cryo-glacial': 'cinema-slate',
+      'cryo-vault': 'cinema-slate',
+      'obsidian-void': 'nordic-monolith',
+      'magma-thermal': 'midnight-velvet',
+      'solar-flare': 'midnight-velvet',
+      'emerald-biogrid': 'emerald-noir',
+      'plasma-web': 'emerald-noir',
+      'cobalt-quantum': 'royal-amethyst',
+      'storm-thunder': 'royal-amethyst',
+      'mystic-amethyst': 'royal-amethyst',
+      'golden-sunfire': 'cinema-slate',
+      'cyberpunk-synthwave': 'royal-amethyst',
+      synthwave: 'royal-amethyst'
     };
     if (legacy[saved]) saved = legacy[saved];
     if (saved && THEME_OPTIONS.some(t => t.id === saved)) return saved;
-    return 'cryo-glacial';
+    return 'cinema-slate';
   });
 
   const [loading, setLoading] = useState(false);
@@ -390,86 +360,19 @@ export default function Profile() {
   const [aiPreviewUrl, setAiPreviewUrl] = useState(null);
   const [editingAvatarTarget, setEditingAvatarTarget] = useState(null); // { category, id, name }
 
-  const [themeRipple, setThemeRipple] = useState(null);
-  const rippleTimerRef = useRef(null);
-
-  // Live preview theme selection with expanding Radial Theme Ripple Switch
-  const handleThemeChange = (newTheme, e) => {
-    const rect = e?.currentTarget?.getBoundingClientRect?.();
-    const touchPoint = e?.touches?.[0] || e?.changedTouches?.[0];
-    const x = e?.clientX || touchPoint?.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth / 2);
-    const y = e?.clientY || touchPoint?.clientY || (rect ? rect.top + rect.height / 2 : window.innerHeight / 2);
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-
-    const matchedOption = THEME_OPTIONS.find((t) => t.id === newTheme);
-    const rippleColor = matchedOption?.swatch?.[1] || matchedOption?.swatch?.[0] || '#00f5ff';
-    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const supportsViewTransition = !reduceMotion && typeof document.startViewTransition === 'function';
-
-    setThemeRipple({ id: Date.now(), x, y, color: rippleColor, fallbackCurtain: !supportsViewTransition && !reduceMotion });
-    if (rippleTimerRef.current) clearTimeout(rippleTimerRef.current);
-    rippleTimerRef.current = setTimeout(() => setThemeRipple(null), 820);
-
-    const applyThemeDom = () => {
-      flushSync(() => {
-        setTheme(newTheme);
-      });
-      ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      document.body.classList.add(`theme-${newTheme}`);
-    };
-
-    if (supportsViewTransition) {
-      try {
-        const transition = document.startViewTransition(() => {
-          applyThemeDom();
-        });
-        transition.ready
-          .then(() => {
-            document.documentElement.animate(
-              {
-                clipPath: [
-                  `circle(0px at ${x}px ${y}px)`,
-                  `circle(${endRadius}px at ${x}px ${y}px)`
-                ]
-              },
-              {
-                duration: 620,
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                pseudoElement: '::view-transition-new(root)'
-              }
-            );
-          })
-          .catch(() => {});
-        return;
-      } catch {
-        // Fallback to instant application + radial shockwave
-      }
-    }
-
-    applyThemeDom();
+  // Clean, instant theme selection (zero animations)
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    localStorage.setItem('syncstream_theme', newTheme);
+    ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
+    document.body.classList.add(`theme-${newTheme}`);
   };
 
   React.useEffect(() => {
     return () => {
-      let currentPersisted = localStorage.getItem('syncstream_theme') || 'cryo-glacial';
-      const legacy = {
-        'storm-thunder': 'cobalt-quantum',
-        synthwave: 'cyberpunk-synthwave',
-        'cryo-vault': 'cryo-glacial',
-        'solar-flare': 'magma-thermal',
-        'cosmic-singularity': 'mystic-amethyst',
-        'plasma-web': 'emerald-biogrid',
-        'cyber-foundry': 'golden-sunfire',
-        'bioluminescent-trench': 'mystic-amethyst',
-        'windy-sakura': 'cyberpunk-synthwave',
-        'yokohama-night': 'cyberpunk-synthwave'
-      };
-      if (legacy[currentPersisted]) currentPersisted = legacy[currentPersisted];
+      let currentPersisted = localStorage.getItem('syncstream_theme') || 'cinema-slate';
       if (!THEME_OPTIONS.some(t => t.id === currentPersisted)) {
-        currentPersisted = 'cryo-glacial';
+        currentPersisted = 'cinema-slate';
       }
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
       document.body.classList.add(`theme-${currentPersisted}`);
@@ -1750,281 +1653,77 @@ export default function Profile() {
 
           {/* Dashboard Theme Picker */}
           <div className="space-y-3">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-              <Palette className="w-3.5 h-3.5 text-accentCyan" />
-              <span>Live Animated Dashboard Themes ({THEME_OPTIONS.length})</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                <Palette className="w-3.5 h-3.5 text-accentCyan" />
+                <span>Dashboard Theme ({THEME_OPTIONS.length} Studio Palettes)</span>
+              </div>
+              <span className="text-[11px] font-mono text-gray-400">Instant Preview</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {THEME_OPTIONS.map((t) => {
                 const isSelected = theme === t.id;
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={(e) => handleThemeChange(t.id, e)}
-                    className={`group relative p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-300 overflow-hidden active:scale-[0.98] cursor-pointer ${
+                    onClick={() => handleThemeChange(t.id)}
+                    className={`group relative p-3.5 sm:p-4 rounded-xl border text-left transition-colors duration-150 overflow-hidden cursor-pointer ${
                       isSelected
-                        ? 'ring-1 ring-white/20'
-                        : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-0.5 hover:shadow-xl'
+                        ? 'border-accentCyan/80 bg-white/[0.06] shadow-lg ring-1 ring-accentCyan/40'
+                        : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20'
                     }`}
-                    style={
-                      isSelected
-                        ? {
-                            borderColor: `${t.swatch[1]}aa`,
-                            background: `linear-gradient(135deg, ${t.swatch[0]}f5, ${t.swatch[3] || t.swatch[0]}ee)`,
-                            boxShadow: `0 0 28px ${t.swatch[1]}35, inset 0 0 16px ${t.swatch[1]}15`,
-                          }
-                        : undefined
-                    }
                   >
-                    {/* Hover Shimmer Glint */}
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
-
-                    {/* Animated Theme Preview Mini-Mockup Stage */}
-                    <div
-                      aria-hidden="true"
-                      className="relative mb-2.5 h-14 sm:h-16 rounded-xl border border-white/10 bg-[#04060f]/95 p-2 flex flex-col justify-between overflow-hidden shadow-inner"
-                    >
-                      {/* Theme Ambient Glow Orbs */}
-                      <div
-                        className="absolute -top-4 -right-4 w-20 h-20 rounded-full blur-xl opacity-45 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none"
-                        style={{ background: t.swatch[1] || t.swatch[0] }}
-                      />
-                      <div
-                        className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full blur-lg opacity-30 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none"
-                        style={{ background: t.swatch[2] || t.swatch[0] }}
-                      />
-
-                      {/* Sweeping Specular Light Glint */}
-                      <div className="absolute inset-0 animate-theme-mockup-sweep bg-gradient-to-r from-transparent via-white/[0.12] to-transparent pointer-events-none" />
-
-                      {/* Mini Mockup Header / OS Navbar */}
-                      <div className="relative z-10 flex items-center justify-between gap-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className="w-2 h-2 rounded-full animate-pulse"
-                            style={{ background: t.swatch[1] || t.swatch[0], boxShadow: `0 0 6px ${t.swatch[1] || t.swatch[0]}` }}
-                          />
-                          <span
-                            className="w-1.5 h-1.5 rounded-full opacity-80"
-                            style={{ background: t.swatch[2] || t.swatch[0] }}
-                          />
-                          <span
-                            className="w-1.5 h-1.5 rounded-full opacity-60"
-                            style={{ background: t.swatch[3] || t.swatch[0] }}
-                          />
-                        </div>
-                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-white/10 bg-black/50 text-gray-300 truncate max-w-[150px]">
-                          {t.vibe}
-                        </span>
-                      </div>
-
-                      {/* Mini Dynamic Graphics Stage */}
-                      <div className="relative z-10 flex-1 my-1 flex items-center justify-center overflow-hidden">
-                        {t.id === 'cryo-glacial' && (
-                          <div className="w-full h-full flex items-center justify-around px-3 relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/20 via-cyan-400/25 to-blue-600/15 blur-sm animate-pulse" />
-                            {/* Six-fold ice snowflake crystal */}
-                            <div className="relative animate-theme-shard flex items-center justify-center">
-                              <Snowflake className="w-5 h-5 text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
-                              <span className="absolute w-1 h-1 rounded-full bg-white shadow-[0_0_6px_#ffffff]" />
-                            </div>
-                            {/* Drifting diamond ice needle */}
-                            <div
-                              className="w-2.5 h-5 rotate-45 border border-cyan-300/90 bg-cyan-400/30 rounded-sm animate-theme-wave shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                              style={{ animationDelay: '0.8s' }}
-                            />
-                            {/* Micro ice crystal glint */}
-                            <div
-                              className="w-3.5 h-3.5 rotate-12 border border-white/90 bg-white/40 rounded-sm animate-theme-shard shadow-[0_0_8px_#ffffff]"
-                              style={{ animationDelay: '1.4s' }}
-                            />
-                          </div>
-                        )}
-
-                        {t.id === 'cobalt-quantum' && (
-                          <div className="w-full h-full flex items-center justify-center relative px-2">
-                            <svg className="w-full h-8 overflow-visible" viewBox="0 0 120 28" fill="none">
-                              {/* Harmonic Lissajous Wave Curve */}
-                              <path
-                                d="M0 14 C 20 2, 40 26, 60 14 C 80 2, 100 26, 120 14"
-                                stroke="#8b5cf6"
-                                strokeWidth="2"
-                                className="animate-theme-wave"
-                              />
-                              {/* Reverse phase neon lime wave */}
-                              <path
-                                d="M0 14 C 20 26, 40 2, 60 14 C 80 26, 100 2, 120 14"
-                                stroke="#a3e635"
-                                strokeWidth="1.6"
-                                className="animate-theme-wave"
-                                style={{ animationDirection: 'reverse' }}
-                              />
-                              {/* Tilted orbital ring */}
-                              <ellipse cx="60" cy="14" rx="28" ry="8" stroke="#8b5cf6" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
-                              {/* Quantum Entangled Node */}
-                              <circle
-                                cx="60"
-                                cy="14"
-                                r="3"
-                                fill="#ffffff"
-                                className="animate-ping"
-                                style={{ animationDuration: '2s' }}
-                              />
-                              <circle cx="60" cy="14" r="2.5" fill="#a3e635" />
-                            </svg>
-                          </div>
-                        )}
-
-                        {t.id === 'obsidian-void' && (
-                          <div className="w-full h-full flex items-center justify-between px-3 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-black to-slate-900/30" />
-                            {/* Shooting Meteor with blazing ion trail */}
-                            <div className="relative flex items-center">
-                              <div className="w-14 h-1 bg-gradient-to-r from-transparent via-blue-600/80 to-white rounded-full shadow-[0_0_10px_rgba(37,99,235,0.9)] animate-theme-wave" />
-                              <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#ffffff] -ml-1 animate-pulse" />
-                            </div>
-                            {/* 3D Geometric Asteroid Polyhedron */}
-                            <div className="relative w-6 h-6 flex items-center justify-center animate-theme-singularity">
-                              <div className="w-5 h-5 bg-[#080c18] border border-slate-400/80 rotate-45 shadow-[inset_0_0_6px_rgba(37,99,235,0.6)] flex items-center justify-center">
-                                <div className="w-2.5 h-2.5 bg-blue-600/30 border border-blue-400/70 rotate-12" />
-                              </div>
-                              <span className="absolute top-0 right-0 w-1 h-1 rounded-full bg-white shadow-[0_0_4px_#ffffff]" />
-                            </div>
-                          </div>
-                        )}
-
-                        {t.id === 'magma-thermal' && (
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-t from-red-600/40 via-orange-500/20 to-transparent animate-pulse" />
-                            <div className="flex gap-2 items-end h-5">
-                              <span className="w-1.5 h-3 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                              <span className="w-1.5 h-5 rounded-full bg-red-500 animate-bounce" style={{ animationDelay: '0.3s' }} />
-                              <span className="w-1.5 h-4 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                            </div>
-                          </div>
-                        )}
-
-                        {t.id === 'emerald-biogrid' && (
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                            <div className="w-full flex justify-between px-2 text-[8px] font-mono text-emerald-400/80 animate-pulse">
-                              <span>0101</span>
-                              <span className="text-teal-300 font-bold">BIO_GRID</span>
-                              <span>1010</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {t.id === 'golden-sunfire' && (
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-600/20 blur-sm animate-pulse" />
-                            <Crown className="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-bounce" style={{ animationDuration: '2.5s' }} />
-                          </div>
-                        )}
-
-                        {t.id === 'cyberpunk-synthwave' && (
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                            <div className="w-full h-6 border-b border-pink-500/80 bg-gradient-to-t from-pink-500/20 to-cyan-500/20 flex flex-col justify-end">
-                              <div className="w-full h-0.5 bg-gradient-to-r from-pink-500 via-cyan-400 to-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
-                            </div>
-                          </div>
-                        )}
-
-                        {t.id === 'mystic-amethyst' && (
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                            <div className="w-7 h-7 rounded-full border-2 border-purple-500/80 border-t-emerald-400 animate-spin shadow-[0_0_10px_rgba(168,85,247,0.7)]" style={{ animationDuration: '4s' }} />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Mini Footer row */}
-                      <div className="relative z-10 flex items-center gap-1.5">
-                        <div
-                          className="h-2 flex-1 rounded-full relative overflow-hidden"
-                          style={{
-                            background: `linear-gradient(90deg, ${t.swatch[0]}66, ${t.swatch[1] || t.swatch[0]}55)`
-                          }}
-                        >
-                          <div
-                            className="h-full w-1/2 animate-horizon-beam opacity-80"
-                            style={{
-                              background: `linear-gradient(90deg, transparent, ${t.swatch[1] || t.swatch[0]}, transparent)`
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="h-2 w-4 rounded-full"
-                          style={{ background: t.swatch[2] || t.swatch[1] }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Interactive 5-Tone Color Swatch Bar */}
-                    <div className="flex gap-1.5 mb-2.5">
-                      {t.swatch.map((color, cIdx) => (
-                        <div
-                          key={`${color}-${cIdx}`}
-                          title={color}
-                          className="h-2 flex-1 rounded-full transition-all duration-200 group-hover:h-2.5"
-                          style={{
-                            background: color,
-                            boxShadow: `0 0 10px ${color}88`
-                          }}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Theme Header: Icon + Title + Active Radar Badge */}
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                    {/* Top Row: Icon + Name & Vibe + Active Badge */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
+                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
                           {t.icon && <t.icon className={`w-4 h-4 ${t.iconColor || 'text-accentCyan'} shrink-0`} />}
                         </span>
                         <div className="min-w-0">
-                          <span className="font-extrabold text-sm text-white tracking-tight block truncate">
+                          <span className="font-bold text-sm text-white tracking-tight block truncate">
                             {t.name}
+                          </span>
+                          <span className="text-[10px] font-mono text-gray-400 block truncate">
+                            {t.vibe}
                           </span>
                         </div>
                       </div>
 
-                      {isSelected && (
-                        <div
-                          className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider font-mono border shadow-md shrink-0"
-                          style={{
-                            backgroundColor: `${t.swatch[1]}20`,
-                            borderColor: `${t.swatch[1]}70`,
-                            color: t.swatch[4] || '#ffffff',
-                            boxShadow: `0 0 10px ${t.swatch[1]}40`
-                          }}
-                        >
-                          <span className="relative flex h-2 w-2">
-                            <span
-                              className="animate-theme-badge-radar absolute inline-flex h-full w-full rounded-full opacity-75"
-                              style={{ backgroundColor: t.swatch[1] }}
-                            />
-                            <span
-                              className="relative inline-flex rounded-full h-2 w-2"
-                              style={{ backgroundColor: t.swatch[1] }}
-                            />
-                          </span>
-                          <span>ACTIVE</span>
-                        </div>
+                      {isSelected ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-accentCyan/50 bg-accentCyan/15 text-accentCyan shrink-0">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          Select
+                        </span>
                       )}
                     </div>
 
-                    <p className="text-[11px] sm:text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">
+                    {/* 5-Color Palette Strip */}
+                    <div className="mb-2.5">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-1">
+                        <span>Palette</span>
+                        <span className="text-gray-500">5-Tone Colorway</span>
+                      </div>
+                      <div className="flex h-3 w-full rounded-md overflow-hidden border border-white/10 shadow-inner">
+                        {t.swatch.map((color, cIdx) => (
+                          <div
+                            key={`${color}-${cIdx}`}
+                            title={color}
+                            className="flex-1 h-full"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Clean Description */}
+                    <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed">
                       {t.desc}
                     </p>
-
-                    {/* Animation Pill Tag */}
-                    <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-mono text-gray-300 group-hover:border-white/20 transition-colors">
-                      <Sparkles
-                        className="w-2.5 h-2.5 animate-pulse shrink-0"
-                        style={{ color: t.swatch[1] }}
-                      />
-                      <span className="truncate">{t.animation}</span>
-                    </div>
                   </button>
                 );
               })}
@@ -2240,36 +1939,6 @@ export default function Profile() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Radial Theme Switch Shockwave Flash & Mobile Fallback Curtain Overlay */}
-      {themeRipple && (
-        <>
-          {themeRipple.fallbackCurtain && (
-            <div
-              key={`curtain-${themeRipple.id}`}
-              aria-hidden="true"
-              className="fixed inset-0 pointer-events-none z-[9998] animate-theme-curtain"
-              style={{
-                '--wipe-x': `${themeRipple.x}px`,
-                '--wipe-y': `${themeRipple.y}px`,
-                background: `radial-gradient(circle at ${themeRipple.x}px ${themeRipple.y}px, ${themeRipple.color}44 0%, ${themeRipple.color}18 48%, rgba(4, 7, 18, 0.55) 100%)`
-              }}
-            />
-          )}
-          <div
-            key={themeRipple.id}
-            aria-hidden="true"
-            className="fixed w-72 h-72 rounded-full pointer-events-none z-[9999] animate-theme-shockwave"
-            style={{
-              left: `${themeRipple.x}px`,
-              top: `${themeRipple.y}px`,
-              background: `radial-gradient(circle, ${themeRipple.color}55 0%, ${themeRipple.color}22 45%, transparent 72%)`,
-              boxShadow: `0 0 60px ${themeRipple.color}88`,
-              border: `2px solid ${themeRipple.color}`
-            }}
-          />
-        </>
       )}
     </div>
   );
