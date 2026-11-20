@@ -6,67 +6,67 @@
 
 export const STREAMING_SERVERS = [
   { 
-    key: 'vidsrcto', 
-    num: '01',
-    name: 'VidSrc TO',
-    label: 'Server 1 (VidSrc TO)', 
-    badge: 'Ultra Fast',
-    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-    description: 'High-speed VidSrc TO video engine with instant bufferless playback'
-  },
-  { 
     key: 'vidlink', 
-    num: '02',
+    num: '01',
     name: 'VidLink PRO',
-    label: 'Server 2 (VidLink PRO)', 
+    label: 'Server 1 (VidLink PRO)', 
     badge: 'Multi-Subs • 4K',
     tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    description: 'Next-gen streaming cloud with built-in multi-language subtitles and 4K sources'
+    description: 'Next-gen streaming cloud with built-in multi-language subtitles and clean 4K sources'
   },
   { 
     key: 'vidfast', 
-    num: '03',
+    num: '02',
     name: 'VidFast PRO',
-    label: 'Server 3 (VidFast PRO)', 
+    label: 'Server 2 (VidFast PRO)', 
     badge: 'Lightning Fast',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     description: 'Supercharged direct cloud node with rapid loading and adaptive bitrate'
   },
   { 
-    key: 'twoembed', 
+    key: 'embedwave', 
+    num: '03',
+    name: 'EmbedWave Ultra',
+    label: 'Server 3 (EmbedWave Ultra)', 
+    badge: 'Zero Ads Node',
+    tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
+    description: 'Modern clean player engine with crystal-clear bufferless playback'
+  },
+  { 
+    key: 'vidsrcto', 
     num: '04',
+    name: 'VidSrc TO',
+    label: 'Server 4 (VidSrc TO)', 
+    badge: 'Global Cinema',
+    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+    description: 'Extensive global cinema and television mirror with vast title catalog'
+  },
+  { 
+    key: 'twoembed', 
+    num: '05',
     name: '2Embed CC',
-    label: 'Server 4 (2Embed CC)', 
+    label: 'Server 5 (2Embed CC)', 
     badge: 'High Quality',
     tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
     description: 'Reliable global streaming server with extensive anime and cinema library'
   },
   { 
     key: 'anyembed', 
-    num: '05',
+    num: '06',
     name: 'AnyEmbed Stream',
-    label: 'Server 5 (AnyEmbed Stream)', 
+    label: 'Server 6 (AnyEmbed Stream)', 
     badge: 'Cloud Player',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
     description: 'High-speed cloud player with multi-source auto-failover'
   },
   { 
     key: 'movietv', 
-    num: '06',
+    num: '07',
     name: 'MovieTV Cloud',
-    label: 'Server 6 (MovieTV Cloud)', 
+    label: 'Server 7 (MovieTV Cloud)', 
     badge: 'Multi-Source',
     tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
     description: 'Multi-source failover architecture with responsive HTML5 playback'
-  },
-  { 
-    key: 'embedwave', 
-    num: '07',
-    name: 'EmbedWave Ultra',
-    label: 'Server 7 (EmbedWave Ultra)', 
-    badge: 'Zero Ads Node',
-    tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    description: 'Modern clean player engine with crystal-clear playback'
   },
   { 
     key: 'twoembedskin', 

@@ -9,8 +9,20 @@ import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calend
 import { Link } from 'react-router-dom';
 
 export default function Home() {
-  const [media, setMedia] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Instant Stale-While-Revalidate: Load cached catalog immediately (0ms latency), update in background
+  const [media, setMedia] = useState(() => {
+    try {
+      const cached = localStorage.getItem('syncstream_cached_home_catalog_v2');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object' && parsed.trending) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  });
+  const [loading, setLoading] = useState(() => !media);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
     try {
@@ -29,11 +41,7 @@ export default function Home() {
   const tabButtonRefs = useRef({});
   const [tabPillStyle, setTabPillStyle] = useState({ left: 0, width: 0, ready: false });
 
-  // Floating Parallax Spotlight Hero state
-  const heroRef = useRef(null);
-  const [heroSpot, setHeroSpot] = useState({ x: 50, y: 45, active: false });
-
-  // Elastic Pull-to-Refresh Neon Orb (#2)
+  // Clean Pull-to-Refresh
   const [pullDistance, setPullDistance] = useState(0);
   const pullStartYRef = useRef(null);
 
@@ -66,18 +74,6 @@ export default function Home() {
     }
     pullStartYRef.current = null;
     setPullDistance(0);
-  };
-
-  const handleHeroPointerMove = (e) => {
-    const el = heroRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0]?.clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0]?.clientY : e.clientY;
-    if (typeof clientX !== 'number' || typeof clientY !== 'number') return;
-    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
-    setHeroSpot({ x, y, active: true });
   };
 
   useEffect(() => {
@@ -342,7 +338,9 @@ export default function Home() {
     if (!force && now - lastFetchRef.current < STALE_AFTER) return;
     isFetchingRef.current = true;
     try {
-      setLoading(true);
+      if (!media || force) {
+        setLoading(true);
+      }
       const url = force ? '/api/media/trending?refresh=1' : '/api/media/trending';
       // Fetch backend dashboard AND direct browser live AniList anime + manga in parallel
       // (Bypasses Render shared-IP AniList 429 rate-limits so anime & manga feeds are 100% live & distinct!)
@@ -367,11 +365,16 @@ export default function Home() {
         merged.upcoming = { ...(merged.upcoming || {}), manga: liveManga.upcoming };
       }
       setMedia(merged);
+      try {
+        localStorage.setItem('syncstream_cached_home_catalog_v2', JSON.stringify(merged));
+      } catch {}
       setLastUpdated(merged._fetchedAt ? new Date(merged._fetchedAt) : new Date());
       lastFetchRef.current = Date.now();
     } catch (err) {
       console.error('Failed to load home catalog:', err);
-      setError('Could not connect to external media APIs. Retrying shortly...');
+      if (!media) {
+        setError('Could not connect to external media APIs. Retrying shortly...');
+      }
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
@@ -413,123 +416,66 @@ export default function Home() {
       onTouchEnd={handleTouchEndPull}
       className="space-y-8 sm:space-y-14 py-4 sm:py-8 px-3.5 sm:px-6 md:px-8 max-w-7xl mx-auto"
     >
-      {/* Elastic Pull-to-Refresh Neon Orb Indicator */}
+      {/* Clean Pull-to-Refresh Indicator */}
       {(pullDistance > 6 || (loading && media !== null)) && (
         <div
           aria-live="polite"
           style={{
-            transform: `translateY(${loading ? 4 : Math.max(0, pullDistance - 24)}px) scale(${loading ? 1 : Math.min(1.08, 0.72 + pullDistance / 110)})`
+            transform: `translateY(${loading ? 4 : Math.max(0, pullDistance - 24)}px) scale(${loading ? 1 : Math.min(1.04, 0.8 + pullDistance / 140)})`
           }}
           className="flex justify-center pointer-events-none transition-transform duration-150 -mb-4"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0a1026]/95 border border-accentCyan/70 shadow-[0_0_24px_rgba(var(--accent-cyan),0.55)] backdrop-blur-xl">
-            <span className="relative flex h-3 w-3 items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accentCyan opacity-75" />
-              <RefreshCw
-                className={`relative w-3 h-3 text-accentCyan ${loading ? 'animate-spin' : ''}`}
-                style={!loading ? { transform: `rotate(${pullDistance * 4}deg)` } : undefined}
-              />
-            </span>
-            <span className="text-[11px] font-mono font-extrabold text-white">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0d1326] border border-white/15 shadow-lg backdrop-blur-md">
+            <RefreshCw
+              className={`w-3.5 h-3.5 text-accentCyan ${loading ? 'animate-spin' : ''}`}
+              style={!loading ? { transform: `rotate(${pullDistance * 4}deg)` } : undefined}
+            />
+            <span className="text-xs font-semibold text-white">
               {loading
-                ? 'Refreshing Feeds...'
+                ? 'Updating...'
                 : pullDistance >= 54
                   ? 'Release to Refresh'
-                  : 'Pull Down to Sync'}
+                  : 'Pull to Sync'}
             </span>
           </div>
         </div>
       )}
 
-      {/* ── Hero Banner (Floating Parallax Spotlight Hero) ── */}
+      {/* ── Hero Banner (High-Performance Cinematic Hero) ── */}
       <section
-        ref={heroRef}
-        onMouseMove={handleHeroPointerMove}
-        onTouchStart={handleHeroPointerMove}
-        onTouchMove={handleHeroPointerMove}
-        onMouseLeave={() => setHeroSpot((prev) => ({ ...prev, active: false }))}
-        className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.08] text-center bg-aurora group/hero"
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 text-center bg-gradient-to-b from-[#12182c] via-[#0b0e1b] to-[#070913] shadow-2xl"
       >
-        {/* Ambient orbs */}
-        <div className="orb orb-purple w-80 h-80 -top-20 -left-20 opacity-60 pointer-events-none" />
-        <div className="orb orb-cyan w-64 h-64 -bottom-16 -right-16 opacity-50 pointer-events-none" />
-        <div className="orb orb-pink w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none" />
-
-        {/* Pointer-Tracked Radial Spotlight Glow */}
+        {/* Subtle vignette lighting */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 pointer-events-none transition-opacity duration-500 z-[1]"
-          style={{
-            opacity: heroSpot.active ? 1 : 0.45,
-            background: `radial-gradient(520px circle at ${heroSpot.x}% ${heroSpot.y}%, rgba(var(--accent-cyan), 0.16), rgba(var(--accent-purple), 0.08) 40%, transparent 72%)`
-          }}
+          className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(56,189,248,0.12),transparent_70%)]"
         />
 
-        {/* Gently Drifting Floating Background Poster Cards (Zero overflow, subtle parallax) */}
-        {(() => {
-          const heroPosters = (media?.trending?.movies || []).slice(0, 4);
-          if (heroPosters.length === 0) return null;
-          const dx = (heroSpot.x - 50) * 0.22;
-          const dy = (heroSpot.y - 50) * 0.22;
-          const slotClasses = [
-            { pos: 'block -top-2 -left-2 w-14 xs:w-16 sm:-top-4 sm:left-3 md:left-8 sm:w-24 md:w-28', rot: '-8deg', mult: -1 },
-            { pos: 'block top-3 -right-2 w-14 xs:w-16 sm:top-6 sm:right-3 md:right-10 sm:w-24 md:w-28', rot: '7deg', mult: 1 },
-            { pos: 'hidden sm:block bottom-4 left-6 md:left-12 lg:left-20 w-20 sm:w-24 md:w-28', rot: '6deg', mult: 0.7 },
-            { pos: 'hidden sm:block -bottom-2 right-6 md:right-12 lg:right-24 w-20 sm:w-24 md:w-28', rot: '-7deg', mult: -0.8 },
-          ];
-          return (
-            <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-              {heroPosters.map((item, idx) => {
-                const slot = slotClasses[idx];
-                if (!slot) return null;
-                return (
-                  <div
-                    key={item.id || idx}
-                    className={`absolute ${slot.pos} aspect-[2/3] rounded-2xl overflow-hidden border border-white/15 opacity-20 md:opacity-25 blur-[1.5px] shadow-2xl transition-transform duration-300 ease-out`}
-                    style={{
-                      transform: `translate3d(${dx * slot.mult}px, ${dy * slot.mult}px, 0)`
-                    }}
-                  >
-                    <img
-                      src={formatMediaPoster({ ...item, media_type: 'movie' })}
-                      alt=""
-                      className="w-full h-full object-cover animate-hero-float"
-                      style={{ '--base-rot': slot.rot, animationDelay: `${idx * -1.4}s` }}
-                      referrerPolicy="no-referrer"
-                      onError={(e) => handlePosterError(e, { ...item, media_type: 'movie' })}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
-
         {/* Noise grain overlay */}
-        <div className="noise-overlay rounded-2xl sm:rounded-3xl pointer-events-none" />
+        <div className="noise-overlay rounded-2xl sm:rounded-3xl pointer-events-none opacity-[0.015]" />
 
         {/* Content */}
-        <div className="relative z-10 py-7 px-3 xs:py-8 xs:px-4 sm:py-16 sm:px-8 md:py-20 md:px-16 space-y-4 sm:space-y-6 hero-gradient">
+        <div className="relative z-10 py-8 px-4 sm:py-16 sm:px-8 md:py-20 md:px-16 space-y-4 sm:space-y-6">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1 bg-white/[0.06] border border-white/[0.1] rounded-full text-[10px] xs:text-[11px] font-semibold text-gray-300 backdrop-blur-md animate-fade-up font-mono tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-accentCyan animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.05] border border-white/[0.1] rounded-full text-[11px] font-semibold text-gray-300 backdrop-blur-md tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-accentCyan" />
             <span>THE ULTIMATE STREAMING HUB</span>
           </div>
 
-          <h1 className="text-[26px] xs:text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-josefin font-bold tracking-wide xs:tracking-wider leading-tight sm:leading-none uppercase animate-fade-up stagger-2">
+          <h1 className="text-[28px] xs:text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-josefin font-bold tracking-wide xs:tracking-wider leading-tight sm:leading-none uppercase">
             Discover, Stream &amp;
             <br />
-            <span className="text-gradient-aurora title-glow">Watch Together</span>
+            <span className="text-gradient">Watch Together</span>
           </h1>
 
-          <p className="text-gray-400 max-w-xl mx-auto text-xs sm:text-base md:text-lg leading-relaxed animate-fade-up stagger-3 font-dm">
+          <p className="text-gray-400 max-w-xl mx-auto text-xs sm:text-base md:text-lg leading-relaxed font-dm">
             Movies, TV shows, anime &amp; manga — synced across devices in real-time. Host Watch Parties with live chat.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-1 animate-fade-up stagger-4">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-1">
             <Link
               to="/search"
-              className="btn-primary btn-shimmer flex items-center gap-2 !text-white text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95"
+              className="btn-primary flex items-center gap-2 !text-white text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95 shadow-lg"
             >
               <Search className="w-4 h-4" />
               <span>Explore Catalog</span>
@@ -537,7 +483,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-join-party'))}
-              className="btn-ghost btn-shimmer flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95 cursor-pointer border-accentPurple/40 text-gray-200 hover:text-white hover:border-accentPurple/70"
+              className="btn-ghost flex items-center gap-2 text-xs sm:text-sm !px-5 sm:!px-6 !py-2.5 sm:!py-3 active:scale-95 cursor-pointer border-accentPurple/40 text-gray-200 hover:text-white hover:border-accentPurple/70"
             >
               <Users className="w-4 h-4 text-accentPurple" />
               <span>Join a Party</span>
@@ -545,13 +491,13 @@ export default function Home() {
           </div>
 
           {/* Feature highlights */}
-          <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 max-w-3xl mx-auto border-t border-white/[0.06] mt-2 animate-fade-up stagger-5">
+          <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 max-w-3xl mx-auto border-t border-white/[0.06] mt-2">
             {[
               { icon: Tv, color: 'text-sky-400 fill-sky-400', bg: 'bg-sky-500/10 border-sky-400/30', title: 'Aggregated Catalog', desc: 'TMDB, Anime, MangaDex feeds in one dashboard.' },
               { icon: Sparkles, color: 'text-purple-400 fill-purple-400', bg: 'bg-purple-500/10 border-purple-400/30', title: 'Host Sync Players', desc: 'Control playback across all participants live.' },
               { icon: MessageSquareCode, color: 'text-pink-400 fill-pink-400', bg: 'bg-pink-500/10 border-pink-400/30', title: 'Lobby Chat', desc: 'Chat alongside streams with persistent history.' },
             ].map(({ icon: Icon, color, bg, title, desc }) => (
-              <div key={title} className="flex flex-col items-center p-3 text-center space-y-1 hover-lift">
+              <div key={title} className="flex flex-col items-center p-3 text-center space-y-1">
                 <div className={`p-2.5 rounded-xl border ${bg}`}>
                   <Icon className={`w-4 h-4 ${color}`} />
                 </div>
@@ -572,8 +518,8 @@ export default function Home() {
           <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider font-josefin">
             Discovery Feed
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2 xs:px-3 py-0.5 xs:py-1 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-mono text-[10px] xs:text-xs font-black shadow-[0_0_12px_rgba(16,185,129,0.35)] shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-[10px] xs:text-xs font-bold shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Live Catalog</span>
           </span>
         </div>

@@ -135,37 +135,25 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
       ref={containerRef}
       className={`relative w-full ${isFullscreen ? 'h-screen' : 'aspect-video'} rounded-2xl overflow-hidden bg-black border border-darkBorder shadow-2xl transition-all duration-300 group`}
     >
-      {/* Animated Cyber-Shutter Matrix Loading Overlay */}
+      {/* High-End Clean Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-[#050814]/95 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10 overflow-hidden select-none">
-          {/* Subtle matrix grid backdrop */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage:
-                'linear-gradient(to right, rgba(var(--accent-cyan), 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--accent-purple), 0.14) 1px, transparent 1px)',
-              backgroundSize: '28px 28px'
-            }}
-          />
-          {/* Horizontal Cyber-Shutter Scan Beam */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-transparent via-accentCyan/25 to-transparent border-y border-accentCyan/35 animate-cyber-shutter pointer-events-none"
-          />
-          <div className="relative z-10 flex flex-col items-center gap-2.5 px-4 text-center">
-            <div className="relative p-3 rounded-2xl bg-black/70 border border-accentCyan/40 shadow-[0_0_24px_rgba(var(--accent-cyan),0.3)]">
-              <Loader2 className="w-7 h-7 sm:w-9 sm:h-9 animate-spin text-accentCyan" />
-            </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/80 border border-accentCyan/30 text-[11px] sm:text-xs font-mono font-bold text-accentCyan shadow-lg">
-              <span className="w-1.5 h-1.5 rounded-full bg-accentCyan animate-ping" />
-              <span>Locking Stream Mirror...</span>
-            </div>
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10 select-none">
+          <div className="relative p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 shadow-xl">
+            <Loader2 className="w-8 h-8 animate-spin text-accentCyan" />
+          </div>
+          <div className="flex flex-col items-center gap-1 px-4 text-center">
+            <span className="text-sm font-semibold text-white tracking-wide">
+              Loading Player...
+            </span>
+            <span className="text-[11px] text-gray-400">
+              If playback does not start shortly, try switching to Server 2 or 3
+            </span>
           </div>
         </div>
       )}
 
-      {/* Embedded Player Iframe with Complete Media Permissions and NO sandbox blocking */}
+      {/* Embedded Player Iframe with Complete Media Permissions and Strict Sandbox Protection */}
+      {/* Sandbox explicitly denies allow-top-navigation and allow-popups, physically preventing ad redirects */}
       <iframe
         ref={iframeRef}
         src={embedUrl}
@@ -175,6 +163,7 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
         webkitallowfullscreen="true"
         mozallowfullscreen="true"
         scrolling="no"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
         allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
         referrerPolicy="origin-when-cross-origin"
         onLoad={() => setLoading(false)}
@@ -186,7 +175,7 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
         <button
           onClick={toggleFullscreen}
           title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Enter Fullscreen'}
-          className="bg-black/70 hover:bg-black/90 text-gray-300 hover:text-white p-2 rounded-xl backdrop-blur-md border border-white/10 shadow-lg transition hover:scale-105 active:scale-95"
+          className="bg-black/70 hover:bg-black/90 text-gray-300 hover:text-white p-2 rounded-xl backdrop-blur-md border border-white/10 shadow-lg transition hover:scale-105 active:scale-95 cursor-pointer"
         >
           {isFullscreen ? (
             <Minimize className="w-4 h-4 text-accentCyan" />
@@ -194,16 +183,6 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
             <Maximize className="w-4 h-4 text-accentCyan" />
           )}
         </button>
-
-        {/* Info Popover */}
-        <div className="group/info relative">
-          <div className="bg-black/70 hover:bg-black/90 text-gray-400 hover:text-white p-2 rounded-xl cursor-help backdrop-blur-md border border-white/10 transition shadow-lg">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="absolute right-0 mt-2 w-64 bg-darkCard border border-darkBorder rounded-xl p-3 text-xs text-gray-300 opacity-0 group-hover/info:opacity-100 transition-opacity pointer-events-none shadow-2xl z-40 font-medium">
-            Shield Active: Browser redirects and popups are neutralized. Use the fullscreen icon if native fullscreen is unresponsive.
-          </div>
-        </div>
       </div>
     </div>
   );

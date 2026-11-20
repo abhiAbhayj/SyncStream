@@ -136,7 +136,7 @@ export default function MediaDetail() {
   const [activeEpisode, setActiveEpisode] = useState(urlEpisode ? parseInt(urlEpisode, 10) : (savedProgress?.episode_number || 1));
   
   // Streaming server source tracking (Preserves user's chosen server permanently)
-  const initialServer = urlServer || savedProgress?.server_key || 'vidsrcto';
+  const initialServer = urlServer || savedProgress?.server_key || 'vidlink';
   const [embedServer, setEmbedServer] = useState(initialServer);
   const isExtendedServer = STREAMING_SERVERS.findIndex(s => s.key === initialServer) >= 5;
   const [showAllServers, setShowAllServers] = useState(isExtendedServer);
@@ -357,7 +357,7 @@ export default function MediaDetail() {
   const saveProgressSnapshot = (targetServer = null, targetTime = null) => {
     const mediaTitle = detail?.title || detail?.name;
     if (!detail || !mediaTitle || playbackMode === 'trailer') return;
-    const curServer = targetServer || embedServer || 'vidsrcto';
+    const curServer = targetServer || embedServer || 'vidlink';
     const curTime = targetTime !== null && targetTime !== undefined
       ? targetTime
       : (progressTrackerRef.current.currentTime || resumeTime || 0);
