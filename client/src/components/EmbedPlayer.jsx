@@ -152,8 +152,8 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
         </div>
       )}
 
-      {/* Embedded Player Iframe with Complete Media Permissions and Strict Sandbox Protection */}
-      {/* Sandbox explicitly denies allow-top-navigation and allow-popups, physically preventing ad redirects */}
+      {/* Embedded Player Iframe with Complete Media Permissions and NO sandbox attribute */}
+      {/* Streaming servers detect sandbox and throw "Disable sandbox in all server"; parent neutralizer handles popups */}
       <iframe
         ref={iframeRef}
         src={embedUrl}
@@ -163,7 +163,6 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
         webkitallowfullscreen="true"
         mozallowfullscreen="true"
         scrolling="no"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
         allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
         referrerPolicy="origin-when-cross-origin"
         onLoad={() => setLoading(false)}
