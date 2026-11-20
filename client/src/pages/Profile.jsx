@@ -31,7 +31,10 @@ import {
   Layers,
   Compass,
   Search,
-  Film
+  Film,
+  ChevronDown,
+  ChevronUp,
+  Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -231,6 +234,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [activeSectionTab, setActiveSectionTab] = useState('identity'); // 'identity' | 'themes'
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // ── Universal Avatar Collections State (Supports Add / Edit / Delete in all categories) ──
   const [avatarCollections, setAvatarCollections] = useState(() => {
@@ -898,211 +903,354 @@ export default function Profile() {
   const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.emojis;
 
   return (
-    <div className="max-w-5xl mx-auto py-4 sm:py-6 px-3 sm:px-5 md:px-6 lg:px-8 space-y-4 sm:space-y-6 min-h-[75vh] pb-8 sm:pb-12">
-      {/* Title */}
-      <div className="space-y-0.5">
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-outfit flex items-center gap-2">
-          <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-accentPurple shrink-0" />
-          <span>Profile &amp; Avatar Studio</span>
+    <div className="max-w-6xl mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-5 md:px-6 lg:px-8 space-y-5 sm:space-y-6 min-h-[75vh] pb-12 sm:pb-16">
+      {/* Page Title & Breadcrumb */}
+      <div className="space-y-1">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-white/10 bg-white/5 text-[11px] font-mono text-accentCyan">
+          <Settings className="w-3 h-3" />
+          <span>Account Settings</span>
+        </div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-outfit">
+          Profile &amp; Appearance
         </h1>
         <p className="text-xs sm:text-sm text-gray-400">
-          Customize your identity, manage avatars with AI prompts, and switch animated themes.
+          Customize your display identity, manage avatar collections, and choose your dashboard theme.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
-        {/* Left Side: Active Avatar & Studio Controls (Horizontal Banner on Tablet, Sidebar on Desktop) */}
-        <div className="lg:col-span-4 glass-panel border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row lg:flex-col items-center sm:justify-between lg:justify-center gap-4 text-center sm:text-left lg:text-center">
-          <div className="flex flex-col sm:flex-row lg:flex-col items-center gap-3 sm:gap-4">
-            {/* Orbit Aura Studio Preview */}
-            <div className="relative inline-flex items-center justify-center p-2 shrink-0">
-              {/* Ambient radial glow */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-1 rounded-full bg-gradient-to-tr from-accentCyan/25 via-accentPurple/20 to-accentPink/25 blur-xl animate-pulse pointer-events-none"
-              />
-              {/* Outer Orbit Ring (CW) */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 rounded-full border border-dashed border-accentCyan/55 animate-orbit-cw pointer-events-none"
-              >
-                <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentCyan shadow-[0_0_10px_rgba(var(--accent-cyan),0.95)]" />
-              </div>
-              {/* Inner Orbit Ring (CCW) */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-1.5 rounded-full border border-accentPurple/45 border-t-accentPink/85 animate-orbit-ccw pointer-events-none"
-              >
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accentPink shadow-[0_0_8px_rgba(var(--accent-pink),0.9)]" />
-              </div>
-              {/* Selection Shockwave Burst */}
-              {avatarBurstKey > 0 && (
-                <span
-                  key={avatarBurstKey}
-                  aria-hidden="true"
-                  className="absolute inset-2 rounded-full border-2 border-accentCyan/80 animate-shockwave pointer-events-none"
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
+        {/* Left Column: Clean Sticky Profile Summary Card (Full width on mobile, balanced on tablet, sidebar on desktop) */}
+        <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-24 space-y-4">
+          <div className="glass-panel border border-white/10 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col items-center text-center space-y-4 bg-darkCard/90">
+            {/* Clean Avatar Frame (Zero heavy animations, crisp border, instant photo upload trigger) */}
+            <div className="relative group">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-accentCyan/30 via-white/10 to-accentPurple/30 shadow-lg">
+                <img
+                  src={selectedAvatar}
+                  alt="Profile avatar preview"
+                  referrerPolicy="no-referrer"
+                  className={`w-full h-full rounded-full border border-white/15 transition-transform duration-200 group-hover:scale-105 ${
+                    isEmojiAvatarUrl(selectedAvatar)
+                      ? 'bg-gradient-to-br from-white/10 via-[#0e1530] to-accentPurple/20 object-contain p-2.5 sm:p-3'
+                      : 'bg-darkBg object-cover'
+                  }`}
                 />
-              )}
-
-              <img
-                src={selectedAvatar}
-                alt="Profile avatar preview"
-                referrerPolicy="no-referrer"
-                className={`relative z-10 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full border-2 border-accentCyan mx-auto shadow-2xl transition-transform duration-300 ${
-                  isEmojiAvatarUrl(selectedAvatar)
-                    ? 'bg-gradient-to-br from-accentCyan/20 via-[#0d142c] to-accentPurple/25 object-contain p-2.5 sm:p-3 shadow-[inset_0_0_24px_rgba(var(--accent-cyan),0.22),0_0_28px_rgba(var(--accent-purple),0.28)]'
-                    : 'bg-darkBg object-cover p-1'
-                }`}
-              />
-              <div className="z-20 absolute bottom-1.5 right-1.5 bg-accentPurple text-white p-1.5 rounded-full shadow-lg border border-white/20">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse" />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Upload New Photo"
+                  className="absolute bottom-0 right-0 p-2 rounded-full bg-accentCyan text-black shadow-lg hover:scale-110 active:scale-95 transition-transform border border-black/30 cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
-            <div className="space-y-0.5 min-w-0">
-              <h3 className="font-bold text-base sm:text-lg text-white truncate">{user?.username}</h3>
-              <p className="text-[11px] sm:text-xs text-gray-300 font-medium flex items-center justify-center sm:justify-start lg:justify-center gap-1.5">
-                {isCustomUploaded ? (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 text-accentGold shrink-0" />
-                    <span>Custom / AI Avatar</span>
-                  </>
-                ) : (
-                  <>
-                    <Palette className="w-3.5 h-3.5 text-accentCyan shrink-0" />
-                    <span>Preset Identity</span>
-                  </>
+            {/* User Identity Details */}
+            <div className="space-y-1.5 w-full">
+              <h2 className="text-lg sm:text-xl font-extrabold text-white truncate font-outfit">
+                {user?.username || 'SyncStream User'}
+              </h2>
+              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium border border-white/10 bg-white/5 text-gray-300">
+                  {isCustomUploaded ? (
+                    <>
+                      <Sparkles className="w-3 h-3 text-amber-400" />
+                      <span>Custom Avatar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Smile className="w-3 h-3 text-accentCyan" />
+                      <span>{currentCategory.label}</span>
+                    </>
+                  )}
+                </span>
+                {user?.created_at && (
+                  <span className="text-[11px] text-gray-400 font-mono">
+                    Joined {new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                  </span>
                 )}
-              </p>
-              {user?.created_at && (
-                <p className="text-[10px] text-gray-400">Joined {new Date(user.created_at).toLocaleDateString()}</p>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Quick Studio Actions */}
-          <div className="w-full sm:w-52 lg:w-full space-y-2 pt-3 sm:pt-0 lg:pt-3 border-t sm:border-t-0 lg:border-t border-white/10 shrink-0">
-            {/* AI Generator Trigger */}
-            <button
-              type="button"
-              onClick={() => openAiGeneratorForCategory(activeAvatarTab)}
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-accentPurple to-accentCyan text-black font-extrabold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 shadow-md hover:opacity-90 cursor-pointer"
-            >
-              <Wand2 className="w-3.5 h-3.5 text-black" />
-              <span>Generate AI Avatar</span>
-            </button>
+            {/* Quick Actions Group */}
+            <div className="w-full space-y-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => openAiGeneratorForCategory(activeAvatarTab)}
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 shadow-md hover:opacity-90 cursor-pointer"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-black" />
+                <span>Generate AI Avatar</span>
+              </button>
 
-            {/* Custom Photo Upload */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept="image/*"
-              className="hidden"
-            />
-            <button
-              type="button"
-              disabled={uploadingImage}
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-200 font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
-            >
-              {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-              <span>Upload Photo File</span>
-            </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              <button
+                type="button"
+                disabled={uploadingImage}
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-200 font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-accentCyan" />}
+                <span>Upload Custom Photo</span>
+              </button>
 
-            <button
-              onClick={handleSignOut}
-              className="w-full py-2 px-3 rounded-xl border border-red-500/25 text-red-400 hover:text-red-200 hover:bg-red-500/15 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full py-2 px-3 rounded-xl border border-red-500/20 text-red-400 hover:text-red-200 hover:bg-red-500/10 text-xs font-semibold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+
+            {/* Active Theme Status */}
+            <div className="w-full pt-2 flex items-center justify-between text-[11px] font-mono text-gray-400 border-t border-white/5">
+              <span>Theme:</span>
+              <span className="text-white font-bold flex items-center gap-1.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-full inline-block"
+                  style={{ background: THEME_OPTIONS.find((t) => t.id === theme)?.swatch[2] || '#38bdf8' }}
+                />
+                {THEME_OPTIONS.find((t) => t.id === theme)?.name || 'Cinema Slate'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Right Side: Form, Avatar Studio & Animated Themes */}
+        {/* Right Side: Settings & Studio Panel */}
         <form
           onSubmit={handleSave}
-          className="lg:col-span-8 glass-panel border border-white/10 rounded-2xl p-4 sm:p-6 space-y-5 shadow-xl"
+          className="md:col-span-7 lg:col-span-8 space-y-4"
         >
           {/* Notifications */}
           {success && (
-            <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold p-3 sm:p-4 rounded-xl text-center shadow-lg animate-fade-in flex items-center justify-center gap-2">
+            <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold p-3.5 rounded-xl shadow-lg animate-fade-in flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Profile settings &amp; custom avatars saved successfully!</span>
             </div>
           )}
           {error && (
-            <div className="bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold p-3 sm:p-4 rounded-xl text-center shadow-lg animate-fade-in">
-              {error}
+            <div className="bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold p-3.5 rounded-xl shadow-lg animate-fade-in flex items-center gap-2">
+              <X className="w-4 h-4 text-red-400 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Username Input */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-              Display Username
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
-                className="w-full bg-darkBg/90 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner font-medium"
-              />
-            </div>
+          {/* Section Navigation Tabs (Segmented Control) */}
+          <div className="p-1 rounded-xl bg-white/[0.04] border border-white/10 grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveSectionTab('identity')}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                activeSectionTab === 'identity'
+                  ? 'bg-white/10 text-white shadow-sm border border-white/15'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 text-accentCyan" />
+              <span>Identity &amp; Avatars</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSectionTab('themes')}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                activeSectionTab === 'themes'
+                  ? 'bg-white/10 text-white shadow-sm border border-white/15'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5 text-accentPurple" />
+              <span>Dashboard Themes ({THEME_OPTIONS.length})</span>
+            </button>
           </div>
 
-          {/* Avatar Studio: Categories + Manageable Grid */}
-          <div className="space-y-3">
-            {/* Category header & tools */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center justify-between sm:justify-start gap-2">
-                <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                  Avatar Studio
+          {activeSectionTab === 'identity' && (
+            <div className="glass-panel border border-white/10 rounded-2xl p-4 sm:p-6 space-y-5 bg-darkCard/90 shadow-xl">
+              {/* Username Input */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono flex items-center justify-between">
+                  <span>Display Username</span>
+                  <span className="text-[10px] text-gray-500 font-normal">{username.length} / 30 chars</span>
                 </label>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-accentCyan/15 text-accentCyan font-mono font-bold border border-accentCyan/30">
-                  {currentCategory.items.length} / {MAX_AVATARS_PER_CATEGORY} Slots
-                </span>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    required
+                    maxLength={30}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter username"
+                    className="w-full bg-darkBg/90 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accentCyan focus:ring-1 focus:ring-accentCyan transition shadow-inner font-medium"
+                  />
+                </div>
               </div>
 
-              {/* Restore Defaults button */}
-              <button
-                type="button"
-                onClick={() => handleRestoreDefaults(activeAvatarTab)}
-                className="self-end sm:self-auto text-[11px] text-gray-400 hover:text-white flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-white/5 active:scale-95"
-              >
-                <RotateCcw className="w-3 h-3 text-accentPurple" />
-                <span>Reset {currentCategory.label}</span>
-              </button>
-            </div>
+              {/* Avatar Studio: Categories + Manageable Grid */}
+              <div className="space-y-3 pt-2 border-t border-white/10">
+                {/* Category header & tools */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center justify-between sm:justify-start gap-2">
+                    <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                      Avatar Collection
+                    </label>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accentCyan/15 text-accentCyan font-mono font-bold border border-accentCyan/30">
+                      {currentCategory.items.length} / {MAX_AVATARS_PER_CATEGORY} Slots
+                    </span>
+                  </div>
 
-            {/* Category selector chips (Swipeable on mobile) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-              {Object.entries(avatarCollections).map(([key, col]) => {
-                const Icon = col.icon;
-                const isActive = activeAvatarTab === key;
-                return (
+                  {/* Restore Defaults button */}
                   <button
-                    key={key}
                     type="button"
-                    onClick={() => setActiveAvatarTab(key)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 border shrink-0 ${
-                      isActive
-                        ? 'bg-gradient-to-r from-accentPurple/30 to-accentCyan/30 border-accentCyan text-white shadow-sm'
-                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
+                    onClick={() => handleRestoreDefaults(activeAvatarTab)}
+                    className="self-end sm:self-auto text-[11px] text-gray-400 hover:text-white flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-white/5 active:scale-95 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3 text-accentPurple" />
+                    <span>Reset {currentCategory.label.split(' ')[0]}</span>
+                  </button>
+                </div>
+
+                {/* Category selector chips (Swipeable on mobile) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                  {Object.entries(avatarCollections).map(([key, col]) => {
+                    const Icon = col.icon;
+                    const isActive = activeAvatarTab === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setActiveAvatarTab(key)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 border shrink-0 cursor-pointer ${
+                          isActive
+                            ? 'bg-gradient-to-r from-accentPurple/30 to-accentCyan/30 border-accentCyan text-white shadow-sm'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-gray-200'
+                        }`}
+                      >
+                        <Icon className={`w-3.5 h-3.5 ${col.iconColor || 'text-accentCyan'}`} />
+                        <span>{col.label} ({col.items.length})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Saved Avatars Grid */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 p-3 rounded-2xl bg-black/30 border border-white/10">
+                  {/* Add New AI Avatar Tile in this category */}
+                  <button
+                    type="button"
+                    disabled={currentCategory.items.length >= MAX_AVATARS_PER_CATEGORY}
+                    onClick={() => openAiGeneratorForCategory(activeAvatarTab)}
+                    className={`aspect-square rounded-xl border border-dashed flex flex-col items-center justify-center p-2 text-center transition group active:scale-95 cursor-pointer ${
+                      currentCategory.items.length >= MAX_AVATARS_PER_CATEGORY
+                        ? 'border-white/10 opacity-40 cursor-not-allowed'
+                        : 'border-accentCyan/40 hover:border-accentCyan bg-accentCyan/5 hover:bg-accentCyan/15'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${col.iconColor || 'text-accentCyan'}`} />
-                    <span>{col.label} ({col.items.length})</span>
+                    <Plus className="w-5 h-5 text-accentCyan group-hover:scale-110 transition-transform mb-1" />
+                    <span className="text-[11px] font-bold text-accentCyan leading-tight">+ AI Avatar</span>
+                    <span className="text-[9px] text-gray-500 mt-0.5">Generate</span>
                   </button>
-                );
-              })}
-            </div>
 
+                  {/* Avatar Cards */}
+                  {currentCategory.items.map((item) => {
+                    const isSelected = selectedAvatar === item.url;
+                    const isEmoji = isEmojiAvatarUrl(item.url);
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => handleSelectAvatar(item.url)}
+                        className={`group relative aspect-square rounded-xl overflow-hidden border p-1 transition-all duration-200 active:scale-95 cursor-pointer ${
+                          isEmoji
+                            ? 'bg-gradient-to-br from-accentCyan/10 via-[#0e1530] to-accentPurple/15'
+                            : 'bg-darkBg/90'
+                        } ${
+                          isSelected
+                            ? 'border-accentCyan ring-2 ring-accentCyan/50 shadow-[0_0_15px_rgba(var(--accent-cyan),0.35)]'
+                            : 'border-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <img
+                          src={item.url}
+                          alt={item.name}
+                          referrerPolicy="no-referrer"
+                          className={`w-full h-full rounded-lg ${
+                            isEmoji
+                              ? 'object-contain p-2 sm:p-2.5 bg-black/30'
+                              : 'object-cover bg-darkBg'
+                          }`}
+                          loading="lazy"
+                        />
+
+                        {/* Selected Checkmark Badge */}
+                        {isSelected && (
+                          <div className="z-20 absolute top-1.5 right-1.5 bg-accentCyan text-black p-0.5 rounded-full shadow-md">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        )}
+
+                        {/* Micro Action Overlay (Clean on hover & accessible) */}
+                        <div className="z-20 absolute inset-x-1 bottom-1 flex items-center justify-between gap-1 p-1 rounded-lg bg-black/85 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            title="Edit with AI"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openAiGeneratorForCategory(activeAvatarTab, item);
+                            }}
+                            className="p-1 rounded bg-accentCyan/20 hover:bg-accentCyan text-accentCyan hover:text-black transition"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                          </button>
+                          <span className="text-[9px] font-bold text-gray-300 truncate max-w-[48px]">
+                            {item.name}
+                          </span>
+                          <button
+                            type="button"
+                            title="Delete"
+                            onClick={(e) => handleDeleteAvatar(activeAvatarTab, item.id, e)}
+                            className="p-1 rounded bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white transition"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Collapsible Search & Browse Toggle Button */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsSearchOpen((prev) => !prev)}
+                    className="w-full py-2.5 px-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-xs font-bold text-gray-300 hover:text-white transition flex items-center justify-between cursor-pointer active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Search className="w-3.5 h-3.5 text-accentCyan" />
+                      <span>
+                        {activeAvatarTab === 'emojis'
+                          ? 'Browse & Search 1,900+ WhatsApp Emojis'
+                          : 'Search AniList Anime & Manga Characters'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-mono">
+                      <span>{isSearchOpen ? 'Hide' : 'Open Explorer'}</span>
+                      {isSearchOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </div>
+                  </button>
+                </div>
+
+                {/* Collapsible Search & Browse Drawer */}
+                {isSearchOpen && (
+                  <div className="animate-fade-in pt-1">
             {/* Live WhatsApp / Apple 3D Emoji Search Bar (Emojis Tab Only) */}
             {activeAvatarTab === 'emojis' && (
               <div className="p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/[0.08] via-black/40 to-accentCyan/[0.08] border border-amber-500/25 space-y-2.5">
@@ -1557,184 +1705,101 @@ export default function Profile() {
                 ) : null}
               </div>
             )}
-
-            {/* Category Avatar Grid with Add, Edit, Delete Actions */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-2.5 p-2 sm:p-3 rounded-2xl bg-black/40 border border-white/10">
-              {/* Add New AI Avatar Tile in this category */}
-              <button
-                type="button"
-                disabled={currentCategory.items.length >= MAX_AVATARS_PER_CATEGORY}
-                onClick={() => openAiGeneratorForCategory(activeAvatarTab)}
-                className={`aspect-square rounded-xl border border-dashed flex flex-col items-center justify-center p-2 text-center transition group active:scale-95 ${
-                  currentCategory.items.length >= MAX_AVATARS_PER_CATEGORY
-                    ? 'border-white/10 opacity-40 cursor-not-allowed'
-                    : 'border-accentCyan/40 hover:border-accentCyan bg-accentCyan/5 hover:bg-accentCyan/15'
-                }`}
-              >
-                <Plus className="w-5 h-5 text-accentCyan group-hover:scale-110 transition-transform mb-0.5" />
-                <span className="text-[10px] font-bold text-accentCyan leading-tight">+ AI Avatar</span>
-                <span className="text-[9px] text-gray-500">to {currentCategory.label.split(' ')[0]}</span>
-              </button>
-
-              {/* Avatar Cards */}
-              {currentCategory.items.map((item) => {
-                const isSelected = selectedAvatar === item.url;
-                const isEmoji = isEmojiAvatarUrl(item.url);
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => handleSelectAvatar(item.url)}
-                    className={`group relative aspect-square rounded-xl overflow-hidden border p-1 transition-all duration-300 active:scale-95 cursor-pointer ${
-                      isEmoji
-                        ? 'bg-gradient-to-br from-accentCyan/15 via-[#0e1530] to-accentPurple/20'
-                        : 'bg-darkBg/90'
-                    } ${
-                      isSelected
-                        ? 'border-accentCyan shadow-[0_0_18px_rgba(var(--accent-cyan),0.48)] ring-2 ring-accentCyan/55 scale-[1.02]'
-                        : 'border-white/10 hover:border-white/30'
-                    }`}
-                  >
-                    {/* Orbit Aura Ring around Selected Avatar Tile */}
-                    {isSelected && (
-                      <div
-                        aria-hidden="true"
-                        className="pointer-events-none absolute -inset-4 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(var(--accent-cyan),0.65)_90deg,transparent_180deg,rgba(var(--accent-purple),0.65)_270deg,transparent_360deg)] animate-orbit-cw opacity-60"
-                      />
-                    )}
-                    <img
-                      src={item.url}
-                      alt={item.name}
-                      referrerPolicy="no-referrer"
-                      className={`relative z-10 w-full h-full rounded-lg transition-transform duration-300 group-hover:scale-105 ${
-                        isEmoji
-                          ? 'object-contain p-2.5 sm:p-3 bg-black/35 border border-white/10 shadow-[inset_0_0_16px_rgba(var(--accent-cyan),0.14)]'
-                          : 'object-cover bg-darkBg'
-                      }`}
-                      loading="lazy"
-                    />
-
-                    {/* Selected Badge */}
-                    {isSelected && (
-                      <div className="z-20 absolute top-1 right-1 bg-accentCyan text-black p-0.5 rounded-full shadow-[0_0_10px_rgba(var(--accent-cyan),0.9)]">
-                        <Check className="w-2.5 h-2.5 stroke-[4]" />
-                      </div>
-                    )}
-
-                    {/* Quick Edit & Delete Action Pill */}
-                    <div className="z-20 absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 p-0.5 rounded-lg bg-black/80 backdrop-blur-xs opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        title="Edit Avatar via Prompt"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openAiGeneratorForCategory(activeAvatarTab, item);
-                        }}
-                        className="p-1 rounded-md bg-accentCyan/20 hover:bg-accentCyan text-accentCyan hover:text-black transition"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </button>
-                      <span className="text-[9px] font-bold text-gray-300 truncate max-w-[42px]">
-                        {item.name}
-                      </span>
-                      <button
-                        type="button"
-                        title="Delete Avatar"
-                        onClick={(e) => handleDeleteAvatar(activeAvatarTab, item.id, e)}
-                        className="p-1 rounded-md bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white transition"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                )}
 
-          {/* Dashboard Theme Picker */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                <Palette className="w-3.5 h-3.5 text-accentCyan" />
-                <span>Dashboard Theme ({THEME_OPTIONS.length} Studio Palettes)</span>
               </div>
-              <span className="text-[11px] font-mono text-gray-400">Instant Preview</span>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {THEME_OPTIONS.map((t) => {
-                const isSelected = theme === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => handleThemeChange(t.id)}
-                    className={`group relative p-3.5 sm:p-4 rounded-xl border text-left transition-colors duration-150 overflow-hidden cursor-pointer ${
-                      isSelected
-                        ? 'border-accentCyan/80 bg-white/[0.06] shadow-lg ring-1 ring-accentCyan/40'
-                        : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20'
-                    }`}
-                  >
-                    {/* Top Row: Icon + Name & Vibe + Active Badge */}
-                    <div className="flex items-center justify-between gap-2 mb-2.5">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
-                          {t.icon && <t.icon className={`w-4 h-4 ${t.iconColor || 'text-accentCyan'} shrink-0`} />}
-                        </span>
-                        <div className="min-w-0">
-                          <span className="font-bold text-sm text-white tracking-tight block truncate">
-                            {t.name}
+          {/* TAB 2: DASHBOARD THEMES */}
+          {activeSectionTab === 'themes' && (
+            <div className="glass-panel border border-white/10 rounded-2xl p-4 sm:p-6 space-y-4 bg-darkCard/90 shadow-xl">
+              <div className="space-y-1">
+                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 text-accentCyan" />
+                  <span>Dashboard Studio Palettes ({THEME_OPTIONS.length})</span>
+                </h3>
+                <p className="text-xs text-gray-400">
+                  Select a clean, modern colorway. Changes apply immediately across the entire platform.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {THEME_OPTIONS.map((t) => {
+                  const isSelected = theme === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => handleThemeChange(t.id)}
+                      className={`group relative p-3.5 sm:p-4 rounded-xl border text-left transition-colors duration-150 overflow-hidden cursor-pointer ${
+                        isSelected
+                          ? 'border-accentCyan/80 bg-white/[0.06] shadow-lg ring-1 ring-accentCyan/40'
+                          : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20'
+                      }`}
+                    >
+                      {/* Top Row: Icon + Name & Vibe + Active Badge */}
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
+                            {t.icon && <t.icon className={`w-4 h-4 ${t.iconColor || 'text-accentCyan'} shrink-0`} />}
                           </span>
-                          <span className="text-[10px] font-mono text-gray-400 block truncate">
-                            {t.vibe}
+                          <div className="min-w-0">
+                            <span className="font-bold text-sm text-white tracking-tight block truncate">
+                              {t.name}
+                            </span>
+                            <span className="text-[10px] font-mono text-gray-400 block truncate">
+                              {t.vibe}
+                            </span>
+                          </div>
+                        </div>
+
+                        {isSelected ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-accentCyan/50 bg-accentCyan/15 text-accentCyan shrink-0">
+                            Active
                           </span>
+                        ) : (
+                          <span className="text-[10px] font-mono text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Select
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 5-Color Palette Strip */}
+                      <div className="mb-2.5">
+                        <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-1">
+                          <span>Palette</span>
+                          <span className="text-gray-500">5-Tone Colorway</span>
+                        </div>
+                        <div className="flex h-3 w-full rounded-md overflow-hidden border border-white/10 shadow-inner">
+                          {t.swatch.map((color, cIdx) => (
+                            <div
+                              key={`${color}-${cIdx}`}
+                              title={color}
+                              className="flex-1 h-full"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
                         </div>
                       </div>
 
-                      {isSelected ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-accentCyan/50 bg-accentCyan/15 text-accentCyan shrink-0">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-mono text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                          Select
-                        </span>
-                      )}
-                    </div>
-
-                    {/* 5-Color Palette Strip */}
-                    <div className="mb-2.5">
-                      <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-1">
-                        <span>Palette</span>
-                        <span className="text-gray-500">5-Tone Colorway</span>
-                      </div>
-                      <div className="flex h-3 w-full rounded-md overflow-hidden border border-white/10 shadow-inner">
-                        {t.swatch.map((color, cIdx) => (
-                          <div
-                            key={`${color}-${cIdx}`}
-                            title={color}
-                            className="flex-1 h-full"
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Clean Description */}
-                    <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed">
-                      {t.desc}
-                    </p>
-                  </button>
-                );
-              })}
+                      {/* Clean Description */}
+                      <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed">
+                        {t.desc}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Save Button */}
+          {/* Save Button (Always visible at bottom of right panel) */}
           <button
             type="submit"
             disabled={loading}
-            className="btn-shimmer w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-accentPurple/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-4 active:scale-95 cursor-pointer"
+            className="btn-shimmer w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-accentCyan to-accentPurple text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-accentPurple/25 text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : 'Save Profile & Dashboard Changes'}
           </button>
