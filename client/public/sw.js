@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v21-profile-clean-ui';
+const CACHE_NAME = 'syncstream-v22-six-oil-themes';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

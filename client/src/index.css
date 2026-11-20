@@ -129,6 +129,27 @@
   --glow-3: rgba(255, 255, 255, 0.05);
 }
 
+/* ─────────────────────────────────────────────
+   THEME 6: Amber Solstice (Smoked Espresso & Molten Amber Oil)
+   Background: #0C0A09 | Cards: #1C1917 | Primary Accent: #F97316 | Text: #FAF8F5 | Highlight: #FBBF24
+───────────────────────────────────────────── */
+.theme-amber-solstice {
+  --dark-bg:     12 10 9;
+  --dark-card:   28 25 23;
+  --dark-surf:   41 37 36;
+  --dark-border: 52 46 44;
+
+  --accent-cyan:   249 115 22;
+  --accent-purple: 250 248 245;
+  --accent-pink:   251 191 36;
+  --accent-gold:   251 191 36;
+  --accent-green:  217 119 6;
+
+  --glow-1: rgba(249, 115, 22, 0.12);
+  --glow-2: rgba(249, 115, 22, 0.08);
+  --glow-3: rgba(250, 248, 245, 0.05);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════════════════════════════
    BASE
 ───────────────────────────────────────────── */

@@ -49,6 +49,7 @@ function AppContent() {
       'theme-nordic-monolith',
       'theme-emerald-noir',
       'theme-royal-amethyst',
+      'theme-amber-solstice',
       // Legacy classes
       'theme-cryo-glacial',
       'theme-magma-thermal',
@@ -74,7 +75,8 @@ function AppContent() {
       'midnight-velvet',
       'nordic-monolith',
       'emerald-noir',
-      'royal-amethyst'
+      'royal-amethyst',
+      'amber-solstice'
     ];
     let savedTheme = localStorage.getItem('syncstream_theme') || 'cinema-slate';
     const legacyMap = {

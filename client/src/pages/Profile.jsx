@@ -34,7 +34,8 @@ import {
   Film,
   ChevronDown,
   ChevronUp,
-  Camera
+  Camera,
+  Sun
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,6 +45,7 @@ const ALL_THEME_CLASSES = [
   'theme-nordic-monolith',
   'theme-emerald-noir',
   'theme-royal-amethyst',
+  'theme-amber-solstice',
   'theme-cryo-glacial',
   'theme-magma-thermal',
   'theme-emerald-biogrid',
@@ -68,52 +70,62 @@ const THEME_OPTIONS = [
   {
     id: 'cinema-slate',
     name: 'Cinema Slate',
-    vibe: 'Apple TV+ Minimalist',
+    vibe: 'Solid Slate & Oceanic Azure',
     icon: Film,
     iconColor: 'text-sky-400',
     iconBg: 'bg-sky-500/10 border-sky-400/30',
-    desc: 'Deep slate studio dark theme with sky blue accents. Crisp typography and maximum movie poster focus.',
+    desc: 'Deep Prussian charcoal base mixed with fluid oceanic sky-blue gradient accents. Crisp, ultra-clean studio contrast.',
     swatch: ['#0b0f17', '#151b26', '#38bdf8', '#f8fafc', '#f59e0b']
   },
   {
     id: 'midnight-velvet',
     name: 'Midnight Velvet',
-    vibe: 'Netflix Luxe',
+    vibe: 'Oil Crimson & Burnt Gold',
     icon: Flame,
     iconColor: 'text-red-500',
     iconBg: 'bg-red-500/10 border-red-500/30',
-    desc: 'Pitch matte black background with cinema red accents. Bold, authoritative, and theatrical.',
+    desc: 'Pitch matte black canvas enriched with deep oil crimson red gradients and molten gold ember highlights.',
     swatch: ['#09090b', '#18181b', '#ef4444', '#fafafa', '#fbbf24']
   },
   {
     id: 'nordic-monolith',
     name: 'Nordic Monolith',
-    vibe: 'Linear / Vercel Clean',
+    vibe: 'Titanium Black & Mint Frost',
     icon: Compass,
     iconColor: 'text-cyan-400',
     iconBg: 'bg-cyan-500/10 border-cyan-400/30',
-    desc: 'True void black with electric frost cyan. High-contrast monochromatic precision with zero visual noise.',
+    desc: 'Pure solid void black paired with brushed titanium gray and high-contrast electric frost cyan & mint gradients.',
     swatch: ['#000000', '#111111', '#06b6d4', '#ededed', '#10b981']
   },
   {
     id: 'emerald-noir',
     name: 'Emerald Noir',
-    vibe: 'Spotify Premium',
+    vibe: 'Oil Jade Forest & Aureolin Gold',
     icon: Sparkles,
     iconColor: 'text-emerald-400',
     iconBg: 'bg-emerald-500/10 border-emerald-500/30',
-    desc: 'Deep dark night forest with fresh mint emerald accents. Relaxing, organic, and ultra-smooth on the eyes.',
-    swatch: ['#080e0d', '#121c1a', '#10b981', '#f1f5f9', '#facc15']
+    desc: 'Layered dark pine jade oil pigments with radiant mint leaf gradients and rich aureolin gold accents.',
+    swatch: ['#06120e', '#10221c', '#10b981', '#f1f5f9', '#facc15']
   },
   {
     id: 'royal-amethyst',
     name: 'Royal Amethyst',
-    vibe: 'Disney+ / Twitch Studio',
+    vibe: 'Imperial Violet & Rose Champagne',
     icon: Crown,
     iconColor: 'text-purple-400',
     iconBg: 'bg-purple-500/10 border-purple-500/30',
-    desc: 'Deep cosmic abyss navy with royal violet and ice white accents. Rich, modern, and cinematic.',
+    desc: 'Deep cosmic midnight abyss with rich Byzantine violet-to-purple gradients and rose champagne highlights.',
     swatch: ['#0a0a16', '#131428', '#8b5cf6', '#ffffff', '#f43f5e']
+  },
+  {
+    id: 'amber-solstice',
+    name: 'Amber Solstice',
+    vibe: 'Smoked Espresso & Molten Amber',
+    icon: Sun,
+    iconColor: 'text-amber-500',
+    iconBg: 'bg-amber-500/10 border-amber-500/30',
+    desc: 'Warm smoked obsidian espresso base with burnished copper-to-molten amber gradients and raw honey gold.',
+    swatch: ['#0c0a09', '#1c1917', '#f97316', '#faf8f5', '#fbbf24']
   }
 ];
 
@@ -365,22 +377,24 @@ export default function Profile() {
   const [aiPreviewUrl, setAiPreviewUrl] = useState(null);
   const [editingAvatarTarget, setEditingAvatarTarget] = useState(null); // { category, id, name }
 
-  // Clean, instant theme selection (zero animations)
+  // Stage theme selection in form state ONLY (does NOT mutate localStorage or body until user clicks Save)
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    localStorage.setItem('syncstream_theme', newTheme);
-    ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-    document.body.classList.add(`theme-${newTheme}`);
   };
 
   React.useEffect(() => {
+    // Keep document.body synced with the actual persisted theme saved in localStorage
+    const currentPersisted = localStorage.getItem('syncstream_theme') || 'cinema-slate';
+    const safePersisted = THEME_OPTIONS.some((t) => t.id === currentPersisted) ? currentPersisted : 'cinema-slate';
+    ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
+    document.body.classList.add(`theme-${safePersisted}`);
+
     return () => {
-      let currentPersisted = localStorage.getItem('syncstream_theme') || 'cinema-slate';
-      if (!THEME_OPTIONS.some(t => t.id === currentPersisted)) {
-        currentPersisted = 'cinema-slate';
-      }
+      // Revert any unsaved preview state when leaving the page without saving
+      const savedOnLeave = localStorage.getItem('syncstream_theme') || 'cinema-slate';
+      const safeOnLeave = THEME_OPTIONS.some((t) => t.id === savedOnLeave) ? savedOnLeave : 'cinema-slate';
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
-      document.body.classList.add(`theme-${currentPersisted}`);
+      document.body.classList.add(`theme-${safeOnLeave}`);
     };
   }, []);
 
@@ -1718,28 +1732,30 @@ export default function Profile() {
               <div className="space-y-1">
                 <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
                   <Palette className="w-3.5 h-3.5 text-accentCyan" />
-                  <span>Dashboard Studio Palettes ({THEME_OPTIONS.length})</span>
+                  <span>Dashboard Studio Palettes ({THEME_OPTIONS.length} Colorway Mixers)</span>
                 </h3>
                 <p className="text-xs text-gray-400">
-                  Select a clean, modern colorway. Changes apply immediately across the entire platform.
+                  Select a gradient, solid, and oil color combo below. Your choice will only be applied and saved when you click &quot;Save Profile &amp; Dashboard Changes&quot;.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 {THEME_OPTIONS.map((t) => {
                   const isSelected = theme === t.id;
+                  const isCurrentlySaved = (localStorage.getItem('syncstream_theme') || 'cinema-slate') === t.id;
+
                   return (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => handleThemeChange(t.id)}
-                      className={`group relative p-3.5 sm:p-4 rounded-xl border text-left transition-colors duration-150 overflow-hidden cursor-pointer ${
+                      className={`group relative p-3.5 sm:p-4 rounded-xl border text-left transition-all duration-150 overflow-hidden cursor-pointer ${
                         isSelected
-                          ? 'border-accentCyan/80 bg-white/[0.06] shadow-lg ring-1 ring-accentCyan/40'
+                          ? 'border-accentCyan/90 bg-white/[0.07] shadow-lg ring-1 ring-accentCyan/40'
                           : 'border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20'
                       }`}
                     >
-                      {/* Top Row: Icon + Name & Vibe + Active Badge */}
+                      {/* Top Row: Icon + Name & Vibe + Active/Selected Badge */}
                       <div className="flex items-center justify-between gap-2 mb-2.5">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${t.iconBg || 'bg-white/5 border-white/10'}`}>
@@ -1756,12 +1772,16 @@ export default function Profile() {
                         </div>
 
                         {isSelected ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-accentCyan/50 bg-accentCyan/15 text-accentCyan shrink-0">
-                            Active
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border shrink-0 ${
+                            isCurrentlySaved
+                              ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-400'
+                              : 'border-amber-400/50 bg-amber-400/15 text-amber-300'
+                          }`}>
+                            {isCurrentlySaved ? 'Active' : 'Selected (Pending Save)'}
                           </span>
                         ) : (
                           <span className="text-[10px] font-mono text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                            Select
+                            Choose
                           </span>
                         )}
                       </div>
@@ -1769,10 +1789,10 @@ export default function Profile() {
                       {/* 5-Color Palette Strip */}
                       <div className="mb-2.5">
                         <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-1">
-                          <span>Palette</span>
+                          <span>Palette Mixer</span>
                           <span className="text-gray-500">5-Tone Colorway</span>
                         </div>
-                        <div className="flex h-3 w-full rounded-md overflow-hidden border border-white/10 shadow-inner">
+                        <div className="flex h-3.5 w-full rounded-md overflow-hidden border border-white/10 shadow-inner">
                           {t.swatch.map((color, cIdx) => (
                             <div
                               key={`${color}-${cIdx}`}
@@ -1791,6 +1811,11 @@ export default function Profile() {
                     </button>
                   );
                 })}
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex items-center gap-2 text-xs text-gray-300 font-mono">
+                <Check className="w-4 h-4 text-accentCyan shrink-0" />
+                <span>Theme changes will apply across the whole site once you click &quot;Save Profile &amp; Dashboard Changes&quot; below.</span>
               </div>
             </div>
           )}
