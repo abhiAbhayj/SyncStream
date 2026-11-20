@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, MonitorOff, HelpCircle, ShieldCheck, Maximize, Minimize } from 'lucide-react';
 
-export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgressUpdate = null }) {
+export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEvent = null, onProgressUpdate = null }) {
   const [loading, setLoading] = useState(true);
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
@@ -34,11 +34,41 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, onProgre
   }, [onProgressUpdate]);
 
   // Trigger matrix shutter overlay whenever stream source / server changes
+  // With 3.5s safety timeout so loading screen never permanently obscures player
   useEffect(() => {
     if (embedUrl) {
       setLoading(true);
+      const safetyTimer = setTimeout(() => {
+        setLoading(false);
+      }, 3500);
+      return () => clearTimeout(safetyTimer);
     }
   }, [embedUrl]);
+
+  // Relay playback synchronization commands (Play, Pause, Seek) to embed iframe
+  useEffect(() => {
+    if (!syncEvent || !iframeRef.current?.contentWindow) return;
+    try {
+      const cw = iframeRef.current.contentWindow;
+      const { event, time } = syncEvent;
+
+      if (event === 'play') {
+        cw.postMessage({ type: 'MEDIA_PLAY' }, '*');
+        cw.postMessage({ type: 'PLAYER_EVENT', data: { event: 'play' } }, '*');
+        cw.postMessage('{"event":"play"}', '*');
+      } else if (event === 'pause') {
+        cw.postMessage({ type: 'MEDIA_PAUSE' }, '*');
+        cw.postMessage({ type: 'PLAYER_EVENT', data: { event: 'pause' } }, '*');
+        cw.postMessage('{"event":"pause"}', '*');
+      } else if (event === 'seek' && typeof time === 'number') {
+        cw.postMessage({ type: 'MEDIA_SEEK', time }, '*');
+        cw.postMessage({ type: 'PLAYER_EVENT', data: { event: 'seek', time } }, '*');
+        cw.postMessage(JSON.stringify({ event: 'seek', time }), '*');
+      }
+    } catch (err) {
+      // Ignored for cross-origin safety
+    }
+  }, [syncEvent]);
 
   // Track Fullscreen state changes (ESC key, browser exit, etc.)
   useEffect(() => {

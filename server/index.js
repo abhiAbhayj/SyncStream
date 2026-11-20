@@ -43,8 +43,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date(), db: db.isConnected() });
 });
 
+// Authoritative in-memory tracking for room participants
+// Format: { [roomCode]: { [socketId]: { socketId, username, userId, joinedAt } } }
+const roomUsers = {};
+
 // Cache for room media playback states to sync late-joiners
-// Format: { [roomCode]: { event: 'play'|'pause', time: 0, lastUpdated: timestamp } }
+// Format: { [roomCode]: { playbackMode, embedServer, activeSeason, activeEpisode, event: 'play'|'pause', time: 0, lastUpdated: timestamp } }
 const roomPlaybackStates = {};
 
 // Cache for active voice/video call participants
@@ -60,49 +64,80 @@ io.on('connection', (socket) => {
   console.log(`[Socket] Client connected: ${socket.id}`);
 
   // 1. Join a Watch Room
-  socket.on('join_room', ({ roomCode, username }) => {
+  socket.on('join_room', ({ roomCode, username, userId }) => {
+    if (!roomCode) return;
     socket.join(roomCode);
-    console.log(`[Socket] User '${username}' joined room: ${roomCode}`);
+
+    if (!roomUsers[roomCode]) {
+      roomUsers[roomCode] = {};
+    }
+
+    const safeUsername = username || 'Guest';
+    roomUsers[roomCode][socket.id] = {
+      socketId: socket.id,
+      username: safeUsername,
+      userId: userId || null,
+      joinedAt: Date.now()
+    };
+
+    const userList = Object.values(roomUsers[roomCode]);
+    const count = userList.length;
+
+    console.log(`[Socket] User '${safeUsername}' (${socket.id}) joined room: ${roomCode}. Authoritative count: ${count}`);
+
+    // Broadcast authoritative room occupancy to all users in the room
+    io.to(roomCode).emit('room_users_update', { count, users: userList });
 
     // Notify others in room
-    socket.to(roomCode).emit('user_joined', { username, socketId: socket.id });
+    socket.to(roomCode).emit('user_joined', { username: safeUsername, socketId: socket.id });
 
-    // Send the joining user the current playback state if exists
-    if (roomPlaybackStates[roomCode]) {
-      const state = roomPlaybackStates[roomCode];
-      // If it is playing, calculate the elapsed time since last sync
-      let currentTime = state.time || 0;
-      if (state.event === 'play' && state.lastUpdated) {
-        const elapsedSeconds = (Date.now() - state.lastUpdated) / 1000;
-        currentTime += elapsedSeconds;
-      }
-      socket.emit('media_sync_initial', {
-        ...state,
-        time: currentTime
-      });
-    } else {
-      socket.emit('media_sync_initial', { event: 'pause', time: 0 });
+    // Initialize room playback state with high-speed defaults if not already present
+    if (!roomPlaybackStates[roomCode]) {
+      roomPlaybackStates[roomCode] = {
+        roomCode,
+        playbackMode: 'solo-embed',
+        embedServer: 'vidlink',
+        activeSeason: 1,
+        activeEpisode: 1,
+        event: 'play',
+        time: 0,
+        lastUpdated: Date.now()
+      };
     }
+
+    // Send the joining user the complete current playback state
+    const state = roomPlaybackStates[roomCode];
+    let currentTime = state.time || 0;
+    if (state.event === 'play' && state.lastUpdated) {
+      const elapsedSeconds = (Date.now() - state.lastUpdated) / 1000;
+      currentTime += elapsedSeconds;
+    }
+    socket.emit('media_sync_initial', {
+      ...state,
+      time: Math.floor(currentTime)
+    });
   });
 
-  // 2. Sync Media playback changes (Play / Pause / Seek)
+  // 2. Sync Media playback changes (Play / Pause / Seek / Server / Episode)
   socket.on('media_sync', (data) => {
     const { roomCode, event, time, sender } = data;
-    console.log(`[Socket] Media sync in ${roomCode || 'unknown'}: '${event}' at ${time}s (by ${sender})`);
+    if (!roomCode) return;
+    console.log(`[Socket] Media sync in ${roomCode}: '${event}' at ${time}s (by ${sender})`);
 
-    // Cache state
+    // Cache merged state
     roomPlaybackStates[roomCode] = {
-      ...roomPlaybackStates[roomCode],
+      ...(roomPlaybackStates[roomCode] || {}),
       ...data,
       lastUpdated: Date.now()
     };
 
-    // Broadcast to everyone else in the room
-    socket.to(roomCode).emit('media_sync', data);
+    // Broadcast unified state to everyone else in the room
+    socket.to(roomCode).emit('media_sync', roomPlaybackStates[roomCode]);
   });
 
   // 2b. Explicit request to re-synchronize room state
   socket.on('request_playback_state', ({ roomCode }) => {
+    if (!roomCode) return;
     if (roomPlaybackStates[roomCode]) {
       const state = roomPlaybackStates[roomCode];
       let currentTime = state.time || 0;
@@ -112,7 +147,7 @@ io.on('connection', (socket) => {
       }
       socket.emit('media_sync', {
         ...state,
-        time: currentTime
+        time: Math.floor(currentTime)
       });
     }
   });
@@ -178,14 +213,31 @@ io.on('connection', (socket) => {
 
   // 4. Leave Room
   socket.on('leave_room', ({ roomCode, username }) => {
+    if (!roomCode) return;
     socket.leave(roomCode);
-    console.log(`[Socket] User '${username}' left room: ${roomCode}`);
-    socket.to(roomCode).emit('user_left', { username });
+
+    let leftUsername = username;
+    if (roomUsers[roomCode] && roomUsers[roomCode][socket.id]) {
+      leftUsername = roomUsers[roomCode][socket.id].username || username;
+      delete roomUsers[roomCode][socket.id];
+    }
+
+    const remainingUsers = roomUsers[roomCode] ? Object.values(roomUsers[roomCode]) : [];
+    const count = remainingUsers.length;
+    console.log(`[Socket] User '${leftUsername}' left room: ${roomCode}. Remaining: ${count}`);
+
+    // Broadcast authoritative room occupancy
+    io.to(roomCode).emit('room_users_update', { count, users: remainingUsers });
+    socket.to(roomCode).emit('user_left', { username: leftUsername });
     
     // Clean up call presence if user was in voice/video call
     if (callParticipants[roomCode] && callParticipants[roomCode][socket.id]) {
       delete callParticipants[roomCode][socket.id];
       socket.to(roomCode).emit('webrtc_user_left_call', { socketId: socket.id });
+    }
+
+    if (count === 0) {
+      delete roomUsers[roomCode];
     }
   });
 
@@ -249,7 +301,27 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`[Socket] Client disconnected: ${socket.id}`);
-    // Clean up call participant records across all rooms
+
+    // 1. Authoritative room participant cleanup across all rooms
+    for (const roomCode in roomUsers) {
+      if (roomUsers[roomCode][socket.id]) {
+        const leavingUser = roomUsers[roomCode][socket.id];
+        delete roomUsers[roomCode][socket.id];
+
+        const remainingUsers = Object.values(roomUsers[roomCode]);
+        const count = remainingUsers.length;
+        console.log(`[Socket] Disconnected user '${leavingUser.username}' removed from ${roomCode}. Remaining: ${count}`);
+
+        io.to(roomCode).emit('room_users_update', { count, users: remainingUsers });
+        io.to(roomCode).emit('user_left', { username: leavingUser.username });
+
+        if (count === 0) {
+          delete roomUsers[roomCode];
+        }
+      }
+    }
+
+    // 2. Clean up call participant records across all rooms
     for (const roomCode in callParticipants) {
       if (callParticipants[roomCode][socket.id]) {
         delete callParticipants[roomCode][socket.id];

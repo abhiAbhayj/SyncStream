@@ -11,7 +11,7 @@ import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server } from 'lucide-react';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server, Rewind, FastForward } from 'lucide-react';
 
 const formatDuration = (mins, mediaType, episodesCount) => {
   const m = parseInt(mins, 10);
@@ -60,13 +60,15 @@ export default function WatchParty() {
     }, 3200);
   };
 
-  // Streaming console states (Default: VidSrc TO - 100% Sandbox Protected)
-  const [playbackMode, setPlaybackMode] = useState('trailer');
-  const [embedServer, setEmbedServer] = useState('vidsrcto');
+  // Streaming console states (Default: VidLink PRO Server 1 - Shared Sync)
+  const [playbackMode, setPlaybackMode] = useState('solo-embed');
+  const [embedServer, setEmbedServer] = useState('vidlink');
   const [showAllServers, setShowAllServers] = useState(false);
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeEpisode, setActiveEpisode] = useState(1);
   const [customUrl, setCustomUrl] = useState('');
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
+  const hasSyncedModeRef = useRef(false);
 
   // Anime episodes metadata list
   const [episodes, setEpisodes] = useState([]);
@@ -153,10 +155,8 @@ export default function WatchParty() {
         }
         setMediaDetail(detailData);
 
-        // Set default playback mode based on trailer presence
-        if (detailData.youtube_trailer) {
-          setPlaybackMode('trailer');
-        } else {
+        // Set default playback mode (honor already received sync state if present)
+        if (!hasSyncedModeRef.current) {
           setPlaybackMode('solo-embed');
         }
 
@@ -220,7 +220,7 @@ export default function WatchParty() {
       backdrop_path: mediaDetail.backdrop_path,
       season_number: isSeries ? (activeSeason || 1) : null,
       episode_number: isSeries ? (activeEpisode || 1) : null,
-      server_key: embedServer || 'vidsrcto'
+      server_key: embedServer || 'vidlink'
     });
   }, [room, mediaDetail, activeSeason, activeEpisode, embedServer]);
 
@@ -228,18 +228,27 @@ export default function WatchParty() {
   useEffect(() => {
     if (!socket || !room || !user) return;
 
-    // A. Join room tunnel
-    socket.emit('join_room', { roomCode: code, username: user.username });
+    // A. Join room tunnel with user ID
+    socket.emit('join_room', { roomCode: code, username: user.username, userId: user.id });
 
     // B. Register listeners
+    socket.on('room_users_update', ({ count }) => {
+      console.log(`[Socket] Authoritative room count: ${count}`);
+      if (typeof count === 'number' && count > 0) {
+        setParticipantsCount(count);
+      }
+    });
+
     socket.on('media_sync_initial', (state) => {
       console.log('[Socket] Initial media state synced:', state);
+      hasSyncedModeRef.current = true;
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
       if (state.embedServer) setEmbedServer(state.embedServer);
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
+      if (typeof state.time === 'number') setCurrentPlaybackTime(state.time);
       if (state.event === 'play') setIsPlayingState(true);
       if (state.event === 'pause') setIsPlayingState(false);
       if (state.sender) setLastSyncAction(`Stream synced by @${state.sender}`);
@@ -250,6 +259,7 @@ export default function WatchParty() {
       // Ignore sync events if we are the sender (to prevent loops)
       if (state.sender === user.username) return;
       console.log('[Socket] Media sync request received from', state.sender, state);
+      hasSyncedModeRef.current = true;
       triggerRadarPing();
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
@@ -257,6 +267,7 @@ export default function WatchParty() {
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
+      if (typeof state.time === 'number') setCurrentPlaybackTime(state.time);
       if (state.event === 'play') setIsPlayingState(true);
       if (state.event === 'pause') setIsPlayingState(false);
 
@@ -272,7 +283,7 @@ export default function WatchParty() {
         triggerSyncBanner(formattedPos ? `Synced to ${formattedPos} • Paused` : `Synced • Paused (@${senderName})`);
       } else if (state.event === 'seek') {
         setLastSyncAction(`Jumped by @${senderName}`);
-        addNotification(`${senderName} jumped in the stream`, 'sync');
+        addNotification(`${senderName} jumped to ${formattedPos || 'position'}`, 'sync');
         triggerSyncBanner(formattedPos ? `Synced to ${formattedPos}` : `Synced Timeline (@${senderName})`);
       } else if (state.activeEpisode && state.activeEpisode !== activeEpisode) {
         setLastSyncAction(`Ep ${state.activeEpisode} selected by @${senderName}`);
@@ -296,14 +307,12 @@ export default function WatchParty() {
     });
 
     socket.on('user_joined', ({ username }) => {
-      setParticipantsCount(prev => prev + 1);
       if (username !== user.username) {
         addNotification(`${username} joined the party ✨`, 'join');
       }
     });
 
     socket.on('user_left', ({ username }) => {
-      setParticipantsCount(prev => Math.max(prev - 1, 1));
       if (username !== user.username) {
         addNotification(`${username} left the room`, 'leave');
       }
@@ -312,6 +321,7 @@ export default function WatchParty() {
     // C. Leave room cleanup
     return () => {
       socket.emit('leave_room', { roomCode: code, username: user.username });
+      socket.off('room_users_update');
       socket.off('media_sync_initial');
       socket.off('media_sync');
       socket.off('user_joined');
@@ -344,7 +354,7 @@ export default function WatchParty() {
       activeEpisode: changes.activeEpisode !== undefined ? changes.activeEpisode : activeEpisode,
       customUrl: changes.customUrl !== undefined ? changes.customUrl : customUrl,
       event: changes.event || 'update_state',
-      time: changes.time !== undefined ? changes.time : (inboundSyncEvent?.time || 0)
+      time: changes.time !== undefined ? changes.time : (currentPlaybackTime || inboundSyncEvent?.time || 0)
     };
     
     socket.emit('media_sync', payload);
@@ -378,6 +388,17 @@ export default function WatchParty() {
     emitRoomState({ event: nextPlay ? 'play' : 'pause' });
     setLastSyncAction(`${nextPlay ? 'Played' : 'Paused'} by @${user?.username || 'you'}`);
     addNotification(`You ${nextPlay ? 'played' : 'paused'} the stream`, 'sync');
+  };
+
+  const handleSkip = (delta) => {
+    const cur = Number(currentPlaybackTime) || 0;
+    const nextTime = Math.max(0, cur + delta);
+    setCurrentPlaybackTime(nextTime);
+    emitRoomState({ event: 'seek', time: nextTime });
+    const formatted = formatSyncClock(nextTime);
+    setLastSyncAction(`${delta > 0 ? '+10s Skip' : '-10s Rewind'} by @${user?.username || 'you'}`);
+    addNotification(`You ${delta > 0 ? 'skipped forward 10s' : 'rewound 10s'}`, 'sync');
+    triggerSyncBanner(delta > 0 ? `+10s • ${formatted || ''}` : `-10s • ${formatted || ''}`);
   };
 
   const handleRequestResync = () => {
@@ -428,12 +449,13 @@ export default function WatchParty() {
     const activeType = (type === 'anime' && isTmdbMovie) ? 'movie' : type;
 
     return getEmbedStreamUrl({
-      serverKey: embedServer,
+      serverKey: embedServer || 'vidlink',
       mediaType: activeType,
       id,
       tmdbId,
       season: activeSeason || 1,
-      episode: activeEpisode || 1
+      episode: activeEpisode || 1,
+      startTime: Math.floor(currentPlaybackTime || inboundSyncEvent?.time || 0)
     });
   };
 
@@ -658,6 +680,12 @@ export default function WatchParty() {
           <div className="flex items-center gap-1.5 sm:gap-2 bg-darkBg border border-darkBorder px-2 xs:px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[10.5px] xs:text-[11px] sm:text-xs text-gray-400 font-semibold shrink-0">
             <Users className="w-3.5 h-3.5 text-accentPurple shrink-0" />
             <span>{participantsCount} in Room</span>
+          </div>
+
+          {/* Shared Control Indicator */}
+          <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-2 xs:px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[10.5px] xs:text-[11px] sm:text-xs text-emerald-400 font-bold shrink-0">
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse shrink-0" />
+            <span className="hidden xs:inline">Shared Control</span>
           </div>
 
           {/* Lights Out Cinema Toggle */}
@@ -1109,6 +1137,11 @@ export default function WatchParty() {
               <EmbedPlayer
                 embedUrl={getEmbedUrl()}
                 title={mediaDetail.title}
+                initialTime={Math.floor(currentPlaybackTime || inboundSyncEvent?.time || 0)}
+                syncEvent={inboundSyncEvent}
+                onProgressUpdate={(time) => {
+                  setCurrentPlaybackTime(time);
+                }}
               />
             )}
 
@@ -1193,10 +1226,23 @@ export default function WatchParty() {
                   ))}
                 </div>
 
+                {/* Rewind 10 Seconds */}
+                <button
+                  type="button"
+                  onClick={() => handleSkip(-10)}
+                  className="px-2.5 xs:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                  title="Rewind 10 seconds (Shared party control)"
+                >
+                  <Rewind className="w-3.5 h-3.5 text-accentCyan" />
+                  <span>-10s</span>
+                </button>
+
+                {/* Shared Sync Play / Pause Toggle */}
                 <button
                   type="button"
                   onClick={handleTogglePartyPlayPause}
-                  className="btn-shimmer px-3.5 py-1.5 rounded-xl bg-accentCyan/15 hover:bg-accentCyan/25 text-accentCyan border border-accentCyan/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+                  className="btn-shimmer px-3.5 py-1.5 rounded-xl bg-accentCyan/15 hover:bg-accentCyan/25 text-accentCyan border border-accentCyan/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm cursor-pointer"
+                  title="Toggle Play / Pause for everyone in room (Shared party control)"
                 >
                   {isPlayingState ? (
                     <>
@@ -1211,10 +1257,22 @@ export default function WatchParty() {
                   )}
                 </button>
 
+                {/* Skip Forward 10 Seconds */}
+                <button
+                  type="button"
+                  onClick={() => handleSkip(10)}
+                  className="px-2.5 xs:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                  title="Skip forward 10 seconds (Shared party control)"
+                >
+                  <FastForward className="w-3.5 h-3.5 text-accentCyan" />
+                  <span>+10s</span>
+                </button>
+
+                {/* Re-sync Button */}
                 <button
                   type="button"
                   onClick={handleRequestResync}
-                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-darkBorder text-xs font-semibold transition flex items-center gap-1.5 active:scale-95 cursor-pointer"
                   title="Re-synchronize room state"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
