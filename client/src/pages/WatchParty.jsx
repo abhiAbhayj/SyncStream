@@ -67,7 +67,8 @@ export default function WatchParty() {
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeEpisode, setActiveEpisode] = useState(1);
   const [customUrl, setCustomUrl] = useState('');
-  const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
+  const currentPlaybackTimeRef = useRef(0);
+  const initialRoomTimeRef = useRef(0);
   const hasSyncedModeRef = useRef(false);
 
   // Anime episodes metadata list
@@ -248,7 +249,12 @@ export default function WatchParty() {
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
-      if (typeof state.time === 'number') setCurrentPlaybackTime(state.time);
+      if (typeof state.time === 'number') {
+        currentPlaybackTimeRef.current = state.time;
+        if (state.time > 5) {
+          initialRoomTimeRef.current = Math.floor(state.time);
+        }
+      }
       if (state.event === 'play') setIsPlayingState(true);
       if (state.event === 'pause') setIsPlayingState(false);
       if (state.sender) setLastSyncAction(`Stream synced by @${state.sender}`);
@@ -267,7 +273,9 @@ export default function WatchParty() {
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
-      if (typeof state.time === 'number') setCurrentPlaybackTime(state.time);
+      if (typeof state.time === 'number') {
+        currentPlaybackTimeRef.current = state.time;
+      }
       if (state.event === 'play') setIsPlayingState(true);
       if (state.event === 'pause') setIsPlayingState(false);
 
@@ -354,7 +362,7 @@ export default function WatchParty() {
       activeEpisode: changes.activeEpisode !== undefined ? changes.activeEpisode : activeEpisode,
       customUrl: changes.customUrl !== undefined ? changes.customUrl : customUrl,
       event: changes.event || 'update_state',
-      time: changes.time !== undefined ? changes.time : (currentPlaybackTime || inboundSyncEvent?.time || 0)
+      time: changes.time !== undefined ? changes.time : (currentPlaybackTimeRef.current || inboundSyncEvent?.time || 0)
     };
     
     socket.emit('media_sync', payload);
@@ -391,10 +399,11 @@ export default function WatchParty() {
   };
 
   const handleSkip = (delta) => {
-    const cur = Number(currentPlaybackTime) || 0;
+    const cur = Number(currentPlaybackTimeRef.current) || 0;
     const nextTime = Math.max(0, cur + delta);
-    setCurrentPlaybackTime(nextTime);
+    currentPlaybackTimeRef.current = nextTime;
     emitRoomState({ event: 'seek', time: nextTime });
+    setInboundSyncEvent({ event: 'seek', time: nextTime, trigger: Date.now() });
     const formatted = formatSyncClock(nextTime);
     setLastSyncAction(`${delta > 0 ? '+10s Skip' : '-10s Rewind'} by @${user?.username || 'you'}`);
     addNotification(`You ${delta > 0 ? 'skipped forward 10s' : 'rewound 10s'}`, 'sync');
@@ -455,7 +464,7 @@ export default function WatchParty() {
       tmdbId,
       season: activeSeason || 1,
       episode: activeEpisode || 1,
-      startTime: Math.floor(currentPlaybackTime || inboundSyncEvent?.time || 0)
+      startTime: initialRoomTimeRef.current || 0
     });
   };
 
@@ -1137,10 +1146,12 @@ export default function WatchParty() {
               <EmbedPlayer
                 embedUrl={getEmbedUrl()}
                 title={mediaDetail.title}
-                initialTime={Math.floor(currentPlaybackTime || inboundSyncEvent?.time || 0)}
+                initialTime={initialRoomTimeRef.current || 0}
                 syncEvent={inboundSyncEvent}
                 onProgressUpdate={(time) => {
-                  setCurrentPlaybackTime(time);
+                  if (typeof time === 'number' && time >= 0) {
+                    currentPlaybackTimeRef.current = Math.floor(time);
+                  }
                 }}
               />
             )}

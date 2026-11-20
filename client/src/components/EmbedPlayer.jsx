@@ -34,13 +34,13 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
   }, [onProgressUpdate]);
 
   // Trigger matrix shutter overlay whenever stream source / server changes
-  // With 3.5s safety timeout so loading screen never permanently obscures player
+  // With 2.0s safety timeout so loading screen never gets stuck
   useEffect(() => {
     if (embedUrl) {
       setLoading(true);
       const safetyTimer = setTimeout(() => {
         setLoading(false);
-      }, 3500);
+      }, 2000);
       return () => clearTimeout(safetyTimer);
     }
   }, [embedUrl]);
@@ -167,7 +167,11 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
     >
       {/* High-End Clean Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10 select-none">
+        <div 
+          onClick={() => setLoading(false)}
+          className="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10 select-none cursor-pointer"
+          title="Click to dismiss overlay"
+        >
           <div className="relative p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 shadow-xl">
             <Loader2 className="w-8 h-8 animate-spin text-accentCyan" />
           </div>
@@ -176,7 +180,7 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
               Loading Player...
             </span>
             <span className="text-[11px] text-gray-400">
-              If playback does not start shortly, try switching to Server 2 or 3
+              Click anywhere to dismiss &bull; Or select mirrors below
             </span>
           </div>
         </div>
