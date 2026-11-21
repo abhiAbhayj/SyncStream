@@ -3,7 +3,6 @@ import { Loader2, MonitorOff, HelpCircle, ShieldCheck, Maximize, Minimize } from
 
 export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEvent = null, onProgressUpdate = null }) {
   const [loading, setLoading] = useState(true);
-  const [shieldActive, setShieldActive] = useState(true);
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -150,15 +149,14 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
       return originalReplaceState(...args);
     };
 
-    // 3. Navigation API trap (Intercepts cross-origin top navigation from iframe)
+    // 3. Navigation API trap (Intercepts cross-origin top navigation & mobile app intents)
     const handleNavigation = (e) => {
       try {
         const dest = e.destination?.url;
-        if (dest && typeof dest === 'string' && !dest.startsWith(window.location.origin) && !dest.startsWith('about:')) {
-          console.warn('[SyncStream Shield] Blocked unauthorized top redirect:', dest);
-          if (e.canIntercept) {
-            e.preventDefault();
-          } else {
+        if (dest && typeof dest === 'string') {
+          const isAppInternal = dest.startsWith(window.location.origin) || dest.startsWith('/') || dest.startsWith('about:blank');
+          if (!isAppInternal) {
+            console.warn('[SyncStream Shield] Blocked unauthorized top redirect:', dest);
             e.preventDefault();
           }
         }
@@ -191,6 +189,18 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // 5. Anti-blur trap (prevents mobile background popunder focus theft)
+    const handleWindowBlur = () => {
+      if (document.activeElement === iframeRef.current) {
+        setTimeout(() => {
+          try {
+            window.focus();
+          } catch (err) {}
+        }, 80);
+      }
+    };
+    window.addEventListener('blur', handleWindowBlur);
+
     return () => {
       window.open = originalOpen;
       window.history.pushState = originalPushState;
@@ -200,6 +210,7 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
       }
       document.removeEventListener('click', handleDocClick, true);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('blur', handleWindowBlur);
     };
   }, []);
 
@@ -239,7 +250,7 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
         </div>
       )}
 
-      {/* Embedded Player Iframe with Complete Media Permissions and Redirect Shield */}
+      {/* Embedded Player Iframe with Complete Media Permissions and ZERO Sandbox */}
       <iframe
         ref={iframeRef}
         src={embedUrl}
@@ -251,27 +262,11 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
         scrolling="no"
         allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
         referrerPolicy="origin-when-cross-origin"
-        sandbox={shieldActive ? "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" : undefined}
         onLoad={() => setLoading(false)}
       />
 
       {/* Floating Controls Bar (Top Right) */}
       <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
-        {/* Anti-Redirect Shield Toggle */}
-        <button
-          type="button"
-          onClick={() => setShieldActive(!shieldActive)}
-          title={shieldActive ? 'Ad & Redirect Shield: ACTIVE (Blocking popups & mobile redirects). Tap to toggle off.' : 'Ad & Redirect Shield: OFF. Tap to enable popup & redirect blocking.'}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl backdrop-blur-md border text-[11px] font-medium transition cursor-pointer shadow-lg select-none ${
-            shieldActive 
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' 
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
-          }`}
-        >
-          <ShieldCheck className={`w-3.5 h-3.5 ${shieldActive ? 'text-emerald-400' : 'text-amber-400'}`} />
-          <span className="hidden sm:inline">{shieldActive ? 'Shield: Active' : 'Shield: Off'}</span>
-        </button>
-
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullscreen}
