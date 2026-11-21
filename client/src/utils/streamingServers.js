@@ -42,13 +42,13 @@ export const STREAMING_SERVERS = [
     description: 'Extensive global cinema and television mirror with vast title catalog'
   },
   { 
-    key: 'twoembed', 
+    key: 'vidsrcme', 
     num: '05',
-    name: '2Embed CC',
-    label: 'Server 5 (2Embed CC)', 
-    badge: 'High Quality',
+    name: 'VidSrc ME',
+    label: 'Server 5 (VidSrc ME)', 
+    badge: 'Multi-Audio • 1080p',
     tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-    description: 'Reliable global streaming server with extensive anime and cinema library'
+    description: 'Official VidSrc core engine with multi-language audio and subtitle tracks'
   },
   { 
     key: 'anyembed', 
@@ -69,13 +69,13 @@ export const STREAMING_SERVERS = [
     description: 'Multi-source failover architecture with responsive HTML5 playback'
   },
   { 
-    key: 'twoembedskin', 
+    key: 'vidsrcsu', 
     num: '08',
-    name: '2Embed Skin',
-    label: 'Server 8 (2Embed Skin)', 
-    badge: 'Global Mirror',
+    name: 'VidSrc SU',
+    label: 'Server 8 (VidSrc SU)', 
+    badge: 'Fast Mirror • 4K',
     tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-    description: 'High-availability secondary 2Embed network node'
+    description: 'Dedicated high-speed global streaming mirror with instant buffering'
   },
   { 
     key: 'vidsrcpm', 
@@ -127,8 +127,13 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'vidfast':
         baseStreamUrl = `https://vidfast.vc/movie/${activeId}`;
         break;
-      case 'twoembed':
-        baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
+      case 'embedwave':
+      case 'movies111':
+      case 'rgshows':
+        baseStreamUrl = `https://embedwave.cc/embed/movie/${activeId}`;
+        break;
+      case 'vidsrcme':
+        baseStreamUrl = `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
         break;
       case 'anyembed':
       case 'smashystream':
@@ -137,16 +142,10 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'movietv':
       case 'vidsrcdev':
       case 'vidsrcnet':
-      case 'vidsrcme':
         baseStreamUrl = `https://movietvapi.stream/embed/${activeId}`;
         break;
-      case 'embedwave':
-      case 'movies111':
-      case 'rgshows':
-        baseStreamUrl = `https://embedwave.cc/embed/movie/${activeId}`;
-        break;
-      case 'twoembedskin':
-        baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
+      case 'vidsrcsu':
+        baseStreamUrl = `https://vidsrc.su/embed/movie/${activeId}`;
         break;
       case 'vidsrcpm':
         baseStreamUrl = `https://vidsrc.pm/embed/movie/${activeId}`;
@@ -155,10 +154,15 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'autoembedpro':
       case 'autoembedco':
       case 'warezcdn':
-      case 'vidsrcsu':
       case 'vidsrcsh':
       case 'nontongo':
         baseStreamUrl = `https://vidzy.org/movie/${activeId}`;
+        break;
+      case 'twoembed':
+        baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
+        break;
+      case 'twoembedskin':
+        baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
         break;
       default:
         baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
@@ -177,8 +181,13 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'vidfast':
         baseStreamUrl = `https://vidfast.vc/tv/${activeId}/${s}/${ep}`;
         break;
-      case 'twoembed':
-        baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}?s=${s}&e=${ep}`;
+      case 'embedwave':
+      case 'movies111':
+      case 'rgshows':
+        baseStreamUrl = `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidsrcme':
+        baseStreamUrl = `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
         break;
       case 'anyembed':
       case 'smashystream':
@@ -187,16 +196,10 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'movietv':
       case 'vidsrcdev':
       case 'vidsrcnet':
-      case 'vidsrcme':
         baseStreamUrl = `https://movietvapi.stream/embed/tv/${activeId}/${s}/${ep}`;
         break;
-      case 'embedwave':
-      case 'movies111':
-      case 'rgshows':
-        baseStreamUrl = `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
-        break;
-      case 'twoembedskin':
-        baseStreamUrl = `https://www.2embed.skin/embedtv/${activeId}?s=${s}&e=${ep}`;
+      case 'vidsrcsu':
+        baseStreamUrl = `https://vidsrc.su/embed/tv/${activeId}/${s}/${ep}`;
         break;
       case 'vidsrcpm':
         baseStreamUrl = `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
@@ -205,10 +208,15 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'autoembedpro':
       case 'autoembedco':
       case 'warezcdn':
-      case 'vidsrcsu':
       case 'vidsrcsh':
       case 'nontongo':
         baseStreamUrl = `https://vidzy.org/serie/${activeId}/${s}/${ep}`;
+        break;
+      case 'twoembed':
+        baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}?s=${s}&e=${ep}`;
+        break;
+      case 'twoembedskin':
+        baseStreamUrl = `https://www.2embed.skin/embedtv/${activeId}?s=${s}&e=${ep}`;
         break;
       default:
         baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;

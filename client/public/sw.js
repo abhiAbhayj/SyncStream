@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v25-zero-ad-embed-proxy-and-404-fixes';
+const CACHE_NAME = 'syncstream-v26-native-shield-mode';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

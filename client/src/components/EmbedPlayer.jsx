@@ -3,23 +3,10 @@ import { Loader2, MonitorOff, HelpCircle, ShieldCheck, Maximize, Minimize } from
 
 export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEvent = null, onProgressUpdate = null }) {
   const [loading, setLoading] = useState(true);
-  const [useProxy, setUseProxy] = useState(true);
+  const [shieldActive, setShieldActive] = useState(true);
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Reset proxy state on embedUrl change
-  useEffect(() => {
-    setUseProxy(true);
-  }, [embedUrl]);
-
-  // Zero-Ad Reverse Proxy routing
-  const activeSrc = React.useMemo(() => {
-    if (!embedUrl) return '';
-    if (!useProxy) return embedUrl;
-    if (embedUrl.startsWith('/api/stream/embed-proxy')) return embedUrl;
-    return `/api/stream/embed-proxy?url=${encodeURIComponent(embedUrl)}`;
-  }, [embedUrl, useProxy]);
 
   // PostMessage listener for external streaming embeds (VidLink, VidFast, Playerjs, Plyr)
   useEffect(() => {
@@ -252,11 +239,10 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
         </div>
       )}
 
-      {/* Embedded Player Iframe with Complete Media Permissions and NO sandbox attribute */}
-      {/* Zero-Ad reverse proxy eliminates popups and ad redirects; parent neutralizer protects top level */}
+      {/* Embedded Player Iframe with Complete Media Permissions and Redirect Shield */}
       <iframe
         ref={iframeRef}
-        src={activeSrc}
+        src={embedUrl}
         title={title || 'Media Streaming Embed'}
         className="w-full h-full border-0"
         allowFullScreen={true}
@@ -265,23 +251,26 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
         scrolling="no"
         allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; accelerometer *; gyroscope *; screen-wake-lock *; display-capture *; clipboard-write *"
         referrerPolicy="origin-when-cross-origin"
+        sandbox={shieldActive ? "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" : undefined}
         onLoad={() => setLoading(false)}
-        onError={() => {
-          console.warn('[EmbedPlayer] Proxy load failed, falling back to direct stream URL');
-          setUseProxy(false);
-        }}
       />
 
       {/* Floating Controls Bar (Top Right) */}
       <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
-        {/* Shield Status Badge */}
-        <div 
-          title="Ad & Redirect Shield Active: Popups neutralized"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-medium text-emerald-400 select-none shadow-lg"
+        {/* Anti-Redirect Shield Toggle */}
+        <button
+          type="button"
+          onClick={() => setShieldActive(!shieldActive)}
+          title={shieldActive ? 'Ad & Redirect Shield: ACTIVE (Blocking popups & mobile redirects). Tap to toggle off.' : 'Ad & Redirect Shield: OFF. Tap to enable popup & redirect blocking.'}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl backdrop-blur-md border text-[11px] font-medium transition cursor-pointer shadow-lg select-none ${
+            shieldActive 
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' 
+              : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+          }`}
         >
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="hidden sm:inline">Shield Active</span>
-        </div>
+          <ShieldCheck className={`w-3.5 h-3.5 ${shieldActive ? 'text-emerald-400' : 'text-amber-400'}`} />
+          <span className="hidden sm:inline">{shieldActive ? 'Shield: Active' : 'Shield: Off'}</span>
+        </button>
 
         {/* Fullscreen Button */}
         <button
