@@ -752,7 +752,7 @@ const resolveTmdbIdForAnimeTitle = async (titleEnglish, titleRomaji, format) => 
   addCandidate(titleEnglish);
   addCandidate(titleRomaji);
 
-  const searchType = format === 'MOVIE' ? 'movie' : 'anime';
+  const searchType = format === 'MOVIE' ? 'movie' : 'tv';
   for (const q of candidates.slice(0, 3)) {
     try {
       const controller = new AbortController();
@@ -773,6 +773,21 @@ const resolveTmdbIdForAnimeTitle = async (titleEnglish, titleRomaji, format) => 
       }
     } catch {
       // Ignore abort / network hiccup and try next candidate
+    }
+  }
+
+  // Secondary fallback: if format was not movie but TV had no match, check movie
+  if (searchType === 'tv') {
+    for (const q of candidates.slice(0, 2)) {
+      try {
+        const res = await fetch(`/api/media/search?type=movie&query=${encodeURIComponent(q)}&page=1`);
+        if (!res.ok) continue;
+        const list = await res.json();
+        if (Array.isArray(list)) {
+          const numericMatch = list.find((item) => item?.id && /^\d+$/.test(String(item.id)));
+          if (numericMatch) return String(numericMatch.id);
+        }
+      } catch {}
     }
   }
   return null;

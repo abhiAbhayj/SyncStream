@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v24-direct-m3u8-stream-extraction';
+const CACHE_NAME = 'syncstream-v25-zero-ad-embed-proxy-and-404-fixes';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

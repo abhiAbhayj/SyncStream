@@ -368,3 +368,180 @@ export async function proxyStream(req, res) {
     }
   }
 }
+
+/**
+ * Zero-Ad Embed Reverse Proxy & In-Iframe Guard:
+ * Fetches third-party embed HTML, fixes relative paths with <base>,
+ * and injects the SyncStream Ultra Guard Script at the top of <head>.
+ * Neutralizes all popups (window.open), top-level redirects (top.location),
+ * and malicious link clicks WITHOUT triggering anti-sandbox checks!
+ * GET /api/stream/embed-proxy?url=ENCODED_URL
+ */
+export async function embedProxy(req, res) {
+  const { url: targetUrl } = req.query;
+  if (!targetUrl) return res.status(400).send('Target embed URL is required');
+
+  try {
+    const parsed = new URL(targetUrl);
+    const origin = parsed.origin;
+
+    const response = await axios.get(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'Referer': origin + '/',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      timeout: 8000,
+      responseType: 'text',
+      validateStatus: (s) => s < 400
+    });
+
+    let html = response.data;
+    if (typeof html !== 'string' || html.length < 50) {
+      return res.redirect(targetUrl);
+    }
+
+    // 1. Strip notorious third-party ad networks directly from upstream HTML before execution
+    const adDomains = [
+      'tagivi.com',
+      'wakemenoutlip.com',
+      'createlouisville.org',
+      'disable-devtool',
+      'highperformancecpmgate.com',
+      'profitabledisplaynetwork.com',
+      'popads.net',
+      'adcash.com',
+      'adsterra.com',
+      'monetag.com',
+      'alwingulla.com',
+      'cobalten.com',
+      'whos.amung.us'
+    ];
+
+    for (const domain of adDomains) {
+      const scriptRegex = new RegExp(`<script\\b[^>]*src=[^>]*${domain}[^>]*>[\\s\\S]*?<\\/script>`, 'gi');
+      html = html.replace(scriptRegex, '<!-- Neutralized Ad Script -->');
+    }
+
+    const baseTag = `<base href="${origin}/" />`;
+    const guardScript = `
+<style>#sbxErr { display: none !important; }</style>
+<script>
+(function() {
+  // 1. Neutralize window.open (Prevents all popups, popunders, new tabs)
+  var dummyWin = {
+    closed: true,
+    focus: function() {},
+    blur: function() {},
+    close: function() {},
+    postMessage: function() {},
+    location: { href: '', replace: function() {}, assign: function() {} }
+  };
+  try {
+    Object.defineProperty(window, 'open', {
+      value: function() {
+        console.warn('[SyncStream Guard] Neutralized external popup window.open');
+        return dummyWin;
+      },
+      writable: false,
+      configurable: false
+    });
+  } catch (e) {
+    window.open = function() { return dummyWin; };
+  }
+
+  // 2. Safe mockTop and mockParent:
+  // - Keeps (window === window.top) as FALSE so 2embed/embedwave frame checks pass!
+  // - Blocks rogue ad redirects via top.location.href, assign, or replace
+  // - Safely relays postMessage to parent for Watch Party synchronization
+  var mockTop = {
+    location: {
+      get href() { return window.location.href; },
+      set href(val) { console.warn('[SyncStream Guard] Blocked rogue top.location redirect to:', val); },
+      replace: function(val) { console.warn('[SyncStream Guard] Blocked top.location.replace to:', val); },
+      assign: function(val) { console.warn('[SyncStream Guard] Blocked top.location.assign to:', val); }
+    },
+    postMessage: function(msg, origin) {
+      try {
+        if (window.parent && window.parent !== window && window.parent !== mockTop) {
+          window.parent.postMessage(msg, origin || '*');
+        }
+      } catch (e) {}
+    }
+  };
+
+  try {
+    Object.defineProperty(window, 'top', { get: function() { return mockTop; }, configurable: true });
+    Object.defineProperty(window, 'parent', { get: function() { return mockTop; }, configurable: true });
+  } catch (e) {}
+
+  // 3. Bypass anti-sandbox checks (Prevents 2embed / embedwave document.domain throw)
+  try {
+    window.isReallySandboxed = function() { return false; };
+  } catch (e) {}
+
+  try {
+    var curDomain = document.domain;
+    Object.defineProperty(document, 'domain', {
+      get: function() { return curDomain; },
+      set: function(val) { curDomain = val; return val; },
+      configurable: true
+    });
+  } catch (e) {}
+
+  // 4. Intercept all ad click redirects (target="_blank" and target="_top")
+  window.addEventListener('click', function(e) {
+    var el = e.target;
+    while (el && el.tagName !== 'A' && el !== document.body) {
+      el = el.parentElement;
+    }
+    if (el && el.tagName === 'A') {
+      var href = el.getAttribute('href');
+      var target = el.getAttribute('target');
+      if (target === '_blank' || target === '_top' || (href && !href.startsWith('javascript:') && !href.startsWith('#'))) {
+        console.warn('[SyncStream Guard] Blocked ad link redirect click:', href);
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }
+  }, true);
+
+  // 5. Intercept ad form submits
+  window.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (form && form.tagName === 'FORM') {
+      var target = form.getAttribute('target');
+      if (target === '_blank' || target === '_top') {
+        console.warn('[SyncStream Guard] Blocked ad form submit');
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }
+  }, true);
+})();
+</script>
+`;
+
+    if (html.includes('<head>')) {
+      html = html.replace('<head>', `<head>${baseTag}${guardScript}`);
+    } else if (html.includes('<HEAD>')) {
+      html = html.replace('<HEAD>', `<HEAD>${baseTag}${guardScript}`);
+    } else {
+      html = `${baseTag}${guardScript}${html}`;
+    }
+
+    res.removeHeader('X-Frame-Options');
+    res.removeHeader('Content-Security-Policy');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    return res.send(html);
+  } catch (err) {
+    console.warn('[EmbedProxy] Upstream proxy failed, falling back to direct redirect:', err.message);
+    return res.redirect(targetUrl);
+  }
+}
