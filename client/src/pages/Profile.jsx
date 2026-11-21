@@ -214,7 +214,13 @@ export default function Profile() {
     }
     return current;
   });
-  const [activeAvatarTab, setActiveAvatarTab] = useState('emojis');
+  const [activeAvatarTab, setActiveAvatarTab] = useState(() => {
+    const current = user?.avatar_url;
+    if (current && !current.includes('emoji-datasource-apple') && !current.startsWith('data:image')) {
+      return 'anime';
+    }
+    return 'emojis';
+  });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [avatarBurstKey, setAvatarBurstKey] = useState(0);
   const [isCustomUploaded, setIsCustomUploaded] = useState(() => {
@@ -916,6 +922,58 @@ export default function Profile() {
 
   const currentCategory = avatarCollections[activeAvatarTab] || avatarCollections.emojis;
 
+  // Accurately determine the exact category and display label of the user's active selected avatar
+  const selectedAvatarMeta = useMemo(() => {
+    if (isCustomUploaded || (typeof selectedAvatar === 'string' && selectedAvatar.startsWith('data:image/'))) {
+      return {
+        label: 'Custom Photo',
+        icon: Camera,
+        iconColor: 'text-accentCyan',
+        badgeBg: 'border-accentCyan/30 bg-accentCyan/10 text-accentCyan'
+      };
+    }
+
+    // 1. Check if the avatar is in the Anime collection
+    const animeMatch = avatarCollections.anime?.items?.find((i) => i.url === selectedAvatar);
+    if (animeMatch) {
+      return {
+        label: `Anime & Manga • ${animeMatch.name}`,
+        icon: Wand2,
+        iconColor: 'text-pink-400',
+        badgeBg: 'border-pink-500/30 bg-pink-500/10 text-pink-300'
+      };
+    }
+
+    // 2. Check if the avatar is in the Emojis collection
+    const emojiMatch = avatarCollections.emojis?.items?.find((i) => i.url === selectedAvatar);
+    if (emojiMatch) {
+      return {
+        label: `WhatsApp Emojis • ${emojiMatch.name}`,
+        icon: Smile,
+        iconColor: 'text-amber-400',
+        badgeBg: 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+      };
+    }
+
+    // 3. Check if the URL points to the Apple/WhatsApp emoji CDN
+    if (isEmojiAvatarUrl(selectedAvatar)) {
+      return {
+        label: 'WhatsApp Emojis',
+        icon: Smile,
+        iconColor: 'text-amber-400',
+        badgeBg: 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+      };
+    }
+
+    // 4. Default for Anime character seeds, AniList, MAL, and Dicebear lorelei
+    return {
+      label: 'Anime & Manga',
+      icon: Wand2,
+      iconColor: 'text-pink-400',
+      badgeBg: 'border-pink-500/30 bg-pink-500/10 text-pink-300'
+    };
+  }, [selectedAvatar, isCustomUploaded, avatarCollections]);
+
   return (
     <div className="max-w-6xl mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-5 md:px-6 lg:px-8 space-y-5 sm:space-y-6 min-h-[75vh] pb-12 sm:pb-16">
       {/* Page Title & Breadcrumb */}
@@ -966,18 +1024,9 @@ export default function Profile() {
                 {user?.username || 'SyncStream User'}
               </h2>
               <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium border border-white/10 bg-white/5 text-gray-300">
-                  {isCustomUploaded ? (
-                    <>
-                      <Sparkles className="w-3 h-3 text-amber-400" />
-                      <span>Custom Avatar</span>
-                    </>
-                  ) : (
-                    <>
-                      <Smile className="w-3 h-3 text-accentCyan" />
-                      <span>{currentCategory.label}</span>
-                    </>
-                  )}
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium border ${selectedAvatarMeta.badgeBg}`}>
+                  <selectedAvatarMeta.icon className={`w-3.5 h-3.5 ${selectedAvatarMeta.iconColor}`} />
+                  <span>{selectedAvatarMeta.label}</span>
                 </span>
                 {user?.created_at && (
                   <span className="text-[11px] text-gray-400 font-mono">
