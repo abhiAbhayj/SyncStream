@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v23-music-autoplay-fix';
+const CACHE_NAME = 'syncstream-v24-direct-m3u8-stream-extraction';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

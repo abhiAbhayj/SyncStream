@@ -11,7 +11,8 @@ import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
-import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server, Rewind, FastForward } from 'lucide-react';
+import { resolveDirectStream } from '../utils/streamResolver';
+import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server, Rewind, FastForward, Zap } from 'lucide-react';
 
 const formatDuration = (mins, mediaType, episodesCount) => {
   const m = parseInt(mins, 10);
@@ -70,6 +71,13 @@ export default function WatchParty() {
   const currentPlaybackTimeRef = useRef(0);
   const initialRoomTimeRef = useRef(0);
   const hasSyncedModeRef = useRef(false);
+
+  // Solution 1: Direct Ad-Free Stream (.m3u8 / MP4) synchronized state
+  const [directStreamUrl, setDirectStreamUrl] = useState('');
+  const [directStreamSubtitles, setDirectStreamSubtitles] = useState([]);
+  const [directStreamProvider, setDirectStreamProvider] = useState('');
+  const [streamSourceMode, setStreamSourceMode] = useState('direct'); // 'direct' | 'embed'
+  const [isResolvingStream, setIsResolvingStream] = useState(false);
 
   // Anime episodes metadata list
   const [episodes, setEpisodes] = useState([]);
@@ -225,6 +233,59 @@ export default function WatchParty() {
     });
   }, [room, mediaDetail, activeSeason, activeEpisode, embedServer]);
 
+  // Solution 1: Automatically resolve ad-free direct stream (.m3u8 / MP4) for Watch Party
+  useEffect(() => {
+    if (!room || !mediaDetail || playbackMode === 'trailer') return;
+    let isCancelled = false;
+
+    const resolvePartyStream = async () => {
+      setIsResolvingStream(true);
+      try {
+        const streamResult = await resolveDirectStream({
+          tmdbId: room.external_media_id,
+          imdbId: mediaDetail.imdb_id,
+          type: room.media_type,
+          title: mediaDetail.title || mediaDetail.name || '',
+          releaseYear: mediaDetail.release_date ? parseInt(mediaDetail.release_date.split('-')[0], 10) : undefined,
+          season: activeSeason,
+          episode: activeEpisode
+        });
+
+        if (!isCancelled) {
+          if (streamResult && streamResult.success && streamResult.streamUrl) {
+            setDirectStreamUrl(streamResult.streamUrl);
+            setDirectStreamSubtitles(streamResult.subtitles || []);
+            setDirectStreamProvider(streamResult.provider || 'Direct HLS');
+            setStreamSourceMode('direct');
+
+            if (isHost) {
+              emitRoomState({
+                directStreamUrl: streamResult.streamUrl,
+                directStreamSubtitles: streamResult.subtitles || [],
+                streamSourceMode: 'direct'
+              });
+            }
+          } else {
+            setDirectStreamUrl('');
+            setDirectStreamSubtitles([]);
+            setStreamSourceMode('embed');
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.warn('[WatchParty] Direct stream resolution error:', err.message);
+          setDirectStreamUrl('');
+          setStreamSourceMode('embed');
+        }
+      } finally {
+        if (!isCancelled) setIsResolvingStream(false);
+      }
+    };
+
+    resolvePartyStream();
+    return () => { isCancelled = true; };
+  }, [room?.external_media_id, room?.media_type, activeSeason, activeEpisode, mediaDetail?.title, isHost, playbackMode]);
+
   // 2. Join socket room & register event listeners
   useEffect(() => {
     if (!socket || !room || !user) return;
@@ -249,6 +310,9 @@ export default function WatchParty() {
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
+      if (state.directStreamUrl !== undefined) setDirectStreamUrl(state.directStreamUrl);
+      if (state.directStreamSubtitles !== undefined) setDirectStreamSubtitles(state.directStreamSubtitles);
+      if (state.streamSourceMode !== undefined) setStreamSourceMode(state.streamSourceMode);
       if (typeof state.time === 'number') {
         currentPlaybackTimeRef.current = state.time;
         if (state.time > 5) {
@@ -273,6 +337,9 @@ export default function WatchParty() {
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
+      if (state.directStreamUrl !== undefined) setDirectStreamUrl(state.directStreamUrl);
+      if (state.directStreamSubtitles !== undefined) setDirectStreamSubtitles(state.directStreamSubtitles);
+      if (state.streamSourceMode !== undefined) setStreamSourceMode(state.streamSourceMode);
       if (typeof state.time === 'number') {
         currentPlaybackTimeRef.current = state.time;
       }
@@ -361,6 +428,9 @@ export default function WatchParty() {
       activeSeason: changes.activeSeason !== undefined ? changes.activeSeason : activeSeason,
       activeEpisode: changes.activeEpisode !== undefined ? changes.activeEpisode : activeEpisode,
       customUrl: changes.customUrl !== undefined ? changes.customUrl : customUrl,
+      directStreamUrl: changes.directStreamUrl !== undefined ? changes.directStreamUrl : directStreamUrl,
+      directStreamSubtitles: changes.directStreamSubtitles !== undefined ? changes.directStreamSubtitles : directStreamSubtitles,
+      streamSourceMode: changes.streamSourceMode !== undefined ? changes.streamSourceMode : streamSourceMode,
       event: changes.event || 'update_state',
       time: changes.time !== undefined ? changes.time : (currentPlaybackTimeRef.current || inboundSyncEvent?.time || 0)
     };
@@ -430,7 +500,15 @@ export default function WatchParty() {
 
   const handleServerChange = (serverKey) => {
     setEmbedServer(serverKey);
-    emitRoomState({ embedServer: serverKey });
+    setStreamSourceMode('embed');
+    emitRoomState({ embedServer: serverKey, streamSourceMode: 'embed' });
+  };
+
+  const handleSelectDirectStream = () => {
+    if (directStreamUrl) {
+      setStreamSourceMode('direct');
+      emitRoomState({ streamSourceMode: 'direct' });
+    }
   };
 
   const handleSeasonChange = (seasonNum) => {
@@ -871,8 +949,69 @@ export default function WatchParty() {
             </div>
           </div>
 
-          {/* Streaming Server Selector (only for Standard Embed) */}
+          {/* Stream Engine Selector: Ad-Free Direct Stream vs Mirror Servers */}
           {playbackMode === 'solo-embed' && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-darkCard via-black/40 to-darkCard border border-darkBorder shadow-lg">
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <button
+                  onClick={handleSelectDirectStream}
+                  disabled={!directStreamUrl && !isResolvingStream}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    streamSourceMode === 'direct' && directStreamUrl
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/20'
+                      : (directStreamUrl 
+                          ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10' 
+                          : 'bg-white/[0.02] text-gray-500 border border-white/5 cursor-not-allowed')
+                  }`}
+                  title={directStreamUrl ? 'Ad-free direct stream active' : 'Resolving direct stream...'}
+                >
+                  <Zap className={`w-3.5 h-3.5 ${streamSourceMode === 'direct' && directStreamUrl ? 'text-emerald-400 fill-current' : 'text-gray-400'}`} />
+                  <span>⚡ 100% Ad-Free Direct Stream</span>
+                  {directStreamUrl && (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 font-mono">
+                      Ready
+                    </span>
+                  )}
+                  {isResolvingStream && (
+                    <Loader2 className="w-3 h-3 animate-spin text-accentCyan" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setStreamSourceMode('embed');
+                    emitRoomState({ streamSourceMode: 'embed' });
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    streamSourceMode === 'embed'
+                      ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shadow-sm shadow-accentCyan/20'
+                      : 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10'
+                  }`}
+                >
+                  <Server className="w-3.5 h-3.5" />
+                  <span>🌐 Mirror Servers (10 Mirrors)</span>
+                </button>
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex items-center gap-2 text-[11px] font-mono text-gray-400 self-end sm:self-auto">
+                {streamSourceMode === 'direct' && directStreamUrl ? (
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Ad-Free Direct Stream &bull; Native Sync
+                  </span>
+                ) : (
+                  <span className="text-accentCyan font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accentCyan animate-pulse" />
+                    Active Mirror: {STREAMING_SERVERS.find(s => s.key === embedServer)?.name || embedServer}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Streaming Server Selector (only for Standard Embed when in mirror mode or direct not available) */}
+          {playbackMode === 'solo-embed' && (streamSourceMode === 'embed' || !directStreamUrl) && (
             <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-darkCard/95 via-black/70 to-darkCard/85 backdrop-blur-xl p-3 sm:p-4 shadow-2xl space-y-3">
               {/* Subtle top neon ambient glow */}
               <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accentCyan/50 to-transparent pointer-events-none" />
@@ -1143,17 +1282,34 @@ export default function WatchParty() {
             )}
 
             {playbackMode === 'solo-embed' && (
-              <EmbedPlayer
-                embedUrl={getEmbedUrl()}
-                title={mediaDetail.title}
-                initialTime={initialRoomTimeRef.current || 0}
-                syncEvent={inboundSyncEvent}
-                onProgressUpdate={(time) => {
-                  if (typeof time === 'number' && time >= 0) {
-                    currentPlaybackTimeRef.current = Math.floor(time);
-                  }
-                }}
-              />
+              streamSourceMode === 'direct' && directStreamUrl ? (
+                <VideoPlayer
+                  src={directStreamUrl}
+                  isHost={isHost}
+                  socketEvent={inboundSyncEvent}
+                  onStateChange={handleHostStateChange}
+                  initialTime={initialRoomTimeRef.current || 0}
+                  subtitles={directStreamSubtitles || []}
+                  provider={directStreamProvider}
+                  onProgressUpdate={(time) => {
+                    if (typeof time === 'number' && time >= 0) {
+                      currentPlaybackTimeRef.current = Math.floor(time);
+                    }
+                  }}
+                />
+              ) : (
+                <EmbedPlayer
+                  embedUrl={getEmbedUrl()}
+                  title={mediaDetail.title}
+                  initialTime={initialRoomTimeRef.current || 0}
+                  syncEvent={inboundSyncEvent}
+                  onProgressUpdate={(time) => {
+                    if (typeof time === 'number' && time >= 0) {
+                      currentPlaybackTimeRef.current = Math.floor(time);
+                    }
+                  }}
+                />
+              )
             )}
 
             {playbackMode === 'solo-html5' && (() => {

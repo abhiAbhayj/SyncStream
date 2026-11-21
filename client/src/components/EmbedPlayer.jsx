@@ -110,11 +110,21 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
 
   // ── Redirect & Popup Neutralizer ──────────────────────────────────────────
   useEffect(() => {
-    // 1. Intercept popup windows (window.open)
+    // 1. Intercept popup windows (window.open) with safe dummy proxy
+    // Prevents ad scripts from triggering fallback top-level navigation on null
     const originalOpen = window.open;
+    const dummyWindow = {
+      closed: true,
+      focus: () => {},
+      blur: () => {},
+      close: () => {},
+      postMessage: () => {},
+      location: { href: '', replace: () => {}, assign: () => {} }
+    };
+
     window.open = function (...args) {
-      console.warn('[SyncStream Shield] Blocked external popup redirect attempt:', args[0]);
-      return null;
+      console.warn('[SyncStream Shield] Neutralized external popup redirect:', args[0]);
+      return dummyWindow;
     };
 
     // 2. Prevent top-level navigation / pushState hijacking
@@ -139,13 +149,55 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
       return originalReplaceState(...args);
     };
 
-    const handleBeforeUnload = () => {};
+    // 3. Navigation API trap (Intercepts cross-origin top navigation from iframe)
+    const handleNavigation = (e) => {
+      try {
+        const dest = e.destination?.url;
+        if (dest && typeof dest === 'string' && !dest.startsWith(window.location.origin) && !dest.startsWith('about:')) {
+          console.warn('[SyncStream Shield] Blocked unauthorized top redirect:', dest);
+          if (e.canIntercept) {
+            e.preventDefault();
+          } else {
+            e.preventDefault();
+          }
+        }
+      } catch (err) {
+        // Ignored
+      }
+    };
+
+    if (window.navigation && window.navigation.addEventListener) {
+      window.navigation.addEventListener('navigate', handleNavigation);
+    }
+
+    // 4. Safe beforeunload guard against external top.location navigation
+    let isUserNavigating = false;
+    const handleDocClick = (e) => {
+      const a = e.target.closest('a');
+      if (a && a.href && a.href.startsWith(window.location.origin)) {
+        isUserNavigating = true;
+        setTimeout(() => { isUserNavigating = false; }, 1200);
+      }
+    };
+    document.addEventListener('click', handleDocClick, true);
+
+    const handleBeforeUnload = (e) => {
+      if (!isUserNavigating) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.open = originalOpen;
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
+      if (window.navigation && window.navigation.removeEventListener) {
+        window.navigation.removeEventListener('navigate', handleNavigation);
+      }
+      document.removeEventListener('click', handleDocClick, true);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);

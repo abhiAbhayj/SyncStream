@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, ShieldAlert, Loader2, Gauge } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, ShieldAlert, Loader2, Gauge, Subtitles, Zap } from 'lucide-react';
 import Hls from 'hls.js';
 
 export default function VideoPlayer({ 
@@ -8,7 +8,9 @@ export default function VideoPlayer({
   socketEvent = null, // { event: 'play'|'pause'|'seek', time: number, trigger: number }
   onStateChange = null, // callback: (event, time) => {}
   initialTime = 0,
-  onProgressUpdate = null
+  onProgressUpdate = null,
+  subtitles = [],
+  provider = 'Direct HLS'
 }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
@@ -27,6 +29,8 @@ export default function VideoPlayer({
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState(-1);
   const [skipRipple, setSkipRipple] = useState(null); // { side: 'left'|'right', key: number, delta: number }
 
   // 0. Attach HLS.js for .m3u8 streams or native video for MP4
@@ -305,6 +309,15 @@ export default function VideoPlayer({
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  const handleSubtitleChange = (trackIndex) => {
+    setSelectedSubtitleTrack(trackIndex);
+    setShowSubtitleMenu(false);
+    if (!videoRef.current?.textTracks) return;
+    for (let i = 0; i < videoRef.current.textTracks.length; i++) {
+      videoRef.current.textTracks[i].mode = i === trackIndex ? 'showing' : 'disabled';
+    }
+  };
+
   return (
     <div 
       ref={containerRef} 
@@ -313,6 +326,7 @@ export default function VideoPlayer({
       {/* Video element */}
       <video
         ref={videoRef}
+        crossOrigin="anonymous"
         className="w-full h-full object-contain"
         onPlay={onPlay}
         onPause={onPause}
@@ -320,7 +334,18 @@ export default function VideoPlayer({
         onLoadedMetadata={onLoadedMetadata}
         onWaiting={() => setIsLoading(true)}
         onPlaying={() => setIsLoading(false)}
-      />
+      >
+        {Array.isArray(subtitles) && subtitles.map((sub, idx) => (
+          <track
+            key={sub.id || idx}
+            kind="subtitles"
+            label={sub.label || `Subtitle ${idx + 1}`}
+            src={sub.src}
+            srcLang={sub.language || 'en'}
+            default={idx === 0 || !!sub.default}
+          />
+        ))}
+      </video>
 
       {/* Interactive Single-Tap / Double-Tap Surface Overlay */}
       <div
@@ -376,10 +401,16 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* Party Sync Status label */}
-      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/75 backdrop-blur-md text-accentCyan border border-accentCyan/30 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold shadow-lg">
-        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>Shared Party Sync</span>
+      {/* Top Floating Badges: Shared Party Sync & 100% Ad-Free Direct Stream */}
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/75 backdrop-blur-md text-accentCyan border border-accentCyan/30 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold shadow-lg">
+          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Shared Party Sync</span>
+        </div>
+        <div className="flex items-center gap-1 bg-emerald-500/15 backdrop-blur-md text-emerald-400 border border-emerald-500/30 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold shadow-lg">
+          <Zap className="w-3 h-3 text-emerald-400 fill-current" />
+          <span>Zero Ads &bull; Direct HLS</span>
+        </div>
       </div>
 
       {/* Custom Control Bar overlay */}
@@ -433,6 +464,56 @@ export default function VideoPlayer({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Subtitles (CC) Selector */}
+            {Array.isArray(subtitles) && subtitles.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowSubtitleMenu(!showSubtitleMenu)}
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border transition ${
+                    selectedSubtitleTrack !== -1
+                      ? 'border-accentCyan/40 bg-accentCyan/10 text-accentCyan font-bold'
+                      : 'border-white/10 bg-white/5 hover:bg-white/10 text-gray-300'
+                  } text-[11px] sm:text-xs cursor-pointer`}
+                  title="Subtitles & Captions"
+                >
+                  <Subtitles className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">CC</span>
+                </button>
+
+                {showSubtitleMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowSubtitleMenu(false)} />
+                    <div className="absolute bottom-10 right-0 w-36 max-h-48 overflow-y-auto bg-darkCard border border-darkBorder rounded-xl p-1 shadow-2xl flex flex-col z-20 scrollbar-thin">
+                      <button
+                        onClick={() => handleSubtitleChange(-1)}
+                        className={`text-xs text-left px-2 py-1.5 rounded-lg transition ${
+                          selectedSubtitleTrack === -1
+                            ? 'bg-accentCyan/10 text-accentCyan font-bold'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        Off
+                      </button>
+                      {subtitles.map((sub, i) => (
+                        <button
+                          key={sub.id || i}
+                          onClick={() => handleSubtitleChange(i)}
+                          className={`text-xs text-left px-2 py-1.5 rounded-lg truncate transition ${
+                            selectedSubtitleTrack === i
+                              ? 'bg-accentCyan/10 text-accentCyan font-bold'
+                              : 'text-gray-400 hover:text-white hover:bg-white/5'
+                          }`}
+                          title={sub.label}
+                        >
+                          {sub.label || `Subtitle ${i + 1}`}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Playback speed selector */}
             <div className="relative">
               <button

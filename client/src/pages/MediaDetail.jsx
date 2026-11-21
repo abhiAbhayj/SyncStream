@@ -12,8 +12,9 @@ import ConfirmModal from '../components/ConfirmModal';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
+import { resolveDirectStream } from '../utils/streamResolver';
 import { fetchClientAniListDetail, fetchClientAniListMangaDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
-import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw } from 'lucide-react';
+import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw, Zap } from 'lucide-react';
 
 function CastAvatarCard({ member, onSelect, gridMode = false }) {
   const [imgFailed, setImgFailed] = useState(false);
@@ -141,6 +142,11 @@ export default function MediaDetail() {
   const isExtendedServer = STREAMING_SERVERS.findIndex(s => s.key === initialServer) >= 5;
   const [showAllServers, setShowAllServers] = useState(isExtendedServer);
   const [customUrl, setCustomUrl] = useState('');
+
+  // Solution 1: Direct Ad-Free Stream (.m3u8 / MP4) State
+  const [directStream, setDirectStream] = useState(null);
+  const [isResolvingStream, setIsResolvingStream] = useState(false);
+  const [streamSourceMode, setStreamSourceMode] = useState('direct'); // 'direct' | 'embed'
 
   // Playback timestamp resume tracking (resumes where user stopped)
   const initialTime = urlTime ? parseInt(urlTime, 10) : (savedProgress?.progress_seconds || 0);
@@ -353,6 +359,48 @@ export default function MediaDetail() {
     }
   }, [type, id, activeSeason, detail]);
 
+  // Solution 1: Automatically resolve ad-free direct stream (.m3u8 / MP4) on load or episode change
+  useEffect(() => {
+    if (!detail || playbackMode === 'trailer') return;
+    let isCancelled = false;
+
+    const fetchDirectStream = async () => {
+      setIsResolvingStream(true);
+      try {
+        const streamResult = await resolveDirectStream({
+          tmdbId: detail.tmdb_id || detail.id || id,
+          imdbId: detail.imdb_id,
+          type: type === 'tv' ? 'tv' : (type === 'anime' ? 'anime' : 'movie'),
+          title: detail.title || detail.name || '',
+          releaseYear: detail.release_date ? parseInt(detail.release_date.split('-')[0], 10) : undefined,
+          season: activeSeason,
+          episode: activeEpisode
+        });
+
+        if (!isCancelled) {
+          if (streamResult && streamResult.success && streamResult.streamUrl) {
+            setDirectStream(streamResult);
+            setStreamSourceMode('direct');
+          } else {
+            setDirectStream(null);
+            setStreamSourceMode('embed');
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.warn('[MediaDetail] Direct stream resolution error:', err.message);
+          setDirectStream(null);
+          setStreamSourceMode('embed');
+        }
+      } finally {
+        if (!isCancelled) setIsResolvingStream(false);
+      }
+    };
+
+    fetchDirectStream();
+    return () => { isCancelled = true; };
+  }, [type, id, activeSeason, activeEpisode, detail?.id, detail?.tmdb_id, playbackMode]);
+
   // Save an instant snapshot of Continue Watching progress including current server & timestamp
   const saveProgressSnapshot = (targetServer = null, targetTime = null) => {
     const mediaTitle = detail?.title || detail?.name;
@@ -398,8 +446,15 @@ export default function MediaDetail() {
   // Switch server and immediately save preference
   const handleSelectServer = (serverKey) => {
     setEmbedServer(serverKey);
+    setStreamSourceMode('embed');
     progressTrackerRef.current.serverKey = serverKey;
     saveProgressSnapshot(serverKey);
+  };
+
+  const handleSelectDirectStream = () => {
+    if (directStream?.streamUrl) {
+      setStreamSourceMode('direct');
+    }
   };
 
   // Progress update callback from EmbedPlayer / VideoPlayer
@@ -1053,8 +1108,66 @@ export default function MediaDetail() {
             </span>
           </div>
 
-          {/* Streaming Server Selector (only for Standard Embed) */}
+          {/* Stream Engine Selector: Ad-Free Direct Stream vs Mirror Servers */}
           {playbackMode === 'solo-embed' && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-darkCard via-black/40 to-darkCard border border-darkBorder shadow-lg">
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <button
+                  onClick={handleSelectDirectStream}
+                  disabled={!directStream?.streamUrl && !isResolvingStream}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    streamSourceMode === 'direct' && directStream?.streamUrl
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/20'
+                      : (directStream?.streamUrl 
+                          ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10' 
+                          : 'bg-white/[0.02] text-gray-500 border border-white/5 cursor-not-allowed')
+                  }`}
+                  title={directStream?.streamUrl ? 'Ad-free direct stream extracted' : 'Resolving direct stream...'}
+                >
+                  <Zap className={`w-3.5 h-3.5 ${streamSourceMode === 'direct' && directStream?.streamUrl ? 'text-emerald-400 fill-current' : 'text-gray-400'}`} />
+                  <span>⚡ 100% Ad-Free Direct Stream</span>
+                  {directStream?.streamUrl && (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 font-mono">
+                      Ready
+                    </span>
+                  )}
+                  {isResolvingStream && (
+                    <Loader2 className="w-3 h-3 animate-spin text-accentCyan" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setStreamSourceMode('embed')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    streamSourceMode === 'embed'
+                      ? 'bg-accentCyan/20 text-accentCyan border border-accentCyan/40 shadow-sm shadow-accentCyan/20'
+                      : 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10'
+                  }`}
+                >
+                  <Server className="w-3.5 h-3.5" />
+                  <span>🌐 Mirror Servers (10 Mirrors)</span>
+                </button>
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex items-center gap-2 text-[11px] font-mono text-gray-400 self-end sm:self-auto">
+                {streamSourceMode === 'direct' && directStream?.streamUrl ? (
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Zero Redirects &bull; Native HLS ({directStream.quality || '1080p'})
+                  </span>
+                ) : (
+                  <span className="text-accentCyan font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accentCyan animate-pulse" />
+                    Active Mirror: {STREAMING_SERVERS.find(s => s.key === embedServer)?.name || embedServer}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Streaming Server Selector (only for Standard Embed) */}
+          {playbackMode === 'solo-embed' && (streamSourceMode === 'embed' || !directStream?.streamUrl) && (
             <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-darkCard/95 via-black/70 to-darkCard/85 backdrop-blur-xl p-3 sm:p-4 shadow-2xl space-y-3">
               {/* Subtle top neon ambient glow */}
               <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accentCyan/50 to-transparent pointer-events-none" />
@@ -1281,12 +1394,23 @@ export default function MediaDetail() {
             )}
 
             {playbackMode === 'solo-embed' && (
-              <EmbedPlayer
-                embedUrl={getEmbedUrl()}
-                title={detail.title}
-                initialTime={resumeTime}
-                onProgressUpdate={handleProgressUpdate}
-              />
+              streamSourceMode === 'direct' && directStream?.streamUrl ? (
+                <VideoPlayer
+                  src={directStream.streamUrl}
+                  isHost={true}
+                  initialTime={resumeTime}
+                  onProgressUpdate={handleProgressUpdate}
+                  subtitles={directStream.subtitles || []}
+                  provider={directStream.provider}
+                />
+              ) : (
+                <EmbedPlayer
+                  embedUrl={getEmbedUrl()}
+                  title={detail.title}
+                  initialTime={resumeTime}
+                  onProgressUpdate={handleProgressUpdate}
+                />
+              )
             )}
 
             {playbackMode === 'solo-html5' && (() => {

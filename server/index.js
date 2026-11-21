@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import mediaRoutes from './routes/media.js';
 import roomRoutes from './routes/rooms.js';
 import musicRoutes from './routes/music.js';
+import streamRoutes from './routes/stream.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/music', musicRoutes);
+app.use('/api/stream', streamRoutes);
 
 // Health check endpoints (both /health and /api/health for Netlify proxy compatibility)
 app.get('/health', (req, res) => {
