@@ -123,6 +123,17 @@ const getChartIcon = (id) => {
   }
 };
 
+const isTrackMatch = (a, b) => {
+  if (!a || !b) return false;
+  if (a.id && b.id && String(a.id) === String(b.id)) return true;
+  if (a.audio_url && b.audio_url && a.audio_url === b.audio_url) return true;
+  if (a.title && b.title && String(a.title).trim().toLowerCase() === String(b.title).trim().toLowerCase()) {
+    if (!a.artist || !b.artist) return true;
+    return String(a.artist).trim().toLowerCase() === String(b.artist).trim().toLowerCase();
+  }
+  return false;
+};
+
 export default function Music() {
   const navigate = useNavigate();
   const {
@@ -141,7 +152,8 @@ export default function Music() {
     updatePlaylist,
     deletePlaylist,
     addSongToPlaylist,
-    removeSongFromPlaylist
+    removeSongFromPlaylist,
+    syncQueueOrder
   } = useMusic();
 
   // Navigation Tabs: 'discover' | 'favorites' | 'playlists'
@@ -302,6 +314,7 @@ export default function Music() {
           );
         } catch (e) {}
       }
+      syncQueueOrder(updated);
       return updated;
     });
 
@@ -380,8 +393,9 @@ export default function Music() {
   // ── Favorites Internal Search, Sort & Drag Reorder State ──
   const [playRipple, setPlayRipple] = useState({ id: null, seq: 0 });
   const handleSongPlayClick = (song, queueList, evt) => {
-    setPlayRipple((prev) => ({ id: song.id, seq: prev.seq + 1 }));
-    if (currentTrack?.id !== song.id) {
+    setPlayRipple((prev) => ({ id: song?.id, seq: prev.seq + 1 }));
+    const isSameTrack = isTrackMatch(currentTrack, song);
+    if (!isSameTrack) {
       let fromRect = null;
       const targetEl = evt?.currentTarget;
       if (targetEl) {
@@ -391,13 +405,13 @@ export default function Music() {
       window.dispatchEvent(
         new CustomEvent('syncstream:fly-cover', {
           detail: {
-            src: song.image || FALLBACK_COVER,
+            src: song?.image || FALLBACK_COVER,
             fromRect
           }
         })
       );
     }
-    if (currentTrack?.id === song.id) {
+    if (isSameTrack) {
       togglePlay();
     } else {
       playTrack(song, queueList);
@@ -509,11 +523,26 @@ export default function Music() {
     updated.splice(actualTo, 0, moved);
 
     reorderFavorites(updated);
+    syncQueueOrder(updated);
 
     if (favoriteSort !== 'default') {
       setFavoriteSort('default');
     }
   };
+
+  // Keep active playback queue aligned when user sorts or filters playlist songs
+  useEffect(() => {
+    if (selectedPlaylistDetails && displayedPlaylistSongs.length > 0 && currentTrack) {
+      syncQueueOrder(displayedPlaylistSongs);
+    }
+  }, [displayedPlaylistSongs, selectedPlaylistDetails, currentTrack, syncQueueOrder]);
+
+  // Keep active playback queue aligned when user sorts or filters favorite songs
+  useEffect(() => {
+    if (activeTab === 'favorites' && displayedFavorites.length > 0 && currentTrack) {
+      syncQueueOrder(displayedFavorites);
+    }
+  }, [displayedFavorites, activeTab, currentTrack, syncQueueOrder]);
 
   const handleFavDragStart = (idx, e) => {
     setDraggedFavIndex(idx);
@@ -1225,7 +1254,7 @@ export default function Music() {
                   className="w-full h-full object-cover"
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
                 />
-                {currentTrack?.id === featuredSong.id && isPlaying && (
+                {isTrackMatch(currentTrack, featuredSong) && isPlaying && (
                   <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-black/80 border border-accentCyan/50 flex items-center gap-1">
                     <EqualizerBars isPlaying={true} size="sm" bars={4} />
                   </div>
@@ -1259,7 +1288,7 @@ export default function Music() {
                         className="absolute inset-0 rounded-full border-2 border-accentCyan animate-shockwave pointer-events-none"
                       />
                     )}
-                    {currentTrack?.id === featuredSong.id && isPlaying ? (
+                    {isTrackMatch(currentTrack, featuredSong) && isPlaying ? (
                       <>
                         <Pause className="w-3.5 h-3.5 fill-current" />
                         <span>Pause</span>
@@ -1383,7 +1412,7 @@ export default function Music() {
                   /* ── Card (Grid) View ── */
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
                     {songs.map((song, idx) => {
-                      const isCurrent = currentTrack?.id === song.id;
+                      const isCurrent = isTrackMatch(currentTrack, song);
                       const isCurrentPlaying = isCurrent && isPlaying;
                       const isFav = isFavorite(song.id);
 
@@ -1509,7 +1538,7 @@ export default function Music() {
                   /* ── Compact List View ── */
                   <div className="space-y-1.5">
                     {songs.map((song, idx) => {
-                      const isCurrent = currentTrack?.id === song.id;
+                      const isCurrent = isTrackMatch(currentTrack, song);
                       const isCurrentPlaying = isCurrent && isPlaying;
                       const isFav = isFavorite(song.id);
 
@@ -1772,7 +1801,7 @@ export default function Music() {
                         {chartsViewMode === 'card' ? (
                           <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-none -mx-3 xs:-mx-3.5 px-3 xs:px-3.5 sm:mx-0 sm:px-0">
                             {chart.songs.map((s, idx) => {
-                              const isCur = currentTrack?.id === s.id;
+                              const isCur = isTrackMatch(currentTrack, s);
                               const isCurrentPlaying = isCur && isPlaying;
                               const isFav = isFavorite(s.id);
                               return (
@@ -1866,7 +1895,7 @@ export default function Music() {
                           /* View Mode 2: Compact List View */
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                             {chart.songs.map((s, idx) => {
-                              const isCur = currentTrack?.id === s.id;
+                              const isCur = isTrackMatch(currentTrack, s);
                               const isCurrentPlaying = isCur && isPlaying;
                               const isFav = isFavorite(s.id);
                               return (
@@ -2172,7 +2201,7 @@ export default function Music() {
             /* ── Favorites Card (Grid) View ── */
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {displayedFavorites.map((song, idx) => {
-                const isCurrent = currentTrack?.id === song.id;
+                const isCurrent = isTrackMatch(currentTrack, song);
                 const isCurrentPlaying = isCurrent && isPlaying;
                 const isDragging = draggedFavIndex === idx;
                 const isDragOver = dragOverFavIndex === idx && draggedFavIndex !== idx;
@@ -2311,7 +2340,7 @@ export default function Music() {
             /* ── Favorites Compact List View ── */
             <div className="space-y-1.5">
               {displayedFavorites.map((song, idx) => {
-                const isCurrent = currentTrack?.id === song.id;
+                const isCurrent = isTrackMatch(currentTrack, song);
                 const isCurrentPlaying = isCurrent && isPlaying;
                 const isDragging = draggedFavIndex === idx;
                 const isDragOver = dragOverFavIndex === idx && draggedFavIndex !== idx;
@@ -2698,7 +2727,7 @@ export default function Music() {
                 /* ── Playlist Card (Grid) View ── */
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {displayedPlaylistSongs.map((song, idx) => {
-                    const isCurrent = currentTrack?.id === song.id;
+                    const isCurrent = isTrackMatch(currentTrack, song);
                     const isCurrentPlaying = isCurrent && isPlaying;
                     const isFav = isFavorite(song.id);
                     const isReorderable = displayedPlaylistSongs.length > 1;
@@ -2857,7 +2886,7 @@ export default function Music() {
                 /* ── Playlist Compact List View ── */
                 <div className="space-y-1.5">
                   {displayedPlaylistSongs.map((song, idx) => {
-                    const isCurrent = currentTrack?.id === song.id;
+                    const isCurrent = isTrackMatch(currentTrack, song);
                     const isCurrentPlaying = isCurrent && isPlaying;
                     const isFav = isFavorite(song.id);
                     const isReorderable = displayedPlaylistSongs.length > 1;

@@ -37,6 +37,26 @@ export const extractYouTubeId = (track) => {
   return null;
 };
 
+// Helper: Robust track locator by id (flexible string/number comparison), audio_url, or title/artist
+export const findTrackIndex = (list, track) => {
+  if (!Array.isArray(list) || !track) return -1;
+  const tId = track.id != null ? String(track.id) : null;
+  const tUrl = track.audio_url || null;
+  const tTitle = track.title ? String(track.title).trim().toLowerCase() : null;
+  const tArtist = track.artist ? String(track.artist).trim().toLowerCase() : null;
+
+  return list.findIndex(item => {
+    if (!item) return false;
+    if (tId && item.id != null && String(item.id) === tId) return true;
+    if (tUrl && item.audio_url && item.audio_url === tUrl) return true;
+    if (tTitle && item.title && String(item.title).trim().toLowerCase() === tTitle) {
+      if (!tArtist || !item.artist) return true;
+      return String(item.artist).trim().toLowerCase() === tArtist;
+    }
+    return false;
+  });
+};
+
 export const MusicProvider = ({ children }) => {
   const audioRef = useRef(null);
   const ytPlayerRef = useRef(null);
@@ -126,6 +146,17 @@ export const MusicProvider = ({ children }) => {
   const isLoopingRef = useRef(isLooping);
   isLoopingRef.current = isLooping;
 
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
+
+  const queueIndexRef = useRef(queueIndex);
+  queueIndexRef.current = queueIndex;
+
+  const isShufflingRef = useRef(isShuffling);
+  isShufflingRef.current = isShuffling;
+
+  const isTransitioningRef = useRef(false);
+
   const openAddToPlaylist = useCallback((song) => {
     if (song) {
       setSongForPlaylistModal(song);
@@ -169,6 +200,7 @@ export const MusicProvider = ({ children }) => {
     // 0. Update synchronous tracking refs immediately
     currentTrackRef.current = track;
     userInitiatedPauseRef.current = false;
+    isTransitioningRef.current = false;
 
     setPlaybackError(null);
     setCurrentTrack(track);
@@ -176,14 +208,23 @@ export const MusicProvider = ({ children }) => {
     setDuration(track.duration || 0);
 
     if (trackList && trackList.length > 0) {
+      queueRef.current = trackList;
       setQueue(trackList);
-      const idx = trackList.findIndex(t => t.id === track.id);
-      setQueueIndex(idx !== -1 ? idx : 0);
+      const idx = findTrackIndex(trackList, track);
+      const safeIdx = idx !== -1 ? idx : 0;
+      queueIndexRef.current = safeIdx;
+      setQueueIndex(safeIdx);
     } else {
       setQueue(prev => {
-        const exists = prev.some(t => t.id === track.id);
-        if (!exists) return [...prev, track];
-        return prev;
+        const curList = queueRef.current?.length > 0 ? queueRef.current : prev;
+        const exists = findTrackIndex(curList, track) !== -1;
+        const updated = exists ? curList : [...curList, track];
+        queueRef.current = updated;
+        const curIdx = findTrackIndex(updated, track);
+        const safeIdx = curIdx !== -1 ? curIdx : 0;
+        queueIndexRef.current = safeIdx;
+        setQueueIndex(safeIdx);
+        return updated;
       });
     }
 
@@ -302,25 +343,41 @@ export const MusicProvider = ({ children }) => {
   // Play entire queue starting at specific index
   const playQueue = useCallback((trackList, startIndex = 0) => {
     if (!trackList || trackList.length === 0) return;
-    const target = trackList[startIndex] || trackList[0];
+    const safeStart = startIndex >= 0 && startIndex < trackList.length ? startIndex : 0;
+    const target = trackList[safeStart] || trackList[0];
+    queueRef.current = trackList;
+    queueIndexRef.current = safeStart;
     setQueue(trackList);
-    setQueueIndex(startIndex);
+    setQueueIndex(safeStart);
     playTrack(target, trackList);
   }, [playTrack]);
 
-  // Next Track
+  // Next Track with robust dynamic track locator and anti-bounce
   const nextTrack = useCallback((manualSkip = false) => {
-    if (queue.length === 0) return;
+    const activeQueue = queueRef.current && queueRef.current.length > 0 ? queueRef.current : queue;
+    if (!activeQueue || activeQueue.length === 0) return;
 
-    let nextIndex = queueIndex + 1;
-    if (isShuffling && queue.length > 1) {
-      let rand = Math.floor(Math.random() * queue.length);
-      while (rand === queueIndex && queue.length > 1) {
-        rand = Math.floor(Math.random() * queue.length);
+    if (isTransitioningRef.current && !manualSkip) return;
+    isTransitioningRef.current = true;
+    setTimeout(() => {
+      isTransitioningRef.current = false;
+    }, 650);
+
+    // Dynamic resolution of currently active index in the queue
+    let curIdx = findTrackIndex(activeQueue, currentTrackRef.current);
+    if (curIdx === -1) {
+      curIdx = queueIndexRef.current >= 0 && queueIndexRef.current < activeQueue.length ? queueIndexRef.current : 0;
+    }
+
+    let nextIndex = curIdx + 1;
+    if (isShufflingRef.current && activeQueue.length > 1) {
+      let rand = Math.floor(Math.random() * activeQueue.length);
+      while (rand === curIdx && activeQueue.length > 1) {
+        rand = Math.floor(Math.random() * activeQueue.length);
       }
       nextIndex = rand;
-    } else if (nextIndex >= queue.length) {
-      if (isLooping === 'queue' || manualSkip) {
+    } else if (nextIndex >= activeQueue.length) {
+      if (isLoopingRef.current === 'queue' || manualSkip) {
         nextIndex = 0;
       } else {
         setIsPlaying(false);
@@ -328,12 +385,13 @@ export const MusicProvider = ({ children }) => {
       }
     }
 
+    queueIndexRef.current = nextIndex;
     setQueueIndex(nextIndex);
-    const nxt = queue[nextIndex];
+    const nxt = activeQueue[nextIndex];
     if (nxt) {
-      playTrack(nxt, queue);
+      playTrack(nxt, activeQueue);
     }
-  }, [queue, queueIndex, isShuffling, isLooping, playTrack]);
+  }, [queue, playTrack]);
 
   nextTrackRef.current = nextTrack;
 
@@ -344,19 +402,38 @@ export const MusicProvider = ({ children }) => {
       return;
     }
 
-    if (queue.length === 0) return;
+    const activeQueue = queueRef.current && queueRef.current.length > 0 ? queueRef.current : queue;
+    if (!activeQueue || activeQueue.length === 0) return;
 
-    let prevIndex = queueIndex - 1;
+    let curIdx = findTrackIndex(activeQueue, currentTrackRef.current);
+    if (curIdx === -1) {
+      curIdx = queueIndexRef.current >= 0 && queueIndexRef.current < activeQueue.length ? queueIndexRef.current : 0;
+    }
+
+    let prevIndex = curIdx - 1;
     if (prevIndex < 0) {
-      prevIndex = queue.length - 1;
+      prevIndex = activeQueue.length - 1;
     }
 
+    queueIndexRef.current = prevIndex;
     setQueueIndex(prevIndex);
-    const prv = queue[prevIndex];
+    const prv = activeQueue[prevIndex];
     if (prv) {
-      playTrack(prv, queue);
+      playTrack(prv, activeQueue);
     }
-  }, [currentTime, queue, queueIndex, seek, playTrack]);
+  }, [currentTime, queue, seek, playTrack]);
+
+  // Synchronize queue order when a playlist or favorites list is sorted or reordered
+  const syncQueueOrder = useCallback((newTrackList) => {
+    if (!Array.isArray(newTrackList) || newTrackList.length === 0) return;
+    const curIdx = findTrackIndex(newTrackList, currentTrackRef.current);
+    if (curIdx !== -1) {
+      queueRef.current = newTrackList;
+      queueIndexRef.current = curIdx;
+      setQueue(newTrackList);
+      setQueueIndex(curIdx);
+    }
+  }, []);
 
   // Toggle Play / Pause for dual engine
   const togglePlay = useCallback(() => {
@@ -621,8 +698,23 @@ export const MusicProvider = ({ children }) => {
                   bgAudioAnchorRef.current.play().catch(() => {});
                 }
               } else if (event.data === 2) {
+                // Paused state: check if paused because video reached end
+                const cur = ytPlayerRef.current?.getCurrentTime?.() || 0;
+                const dur = ytPlayerRef.current?.getDuration?.() || currentTrackRef.current?.duration || 0;
+                if (dur > 1 && cur >= dur - 1.2 && !isTransitioningRef.current) {
+                  if (isLoopingRef.current === 'track') {
+                    try {
+                      ytPlayerRef.current?.seekTo(0, true);
+                      ytPlayerRef.current?.playVideo();
+                    } catch (e) {}
+                  } else {
+                    nextTrackRef.current?.(false);
+                  }
+                  return;
+                }
+
                 // If paused but user did NOT initiate the pause (e.g. screen lock / background auto-pause)
-                // ONLY re-trigger if current track is an active YouTube track!
+                // ONLY re-trigger if current track is an active YouTube track and not at the end of the video!
                 if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube') {
                   try {
                     ytPlayerRef.current?.playVideo();
@@ -650,7 +742,7 @@ export const MusicProvider = ({ children }) => {
                       ytPlayerRef.current.playVideo();
                     } catch (e) {}
                   } else if (nextTrackRef.current) {
-                    nextTrackRef.current();
+                    nextTrackRef.current(false);
                   }
                 }
               }
@@ -704,10 +796,28 @@ export const MusicProvider = ({ children }) => {
             setCurrentTime(cur);
             if (dur > 0) setDuration(dur);
 
-            // Auto-pause Watchdog: If user didn't pause, but YouTube state is paused, re-fire playVideo()
-            if (!userInitiatedPauseRef.current && isYouTubeTrack(currentTrackRef.current) && activeEngineRef.current === 'youtube' && typeof ytPlayerRef.current.getPlayerState === 'function') {
+            // Autoplay completion watchdog: Detect track finish even if onStateChange event 0 was skipped
+            if (dur > 1 && cur >= dur - 0.75 && !isTransitioningRef.current) {
+              if (isLoopingRef.current === 'track') {
+                try {
+                  ytPlayerRef.current.seekTo(0, true);
+                  ytPlayerRef.current.playVideo();
+                } catch (e) {}
+              } else {
+                nextTrackRef.current?.(false);
+              }
+              return;
+            }
+
+            // Auto-pause Watchdog: If user didn't pause, but YouTube state is paused in mid-track, resume
+            if (
+              !userInitiatedPauseRef.current &&
+              isYouTubeTrack(currentTrackRef.current) &&
+              activeEngineRef.current === 'youtube' &&
+              typeof ytPlayerRef.current.getPlayerState === 'function'
+            ) {
               const state = ytPlayerRef.current.getPlayerState();
-              if (state === 2) {
+              if (state === 2 && (dur === 0 || cur < dur - 1.5)) {
                 ytPlayerRef.current.playVideo();
               }
             }
@@ -744,6 +854,15 @@ export const MusicProvider = ({ children }) => {
     const handleTimeUpdate = () => {
       if (activeEngineRef.current === 'html5') {
         setCurrentTime(audio.currentTime);
+        // Autoplay completion watchdog for HTML5: advance if audio reaches end of duration
+        if (
+          !isTransitioningRef.current &&
+          audio.duration > 0 &&
+          audio.currentTime >= audio.duration - 0.25 &&
+          isLoopingRef.current !== 'track'
+        ) {
+          nextTrackRef.current?.(false);
+        }
       }
     };
     const handleLoadedMetadata = () => {
@@ -783,7 +902,7 @@ export const MusicProvider = ({ children }) => {
         audio.currentTime = 0;
         audio.play().catch(console.error);
       } else {
-        nextTrack();
+        nextTrackRef.current?.(false);
       }
     };
     const handleError = (e) => {
@@ -1294,6 +1413,7 @@ export const MusicProvider = ({ children }) => {
     skipBackward,
     nextTrack,
     prevTrack,
+    syncQueueOrder,
     addToQueue,
     removeFromQueue,
     clearQueue,

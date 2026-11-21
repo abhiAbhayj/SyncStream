@@ -861,7 +861,11 @@ export default function MusicModal() {
 
             <div className="overflow-y-auto space-y-2 flex-1 min-h-0 pr-1.5 sm:pr-2 custom-scrollbar py-3">
               {queue.map((t, idx) => {
-                const isCurrent = t.id === currentTrack.id;
+                const isCurrent = Boolean(
+                  currentTrack &&
+                  ((t.id && currentTrack.id && String(t.id) === String(currentTrack.id)) ||
+                   (t.audio_url && currentTrack.audio_url && t.audio_url === currentTrack.audio_url))
+                );
                 return (
                   <div
                     key={`${t.id}-${idx}`}

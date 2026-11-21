@@ -802,7 +802,11 @@ export default function MusicPlayerBar() {
 
           <div className="overflow-y-auto space-y-2 flex-1 pr-1 custom-scrollbar max-h-80">
             {queue.map((track, idx) => {
-              const isCurrent = track.id === currentTrack.id;
+              const isCurrent = Boolean(
+                currentTrack &&
+                ((track.id && currentTrack.id && String(track.id) === String(currentTrack.id)) ||
+                 (track.audio_url && currentTrack.audio_url && track.audio_url === currentTrack.audio_url))
+              );
               return (
                 <div
                   key={`${track.id}-${idx}`}
