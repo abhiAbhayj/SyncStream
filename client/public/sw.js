@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v28-profile-avatar-category-fix';
+const CACHE_NAME = 'syncstream-v29-classic-minimalist-logo';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close
