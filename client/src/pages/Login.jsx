@@ -88,7 +88,7 @@ export default function Login() {
 
           {/* Title / Logo */}
           <div className="relative z-10 text-center space-y-2">
-            <img src="/logo.png?v=3" alt="SyncStream" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-2xl border border-white/20 mx-auto mb-2" />
+            <img src="/logo.png?v=4.0" alt="SyncStream" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-2xl border border-white/20 mx-auto mb-2" />
             <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-outfit">
               Sign In to SyncStream
             </h2>

@@ -119,16 +119,18 @@ export default function ForgotPassword() {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentCyan to-accentPurple"></div>
           
           {/* Header */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-[0_0_20px_rgba(139,92,246,0.3)]">
-              {step === 1 && <Phone className="w-8 h-8 text-accentCyan animate-pulse" />}
-              {step === 2 && <Key className="w-8 h-8 text-accentCyan animate-pulse" />}
-              {step === 3 && <Lock className="w-8 h-8 text-accentCyan animate-pulse" />}
-            </div>
-            <h1 className="text-3xl font-extrabold text-white font-outfit mb-2">
+          <div className="flex flex-col items-center mb-6 text-center">
+            <Link to="/" className="inline-block group mb-3">
+              <img
+                src="/logo.png?v=4.0"
+                alt="SyncStream"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-2xl border border-white/20 mx-auto group-hover:scale-105 transition-transform duration-300"
+              />
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-outfit mb-1.5">
               {step === 1 ? 'Reset Password' : step === 2 ? 'Enter Code' : 'New Password'}
             </h1>
-            <p className="text-gray-400 text-center text-sm">
+            <p className="text-gray-400 text-center text-xs sm:text-sm max-w-xs">
               {step === 1 && "Enter your mobile number or username and we'll generate your 6-digit reset code."}
               {step === 2 && `We've generated a 6-digit verification code for ${matchedPhone || identifier}`}
               {step === 3 && "Please choose a secure new password for your account."}

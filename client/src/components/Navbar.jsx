@@ -168,7 +168,7 @@ export default function Navbar() {
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-accentPurple to-accentCyan blur-md opacity-55 group-hover:opacity-100 transition-opacity duration-300" />
                 <img
-                  src="/logo.png?v=3"
+                  src="/logo.png?v=4.0"
                   alt="SyncStream"
                   className="relative w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
                 />
