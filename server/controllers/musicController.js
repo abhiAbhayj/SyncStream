@@ -150,18 +150,19 @@ export const isSpamTrack = (song) => {
     return true;
   }
 
-  // 2. Filter out Karaoke, backing track, amateur covers, lofi, practice, ringtone spam
-  if (/\b(zzang karaoke|melody karaoke version|piano tutorial practice|ringtone download|karaoke version|party tyme karaoke|made popular by|in the style of|tribute band|tribute version|backing tracks?|\(cover\)|\[cover\]|lofi remix|slowed down|8k video|4k video|16k video|lyric|lyrics|lyrical|full audio|full video|audio jukebox)\b/i.test(text)) {
+  // 2. Filter out Karaoke, backing track, amateur covers, practice, ringtone spam
+  // Note: Do NOT reject "lyric", "lyrics", "lyrical", "full audio", or "full video" — many official Anime/OST/Movie uploads use these!
+  if (/\b(zzang karaoke|melody karaoke version|piano tutorial practice|ringtone download|karaoke version|party tyme karaoke|made popular by|in the style of|tribute band|tribute version|backing tracks?|\(cover\)|\[cover\]|audio jukebox)\b/i.test(text)) {
     return true;
   }
 
-  // 3. Filter out non-music / commentary / trailer / reaction tracks
-  if (/\b(reaction|reacting|tier list|behind the scenes|making of|slowed\s*\+\s*reverb|speed\s*up|nightcore|bass\s*boosted|parody|gameplay|walkthrough)\b/i.test(song.title || '')) {
+  // 3. Filter out non-music / commentary / reaction / gameplay tracks
+  if (/\b(reaction|reacting|tier list|behind the scenes|making of|parody|gameplay|walkthrough)\b/i.test(song.title || '')) {
     return true;
   }
 
-  // 4. Must have a valid duration (reject 5-second spam snippets or >15-minute compilations)
-  if (song.duration && (song.duration < 25 || song.duration > 900)) {
+  // 4. Must have a valid duration (reject <15s sound effects or >15-minute compilations)
+  if (song.duration && (song.duration < 15 || song.duration > 900)) {
     return true;
   }
 
@@ -334,6 +335,31 @@ export const parseDurationToSeconds = (durStr) => {
   return parseInt(durStr, 10) || 0;
 };
 
+// Recursively collect videoRenderer objects from YouTube's ytInitialData search tree
+const extractYouTubeVideoRenderers = (node, out = [], visited = new Set()) => {
+  if (!node || typeof node !== 'object' || visited.has(node)) return out;
+  visited.add(node);
+
+  if (Array.isArray(node)) {
+    for (const item of node) extractYouTubeVideoRenderers(item, out, visited);
+    return out;
+  }
+
+  if (node.videoRenderer && node.videoRenderer.videoId) {
+    out.push(node.videoRenderer);
+    return out;
+  }
+
+  for (const key of Object.keys(node)) {
+    if (key === 'relatedChipCloudRenderer' || key === 'horizontalCardListRenderer') continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      extractYouTubeVideoRenderers(val, out, visited);
+    }
+  }
+  return out;
+};
+
 // YouTube Music Scraper for Universal Music, OST, Character Themes, Unreleased & Indie tracks
 export const fetchYouTubeTracks = async (query, limit = 12) => {
   if (!query || !query.trim()) return [];
@@ -341,29 +367,34 @@ export const fetchYouTubeTracks = async (query, limit = 12) => {
     const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
     const response = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cookie': 'SOCS=CAI;'
       },
       timeout: 8000
     });
     const html = response.data;
-    const match = html.match(/var ytInitialData = ({.*?});<\/script>/) || html.match(/ytInitialData\s*=\s*({.+?});/);
+    const match = html.match(/var ytInitialData = (\{.*?\});<\/script>/) || html.match(/ytInitialData\s*=\s*(\{.+?\});/);
     if (!match) return [];
     const data = JSON.parse(match[1]);
-    const contents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+    const primaryContents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+    const renderers = extractYouTubeVideoRenderers(primaryContents);
     const tracks = [];
-    for (const item of contents) {
-      const v = item.videoRenderer;
-      if (!v || !v.videoId) continue;
+    const seenIds = new Set();
+
+    for (const v of renderers) {
       const videoId = v.videoId;
+      if (!videoId || seenIds.has(videoId)) continue;
+      seenIds.add(videoId);
+
       const title = v.title?.runs?.map(r => r.text).join('') || v.title?.simpleText || 'Unknown Title';
-      const channelName = v.ownerText?.runs?.map(r => r.text).join('') || 'YouTube Artist';
+      const channelName = v.ownerText?.runs?.map(r => r.text).join('') || v.longBylineText?.runs?.map(r => r.text).join('') || 'YouTube Artist';
       const durationStr = v.lengthText?.simpleText || '0:00';
       const durationSec = parseDurationToSeconds(durationStr);
 
-      // Filter out long compilation / playlist / jukebox / reaction / meme videos that have unrelated thumbnails
-      const isMultiSongCompilation = /\b(playlist|jukebox|full album|top \d+|all songs|non stop|hour loop|\d+\s*hours?|compilation|reaction|reacting|reacts|tier list|interview|behind the scenes|making of|whatsapp status|status video|reel|slowed\s*\+\s*reverb|speed\s*up|nightcore|bass\s*boosted|parody|meme|gameplay|walkthrough|tutorial|how to)\b/i.test(title);
-      if (isMultiSongCompilation || durationSec > 540 || durationSec < 25) {
+      // Filter out long compilation / playlist / jukebox / reaction / meme videos
+      const isMultiSongCompilation = /\b(playlist|jukebox|full album|top \d+|all songs|non stop|hour loop|\d+\s*hours?|compilation|reaction|reacting|reacts|tier list|interview|behind the scenes|making of|whatsapp status|status video|parody|gameplay|walkthrough|tutorial|how to)\b/i.test(title);
+      if (isMultiSongCompilation || durationSec > 660 || (durationSec > 0 && durationSec < 15)) {
         if (!query.toLowerCase().includes('jukebox') && !query.toLowerCase().includes('compilation')) {
           continue;
         }
@@ -391,6 +422,36 @@ export const fetchYouTubeTracks = async (query, limit = 12) => {
     return tracks;
   } catch (err) {
     console.warn('[YouTube Scraper Warning]:', err.message);
+    return [];
+  }
+};
+
+// iTunes Global Music & OST Search Engine (Official Soundtracks, Anime Openings, TV Series Themes)
+export const fetchITunesTracks = async (query, limit = 12) => {
+  if (!query || !query.trim()) return [];
+  try {
+    const url = `https://itunes.apple.com/search?media=music&entity=song&limit=${limit}&term=${encodeURIComponent(query.trim())}`;
+    const response = await axios.get(url, { timeout: 6000 });
+    const results = response.data?.results || [];
+    return results
+      .filter(r => r.trackId && r.trackName && r.previewUrl)
+      .map(r => {
+        const artwork = (r.artworkUrl100 || r.artworkUrl60 || '').replace(/100x100bb|60x60bb/, '600x600bb');
+        return {
+          id: `it_${r.trackId}`,
+          title: decodeHtml(r.trackName),
+          artist: decodeHtml(r.artistName || 'Unknown Artist'),
+          album: decodeHtml(r.collectionName || 'Single'),
+          duration: r.trackTimeMillis ? Math.round(r.trackTimeMillis / 1000) : 30,
+          image: artwork,
+          audio_url: r.previewUrl,
+          source: 'itunes',
+          language: 'Global',
+          media_type: 'music'
+        };
+      });
+  } catch (err) {
+    console.warn('[iTunes Search Warning]:', err.message);
     return [];
   }
 };
@@ -690,9 +751,9 @@ export const getTrendingMusic = async (req, res) => {
   }
 };
 
-// 2. Multi-Faceted Universal Search (Artists, Movies, Series, Anime, Songs, OSTs, Soundtracks)
+// 2. Multi-Faceted Universal Search (Artists, Movies, Series, Anime, Songs, OSTs, Soundtracks — Zero Limits)
 export const searchMusic = async (req, res) => {
-  const { query, language, category } = req.query;
+  const { query, category } = req.query;
   const page = parseInt(req.query.page || '1', 10);
   const limit = parseInt(req.query.limit || '30', 10);
   const searchCat = (category || 'all').toLowerCase();
@@ -701,107 +762,95 @@ export const searchMusic = async (req, res) => {
     return getTrendingMusic(req, res);
   }
 
+  // Normalize common spelling/spacing quirks while keeping original query intact
   const rawQuery = query.trim();
-  const candidateQueries = [];
+  const normalizedQuery = rawQuery
+    .replace(/\bevil\s+dead\s+arise\b/gi, 'Evil Dead Rise')
+    .replace(/\bclassroom\s+of\s+elite\b/gi, 'Classroom of the Elite')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  // 1. Direct raw query
-  candidateQueries.push(rawQuery);
+  // Strip natural-language filler words to extract core subject & keywords
+  const cleaned = normalizedQuery
+    .replace(/\b(a|an|the|song|songs|music|from|of|in|by|for|track|tracks|audio|mp3|video|official|full|listen|play|search|find)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  // 2. Category-driven expansions
-  if (searchCat === 'artist') {
-    candidateQueries.push(`${rawQuery} Hits`);
-    candidateQueries.push(`${rawQuery} Best Of`);
-    candidateQueries.push(`${rawQuery} Top Songs`);
-  } else if (searchCat === 'movie') {
-    candidateQueries.push(`${rawQuery} Soundtrack`);
-    candidateQueries.push(`${rawQuery} Songs`);
-    candidateQueries.push(`${rawQuery} Movie`);
-    candidateQueries.push(`${rawQuery} Theme`);
-  } else if (searchCat === 'series') {
-    candidateQueries.push(`${rawQuery} Soundtrack`);
-    candidateQueries.push(`${rawQuery} Theme Song`);
-    candidateQueries.push(`${rawQuery} OST`);
-    candidateQueries.push(`${rawQuery} Series`);
-  } else if (searchCat === 'anime') {
-    candidateQueries.push(`${rawQuery} Anime Opening`);
-    candidateQueries.push(`${rawQuery} OST`);
-    candidateQueries.push(`${rawQuery} Anime Theme`);
-    candidateQueries.push(`${rawQuery} Anime Songs`);
-  } else if (searchCat === 'song') {
-    candidateQueries.push(`${rawQuery} Official`);
-    candidateQueries.push(`${rawQuery} Song`);
-  } else {
-    // 'all' category - Smart multi-faceted detection:
+  const coreSubject = cleaned
+    .replace(/\b(anime|series|tv|show|movie|film|ost|soundtrack|bgm|theme|opening|ending)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-    // Famous anime detection
-    if (/naruto|bleach|one\s*piece|attack\s*on\s*titan|demon\s*slayer|jujutsu|death\s*note|tokyo\s*ghoul|chainsaw\s*man|dragon\s*ball|my\s*hero|hunter\s*x|your\s*name|suzume|gurenge|unravel|blue\s*bird|shinzo/i.test(rawQuery)) {
-      candidateQueries.push(`${rawQuery} Anime Opening`);
-      candidateQueries.push(`${rawQuery} OST`);
-      candidateQueries.push(`${rawQuery} Anime Theme`);
-    }
-
-    // Famous TV Series detection
-    if (/stranger\s*things|peaky\s*blinders|game\s*of\s*thrones|money\s*heist|dark|wednesday|witcher|squid\s*game|euphoria|breaking\s*bad|boys|loki|sherlock|bella\s*ciao/i.test(rawQuery)) {
-      candidateQueries.push(`${rawQuery} Soundtrack`);
-      candidateQueries.push(`${rawQuery} Theme Song`);
-      candidateQueries.push(`${rawQuery} Series OST`);
-    }
-
-    // OM Chapter 1: Udhiram / The Blood Wood / Sai Abhyankkar smart detection
-    if (/om\s*chapter|udhiram|blood\s*wood|alaakaa|siya\s*entry|the\s*wild\s*theme/i.test(rawQuery)) {
-      candidateQueries.push('Alaakaa Loova');
-      candidateQueries.push('The Wild Theme OM Chapter 1');
-      candidateQueries.push('Siya Entry OM Chapter 1');
-      candidateQueries.push('OM Chapter 1');
-      candidateQueries.push('Sai Abhyankkar');
-    }
-
-    // Movie / Soundtrack detection
-    if (/leo|kgf|pushpa|animal|interstellar|oppenheimer|rrr|salaar|jawan|kabir\s*singh|titanic|avatar|spider\s*man|batman|avengers|fast\s*and\s*furious|dune|gladiator/i.test(rawQuery)) {
-      candidateQueries.push(`${rawQuery} Soundtrack`);
-      candidateQueries.push(`${rawQuery} Songs`);
-      candidateQueries.push(`${rawQuery} Theme`);
-    }
-
-    // Famous Artist detection
-    candidateQueries.push(`${rawQuery} Hits`);
-    candidateQueries.push(`${rawQuery} Songs`);
+  const candidateQueries = [rawQuery];
+  if (normalizedQuery.toLowerCase() !== rawQuery.toLowerCase()) {
+    candidateQueries.push(normalizedQuery);
+  }
+  if (cleaned && !candidateQueries.includes(cleaned)) {
+    candidateQueries.push(cleaned);
+  }
+  if (coreSubject && coreSubject.length >= 3 && !candidateQueries.includes(coreSubject)) {
+    candidateQueries.push(coreSubject);
   }
 
-  // Split compound titles with colons, dashes, pipes, parentheses (e.g. "OM Chapter 1: Udhiram - The Blood Wood")
-  const subParts = rawQuery.split(/[:\-\–\|\(\)]+/).map(p => p.trim()).filter(p => p.length >= 3);
+  // Category-driven expansions
+  if (searchCat === 'artist') {
+    candidateQueries.push(`${coreSubject || rawQuery} Hits`);
+  } else if (searchCat === 'movie') {
+    candidateQueries.push(`${coreSubject || rawQuery} Soundtrack`);
+    candidateQueries.push(`${coreSubject || rawQuery} Songs`);
+  } else if (searchCat === 'series') {
+    candidateQueries.push(`${coreSubject || rawQuery} Soundtrack`);
+    candidateQueries.push(`${coreSubject || rawQuery} Theme Song`);
+    candidateQueries.push(`${coreSubject || rawQuery} OST`);
+  } else if (searchCat === 'anime') {
+    candidateQueries.push(`${coreSubject || rawQuery} Anime Opening`);
+    candidateQueries.push(`${coreSubject || rawQuery} OST`);
+  }
+
+  // Split compound titles with colons, dashes, pipes, parentheses
+  const subParts = normalizedQuery.split(/[:\-\–\|\(\)]+/).map(p => p.trim()).filter(p => p.length >= 3);
   for (const part of subParts) {
     if (!candidateQueries.includes(part)) {
       candidateQueries.push(part);
     }
   }
 
-  // Clean candidate queries for natural language
-  const cleaned = rawQuery
-    .replace(/\b(a|the|song|songs|music|from|track|audio|mp3|series|movie|tamil|telugu|hindi)\b/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  if (cleaned && cleaned !== rawQuery && !candidateQueries.includes(cleaned)) {
-    candidateQueries.push(cleaned);
+  // Smart YouTube queries (Primary: exact/normalized query; Secondary: OST/Soundtrack expansion if needed)
+  let ytPrimaryQuery = normalizedQuery;
+  if (searchCat === 'series' && !/soundtrack|ost|theme|song/i.test(normalizedQuery)) {
+    ytPrimaryQuery = `${normalizedQuery} soundtrack theme song`;
+  } else if (searchCat === 'anime' && !/opening|ending|ost|theme|song/i.test(normalizedQuery)) {
+    ytPrimaryQuery = `${normalizedQuery} anime opening ost`;
+  } else if (searchCat === 'movie' && !/soundtrack|ost|theme|song/i.test(normalizedQuery)) {
+    ytPrimaryQuery = `${normalizedQuery} movie songs soundtrack`;
   }
+
+  const ytSecondaryQuery =
+    normalizedQuery.toLowerCase() !== rawQuery.toLowerCase()
+      ? `${coreSubject || cleaned} soundtrack`
+      : cleaned && cleaned.toLowerCase() !== ytPrimaryQuery.toLowerCase()
+      ? `${cleaned} soundtrack`
+      : `${ytPrimaryQuery} theme song`;
 
   try {
     const seen = new Set();
     const collectedSongs = [];
     let totalCount = 0;
 
-    // Dual-Engine: 1. Fetch YouTube Tracks concurrently (Universal OST/Singles/BGM/Unreleased coverage)
-    const ytPromise = fetchYouTubeTracks(rawQuery, 15).then(list => (list || []).filter(s => !isSpamTrack(s) && isLanguageMatch(s, language)));
+    // Triple-Engine Concurrent Search (YouTube Full Tracks + JioSaavn 320kbps + iTunes Global Catalog)
+    // Note: Do NOT apply regional language filters during explicit text search so users can find any Anime/Series/Movie/Global song!
+    const ytPrimaryPromise = fetchYouTubeTracks(ytPrimaryQuery, 15).then(list =>
+      (list || []).filter(s => !isSpamTrack(s))
+    );
+    const ytSecondaryPromise = fetchYouTubeTracks(ytSecondaryQuery, 10).then(list =>
+      (list || []).filter(s => !isSpamTrack(s))
+    );
+    const itunesPromise = fetchITunesTracks(coreSubject || cleaned || normalizedQuery, 12).then(list =>
+      (list || []).filter(s => !isSpamTrack(s))
+    );
 
-    // Dual-Engine: 2. Fetch JioSaavn Tracks concurrently (320kbps Studio Masters)
-    const saavnPromises = candidateQueries.slice(0, 4).map(async (q) => {
-      let searchQuery = q;
-      if (language && language !== 'all' && !searchQuery.toLowerCase().includes(language)) {
-        searchQuery += ` ${language}`;
-      }
-
-      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(searchQuery)}`;
+    const saavnPromises = candidateQueries.slice(0, 3).map(async (q) => {
+      const url = `${JIOSAAVN_BASE}?__call=search.getResults&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=${limit}&p=${page}&q=${encodeURIComponent(q)}`;
       try {
         const response = await axios.get(url, {
           headers: {
@@ -812,7 +861,7 @@ export const searchMusic = async (req, res) => {
         const rawResults = response.data.results || [];
         const cleanSongs = rawResults
           .map(formatSong)
-          .filter(s => s && s.audio_url && !isSpamTrack(s) && isLanguageMatch(s, language));
+          .filter(s => s && s.audio_url && !isSpamTrack(s));
         return {
           total: response.data.total || 0,
           songs: sortOriginalAlbumsFirst(cleanSongs)
@@ -822,36 +871,56 @@ export const searchMusic = async (req, res) => {
       }
     });
 
-    const [ytResults, ...saavnResults] = await Promise.all([
-      ytPromise,
+    const [ytPrimaryResults, ytSecondaryResults, itunesResults, ...saavnResults] = await Promise.all([
+      ytPrimaryPromise,
+      ytSecondaryPromise,
+      itunesPromise,
       ...saavnPromises
     ]);
 
-    // Primary: Add JioSaavn studio album tracks first (authentic 500x500 album covers & 320kbps masters)
-    for (const resItem of saavnResults) {
-      if (resItem && resItem.songs) {
-        totalCount = Math.max(totalCount, resItem.total);
-        for (const s of resItem.songs) {
-          const baseTitle = getBaseTitle(s.title);
-          const key = baseTitle.length > 5 ? baseTitle : `${baseTitle}_${getBaseArtist(s.artist)}`;
-          if (!seen.has(key) && !seen.has(s.id)) {
-            seen.add(key);
-            seen.add(s.id);
-            collectedSongs.push(s);
-          }
-        }
-      }
-    }
-
-    // Secondary: Add YouTube Music tracks for any additional unique tracks
-    for (const s of (ytResults || [])) {
-      const key = `${getBaseTitle(s.title)}_${getBaseArtist(s.artist)}`;
+    const addUnique = (s) => {
+      if (!s) return;
+      const baseTitle = getBaseTitle(s.title);
+      const key = baseTitle.length > 5 ? `${baseTitle}_${getBaseArtist(s.artist)}` : `${baseTitle}_${s.id}`;
       if (!seen.has(key) && !seen.has(s.id)) {
         seen.add(key);
         seen.add(s.id);
         collectedSongs.push(s);
       }
+    };
+
+    // Merge all 3 engines
+    for (const resItem of saavnResults) {
+      if (resItem && resItem.songs) {
+        totalCount = Math.max(totalCount, resItem.total);
+        for (const s of resItem.songs) addUnique(s);
+      }
     }
+    for (const s of (ytPrimaryResults || [])) addUnique(s);
+    for (const s of (ytSecondaryResults || [])) addUnique(s);
+    for (const s of (itunesResults || [])) addUnique(s);
+
+    // Relevance scoring: ensure tracks matching the user's actual search terms rank above unrelated hits
+    const queryTokens = (cleaned || normalizedQuery)
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(t => t.length >= 2);
+    const corePhrase = (coreSubject || cleaned || normalizedQuery).toLowerCase();
+
+    const scoreTrack = (song) => {
+      const hay = `${song.title || ''} ${song.artist || ''} ${song.album || ''}`.toLowerCase();
+      let score = 0;
+      if (corePhrase && hay.includes(corePhrase)) score += 20;
+      for (const tok of queryTokens) {
+        if (hay.includes(tok)) score += 5;
+      }
+      // Slight quality/full-length preference on equal relevance
+      if (song.source === 'jiosaavn') score += 2;
+      else if (song.source === 'youtube') score += 1.5;
+      return score;
+    };
+
+    collectedSongs.sort((a, b) => scoreTrack(b) - scoreTrack(a));
 
     res.json({
       query: rawQuery,
