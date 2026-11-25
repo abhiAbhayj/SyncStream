@@ -48,6 +48,7 @@ export default function WatchParty() {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isHost = user?.id === room?.host_id;
   const [participantsCount, setParticipantsCount] = useState(1);
   const [copied, setCopied] = useState(false);
   const [copyBurstKey, setCopyBurstKey] = useState(0);
@@ -155,13 +156,17 @@ export default function WatchParty() {
 
         // B. Fetch Media details (use direct browser AniList for al_* anime to bypass Render IP throttling)
         let detailData = null;
-        const isAniListId = roomData.media_type === 'anime' && (String(roomData.external_media_id).startsWith('al_') || isNaN(parseInt(roomData.external_media_id, 10)));
+        const isAniListId = String(roomData?.external_media_id || '').startsWith('al_') || (roomData?.media_type === 'anime' && isNaN(parseInt(roomData.external_media_id, 10)));
         if (isAniListId) {
           detailData = await fetchClientAniListDetail(roomData.external_media_id);
         }
         if (!detailData) {
           const mediaRes = await axios.get(`/api/media/detail/${roomData.media_type}/${roomData.external_media_id}`);
           detailData = mediaRes.data;
+        }
+        if (!detailData || typeof detailData !== 'object') {
+          setError('Could not load media details for this Watch Party room.');
+          return;
         }
         setMediaDetail(detailData);
 
@@ -171,7 +176,7 @@ export default function WatchParty() {
         }
 
         // TV / Anime series seasons initialization
-        if ((roomData.media_type === 'tv' || roomData.media_type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
+        if ((roomData.media_type === 'tv' || roomData.media_type === 'anime') && Array.isArray(detailData.seasons) && detailData.seasons.length > 0) {
           const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
           setActiveSeason(detailData.default_season || firstSeason.season_number);
         }
@@ -247,7 +252,7 @@ export default function WatchParty() {
           imdbId: mediaDetail.imdb_id,
           type: room.media_type,
           title: mediaDetail.title || mediaDetail.name || '',
-          releaseYear: mediaDetail.release_date ? parseInt(mediaDetail.release_date.split('-')[0], 10) : undefined,
+          releaseYear: mediaDetail.release_date ? parseInt(String(mediaDetail.release_date).split('-')[0], 10) : undefined,
           season: activeSeason,
           episode: activeEpisode
         });
@@ -407,13 +412,13 @@ export default function WatchParty() {
   }, [socket, room, user, code]);
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(code);
+    try {
+      navigator.clipboard?.writeText?.(code);
+    } catch {}
     setCopied(true);
     setCopyBurstKey(k => k + 1);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const isHost = user?.id === room?.host_id;
 
   const emitRoomState = (changes = {}) => {
     if (!socket || !user || !room) return;
@@ -556,10 +561,10 @@ export default function WatchParty() {
     );
   }
 
-  if (error) {
+  if (error || !room || !mediaDetail) {
     return (
       <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-3xl max-w-lg mx-auto text-center space-y-4 my-12">
-        <p className="text-red-400 font-bold">{error}</p>
+        <p className="text-red-400 font-bold">{error || 'Unable to load Watch Party details.'}</p>
         <button
           onClick={() => navigate('/')}
           className="px-6 py-2.5 bg-darkCard border border-darkBorder hover:border-white/20 rounded-xl text-sm font-semibold text-gray-200 transition flex items-center gap-2 mx-auto"
@@ -661,7 +666,7 @@ export default function WatchParty() {
           badge,
           badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
           type: 'tv',
-          release_date: s.air_date ? s.air_date.split('-')[0] : (mediaDetail.release_date?.split('-')[0] || ''),
+          release_date: s.air_date ? String(s.air_date).split('-')[0] : (mediaDetail.release_date ? String(mediaDetail.release_date).split('-')[0] : ''),
           poster_path: s.poster_path || mediaDetail.poster_path,
           isSeason: true,
           isActive: (activeSeason || 1) === s.season_number
@@ -670,7 +675,7 @@ export default function WatchParty() {
     }
 
     // 2. Any related franchise movies/series from mediaDetail.related_franchise
-    if (mediaDetail.related_franchise && mediaDetail.related_franchise.length > 0) {
+    if (Array.isArray(mediaDetail.related_franchise) && mediaDetail.related_franchise.length > 0) {
       const hasCurrent = mediaDetail.related_franchise.some(rf => String(rf.id) === String(mediaDetail.id));
 
       if (!isEpisodic && !hasCurrent) {
@@ -680,7 +685,7 @@ export default function WatchParty() {
           badge: 'NOW PLAYING',
           badgeColor: 'bg-[#10b981] text-black border-[#10b981]',
           type: 'movie',
-          release_date: mediaDetail.release_date ? mediaDetail.release_date.split('-')[0] : '',
+          release_date: mediaDetail.release_date ? String(mediaDetail.release_date).split('-')[0] : '',
           poster_path: mediaDetail.poster_path,
           isSeason: false,
           isActive: true
@@ -688,6 +693,7 @@ export default function WatchParty() {
       }
 
       mediaDetail.related_franchise.forEach((rf) => {
+        if (!rf) return;
         const isCurrentActive = String(rf.id) === String(mediaDetail.id);
         list.push({
           id: rf.id,
@@ -697,7 +703,7 @@ export default function WatchParty() {
             ? 'bg-[#10b981] text-black border-[#10b981]' 
             : (rf.type === 'movie' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'),
           type: rf.type || 'movie',
-          release_date: rf.release_date ? rf.release_date.split('-')[0] : '',
+          release_date: rf.release_date ? String(rf.release_date).split('-')[0] : '',
           poster_path: rf.poster_path || mediaDetail.poster_path,
           isSeason: false,
           isActive: isCurrentActive
@@ -872,16 +878,20 @@ export default function WatchParty() {
             </div>
 
             {/* Genres */}
-            {mediaDetail.genres && mediaDetail.genres.length > 0 && (
+            {Array.isArray(mediaDetail.genres) && mediaDetail.genres.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                {mediaDetail.genres.map((g, idx) => (
-                  <span
-                    key={g.id || `${g.name}-${idx}`}
-                    className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-white/5 text-gray-300 border border-white/10"
-                  >
-                    {g.name}
-                  </span>
-                ))}
+                {mediaDetail.genres.filter(Boolean).map((g, idx) => {
+                  const genreLabel = typeof g === 'string' ? g : g?.name;
+                  if (!genreLabel) return null;
+                  return (
+                    <span
+                      key={g?.id || `${genreLabel}-${idx}`}
+                      className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-white/5 text-gray-300 border border-white/10"
+                    >
+                      {genreLabel}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>

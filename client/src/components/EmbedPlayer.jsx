@@ -110,8 +110,6 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
 
   // ── Redirect & Popup Neutralizer ──────────────────────────────────────────
   useEffect(() => {
-    // 1. Intercept popup windows (window.open) with safe dummy proxy
-    // Prevents ad scripts from triggering fallback top-level navigation on null
     const originalOpen = window.open;
     const dummyWindow = {
       closed: true,
@@ -122,32 +120,36 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
       location: { href: '', replace: () => {}, assign: () => {} }
     };
 
-    window.open = function (...args) {
-      console.warn('[SyncStream Shield] Neutralized external popup redirect:', args[0]);
-      return dummyWindow;
-    };
+    try {
+      window.open = function (...args) {
+        console.warn('[SyncStream Shield] Neutralized external popup redirect:', args[0]);
+        return dummyWindow;
+      };
+    } catch {}
 
     // 2. Prevent top-level navigation / pushState hijacking
     const originalPushState = window.history.pushState.bind(window.history);
     const originalReplaceState = window.history.replaceState.bind(window.history);
 
-    window.history.pushState = function (...args) {
-      const url = args[2];
-      if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
-        console.warn('[SyncStream Shield] Blocked external pushState redirect:', url);
-        return;
-      }
-      return originalPushState(...args);
-    };
+    try {
+      window.history.pushState = function (...args) {
+        const url = args[2];
+        if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
+          console.warn('[SyncStream Shield] Blocked external pushState redirect:', url);
+          return;
+        }
+        return originalPushState(...args);
+      };
 
-    window.history.replaceState = function (...args) {
-      const url = args[2];
-      if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
-        console.warn('[SyncStream Shield] Blocked external replaceState redirect:', url);
-        return;
-      }
-      return originalReplaceState(...args);
-    };
+      window.history.replaceState = function (...args) {
+        const url = args[2];
+        if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
+          console.warn('[SyncStream Shield] Blocked external replaceState redirect:', url);
+          return;
+        }
+        return originalReplaceState(...args);
+      };
+    } catch {}
 
     // 3. Navigation API trap (Intercepts cross-origin top navigation & mobile app intents)
     const handleNavigation = (e) => {
@@ -202,9 +204,11 @@ export default function EmbedPlayer({ embedUrl, title, initialTime = 0, syncEven
     window.addEventListener('blur', handleWindowBlur);
 
     return () => {
-      window.open = originalOpen;
-      window.history.pushState = originalPushState;
-      window.history.replaceState = originalReplaceState;
+      try {
+        window.open = originalOpen;
+        window.history.pushState = originalPushState;
+        window.history.replaceState = originalReplaceState;
+      } catch {}
       if (window.navigation && window.navigation.removeEventListener) {
         window.navigation.removeEventListener('navigate', handleNavigation);
       }
