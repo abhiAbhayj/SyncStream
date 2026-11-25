@@ -10,6 +10,7 @@ import { fetchClientAniListDetail, buildSyntheticAnimeEpisodes } from '../utils/
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
+import SolidSelect from '../components/SolidSelect';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server, Rewind, FastForward, Zap } from 'lucide-react';
@@ -1461,18 +1462,16 @@ export default function WatchParty() {
                 {/* Season selector (TV shows & Anime - ALWAYS VISIBLE!) */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
-                  <select
+                  <SolidSelect
                     value={activeSeason || 1}
-                    onChange={(e) => handleSeasonChange(parseInt(e.target.value, 10))}
-                    className="px-3 py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer"
+                    onChange={(val) => handleSeasonChange(parseInt(val, 10))}
                     title="Select season for party"
-                  >
-                    {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg font-medium">
-                        {s.name || `Season ${s.season_number}`} ({s.episode_count || 12} eps)
-                      </option>
-                    ))}
-                  </select>
+                    align="right"
+                    options={seasonsList.map((s) => ({
+                      value: s.season_number,
+                      label: `${s.name || `Season ${s.season_number}`} (${s.episode_count || 12} eps)`
+                    }))}
+                  />
                 </div>
               </div>
 

@@ -351,14 +351,14 @@ export default function Navbar() {
                     <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
 
                     {/* Solid High-Contrast User Menu */}
-                    <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1.5rem)] rounded-2xl p-2 z-50 animate-scale-in shadow-[0_20px_50px_rgba(0,0,0,0.95)] border-2 border-slate-600 bg-[#0c1224]">
+                    <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-1.5rem)] rounded-2xl p-2 z-50 animate-scale-in shadow-[0_20px_50px_rgba(0,0,0,0.95)] border-2 border-accentCyan bg-[#0c1224]">
                       {/* User Info Header Card */}
-                      <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-2">
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-[#121a33] border border-slate-700 mb-2">
                         <img
                           src={user.avatar_url || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f60e.png'}
                           alt={user.username}
                           referrerPolicy="no-referrer"
-                          className={`w-10 h-10 rounded-full bg-gradient-to-br from-accentCyan/15 via-darkBg to-accentPurple/20 border border-accentPurple/40 shadow-inner ${
+                          className={`w-10 h-10 rounded-full bg-[#090e1d] border border-accentPurple shadow-inner ${
                             user.avatar_url?.includes('emoji-datasource-apple') ? 'object-contain p-1.5' : 'object-cover'
                           }`}
                         />
@@ -373,23 +373,23 @@ export default function Navbar() {
                         <Link
                           to="/profile"
                           onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition group"
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#0c1224] hover:bg-[#1a2648] transition group"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-accentPurple/15 text-accentPurple flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <div className="w-8 h-8 rounded-lg bg-[#1d183b] text-accentPurple flex items-center justify-center group-hover:scale-110 transition-transform">
                             <User className="w-4 h-4 text-purple-400 fill-purple-400" />
                           </div>
                           <span>My Profile &amp; Themes</span>
                         </Link>
                       </div>
 
-                      <div className="h-px bg-white/10 my-2 mx-1" />
+                      <div className="h-px bg-slate-700 my-2 mx-1" />
 
                       {/* Logout Button */}
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-red-200 hover:bg-red-500/20 transition text-left group"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-red-200 bg-[#0c1224] hover:bg-[#3a1220] transition text-left group cursor-pointer"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-8 h-8 rounded-lg bg-[#2e131e] text-red-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                           <LogOut className="w-4 h-4 fill-red-400/40" />
                         </div>
                         <span>Sign Out</span>

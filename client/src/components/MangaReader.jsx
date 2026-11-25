@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { ChevronLeft, ChevronRight, Layout, ZoomIn, ZoomOut, RotateCcw, Loader2, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import SolidSelect from './SolidSelect';
 
 export default function MangaReader({ chapterId, chapters = [], onChapterSelect, onChapterComplete }) {
   const [pages, setPages] = useState([]);
@@ -208,23 +209,21 @@ export default function MangaReader({ chapterId, chapters = [], onChapterSelect,
             </span>
             
             {chapters && chapters.length > 0 && onChapterSelect && (
-              <select
+              <SolidSelect
                 value={chapterId}
-                onChange={(e) => {
-                  const selectedChId = e.target.value;
+                onChange={(selectedChId) => {
                   const ch = chapters.find(c => c.id === selectedChId);
                   if (ch) {
                     onChapterSelect(selectedChId, `Chapter ${ch.chapter}: ${ch.title}`);
                   }
                 }}
-                className="bg-darkCard text-[11px] sm:text-xs font-bold text-gray-200 border border-darkBorder rounded-lg px-2 xs:px-2.5 sm:px-3 py-1.5 focus:outline-none focus:border-accentCyan cursor-pointer transition max-w-[115px] xs:max-w-[140px] sm:max-w-[180px] md:max-w-[220px]"
-              >
-                {chapters.map(ch => (
-                  <option key={ch.id} value={ch.id} className="bg-darkBg">
-                    Ch. {ch.chapter} - {ch.title}
-                  </option>
-                ))}
-              </select>
+                align="left"
+                className="max-w-[130px] xs:max-w-[160px] sm:max-w-[200px] md:max-w-[240px]"
+                options={chapters.map(ch => ({
+                  value: ch.id,
+                  label: `Ch. ${ch.chapter} - ${ch.title}`
+                }))}
+              />
             )}
           </div>
 

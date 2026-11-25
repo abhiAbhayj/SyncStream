@@ -316,18 +316,22 @@ export default function ContinueWatchingSection() {
             <button
               type="button"
               onClick={() => setShowClearMenu(!showClearMenu)}
-              className="inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1.5 rounded-xl border border-white/15 bg-darkCard/90 hover:bg-darkCard hover:border-accentCyan/50 text-gray-200 hover:text-white text-[11px] xs:text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
+              className={`inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1.5 rounded-xl border-2 text-[11px] xs:text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer ${
+                showClearMenu
+                  ? 'bg-[#121c38] border-accentCyan text-white'
+                  : 'bg-[#0d1428] border-slate-600 hover:bg-[#121c38] hover:border-accentCyan text-white'
+              }`}
               aria-label="Manage or Clear Continue Watching"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
               <span>Clear / Manage</span>
-              <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showClearMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 text-slate-300 transition-transform duration-200 ${showClearMenu ? 'rotate-180 text-accentCyan' : ''}`} />
             </button>
 
-            {/* Dropdown Card */}
+            {/* 100% Solid High-Contrast Dropdown Card */}
             {showClearMenu && (
-              <div className="absolute right-0 top-full mt-1.5 w-56 xs:w-64 rounded-2xl bg-[#0b1022]/98 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl py-1.5 z-50 animate-fade-in">
-                <div className="px-3 py-1.5 border-b border-white/10 text-[10px] font-mono text-gray-400 uppercase tracking-wider font-bold">
+              <div className="absolute right-0 top-full mt-2 w-56 xs:w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-[#0c1224] border-2 border-accentCyan shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden py-1.5 z-50 animate-fade-in">
+                <div className="px-3 py-1.5 border-b border-slate-700 bg-[#090e1d] text-[10px] font-mono text-slate-300 uppercase tracking-wider font-bold">
                   Removal Options
                 </div>
 
@@ -335,31 +339,31 @@ export default function ContinueWatchingSection() {
                 <button
                   type="button"
                   onClick={() => handleRequestBulkClear('all', 'All items', items.length)}
-                  className="w-full text-left px-3 py-2 text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-500/20 flex items-center justify-between transition cursor-pointer"
+                  className="w-full text-left px-3 py-2 text-xs font-bold text-rose-400 hover:text-white bg-[#0c1224] hover:bg-[#3a1220] flex items-center justify-between transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                     <span>Clear All Items</span>
                   </span>
-                  <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-mono">
+                  <span className="px-1.5 py-0.5 rounded bg-[#2a121b] text-rose-300 text-[10px] font-mono">
                     {items.length}
                   </span>
                 </button>
 
-                <div className="my-1 border-t border-white/10" />
+                <div className="my-1 border-t border-slate-700" />
 
                 {/* Clear Movies */}
                 {movieCount > 0 && (
                   <button
                     type="button"
                     onClick={() => handleRequestBulkClear('movie', 'Movies', movieCount)}
-                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-200 hover:text-cyan-300 hover:bg-cyan-500/10 flex items-center justify-between transition cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-white hover:text-cyan-300 bg-[#0c1224] hover:bg-[#1a2648] flex items-center justify-between transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <Film className="w-3.5 h-3.5 text-cyan-400" />
                       <span>Remove Movies Only</span>
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] font-mono">
+                    <span className="px-1.5 py-0.5 rounded bg-[#141d38] text-slate-300 text-[10px] font-mono">
                       {movieCount}
                     </span>
                   </button>
@@ -370,13 +374,13 @@ export default function ContinueWatchingSection() {
                   <button
                     type="button"
                     onClick={() => handleRequestBulkClear('tv', 'TV Series', tvCount)}
-                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-200 hover:text-emerald-300 hover:bg-emerald-500/10 flex items-center justify-between transition cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-white hover:text-emerald-300 bg-[#0c1224] hover:bg-[#1a2648] flex items-center justify-between transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <Tv className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Remove Series Only</span>
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] font-mono">
+                    <span className="px-1.5 py-0.5 rounded bg-[#141d38] text-slate-300 text-[10px] font-mono">
                       {tvCount}
                     </span>
                   </button>
@@ -387,13 +391,13 @@ export default function ContinueWatchingSection() {
                   <button
                     type="button"
                     onClick={() => handleRequestBulkClear('anime', 'Anime', animeCount)}
-                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-200 hover:text-purple-300 hover:bg-purple-500/10 flex items-center justify-between transition cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-white hover:text-purple-300 bg-[#0c1224] hover:bg-[#1a2648] flex items-center justify-between transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                       <span>Remove Anime Only</span>
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] font-mono">
+                    <span className="px-1.5 py-0.5 rounded bg-[#141d38] text-slate-300 text-[10px] font-mono">
                       {animeCount}
                     </span>
                   </button>
@@ -404,13 +408,13 @@ export default function ContinueWatchingSection() {
                   <button
                     type="button"
                     onClick={() => handleRequestBulkClear('manga', 'Manga', mangaCount)}
-                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-200 hover:text-pink-300 hover:bg-pink-500/10 flex items-center justify-between transition cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-white hover:text-pink-300 bg-[#0c1224] hover:bg-[#1a2648] flex items-center justify-between transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <BookOpen className="w-3.5 h-3.5 text-pink-400" />
                       <span>Remove Manga Only</span>
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] font-mono">
+                    <span className="px-1.5 py-0.5 rounded bg-[#141d38] text-slate-300 text-[10px] font-mono">
                       {mangaCount}
                     </span>
                   </button>

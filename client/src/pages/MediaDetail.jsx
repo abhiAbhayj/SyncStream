@@ -9,6 +9,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
+import SolidSelect from '../components/SolidSelect';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
@@ -1583,21 +1584,19 @@ export default function MediaDetail() {
                 {/* Season selector (TV shows & Anime - ALWAYS VISIBLE!) */}
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Season:</span>
-                  <select
+                  <SolidSelect
                     value={activeSeason || 1}
-                    onChange={(e) => {
-                      const sNum = parseInt(e.target.value, 10);
+                    onChange={(val) => {
+                      const sNum = parseInt(val, 10);
                       setActiveSeason(sNum);
                       setActiveEpisode(1);
                     }}
-                    className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-darkCard border border-darkBorder rounded-xl text-xs font-semibold text-gray-200 focus:outline-none focus:border-accentCyan cursor-pointer"
-                  >
-                    {seasonsList.map((s) => (
-                      <option key={s.id || s.season_number} value={s.season_number} className="bg-darkBg font-medium">
-                        {s.name || `Season ${s.season_number}`} ({s.episode_count || detail.episodes_count || 12} eps)
-                      </option>
-                    ))}
-                  </select>
+                    align="right"
+                    options={seasonsList.map((s) => ({
+                      value: s.season_number,
+                      label: `${s.name || `Season ${s.season_number}`} (${s.episode_count || detail.episodes_count || 12} eps)`
+                    }))}
+                  />
                 </div>
               </div>
 

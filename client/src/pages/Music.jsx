@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
 import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
+import SolidSelect from '../components/SolidSelect';
 import {
   Music2,
   Play,
@@ -2116,23 +2117,24 @@ export default function Music() {
                 )}
 
                 {/* Sort Options Dropdown */}
-                <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20 flex-1 sm:flex-initial min-w-0">
-                  <ArrowUpDown className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                  <span className="text-xs font-bold text-slate-300 hidden md:inline">Sort:</span>
-                  <select
-                    value={favoriteSort}
-                    onChange={(e) => setFavoriteSort(e.target.value)}
-                    className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer w-full min-w-0"
-                  >
-                    <option value="default" className="bg-[#18203c] text-white">Default (Custom)</option>
-                    <option value="newest" className="bg-[#18203c] text-white">Recently Liked</option>
-                    <option value="title_asc" className="bg-[#18203c] text-white">Title (A &rarr; Z)</option>
-                    <option value="title_desc" className="bg-[#18203c] text-white">Title (Z &rarr; A)</option>
-                    <option value="artist_asc" className="bg-[#18203c] text-white">Artist (A &rarr; Z)</option>
-                    <option value="duration_desc" className="bg-[#18203c] text-white">Duration (Longest)</option>
-                    <option value="duration_asc" className="bg-[#18203c] text-white">Duration (Shortest)</option>
-                  </select>
-                </div>
+                <SolidSelect
+                  value={favoriteSort}
+                  onChange={setFavoriteSort}
+                  icon={ArrowUpDown}
+                  iconClassName="text-red-400"
+                  prefixLabel="Sort:"
+                  align="right"
+                  className="flex-1 sm:flex-initial min-w-0"
+                  options={[
+                    { value: 'default', label: 'Default (Custom)' },
+                    { value: 'newest', label: 'Recently Liked' },
+                    { value: 'title_asc', label: 'Title (A → Z)' },
+                    { value: 'title_desc', label: 'Title (Z → A)' },
+                    { value: 'artist_asc', label: 'Artist (A → Z)' },
+                    { value: 'duration_desc', label: 'Duration (Longest)' },
+                    { value: 'duration_asc', label: 'Duration (Shortest)' }
+                  ]}
+                />
 
                 {/* View Mode Toggle: Card vs Compact List */}
                 <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
@@ -2650,23 +2652,24 @@ export default function Music() {
                   )}
 
                   {/* Manual Sort Options Dropdown */}
-                  <div className="flex items-center gap-1.5 bg-[#12182f] px-3 py-1.5 rounded-xl border border-white/20 flex-1 sm:flex-initial min-w-0">
-                    <ArrowUpDown className="w-3.5 h-3.5 text-accentCyan shrink-0" />
-                    <span className="text-xs font-bold text-slate-300 hidden md:inline">Sort:</span>
-                    <select
-                      value={playlistSort}
-                      onChange={(e) => setPlaylistSort(e.target.value)}
-                      className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer w-full min-w-0"
-                    >
-                      <option value="default" className="bg-[#18203c] text-white">Default (Custom)</option>
-                      <option value="title_asc" className="bg-[#18203c] text-white">Title (A &rarr; Z)</option>
-                      <option value="title_desc" className="bg-[#18203c] text-white">Title (Z &rarr; A)</option>
-                      <option value="artist_asc" className="bg-[#18203c] text-white">Artist (A &rarr; Z)</option>
-                      <option value="duration_asc" className="bg-[#18203c] text-white">Duration (Shortest)</option>
-                      <option value="duration_desc" className="bg-[#18203c] text-white">Duration (Longest)</option>
-                      <option value="newest" className="bg-[#18203c] text-white">Recently Added</option>
-                    </select>
-                  </div>
+                  <SolidSelect
+                    value={playlistSort}
+                    onChange={setPlaylistSort}
+                    icon={ArrowUpDown}
+                    iconClassName="text-accentCyan"
+                    prefixLabel="Sort:"
+                    align="right"
+                    className="flex-1 sm:flex-initial min-w-0"
+                    options={[
+                      { value: 'default', label: 'Default (Custom)' },
+                      { value: 'title_asc', label: 'Title (A → Z)' },
+                      { value: 'title_desc', label: 'Title (Z → A)' },
+                      { value: 'artist_asc', label: 'Artist (A → Z)' },
+                      { value: 'duration_asc', label: 'Duration (Shortest)' },
+                      { value: 'duration_desc', label: 'Duration (Longest)' },
+                      { value: 'newest', label: 'Recently Added' }
+                    ]}
+                  />
 
                   {/* View Mode Toggle: Card vs Compact List */}
                   <div className="flex items-center gap-1 bg-[#12182f] p-1 rounded-xl border border-white/20">
