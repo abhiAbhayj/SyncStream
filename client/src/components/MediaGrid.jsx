@@ -5,6 +5,7 @@ import { useMusic } from '../context/MusicContext';
 import { useAuth } from '../context/AuthContext';
 import EqualizerBars from './EqualizerBars';
 import ConfirmModal from './ConfirmModal';
+import QualityBadge from './QualityBadge';
 import {
   Star,
   Play,
@@ -366,19 +367,33 @@ function HoloMediaItem({ item, index, cfg, showTimings, onRemoveItem, isRemoving
             </div>
           )}
 
-          {/* Format / Type badge */}
-          <div
-            className={`badge ${
-              isSeasonBadge
-                ? 'bg-emerald-500/80 text-black font-extrabold border-emerald-400/50'
-                : isOvaOna
-                ? 'bg-purple-600/85 text-white font-extrabold border-purple-400/50'
-                : isMovieBadge && mediaType === 'anime'
-                ? 'bg-amber-500/80 text-black font-extrabold border-amber-400/50'
-                : cfg.badge
-            } absolute top-1.5 left-1.5 sm:top-2 sm:left-2 [@media(hover:hover)]:lg:top-auto [@media(hover:hover)]:lg:bottom-2 backdrop-blur-md text-[9.5px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 shadow-md transition-all duration-200 [@media(hover:hover)]:lg:group-hover:opacity-0 [@media(hover:hover)]:lg:group-hover:translate-y-2 z-10`}
-          >
-            {formatLabel}
+          {/* Desktop Always-Visible Quality Tag (HD / CAM) Top-Left */}
+          <QualityBadge
+            item={item}
+            size="xs"
+            className="hidden [@media(hover:hover)]:lg:inline-flex absolute top-2 left-2 z-10 shadow-md"
+          />
+
+          {/* Format / Type badge (+ Mobile/Tablet inline HD / CAM tag) */}
+          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 [@media(hover:hover)]:lg:top-auto [@media(hover:hover)]:lg:bottom-2 flex items-center gap-1 transition-all duration-200 [@media(hover:hover)]:lg:group-hover:opacity-0 [@media(hover:hover)]:lg:group-hover:translate-y-2 z-10">
+            <div
+              className={`badge ${
+                isSeasonBadge
+                  ? 'bg-emerald-500/80 text-black font-extrabold border-emerald-400/50'
+                  : isOvaOna
+                  ? 'bg-purple-600/85 text-white font-extrabold border-purple-400/50'
+                  : isMovieBadge && mediaType === 'anime'
+                  ? 'bg-amber-500/80 text-black font-extrabold border-amber-400/50'
+                  : cfg.badge
+              } backdrop-blur-md text-[9.5px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 shadow-md`}
+            >
+              {formatLabel}
+            </div>
+            <QualityBadge
+              item={item}
+              size="xs"
+              className="[@media(hover:hover)]:lg:hidden shadow-md"
+            />
           </div>
 
           {/* Duration / Episode count pill (Desktop hover idle) */}

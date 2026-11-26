@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v31-watchparty-tdz-fix';
+const CACHE_NAME = 'syncstream-v32-hd-cam-quality-tags';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

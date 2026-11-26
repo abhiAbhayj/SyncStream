@@ -19,6 +19,7 @@ import {
   Server
 } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
+import QualityBadge from './QualityBadge';
 import { 
   fetchContinueWatching, 
   removeContinueWatching, 
@@ -536,11 +537,14 @@ export default function ContinueWatchingSection() {
 
                   {/* ── TOP ACTION BAR (Z-30 - Sits strictly above the link to guarantee close button is clickable) ── */}
                   <div className="absolute top-2 inset-x-2 flex items-center justify-between gap-1.5 z-30 pointer-events-none">
-                    {/* Media Type Badge */}
-                    <span className={`pointer-events-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[9px] xs:text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-md ${badge.color}`}>
-                      <BadgeIcon className="w-3 h-3" />
-                      <span>{badge.label}</span>
-                    </span>
+                    {/* Media Type Badge + HD/CAM Quality Tag */}
+                    <div className="pointer-events-auto flex items-center gap-1 min-w-0">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[9px] xs:text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-md ${badge.color}`}>
+                        <BadgeIcon className="w-3 h-3" />
+                        <span>{badge.label}</span>
+                      </span>
+                      <QualityBadge item={item} size="xs" />
+                    </div>
 
                     {/* ── TACTILE INDIVIDUAL CLOSE BUTTON (Z-30, Always Clickable & Visible on Mobile/Tablet) ── */}
                     <button

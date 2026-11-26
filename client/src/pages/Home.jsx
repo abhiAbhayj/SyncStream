@@ -3,6 +3,7 @@ import axios from 'axios';
 import MediaGrid from '../components/MediaGrid';
 import MediaCardSkeleton from '../components/MediaCardSkeleton';
 import ContinueWatchingSection from '../components/ContinueWatchingSection';
+import QualityBadge from '../components/QualityBadge';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { fetchClientLiveAnimeDashboard, fetchClientLiveMangaDashboard } from '../utils/liveAnime';
 import { Tv, Sparkles, Search, MessageSquareCode, Users, Flame, Activity, Calendar, CalendarDays, BookOpen, Clock, Music, ArrowRight, Radio, RefreshCw, Star, ChevronRight } from 'lucide-react';
@@ -819,6 +820,7 @@ export default function Home() {
                                       <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 border border-purple-400/35 text-purple-200 text-[10px] font-mono font-bold uppercase">
                                         {anime.format || 'TV'}
                                       </span>
+                                      <QualityBadge item={{ ...anime, media_type: 'anime' }} size="xs" />
                                       {anime.next_episode && (
                                         <span className="px-1.5 py-0.5 rounded-md bg-accentCyan/15 border border-accentCyan/35 text-accentCyan text-[10px] font-mono font-extrabold">
                                           EP {anime.next_episode}
@@ -939,6 +941,7 @@ export default function Home() {
                                           TV Series
                                         </span>
                                       )}
+                                      <QualityBadge item={{ ...show, media_type: 'tv' }} size="xs" />
                                       {show.episode_label && (
                                         <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-[10px] font-mono font-extrabold">
                                           {show.episode_label}

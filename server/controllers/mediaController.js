@@ -22,6 +22,78 @@ const __dirname = path.dirname(__filename);
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
+// Resolve stream print quality tag ('HD' vs 'CAM') using TMDB release_dates and release window
+export const resolveMediaQuality = (item, mediaType = 'movie', releaseDatesResults = null) => {
+  const type = String(mediaType || item?.media_type || 'movie').toLowerCase();
+  if (type === 'manga' || type === 'music' || type === 'person') return null;
+  if (item?.quality === 'HD' || item?.quality === 'CAM') return item.quality;
+
+  const formatUpper = String(item?.format || '').toUpperCase();
+  const isMovie = type === 'movie' || formatUpper === 'MOVIE';
+  const now = Date.now();
+  const relStr = String(item?.release_date || item?.first_air_date || item?.air_date || '').trim();
+
+  if (!isMovie) {
+    const status = String(item?.status || '').toUpperCase();
+    if (status === 'NOT_YET_RELEASED' || status === 'PLANNED' || status === 'IN PRODUCTION') {
+      return 'CAM';
+    }
+    if (relStr && /^\d{4}-\d{2}-\d{2}/.test(relStr)) {
+      const ts = Date.parse(relStr);
+      if (Number.isFinite(ts) && ts - now > 86400000) {
+        return 'CAM';
+      }
+    }
+    return 'HD';
+  }
+
+  // 1. Check authoritative TMDB release_dates if available (Types: 4=Digital, 5=Physical, 6=TV)
+  if (Array.isArray(releaseDatesResults) && releaseDatesResults.length > 0) {
+    let hasDigitalOrPhysical = false;
+    let hasAnyRelease = false;
+    let earliestTheatrical = Infinity;
+
+    for (const country of releaseDatesResults) {
+      for (const rd of (country?.release_dates || [])) {
+        if (!rd?.release_date) continue;
+        const ts = Date.parse(rd.release_date);
+        if (!Number.isFinite(ts)) continue;
+        hasAnyRelease = true;
+        if ([4, 5, 6].includes(rd.type) && ts <= now) {
+          hasDigitalOrPhysical = true;
+          break;
+        }
+        if ([1, 2, 3].includes(rd.type) && ts < earliestTheatrical) {
+          earliestTheatrical = ts;
+        }
+      }
+      if (hasDigitalOrPhysical) break;
+    }
+
+    if (hasDigitalOrPhysical) return 'HD';
+    if (hasAnyRelease && Number.isFinite(earliestTheatrical)) {
+      const daysSinceTheatrical = (now - earliestTheatrical) / 86400000;
+      if (daysSinceTheatrical < 120) return 'CAM';
+    }
+  }
+
+  // 2. Date-window heuristic (Movies within 45-day theatrical window are CAM; older/digital are HD)
+  if (relStr) {
+    if (/^\d{4}$/.test(relStr)) {
+      const yr = parseInt(relStr, 10);
+      const curYr = new Date().getFullYear();
+      return yr > curYr ? 'CAM' : 'HD';
+    }
+    const ts = Date.parse(relStr);
+    if (Number.isFinite(ts)) {
+      const daysSince = (now - ts) / 86400000;
+      return daysSince < 45 ? 'CAM' : 'HD';
+    }
+  }
+
+  return 'HD';
+};
+
 // Highly detailed mock data for TMDB fallback
 const MOCK_MOVIES = [
   {
@@ -640,6 +712,8 @@ export const getAniListMediaDetail = async (alId) => {
       vote_average: m.averageScore ? (m.averageScore / 10).toFixed(1) : 8.0,
       genres: (m.genres || []).map(g => ({ id: g, name: g })),
       media_type: 'anime',
+      status: m.status || null,
+      quality: resolveMediaQuality({ ...m, format: m.format, status: m.status, release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '' }, 'anime'),
       format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
       episodes_count: epCount,
       duration: animeDuration,
@@ -2121,7 +2195,7 @@ export const getMediaDetail = async (req, res) => {
           const tmdbType = type === 'anime' ? 'tv' : type;
           const appendFields = tmdbType === 'tv'
             ? 'videos,recommendations,credits,aggregate_credits,keywords'
-            : 'videos,recommendations,credits,keywords';
+            : 'videos,recommendations,credits,keywords,release_dates';
           const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=${appendFields}`);
           const d = detailRes.data;
           
@@ -2405,6 +2479,7 @@ export const getMediaDetail = async (req, res) => {
             cast,
             recommendations,
             media_type: type,
+            quality: resolveMediaQuality(d, type, d.release_dates?.results),
             // Dynamic streaming embeds
             video_url: null, // Host will supply custom or fall back to open movie in player
             embed_url: type === 'movie' 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMusic } from '../context/MusicContext';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
+import QualityBadge from './QualityBadge';
 import {
   Search,
   Film,
@@ -382,6 +383,7 @@ export default function SpotlightSearchModal() {
                         <span className="uppercase text-[10px] font-black text-accentPurple">
                           {item.format || item.media_type || mediaType}
                         </span>
+                        <QualityBadge item={{ ...item, media_type: item.media_type || mediaType }} size="xs" />
                         {year && <span>• {year}</span>}
                         {item.artist && <span className="truncate">• {item.artist}</span>}
                         {rating && parseFloat(rating) > 0 && (

@@ -5,6 +5,8 @@
  * Schedule, and Upcoming anime across Home, Search, and Catalog pages.
  */
 
+import { getMediaQuality } from './mediaQuality';
+
 const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
 const ANIME_DAYS_OF_WEEK = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -1028,6 +1030,12 @@ export const fetchClientAniListDetail = async (rawId) => {
       genres: (m.genres || []).map((g) => ({ id: g, name: g })),
       media_type: 'anime',
       status: m.status || null,
+      quality: getMediaQuality({
+        media_type: 'anime',
+        status: m.status || null,
+        format: m.format,
+        release_date: formatDate(m.startDate, m.seasonYear)
+      }),
       format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
       episodes_count: epCount,
       duration: m.duration || 24,

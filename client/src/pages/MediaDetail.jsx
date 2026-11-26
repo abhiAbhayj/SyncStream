@@ -10,6 +10,7 @@ import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
 import SolidSelect from '../components/SolidSelect';
+import QualityBadge from '../components/QualityBadge';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
@@ -987,6 +988,7 @@ export default function MediaDetail() {
               <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-bold uppercase tracking-wider">
                 {type}
               </span>
+              <QualityBadge item={{ ...detail, media_type: type }} />
               {currentSeason?.air_date ? (
                 <span>• Season Air: {currentSeason.air_date}</span>
               ) : (
@@ -1700,13 +1702,16 @@ export default function MediaDetail() {
                     )}
                     
                     <div className="relative z-10 space-y-1">
-                      <span className={`inline-block text-[8px] sm:text-[9px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-md border tracking-wider ${
-                        item.isActive
-                          ? 'bg-[#10b981] text-black border-[#10b981]'
-                          : item.badgeColor
-                      }`}>
-                        {item.badge}
-                      </span>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className={`inline-block text-[8px] sm:text-[9px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-md border tracking-wider ${
+                          item.isActive
+                            ? 'bg-[#10b981] text-black border-[#10b981]'
+                            : item.badgeColor
+                        }`}>
+                          {item.badge}
+                        </span>
+                        <QualityBadge item={{ ...item, media_type: item.type || type }} size="xs" />
+                      </div>
                       <h4 className="text-[11px] sm:text-xs font-bold line-clamp-2 text-white group-hover:text-accentCyan transition">
                         {item.title}
                       </h4>
