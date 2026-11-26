@@ -51,13 +51,13 @@ export const STREAMING_SERVERS = [
     description: 'Official VidSrc core engine with multi-language audio and subtitle tracks'
   },
   { 
-    key: 'anyembed', 
+    key: 'vidukimulti', 
     num: '06',
-    name: 'AnyEmbed Stream',
-    label: 'Server 6 (AnyEmbed Stream)', 
-    badge: 'Cloud Player',
+    name: 'Viduki Multi-Audio',
+    label: 'Server 6 (Viduki Multi-Audio)', 
+    badge: 'Multi-Audio • Eng Sub',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-    description: 'High-speed cloud player with multi-source auto-failover'
+    description: 'Multi-language audio (Hindi & regional tracks) with English subtitles & 4K auto-failover'
   },
   { 
     key: 'movietv', 
@@ -69,31 +69,31 @@ export const STREAMING_SERVERS = [
     description: 'Multi-source failover architecture with responsive HTML5 playback'
   },
   { 
-    key: 'vidsrcsu', 
+    key: 'nontongo', 
     num: '08',
-    name: 'VidSrc SU',
-    label: 'Server 8 (VidSrc SU)', 
-    badge: 'Fast Mirror • 4K',
+    name: 'Nontongo Multi-Audio',
+    label: 'Server 8 (Nontongo Multi-Audio)', 
+    badge: 'Multi-Audio • Eng Sub',
     tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-    description: 'Dedicated high-speed global streaming mirror with instant buffering'
+    description: 'Dedicated multi-audio & Hindi dub streaming server with English subtitles'
   },
   { 
-    key: 'vidsrcpm', 
+    key: 'vidnest', 
     num: '09',
-    name: 'VidSrc PM',
-    label: 'Server 9 (VidSrc PM)', 
-    badge: 'Fast Mirror • 4K',
+    name: 'VidNest Cloud',
+    label: 'Server 9 (VidNest Cloud)', 
+    badge: 'Ad-Free • Eng Sub',
     tagColor: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
-    description: 'Official VidSrc high-speed cloud node with fast bufferless playback'
+    description: 'Multi-node cloud player with English captions and sub/dub anime support'
   },
   { 
-    key: 'vidzy', 
+    key: 'twoembed', 
     num: '10',
-    name: 'Vidzy Ultra',
-    label: 'Server 10 (Vidzy Ultra)', 
-    badge: 'Direct Stream • HD',
+    name: '2Embed Ultra',
+    label: 'Server 10 (2Embed Ultra)', 
+    badge: 'Multi-Source • Eng Sub',
     tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-    description: 'High-speed cloud video engine with multi-language subtitle tracks'
+    description: 'Reliable multi-source mirror with fast HTML5 playback and English subtitles'
   }
 ];
 
@@ -101,7 +101,7 @@ const appendStartTime = (url, startTime) => {
   if (!startTime || Number(startTime) <= 5) return url;
   const t = Math.floor(Number(startTime));
   const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}start=${t}&time=${t}`;
+  return `${url}${separator}start=${t}&time=${t}&startAt=${t}`;
 };
 
 export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie', id, tmdbId, season = 1, episode = 1, startTime = 0 }) => {
@@ -135,28 +135,31 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'vidsrcme':
         baseStreamUrl = `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
         break;
+      case 'vidukimulti':
       case 'anyembed':
       case 'smashystream':
-        baseStreamUrl = `https://anyembed.xyz/embed/tmdb-movie-${activeId}`;
+        baseStreamUrl = `https://www.viduki.net/2/movie/${activeId}`;
         break;
       case 'movietv':
       case 'vidsrcdev':
       case 'vidsrcnet':
         baseStreamUrl = `https://movietvapi.stream/embed/${activeId}`;
         break;
+      case 'nontongo':
       case 'vidsrcsu':
-        baseStreamUrl = `https://vidsrc.su/embed/movie/${activeId}`;
+        baseStreamUrl = `https://www.nontongo.win/embed/movie/${activeId}`;
         break;
+      case 'vidnest':
       case 'vidsrcpm':
-        baseStreamUrl = `https://vidsrc.pm/embed/movie/${activeId}`;
+        baseStreamUrl = `https://vidnest.fun/movie/${activeId}`;
         break;
+      case 'twoembed':
       case 'vidzy':
       case 'autoembedpro':
       case 'autoembedco':
       case 'warezcdn':
       case 'vidsrcsh':
-      case 'nontongo':
-        baseStreamUrl = `https://vidzy.org/movie/${activeId}`;
+        baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
         break;
       case 'twoembed':
         baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
@@ -189,28 +192,35 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'vidsrcme':
         baseStreamUrl = `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
         break;
+      case 'vidukimulti':
       case 'anyembed':
       case 'smashystream':
-        baseStreamUrl = `https://anyembed.xyz/embed/tmdb-tv-${activeId}-${s}-${ep}`;
+        baseStreamUrl = `https://www.viduki.net/2/tv/${activeId}/${s}/${ep}`;
         break;
       case 'movietv':
       case 'vidsrcdev':
       case 'vidsrcnet':
         baseStreamUrl = `https://movietvapi.stream/embed/tv/${activeId}/${s}/${ep}`;
         break;
+      case 'nontongo':
       case 'vidsrcsu':
-        baseStreamUrl = `https://vidsrc.su/embed/tv/${activeId}/${s}/${ep}`;
+        baseStreamUrl = `https://www.nontongo.win/embed/tv/${activeId}/${s}/${ep}`;
         break;
+      case 'vidnest':
       case 'vidsrcpm':
-        baseStreamUrl = `https://vidsrc.pm/embed/tv/${activeId}/${s}/${ep}`;
+        if (mediaType === 'anime' && typeof id === 'string' && id.startsWith('al_') && !tmdbId) {
+          baseStreamUrl = `https://vidnest.fun/anime/${id.replace(/^al_/i, '')}/${ep}/sub`;
+        } else {
+          baseStreamUrl = `https://vidnest.fun/tv/${activeId}/${s}/${ep}`;
+        }
         break;
+      case 'twoembed':
       case 'vidzy':
       case 'autoembedpro':
       case 'autoembedco':
       case 'warezcdn':
       case 'vidsrcsh':
-      case 'nontongo':
-        baseStreamUrl = `https://vidzy.org/serie/${activeId}/${s}/${ep}`;
+        baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}?s=${s}&e=${ep}`;
         break;
       case 'twoembed':
         baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}?s=${s}&e=${ep}`;
