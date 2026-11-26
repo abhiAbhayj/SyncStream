@@ -13,6 +13,11 @@ import {
   isValidCoverUrl,
   fetchMangaFeedWithCovers
 } from '../utils/mangaCovers.js';
+import {
+  resolveMediaQualitySync,
+  resolveMediaQualityAsync,
+  enrichMediaQualityList
+} from '../utils/mediaQualityResolver.js';
 
 dotenv.config();
 
@@ -22,76 +27,35 @@ const __dirname = path.dirname(__filename);
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-// Resolve stream print quality tag ('HD' vs 'CAM') using TMDB release_dates and release window
-export const resolveMediaQuality = (item, mediaType = 'movie', releaseDatesResults = null) => {
-  const type = String(mediaType || item?.media_type || 'movie').toLowerCase();
-  if (type === 'manga' || type === 'music' || type === 'person') return null;
-  if (item?.quality === 'HD' || item?.quality === 'CAM') return item.quality;
+// Re-export unified synchronous quality resolver for backwards compatibility
+export const resolveMediaQuality = resolveMediaQualitySync;
 
-  const formatUpper = String(item?.format || '').toUpperCase();
-  const isMovie = type === 'movie' || formatUpper === 'MOVIE';
-  const now = Date.now();
-  const relStr = String(item?.release_date || item?.first_air_date || item?.air_date || '').trim();
-
-  if (!isMovie) {
-    const status = String(item?.status || '').toUpperCase();
-    if (status === 'NOT_YET_RELEASED' || status === 'PLANNED' || status === 'IN PRODUCTION') {
-      return 'CAM';
-    }
-    if (relStr && /^\d{4}-\d{2}-\d{2}/.test(relStr)) {
-      const ts = Date.parse(relStr);
-      if (Number.isFinite(ts) && ts - now > 86400000) {
-        return 'CAM';
+// Batch resolve authoritative 'HD' vs 'CAM' quality tags for client-side lists / guest Continue Watching
+export const resolveMediaQualities = async (req, res) => {
+  try {
+    const rawItems = Array.isArray(req.body?.items) ? req.body.items.slice(0, 50) : [];
+    const normalized = rawItems.map((it) => ({
+      ...it,
+      id: it?.id || it?.external_media_id,
+      media_type: it?.media_type || it?.type || 'movie'
+    }));
+    await enrichMediaQualityList(normalized);
+    const qualities = {};
+    const releaseDates = {};
+    for (const item of normalized) {
+      const k = `${String(item.media_type).toLowerCase()}:${String(item.external_media_id || item.id || '')}`;
+      if (item.quality === 'HD' || item.quality === 'CAM') {
+        qualities[k] = item.quality;
+      }
+      if (item.release_date) {
+        releaseDates[k] = item.release_date;
       }
     }
-    return 'HD';
+    res.json({ qualities, releaseDates });
+  } catch (err) {
+    console.warn('[Quality Batch Error]:', err.message);
+    res.json({ qualities: {}, releaseDates: {} });
   }
-
-  // 1. Check authoritative TMDB release_dates if available (Types: 4=Digital, 5=Physical, 6=TV)
-  if (Array.isArray(releaseDatesResults) && releaseDatesResults.length > 0) {
-    let hasDigitalOrPhysical = false;
-    let hasAnyRelease = false;
-    let earliestTheatrical = Infinity;
-
-    for (const country of releaseDatesResults) {
-      for (const rd of (country?.release_dates || [])) {
-        if (!rd?.release_date) continue;
-        const ts = Date.parse(rd.release_date);
-        if (!Number.isFinite(ts)) continue;
-        hasAnyRelease = true;
-        if ([4, 5, 6].includes(rd.type) && ts <= now) {
-          hasDigitalOrPhysical = true;
-          break;
-        }
-        if ([1, 2, 3].includes(rd.type) && ts < earliestTheatrical) {
-          earliestTheatrical = ts;
-        }
-      }
-      if (hasDigitalOrPhysical) break;
-    }
-
-    if (hasDigitalOrPhysical) return 'HD';
-    if (hasAnyRelease && Number.isFinite(earliestTheatrical)) {
-      const daysSinceTheatrical = (now - earliestTheatrical) / 86400000;
-      if (daysSinceTheatrical < 120) return 'CAM';
-    }
-  }
-
-  // 2. Date-window heuristic (Movies within 45-day theatrical window are CAM; older/digital are HD)
-  if (relStr) {
-    if (/^\d{4}$/.test(relStr)) {
-      const yr = parseInt(relStr, 10);
-      const curYr = new Date().getFullYear();
-      return yr > curYr ? 'CAM' : 'HD';
-    }
-    const ts = Date.parse(relStr);
-    if (Number.isFinite(ts)) {
-      const daysSince = (now - ts) / 86400000;
-      return daysSince < 45 ? 'CAM' : 'HD';
-    }
-  }
-
-  return 'HD';
 };
 
 // Highly detailed mock data for TMDB fallback
@@ -333,6 +297,7 @@ export const searchAniListAnime = async (query, page = 1) => {
           status
           season
           seasonYear
+          startDate { year month day }
           averageScore
           description(asHtml: false)
           coverImage { large extraLarge }
@@ -345,8 +310,10 @@ export const searchAniListAnime = async (query, page = 1) => {
                 id
                 title { english romaji native }
                 format
+                status
                 episodes
                 coverImage { large extraLarge }
+                startDate { year month day }
                 seasonYear
                 averageScore
               }
@@ -394,9 +361,10 @@ export const searchAniListAnime = async (query, page = 1) => {
         overview: m.description ? m.description.replace(/<[^>]*>/g, '') : '',
         poster_path: m.coverImage?.extraLarge || m.coverImage?.large,
         backdrop_path: m.bannerImage || m.coverImage?.large,
-        release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '',
+        release_date: formatAniListDate(m.startDate, m.seasonYear),
         vote_average: m.averageScore ? (m.averageScore / 10).toFixed(1) : 8.0,
         media_type: 'anime',
+        status: m.status || null,
         format: fmt,
         episodes: m.episodes || null,
         season_number: seasonNumber,
@@ -421,6 +389,7 @@ export const searchAniListAnime = async (query, page = 1) => {
       }
     });
 
+    await enrichMediaQualityList(results, 'anime');
     anilistSearchCache.set(cacheKey, { data: results, timestamp: Date.now() });
     return results;
   } catch (err) {
@@ -450,6 +419,7 @@ export const getAniListMediaDetail = async (alId) => {
         status
         season
         seasonYear
+        startDate { year month day }
         averageScore
         description(asHtml: false)
         coverImage { large extraLarge }
@@ -489,6 +459,9 @@ export const getAniListMediaDetail = async (alId) => {
               title { english romaji }
               coverImage { large }
               format
+              status
+              seasonYear
+              startDate { year month day }
             }
           }
         }
@@ -499,8 +472,10 @@ export const getAniListMediaDetail = async (alId) => {
               id
               title { english romaji native }
               format
+              status
               episodes
               coverImage { large extraLarge }
+              startDate { year month day }
               seasonYear
               averageScore
             }
@@ -555,6 +530,9 @@ export const getAniListMediaDetail = async (alId) => {
           title: relTitle,
           badge: edge.relationType,
           type: isManga ? 'manga' : 'anime',
+          format: node.format || null,
+          status: node.status || null,
+          full_release_date: formatAniListDate(node.startDate, node.seasonYear),
           release_date: node.seasonYear ? node.seasonYear.toString() : '',
           poster_path: node.coverImage?.extraLarge || node.coverImage?.large,
           overview: ''
@@ -691,14 +669,36 @@ export const getAniListMediaDetail = async (alId) => {
 
     const recommendations = (m.recommendations?.nodes || [])
       .filter(r => r.mediaRecommendation)
-      .map(r => ({
-        id: `al_${r.mediaRecommendation.id}`,
-        title: r.mediaRecommendation.title?.english || r.mediaRecommendation.title?.romaji || 'Anime',
-        poster_path: r.mediaRecommendation.coverImage?.large,
-        media_type: 'anime'
-      }));
+      .map(r => {
+        const rec = r.mediaRecommendation;
+        return {
+          id: `al_${rec.id}`,
+          title: rec.title?.english || rec.title?.romaji || 'Anime',
+          poster_path: rec.coverImage?.large,
+          media_type: 'anime',
+          format: rec.format || null,
+          status: rec.status || null,
+          release_date: formatAniListDate(rec.startDate, rec.seasonYear)
+        };
+      });
 
     const animeDuration = m.duration || (tmdbTvData?.episode_run_time && tmdbTvData.episode_run_time[0]) || null;
+    const resolvedAnimeRelDate = formatAniListDate(m.startDate, m.seasonYear);
+    const resolvedAnimeQuality = await resolveMediaQualityAsync(
+      {
+        id: `al_${m.id}`,
+        tmdb_id: tmdbMapping?.type === 'movie' || m.format === 'MOVIE' ? (tmdbMapping?.id || null) : null,
+        title: fullTitle,
+        format: m.format,
+        status: m.status,
+        release_date: resolvedAnimeRelDate
+      },
+      'anime'
+    );
+    await Promise.all([
+      enrichMediaQualityList(recommendations, 'anime'),
+      enrichMediaQualityList(relatedFranchise)
+    ]);
 
     const details = {
       id: `al_${m.id}`,
@@ -708,12 +708,12 @@ export const getAniListMediaDetail = async (alId) => {
       overview: m.description ? m.description.replace(/<[^>]*>/g, '') : '',
       poster_path: currentPoster,
       backdrop_path: m.bannerImage || currentPoster,
-      release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '',
+      release_date: resolvedAnimeRelDate,
       vote_average: m.averageScore ? (m.averageScore / 10).toFixed(1) : 8.0,
       genres: (m.genres || []).map(g => ({ id: g, name: g })),
       media_type: 'anime',
       status: m.status || null,
-      quality: resolveMediaQuality({ ...m, format: m.format, status: m.status, release_date: m.seasonYear ? `${m.seasonYear}-01-01` : '' }, 'anime'),
+      quality: resolvedAnimeQuality,
       format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
       episodes_count: epCount,
       duration: animeDuration,
@@ -783,6 +783,8 @@ const expandTvSeasons = async (tvResults) => {
               vote_average: r.vote_average || 0,
               genre_ids: r.genre_ids || [],
               media_type: 'tv',
+              status: d.status || null,
+              has_aired_episodes: Boolean(d.last_episode_to_air),
               format: `Season ${s.season_number}`,
               episodes: s.episode_count || null,
               season_number: s.season_number,
@@ -798,6 +800,8 @@ const expandTvSeasons = async (tvResults) => {
           poster_path: normPoster,
           backdrop_path: normBackdrop,
           media_type: 'tv',
+          status: d.status || null,
+          has_aired_episodes: Boolean(d.last_episode_to_air),
           runtime: episodeRuntime,
           duration: episodeRuntime
         }];
@@ -809,6 +813,8 @@ const expandTvSeasons = async (tvResults) => {
         poster_path: normPoster,
         backdrop_path: normBackdrop,
         media_type: 'tv',
+        status: d.status || null,
+        has_aired_episodes: Boolean(d.last_episode_to_air),
         runtime: episodeRuntime,
         duration: episodeRuntime
       }];
@@ -1228,6 +1234,13 @@ const fetchLiveAniListDashboard = async (forceRefresh = false) => {
           schedule,
           upcoming
         };
+        await Promise.all([
+          enrichMediaQualityList(result.trending, 'anime'),
+          enrichMediaQualityList(result.ongoing, 'anime'),
+          enrichMediaQualityList(result.latest, 'anime'),
+          enrichMediaQualityList(result.schedule, 'anime'),
+          enrichMediaQualityList(result.upcoming, 'anime')
+        ]);
         liveAnimeFeedsCache = result;
         liveAnimeFeedsTimestamp = Date.now();
         return result;
@@ -1438,6 +1451,7 @@ const fetchLiveAniListAnimePage = async ({ category = 'trending', page = 1, perP
     }
     if (items.length > 0) {
       const mapped = items.map(mapAniListAnimeCard);
+      await enrichMediaQualityList(mapped, 'anime');
       animePageCache.set(cacheKey, { data: mapped, ts: Date.now() });
       return mapped;
     }
@@ -1605,6 +1619,8 @@ export const getTrending = async (req, res) => {
               episode_label: epLabel,
               episode_name: ep?.name || null,
               network: networkName,
+              status: res.data.status || null,
+              has_aired_episodes: Boolean(res.data.last_episode_to_air),
               has_exact_schedule: Boolean(day),
               is_next_episode: Boolean(nextEp)
             };
@@ -1618,6 +1634,8 @@ export const getTrending = async (req, res) => {
           const dayShort = day.slice(0, -1);
           mapped.broadcast_day = day;
           mapped.network = meta.network || null;
+          mapped.status = meta.status || null;
+          mapped.has_aired_episodes = Boolean(meta.has_aired_episodes);
           mapped.episode_label = meta.episode_label || null;
           mapped.episode_name = meta.episode_name || null;
           mapped.air_date = meta.air_date || null;
@@ -1735,6 +1753,21 @@ export const getTrending = async (req, res) => {
     } catch (err) {
       console.warn('Trending music fetch in dashboard failed:', err.message);
     }
+
+    // Enrich all Movie, TV & Anime sections with authoritative HD / CAM quality tags
+    await Promise.all([
+      enrichMediaQualityList(tmdbMovies, 'movie'),
+      enrichMediaQualityList(ongoingMovies, 'movie'),
+      enrichMediaQualityList(upcomingMovies, 'movie'),
+      enrichMediaQualityList(tmdbTv, 'tv'),
+      enrichMediaQualityList(ongoingTv, 'tv'),
+      enrichMediaQualityList(airingTodayTv, 'tv'),
+      enrichMediaQualityList(upcomingTv, 'tv'),
+      enrichMediaQualityList(trendingAnime, 'anime'),
+      enrichMediaQualityList(ongoingAnime, 'anime'),
+      enrichMediaQualityList(scheduleAnime, 'anime'),
+      enrichMediaQualityList(upcomingAnime, 'anime')
+    ]);
 
     // Merge Dashboard response
     const dashboardData = {
@@ -2149,6 +2182,10 @@ export const searchMedia = async (req, res) => {
       };
     });
 
+    if (type === 'movie' || type === 'tv' || type === 'anime') {
+      await enrichMediaQualityList(normalizedResults, type);
+    }
+
     res.json(normalizedResults);
   } catch (error) {
     console.error('Unified Search Error:', error);
@@ -2195,7 +2232,7 @@ export const getMediaDetail = async (req, res) => {
           const tmdbType = type === 'anime' ? 'tv' : type;
           const appendFields = tmdbType === 'tv'
             ? 'videos,recommendations,credits,aggregate_credits,keywords'
-            : 'videos,recommendations,credits,keywords,release_dates';
+            : 'videos,recommendations,credits,keywords,release_dates,external_ids';
           const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=${appendFields}`);
           const d = detailRes.data;
           
@@ -2290,6 +2327,7 @@ export const getMediaDetail = async (req, res) => {
             id: r.id.toString(),
             title: r.title || r.name,
             poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w200${r.poster_path}` : null,
+            release_date: r.release_date || r.first_air_date || '',
             media_type: type
           })) || [];
 
@@ -2376,6 +2414,7 @@ export const getMediaDetail = async (req, res) => {
                   title: p.title || p.name,
                   badge: 'MOVIE',
                   type: 'movie',
+                  full_release_date: p.release_date || '',
                   release_date: p.release_date ? p.release_date.split('-')[0] : '',
                   poster_path: p.poster_path ? `https://image.tmdb.org/t/p/w500${p.poster_path}` : null,
                   overview: p.overview || ''
@@ -2404,6 +2443,7 @@ export const getMediaDetail = async (req, res) => {
                   title: r.title,
                   badge: 'MOVIE',
                   type: 'movie',
+                  full_release_date: r.release_date || '',
                   release_date: r.release_date ? r.release_date.split('-')[0] : '',
                   poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
                   overview: r.overview || ''
@@ -2417,6 +2457,7 @@ export const getMediaDetail = async (req, res) => {
                   title: r.name,
                   badge: 'TV',
                   type: 'tv',
+                  full_release_date: r.first_air_date || '',
                   release_date: r.first_air_date ? r.first_air_date.split('-')[0] : '',
                   poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
                   overview: r.overview || ''
@@ -2436,6 +2477,7 @@ export const getMediaDetail = async (req, res) => {
                 title: r.title || r.name,
                 badge: r.media_type === 'tv' ? 'TV' : 'MOVIE',
                 type: r.media_type || (type === 'tv' ? 'tv' : 'movie'),
+                full_release_date: r.release_date || r.first_air_date || '',
                 release_date: (r.release_date || r.first_air_date || '').split('-')[0],
                 poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
                 overview: r.overview || ''
@@ -2450,13 +2492,29 @@ export const getMediaDetail = async (req, res) => {
             ? (d.runtime || null)
             : ((d.episode_run_time && d.episode_run_time[0]) || d.last_episode_to_air?.runtime || d.runtime || null);
 
+          const [detailQuality] = await Promise.all([
+            resolveMediaQualityAsync(
+              { ...d, release_date: d.release_date || d.first_air_date },
+              type,
+              {
+                existingDetail: d,
+                releaseDatesResults: d.release_dates?.results,
+                imdbId: d.external_ids?.imdb_id
+              }
+            ),
+            enrichMediaQualityList(recommendations, type),
+            enrichMediaQualityList(relatedFranchise)
+          ]);
+
           details = {
             id: d.id.toString(),
+            imdb_id: d.external_ids?.imdb_id || null,
             title: d.title || d.name,
             overview: d.overview,
             poster_path: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : (d.backdrop_path ? `https://image.tmdb.org/t/p/w500${d.backdrop_path}` : null),
             backdrop_path: d.backdrop_path ? `https://image.tmdb.org/t/p/original${d.backdrop_path}` : null,
             release_date: d.release_date || d.first_air_date,
+            status: d.status || null,
             vote_average: d.vote_average,
             genres,
             duration: mediaDuration,
@@ -2479,7 +2537,7 @@ export const getMediaDetail = async (req, res) => {
             cast,
             recommendations,
             media_type: type,
-            quality: resolveMediaQuality(d, type, d.release_dates?.results),
+            quality: detailQuality,
             // Dynamic streaming embeds
             video_url: null, // Host will supply custom or fall back to open movie in player
             embed_url: type === 'movie' 
@@ -2742,6 +2800,7 @@ export const getWatchlist = async (req, res) => {
       [req.user.id]
     );
     const healedList = await healMangaWatchlistCovers(list);
+    await enrichMediaQualityList(healedList);
     res.json(healedList);
   } catch (error) {
     console.error('[Watchlist GET Error]:', error);
@@ -2797,7 +2856,7 @@ export const getContinueWatching = async (req, res) => {
       `SELECT id, external_media_id, media_type, title, poster_path, backdrop_path,
               season_number, episode_number, episode_title,
               chapter_id, chapter_number, chapter_title,
-              server_key, progress_seconds, duration_seconds, last_watched_at, created_at
+              server_key, release_date, quality, progress_seconds, duration_seconds, last_watched_at, created_at
        FROM continue_watching
        WHERE user_id = ?
        ORDER BY last_watched_at DESC
@@ -2806,6 +2865,7 @@ export const getContinueWatching = async (req, res) => {
     );
 
     const healedList = await healMangaWatchlistCovers(rows);
+    await enrichMediaQualityList(healedList);
     res.json(healedList);
   } catch (error) {
     console.error('[Continue Watching GET Error]:', error);
@@ -2828,6 +2888,8 @@ export const saveContinueWatching = async (req, res) => {
     chapter_number,
     chapter_title,
     server_key = 'vidsrcto',
+    release_date = null,
+    quality = null,
     progress_seconds = 0,
     duration_seconds = 0
   } = req.body;
@@ -2845,14 +2907,16 @@ export const saveContinueWatching = async (req, res) => {
     const parsedProgress = parseInt(progress_seconds || '0', 10) || 0;
     const parsedDuration = parseInt(duration_seconds || '0', 10) || 0;
     const safeServerKey = server_key && typeof server_key === 'string' ? server_key.trim() : 'vidsrcto';
+    const safeReleaseDate = release_date && typeof release_date === 'string' ? release_date.trim().slice(0, 32) : null;
+    const safeQuality = (quality === 'HD' || quality === 'CAM') ? quality : null;
 
     await db.query(
       `INSERT INTO continue_watching (
         user_id, external_media_id, media_type, title, poster_path, backdrop_path,
         season_number, episode_number, episode_title,
         chapter_id, chapter_number, chapter_title,
-        server_key, progress_seconds, duration_seconds, last_watched_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        server_key, release_date, quality, progress_seconds, duration_seconds, last_watched_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       ON DUPLICATE KEY UPDATE
         title = VALUES(title),
         poster_path = COALESCE(VALUES(poster_path), poster_path),
@@ -2864,6 +2928,8 @@ export const saveContinueWatching = async (req, res) => {
         chapter_number = COALESCE(VALUES(chapter_number), chapter_number),
         chapter_title = COALESCE(VALUES(chapter_title), chapter_title),
         server_key = COALESCE(VALUES(server_key), server_key),
+        release_date = COALESCE(VALUES(release_date), release_date),
+        quality = COALESCE(VALUES(quality), quality),
         progress_seconds = CASE WHEN VALUES(progress_seconds) > 0 THEN VALUES(progress_seconds) ELSE progress_seconds END,
         duration_seconds = CASE WHEN VALUES(duration_seconds) > 0 THEN VALUES(duration_seconds) ELSE duration_seconds END,
         last_watched_at = NOW()`,
@@ -2881,6 +2947,8 @@ export const saveContinueWatching = async (req, res) => {
         chapter_number ? String(chapter_number) : null,
         chapter_title || null,
         safeServerKey,
+        safeReleaseDate,
+        safeQuality,
         parsedProgress,
         parsedDuration
       ]
@@ -2946,13 +3014,15 @@ export const syncContinueWatching = async (req, res) => {
       if (!item.external_media_id || !item.media_type || !item.title) continue;
       const safePoster = (item.media_type !== 'manga' || isValidCoverUrl(item.poster_path)) ? (item.poster_path || null) : null;
       const safeServerKey = item.server_key && typeof item.server_key === 'string' ? item.server_key.trim() : 'vidsrcto';
+      const safeReleaseDate = item.release_date && typeof item.release_date === 'string' ? item.release_date.trim().slice(0, 32) : null;
+      const safeQuality = (item.quality === 'HD' || item.quality === 'CAM') ? item.quality : null;
       await db.query(
         `INSERT INTO continue_watching (
           user_id, external_media_id, media_type, title, poster_path, backdrop_path,
           season_number, episode_number, episode_title,
           chapter_id, chapter_number, chapter_title,
-          server_key, progress_seconds, duration_seconds, last_watched_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          server_key, release_date, quality, progress_seconds, duration_seconds, last_watched_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ON DUPLICATE KEY UPDATE
           title = VALUES(title),
           poster_path = COALESCE(VALUES(poster_path), poster_path),
@@ -2964,6 +3034,8 @@ export const syncContinueWatching = async (req, res) => {
           chapter_number = COALESCE(VALUES(chapter_number), chapter_number),
           chapter_title = COALESCE(VALUES(chapter_title), chapter_title),
           server_key = COALESCE(VALUES(server_key), server_key),
+          release_date = COALESCE(VALUES(release_date), release_date),
+          quality = COALESCE(VALUES(quality), quality),
           progress_seconds = CASE WHEN VALUES(progress_seconds) > 0 THEN VALUES(progress_seconds) ELSE progress_seconds END,
           duration_seconds = CASE WHEN VALUES(duration_seconds) > 0 THEN VALUES(duration_seconds) ELSE duration_seconds END,
           last_watched_at = NOW()`,
@@ -2981,6 +3053,8 @@ export const syncContinueWatching = async (req, res) => {
           item.chapter_number ? String(item.chapter_number) : null,
           item.chapter_title || null,
           safeServerKey,
+          safeReleaseDate,
+          safeQuality,
           item.progress_seconds ? parseInt(item.progress_seconds, 10) : 0,
           item.duration_seconds ? parseInt(item.duration_seconds, 10) : 0
         ]
@@ -3147,6 +3221,10 @@ export const getCatalog = async (req, res) => {
         vote_average: '9.0',
         media_type: 'music'
       }));
+    }
+
+    if (type !== 'manga' && type !== 'music') {
+      await enrichMediaQualityList(results, type);
     }
 
     res.json({ results, page, category, type });
@@ -3467,6 +3545,10 @@ export const getPersonCredits = async (req, res) => {
         await resolveMangaCovers(rawManga);
         credits = await formatMangaDexItems(rawManga, { dateMode: 'created' });
       }
+    }
+
+    if (source === 'tmdb' || source === 'anilist_staff' || source === 'anilist_char') {
+      await enrichMediaQualityList(credits);
     }
 
     const payload = { person, credits };

@@ -182,6 +182,8 @@ export async function initDB() {
         chapter_number VARCHAR(50) DEFAULT NULL,
         chapter_title VARCHAR(255) DEFAULT NULL,
         server_key VARCHAR(50) DEFAULT 'vidsrcto',
+        release_date VARCHAR(32) DEFAULT NULL,
+        quality VARCHAR(16) DEFAULT NULL,
         progress_seconds INT DEFAULT 0,
         duration_seconds INT DEFAULT 0,
         last_watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -260,6 +262,25 @@ export async function initDB() {
       }
     } catch (srvErr) {
       console.warn('[DB] server_key migration notice:', srvErr.message);
+    }
+
+    // 7. Add 'release_date' and 'quality' to continue_watching if missing
+    try {
+      const [cwQualityCols] = await pool.query(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'continue_watching' AND COLUMN_NAME IN ('release_date', 'quality')`
+      );
+      const existingCwCols = new Set(cwQualityCols.map((c) => c.COLUMN_NAME));
+      if (!existingCwCols.has('release_date')) {
+        await pool.query('ALTER TABLE continue_watching ADD COLUMN release_date VARCHAR(32) DEFAULT NULL');
+        console.log('[DB] Migration: Added release_date to continue_watching [OK]');
+      }
+      if (!existingCwCols.has('quality')) {
+        await pool.query('ALTER TABLE continue_watching ADD COLUMN quality VARCHAR(16) DEFAULT NULL');
+        console.log('[DB] Migration: Added quality to continue_watching [OK]');
+      }
+    } catch (cwErr) {
+      console.warn('[DB] continue_watching quality migration notice:', cwErr.message);
     }
 
     console.log('[DB] Database tables and migrations initialized successfully.');

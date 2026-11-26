@@ -5,7 +5,22 @@
  * Schedule, and Upcoming anime across Home, Search, and Catalog pages.
  */
 
-import { getMediaQuality } from './mediaQuality';
+import { getMediaQuality, hydrateMediaQualities } from './mediaQuality';
+
+const enrichRecentAnimeMovies = async (items) => {
+  if (!Array.isArray(items) || items.length === 0) return items || [];
+  const now = Date.now();
+  const candidates = items.filter((it) => {
+    if (!it || String(it.format || '').toUpperCase() !== 'MOVIE') return false;
+    if (!it.release_date) return true;
+    const ts = Date.parse(it.release_date);
+    return !Number.isFinite(ts) || (now - ts) / 86400000 < 150;
+  });
+  if (candidates.length === 0) return items;
+  const hydrated = await hydrateMediaQualities(candidates);
+  const byId = new Map(hydrated.map((x) => [String(x.id), x]));
+  return items.map((it) => byId.get(String(it?.id)) || it);
+};
 
 const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
 const ANIME_DAYS_OF_WEEK = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
@@ -496,12 +511,20 @@ export const fetchClientLiveAnimeDashboard = async (forceRefresh = false) => {
         }
       }
 
+      const [tEnriched, oEnriched, lEnriched, sEnriched, uEnriched] = await Promise.all([
+        enrichRecentAnimeMovies(trending),
+        enrichRecentAnimeMovies(ongoing.slice(0, 24)),
+        enrichRecentAnimeMovies(latest.length > 0 ? latest : ongoing.slice(0, 24)),
+        enrichRecentAnimeMovies(schedule.length > 0 ? schedule : ongoing),
+        enrichRecentAnimeMovies(upcoming)
+      ]);
+
       const bundle = {
-        trending,
-        ongoing: ongoing.slice(0, 24),
-        latest: latest.length > 0 ? latest : ongoing.slice(0, 24),
-        schedule: schedule.length > 0 ? schedule : ongoing,
-        upcoming
+        trending: tEnriched,
+        ongoing: oEnriched,
+        latest: lEnriched,
+        schedule: sEnriched,
+        upcoming: uEnriched
       };
 
       dashboardCache = bundle;
@@ -671,7 +694,7 @@ export const fetchClientLiveAnimePage = async ({
       items = retryData?.Page?.media || [];
     }
     if (items.length > 0) {
-      const mapped = items.map(mapAniListCard);
+      const mapped = await enrichRecentAnimeMovies(items.map(mapAniListCard));
       pageCache.set(cacheKey, { data: mapped, ts: Date.now() });
       return mapped;
     }
@@ -730,7 +753,7 @@ export const searchClientLiveAniListAnime = async ({
   try {
     const data = await queryAniList(gql, variables);
     const items = data?.Page?.media || [];
-    return items.map(mapAniListCard);
+    return await enrichRecentAnimeMovies(items.map(mapAniListCard));
   } catch (err) {
     console.warn('[ClientLiveAnime:search] Direct AniList search failed:', err.message);
     return null;
@@ -837,7 +860,9 @@ export const fetchClientAniListDetail = async (rawId) => {
               id
               title { english romaji }
               format
+              status
               episodes
+              startDate { year month day }
               seasonYear
               coverImage { extraLarge large }
             }
@@ -874,6 +899,10 @@ export const fetchClientAniListDetail = async (rawId) => {
               id
               title { english romaji }
               coverImage { large medium }
+              format
+              status
+              seasonYear
+              startDate { year month day }
             }
           }
         }
@@ -921,6 +950,9 @@ export const fetchClientAniListDetail = async (rawId) => {
           title: relTitle,
           badge: node.format === 'MOVIE' ? 'MOVIE' : (edge.relationType || 'ANIME'),
           type: 'anime',
+          format: node.format || null,
+          status: node.status || null,
+          full_release_date: formatDate(node.startDate, node.seasonYear),
           release_date: node.seasonYear ? String(node.seasonYear) : '',
           poster_path: node.coverImage?.extraLarge || node.coverImage?.large || null,
           overview: ''
@@ -1007,12 +1039,48 @@ export const fetchClientAniListDetail = async (rawId) => {
 
     const recommendations = (m.recommendations?.nodes || [])
       .filter((r) => r?.mediaRecommendation)
-      .map((r) => ({
-        id: `al_${r.mediaRecommendation.id}`,
-        title: r.mediaRecommendation.title?.english || r.mediaRecommendation.title?.romaji || 'Anime',
-        poster_path: r.mediaRecommendation.coverImage?.large || r.mediaRecommendation.coverImage?.medium || null,
-        media_type: 'anime'
-      }));
+      .map((r) => {
+        const rec = r.mediaRecommendation;
+        return {
+          id: `al_${rec.id}`,
+          title: rec.title?.english || rec.title?.romaji || 'Anime',
+          poster_path: rec.coverImage?.large || rec.coverImage?.medium || null,
+          media_type: 'anime',
+          format: rec.format || null,
+          status: rec.status || null,
+          release_date: formatDate(rec.startDate, rec.seasonYear)
+        };
+      });
+
+    const relDateStr = formatDate(m.startDate, m.seasonYear);
+    let resolvedQuality = getMediaQuality({
+      media_type: 'anime',
+      status: m.status || null,
+      format: m.format,
+      release_date: relDateStr
+    });
+
+    if (m.format === 'MOVIE' && tmdbId) {
+      const hydrated = await hydrateMediaQualities([
+        {
+          id: `al_${m.id}`,
+          tmdb_id: tmdbId,
+          title: fullTitle,
+          media_type: 'anime',
+          format: m.format,
+          status: m.status || null,
+          release_date: relDateStr
+        }
+      ]);
+      if (hydrated[0]?.quality) {
+        resolvedQuality = hydrated[0].quality;
+      }
+    }
+
+    const [enrichedRel, enrichedRec] = await Promise.all([
+      enrichRecentAnimeMovies(relatedFranchise),
+      enrichRecentAnimeMovies(recommendations)
+    ]);
 
     const details = {
       id: `al_${m.id}`,
@@ -1025,17 +1093,12 @@ export const fetchClientAniListDetail = async (rawId) => {
       overview: m.description ? m.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '',
       poster_path: currentPoster,
       backdrop_path: m.bannerImage || currentPoster,
-      release_date: formatDate(m.startDate, m.seasonYear),
+      release_date: relDateStr,
       vote_average: m.averageScore ? Number((m.averageScore / 10).toFixed(1)) : (m.meanScore ? Number((m.meanScore / 10).toFixed(1)) : 8.0),
       genres: (m.genres || []).map((g) => ({ id: g, name: g })),
       media_type: 'anime',
       status: m.status || null,
-      quality: getMediaQuality({
-        media_type: 'anime',
-        status: m.status || null,
-        format: m.format,
-        release_date: formatDate(m.startDate, m.seasonYear)
-      }),
+      quality: resolvedQuality,
       format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
       episodes_count: epCount,
       duration: m.duration || 24,
@@ -1044,10 +1107,10 @@ export const fetchClientAniListDetail = async (rawId) => {
       number_of_episodes: epCount,
       default_season: detectedSeason,
       seasons,
-      related_franchise: relatedFranchise,
+      related_franchise: enrichedRel,
       youtube_trailer: m.trailer?.site?.toLowerCase() === 'youtube' ? m.trailer.id : null,
       cast,
-      recommendations,
+      recommendations: enrichedRec,
       video_url: null,
       embed_url: tmdbId
         ? (m.format === 'MOVIE'

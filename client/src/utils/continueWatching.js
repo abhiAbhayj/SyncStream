@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { hydrateMediaQualities } from './mediaQuality';
 
 const STORAGE_KEY = 'syncstream_continue_watching';
 
@@ -62,6 +63,11 @@ export const fetchContinueWatching = async () => {
   const localItems = getLocalContinueWatching();
 
   if (!token) {
+    if (localItems.length > 0) {
+      const hydrated = await hydrateMediaQualities(localItems);
+      setLocalContinueWatching(hydrated);
+      return hydrated;
+    }
     return localItems;
   }
 
@@ -101,6 +107,8 @@ export const recordContinueWatching = async ({
   chapter_number = null,
   chapter_title = null,
   server_key = 'vidsrcto',
+  release_date = null,
+  quality = null,
   progress_seconds = 0,
   duration_seconds = 0
 }) => {
@@ -120,6 +128,8 @@ export const recordContinueWatching = async ({
     chapter_number: chapter_number ? String(chapter_number) : null,
     chapter_title: chapter_title || null,
     server_key: server_key || 'vidsrcto',
+    release_date: release_date || null,
+    quality: (quality === 'HD' || quality === 'CAM') ? quality : null,
     progress_seconds: parseInt(progress_seconds || '0', 10) || 0,
     duration_seconds: parseInt(duration_seconds || '0', 10) || 0,
     last_watched_at: new Date().toISOString()
@@ -144,6 +154,8 @@ export const recordContinueWatching = async ({
       chapter_number: newItem.chapter_number ?? existing.chapter_number,
       chapter_title: newItem.chapter_title ?? existing.chapter_title,
       server_key: newItem.server_key || existing.server_key || 'vidsrcto',
+      release_date: newItem.release_date || existing.release_date || null,
+      quality: newItem.quality || existing.quality || null,
       progress_seconds: (newItem.progress_seconds && newItem.progress_seconds > 0) ? newItem.progress_seconds : existing.progress_seconds,
       duration_seconds: (newItem.duration_seconds && newItem.duration_seconds > 0) ? newItem.duration_seconds : existing.duration_seconds,
       poster_path: newItem.poster_path || existing.poster_path,
@@ -177,6 +189,8 @@ export const recordContinueWatching = async ({
           chapter_number,
           chapter_title,
           server_key: server_key || 'vidsrcto',
+          release_date,
+          quality,
           progress_seconds,
           duration_seconds
         },

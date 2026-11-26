@@ -12,6 +12,7 @@ import ChatSidebar from '../components/ChatSidebar';
 import WatchPartyCall from '../components/WatchPartyCall';
 import SolidSelect from '../components/SolidSelect';
 import QualityBadge from '../components/QualityBadge';
+import { getMediaQuality } from '../utils/mediaQuality';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server, Rewind, FastForward, Zap } from 'lucide-react';
@@ -236,7 +237,9 @@ export default function WatchParty() {
       backdrop_path: mediaDetail.backdrop_path,
       season_number: isSeries ? (activeSeason || 1) : null,
       episode_number: isSeries ? (activeEpisode || 1) : null,
-      server_key: embedServer || 'vidlink'
+      server_key: embedServer || 'vidlink',
+      release_date: mediaDetail.release_date || mediaDetail.first_air_date || null,
+      quality: getMediaQuality({ ...mediaDetail, media_type: room.media_type })
     });
   }, [room, mediaDetail, activeSeason, activeEpisode, embedServer]);
 
@@ -660,6 +663,7 @@ export default function WatchParty() {
         else if (s.name && s.name.toLowerCase().includes('special')) badge = 'SPECIAL';
         else if (s.name && s.name.toLowerCase() !== `season ${s.season_number}` && s.name.length <= 12) badge = s.name.toUpperCase();
 
+        const seasonFuture = s.air_date && Number.isFinite(Date.parse(s.air_date)) && (Date.parse(s.air_date) - Date.now() > 86400000);
         list.push({
           id: `season_${s.season_number}`,
           season_number: s.season_number,
@@ -667,6 +671,8 @@ export default function WatchParty() {
           badge,
           badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
           type: 'tv',
+          quality: seasonFuture ? 'CAM' : (mediaDetail.quality || null),
+          full_release_date: s.air_date || mediaDetail.release_date || '',
           release_date: s.air_date ? String(s.air_date).split('-')[0] : (mediaDetail.release_date ? String(mediaDetail.release_date).split('-')[0] : ''),
           poster_path: s.poster_path || mediaDetail.poster_path,
           isSeason: true,
@@ -686,6 +692,8 @@ export default function WatchParty() {
           badge: 'NOW PLAYING',
           badgeColor: 'bg-[#10b981] text-black border-[#10b981]',
           type: 'movie',
+          quality: mediaDetail.quality || null,
+          full_release_date: mediaDetail.release_date || '',
           release_date: mediaDetail.release_date ? String(mediaDetail.release_date).split('-')[0] : '',
           poster_path: mediaDetail.poster_path,
           isSeason: false,
@@ -704,6 +712,10 @@ export default function WatchParty() {
             ? 'bg-[#10b981] text-black border-[#10b981]' 
             : (rf.type === 'movie' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'),
           type: rf.type || 'movie',
+          format: rf.format || null,
+          status: rf.status || null,
+          quality: isCurrentActive ? (mediaDetail.quality || rf.quality || null) : (rf.quality || null),
+          full_release_date: rf.full_release_date || rf.release_date || '',
           release_date: rf.release_date ? String(rf.release_date).split('-')[0] : '',
           poster_path: rf.poster_path || mediaDetail.poster_path,
           isSeason: false,
@@ -855,7 +867,19 @@ export default function WatchParty() {
               <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider">
                 {room.media_type}
               </span>
-              <QualityBadge item={{ ...mediaDetail, media_type: room.media_type }} />
+              <QualityBadge
+                item={{
+                  ...mediaDetail,
+                  media_type: room.media_type,
+                  quality:
+                    isEpisodic &&
+                    currentSeason?.air_date &&
+                    Number.isFinite(Date.parse(currentSeason.air_date)) &&
+                    Date.parse(currentSeason.air_date) - Date.now() > 86400000
+                      ? 'CAM'
+                      : mediaDetail.quality
+                }}
+              />
               {currentSeason?.air_date ? (
                 <span>• Season Air: {currentSeason.air_date}</span>
               ) : (

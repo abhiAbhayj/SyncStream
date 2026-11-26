@@ -13,7 +13,7 @@ export default function Home() {
   // Instant Stale-While-Revalidate: Load cached catalog immediately (0ms latency), update in background
   const [media, setMedia] = useState(() => {
     try {
-      const cached = localStorage.getItem('syncstream_cached_home_catalog_v2');
+      const cached = localStorage.getItem('syncstream_cached_home_catalog_v3');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed && typeof parsed === 'object' && parsed.trending) {
@@ -367,7 +367,7 @@ export default function Home() {
       }
       setMedia(merged);
       try {
-        localStorage.setItem('syncstream_cached_home_catalog_v2', JSON.stringify(merged));
+        localStorage.setItem('syncstream_cached_home_catalog_v3', JSON.stringify(merged));
       } catch {}
       setLastUpdated(merged._fetchedAt ? new Date(merged._fetchedAt) : new Date());
       lastFetchRef.current = Date.now();

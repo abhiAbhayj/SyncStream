@@ -59,7 +59,7 @@ export default function Catalog() {
 
   const fetchCatalogData = useCallback(async (pageNum, force = false) => {
     if (isFetchingRef.current && pageNum === 1) return;
-    const cacheKey = `catalog-v3-${category}-${type}`;
+    const cacheKey = `catalog-v4-${category}-${type}`;
 
     // On back-navigation, restore from cache only if it's still fresh
     if (!force && pageNum === 1 && navType === 'POP') {
@@ -144,7 +144,7 @@ export default function Catalog() {
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
-        const cacheKey = `catalog-v3-${category}-${type}`;
+        const cacheKey = `catalog-v4-${category}-${type}`;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
           try {

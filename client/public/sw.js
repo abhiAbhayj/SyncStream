@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v33-servers-6-8-9-10-multiaudio';
+const CACHE_NAME = 'syncstream-v34-consistent-hd-cam-quality';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

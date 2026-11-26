@@ -11,6 +11,7 @@ import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
 import SolidSelect from '../components/SolidSelect';
 import QualityBadge from '../components/QualityBadge';
+import { getMediaQuality } from '../utils/mediaQuality';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
@@ -412,6 +413,8 @@ export default function MediaDetail() {
       ? targetTime
       : (progressTrackerRef.current.currentTime || resumeTime || 0);
     const curDuration = progressTrackerRef.current.duration || 0;
+    const itemQuality = getMediaQuality({ ...detail, media_type: type });
+    const itemReleaseDate = detail.release_date || detail.first_air_date || null;
 
     if (type === 'movie') {
       recordContinueWatching({
@@ -421,6 +424,8 @@ export default function MediaDetail() {
         poster_path: detail.poster_path,
         backdrop_path: detail.backdrop_path,
         server_key: curServer,
+        release_date: itemReleaseDate,
+        quality: itemQuality,
         progress_seconds: curTime,
         duration_seconds: curDuration
       });
@@ -439,6 +444,8 @@ export default function MediaDetail() {
         episode_number: activeEpisode,
         episode_title: epTitle,
         server_key: curServer,
+        release_date: itemReleaseDate,
+        quality: itemQuality,
         progress_seconds: curTime,
         duration_seconds: curDuration
       });
@@ -763,6 +770,7 @@ export default function MediaDetail() {
         else if (s.name && s.name.toLowerCase().includes('special')) badge = 'SPECIAL';
         else if (s.name && s.name.toLowerCase() !== `season ${s.season_number}` && s.name.length <= 12) badge = s.name.toUpperCase();
 
+        const seasonFuture = s.air_date && Number.isFinite(Date.parse(s.air_date)) && (Date.parse(s.air_date) - Date.now() > 86400000);
         list.push({
           id: `season_${s.season_number}`,
           season_number: s.season_number,
@@ -770,6 +778,8 @@ export default function MediaDetail() {
           badge,
           badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
           type: 'tv',
+          quality: seasonFuture ? 'CAM' : (detail.quality || null),
+          full_release_date: s.air_date || detail.release_date || '',
           release_date: s.air_date ? s.air_date.split('-')[0] : (detail.release_date?.split('-')[0] || ''),
           poster_path: s.poster_path || detail.poster_path,
           isSeason: true,
@@ -789,6 +799,8 @@ export default function MediaDetail() {
           badge: 'NOW PLAYING',
           badgeColor: 'bg-[#10b981] text-black border-[#10b981]',
           type: 'movie',
+          quality: detail.quality || null,
+          full_release_date: detail.release_date || '',
           release_date: detail.release_date ? detail.release_date.split('-')[0] : '',
           poster_path: detail.poster_path,
           isSeason: false,
@@ -806,6 +818,10 @@ export default function MediaDetail() {
             ? 'bg-[#10b981] text-black border-[#10b981]' 
             : (rf.type === 'movie' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'),
           type: rf.type || 'movie',
+          format: rf.format || null,
+          status: rf.status || null,
+          quality: isCurrentActive ? (detail.quality || rf.quality || null) : (rf.quality || null),
+          full_release_date: rf.full_release_date || rf.release_date || '',
           release_date: rf.release_date ? rf.release_date.split('-')[0] : '',
           poster_path: rf.poster_path || detail.poster_path,
           isSeason: false,
@@ -988,7 +1004,19 @@ export default function MediaDetail() {
               <span className="capitalize text-accentCyan bg-accentCyan/10 border border-accentCyan/20 px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-bold uppercase tracking-wider">
                 {type}
               </span>
-              <QualityBadge item={{ ...detail, media_type: type }} />
+              <QualityBadge
+                item={{
+                  ...detail,
+                  media_type: type,
+                  quality:
+                    isEpisodic &&
+                    currentSeason?.air_date &&
+                    Number.isFinite(Date.parse(currentSeason.air_date)) &&
+                    Date.parse(currentSeason.air_date) - Date.now() > 86400000
+                      ? 'CAM'
+                      : detail.quality
+                }}
+              />
               {currentSeason?.air_date ? (
                 <span>• Season Air: {currentSeason.air_date}</span>
               ) : (

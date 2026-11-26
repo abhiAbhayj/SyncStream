@@ -17,7 +17,8 @@ import {
   getPersonCredits,
   getAnimeCharacters,
   getWhatsAppEmojis,
-  generateAiAvatar
+  generateAiAvatar,
+  resolveMediaQualities
 } from '../controllers/mediaController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
@@ -25,6 +26,7 @@ const router = express.Router();
 
 router.get('/trending', getTrending);
 router.get('/search', searchMedia);
+router.post('/qualities', resolveMediaQualities);
 router.get('/detail/:type/:id', getMediaDetail);
 router.get('/manga/chapters/:id', getMangaChapters);
 router.get('/manga/pages/:chapterId', getMangaPages);
