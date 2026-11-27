@@ -181,7 +181,7 @@ export async function initDB() {
         chapter_id VARCHAR(100) DEFAULT NULL,
         chapter_number VARCHAR(50) DEFAULT NULL,
         chapter_title VARCHAR(255) DEFAULT NULL,
-        server_key VARCHAR(50) DEFAULT 'cinemaos',
+        server_key VARCHAR(50) DEFAULT 'vidfastpro',
         release_date VARCHAR(32) DEFAULT NULL,
         quality VARCHAR(16) DEFAULT NULL,
         progress_seconds INT DEFAULT 0,
@@ -257,7 +257,7 @@ export async function initDB() {
          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'continue_watching' AND COLUMN_NAME = 'server_key'`
       );
       if (serverKeyCols.length === 0) {
-        await pool.query('ALTER TABLE continue_watching ADD COLUMN server_key VARCHAR(50) DEFAULT "cinemaos"');
+        await pool.query('ALTER TABLE continue_watching ADD COLUMN server_key VARCHAR(50) DEFAULT "vidfastpro"');
         console.log('[DB] Migration: Added server_key to continue_watching [OK]');
       }
     } catch (srvErr) {

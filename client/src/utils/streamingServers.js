@@ -1,46 +1,46 @@
 /**
  * Verified Streaming Server Providers Configuration
  * 15 active, free streaming servers for Movies, TV Series, and Anime.
- * All servers load without sandbox errors and are protected by SyncStream's parent redirect neutralizer.
+ * VidFast PRO and top Vid* mirrors sit first, followed by CinemaOS and backup multi-audio nodes.
  */
 
-export const DEFAULT_SERVER_KEY = 'cinemaos';
+export const DEFAULT_SERVER_KEY = 'vidfastpro';
 
 export const normalizeServerKey = (serverKey) => {
   if (!serverKey || typeof serverKey !== 'string') return DEFAULT_SERVER_KEY;
   const key = serverKey.trim();
   if (key === 'vidlink' || key === 'videasy') return 'cinemaos';
-  if (key === 'vidfast') return 'vidrock';
+  if (key === 'vidfast') return 'vidfastpro';
   return key || DEFAULT_SERVER_KEY;
 };
 
 export const STREAMING_SERVERS = [
   {
-    key: 'cinemaos',
+    key: 'vidfastpro',
     num: '01',
-    name: 'CinemaOS',
-    label: 'Server 1 (CinemaOS Multi-Audio)',
-    badge: 'Multi-Audio',
-    tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    description: 'Multi-audio player with Hindi & international tracks, multi-language subtitles, and multi-source failover'
+    name: 'VidFast PRO',
+    label: 'Server 1 (VidFast PRO)',
+    badge: '4K Node',
+    tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+    description: 'High-bitrate adaptive streaming mirror with rapid loading'
+  },
+  {
+    key: 'vidprime',
+    num: '02',
+    name: 'VidPrime PRO',
+    label: 'Server 2 (VidPrime PRO)',
+    badge: 'Vidstack HD',
+    tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
+    description: 'Next-gen Vidstack player with crisp HD playback and subtitle selection'
   },
   {
     key: 'vidrock',
-    num: '02',
+    num: '03',
     name: 'VidRock',
-    label: 'Server 2 (VidRock Multi-Audio)',
+    label: 'Server 3 (VidRock Multi-Audio)',
     badge: 'Multi-Audio',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     description: 'High-speed multi-audio stream engine with built-in audio track switcher and multi-language subtitles'
-  },
-  {
-    key: 'embedwave',
-    num: '03',
-    name: 'EmbedWave',
-    label: 'Server 3 (EmbedWave Ultra)',
-    badge: 'Zero Ads',
-    tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    description: 'Modern clean player engine with crystal-clear bufferless playback'
   },
   {
     key: 'vidsrcto',
@@ -61,31 +61,31 @@ export const STREAMING_SERVERS = [
     description: 'Official VidSrc core engine with multi-language audio and subtitle tracks'
   },
   {
-    key: 'vidukimulti',
+    key: 'cinemaos',
     num: '06',
+    name: 'CinemaOS',
+    label: 'Server 6 (CinemaOS Multi-Audio)',
+    badge: 'Multi-Audio',
+    tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    description: 'Multi-audio player with Hindi & international tracks, multi-language subtitles, and multi-source failover'
+  },
+  {
+    key: 'vidsrcru',
+    num: '07',
+    name: 'VidSrc RU',
+    label: 'Server 7 (VidSrc RU)',
+    badge: 'Multi-Sub',
+    tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20',
+    description: 'Fast cloud embed node with multi-language subtitles and broad catalog coverage'
+  },
+  {
+    key: 'vidukimulti',
+    num: '08',
     name: 'Viduki Multi',
-    label: 'Server 6 (Viduki Multi-Audio)',
+    label: 'Server 8 (Viduki Multi-Audio)',
     badge: 'Multi-Audio',
     tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
     description: 'Multi-language audio (Hindi & regional tracks) with English subtitles & 4K auto-failover'
-  },
-  {
-    key: 'movietv',
-    num: '07',
-    name: 'MovieTV',
-    label: 'Server 7 (MovieTV Cloud)',
-    badge: 'Multi-Src',
-    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    description: 'Multi-source failover architecture with responsive HTML5 playback'
-  },
-  {
-    key: 'nontongo',
-    num: '08',
-    name: 'Nontongo',
-    label: 'Server 8 (Nontongo Multi-Audio)',
-    badge: 'Multi-Audio',
-    tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-    description: 'Dedicated multi-audio & Hindi dub streaming server with English subtitles'
   },
   {
     key: 'vidnest',
@@ -97,40 +97,40 @@ export const STREAMING_SERVERS = [
     description: 'Multi-node cloud player with English captions and sub/dub anime support'
   },
   {
-    key: 'twoembed',
+    key: 'embedwave',
     num: '10',
-    name: '2Embed',
-    label: 'Server 10 (2Embed Ultra)',
-    badge: 'Eng Sub',
-    tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-    description: 'Reliable multi-source mirror with fast HTML5 playback and English subtitles'
-  },
-  {
-    key: 'vidprime',
-    num: '11',
-    name: 'VidPrime PRO',
-    label: 'Server 11 (VidPrime PRO)',
-    badge: 'Vidstack HD',
-    tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
-    description: 'Next-gen Vidstack player with crisp HD playback and subtitle selection'
-  },
-  {
-    key: 'vidsrcru',
-    num: '12',
-    name: 'VidSrc RU',
-    label: 'Server 12 (VidSrc RU)',
-    badge: 'Multi-Sub',
-    tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20',
-    description: 'Fast cloud embed node with multi-language subtitles and broad catalog coverage'
+    name: 'EmbedWave',
+    label: 'Server 10 (EmbedWave Ultra)',
+    badge: 'Zero Ads',
+    tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
+    description: 'Modern clean player engine with crystal-clear bufferless playback'
   },
   {
     key: 'autoembed',
-    num: '13',
+    num: '11',
     name: 'AutoEmbed PRO',
-    label: 'Server 13 (AutoEmbed PRO)',
+    label: 'Server 11 (AutoEmbed PRO)',
     badge: 'Multi-Node',
     tagColor: 'text-lime-400 bg-lime-500/10 border-lime-500/20',
     description: 'Auto-switching multi-server aggregator with fast backup sources'
+  },
+  {
+    key: 'movietv',
+    num: '12',
+    name: 'MovieTV',
+    label: 'Server 12 (MovieTV Cloud)',
+    badge: 'Multi-Src',
+    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    description: 'Multi-source failover architecture with responsive HTML5 playback'
+  },
+  {
+    key: 'nontongo',
+    num: '13',
+    name: 'Nontongo',
+    label: 'Server 13 (Nontongo Multi-Audio)',
+    badge: 'Multi-Audio',
+    tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
+    description: 'Dedicated multi-audio & Hindi dub streaming server with English subtitles'
   },
   {
     key: 'primesrc',
@@ -142,13 +142,13 @@ export const STREAMING_SERVERS = [
     description: 'Multi-mirror cloud embed aggregator for movies and TV episodes'
   },
   {
-    key: 'vidfastpro',
+    key: 'twoembed',
     num: '15',
-    name: 'VidFast PRO',
-    label: 'Server 15 (VidFast PRO)',
-    badge: '4K Node',
-    tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-    description: 'High-bitrate adaptive streaming mirror with rapid loading'
+    name: '2Embed',
+    label: 'Server 15 (2Embed Ultra)',
+    badge: 'Eng Sub',
+    tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+    description: 'Reliable multi-source mirror with fast HTML5 playback and English subtitles'
   }
 ];
 
@@ -189,19 +189,15 @@ export const getEmbedStreamUrl = ({
 
   if (mediaType === 'movie') {
     switch (serverKey) {
-      case 'cinemaos':
-      case 'vidlink':
-      case 'videasy':
-        baseStreamUrl = `https://cinemaos.tech/player/${activeId}`;
+      case 'vidfastpro':
+      case 'vidfast':
+        baseStreamUrl = `https://vidfast.pro/movie/${activeId}`;
+        break;
+      case 'vidprime':
+        baseStreamUrl = `https://vidprime.top/movie/${activeId}`;
         break;
       case 'vidrock':
-      case 'vidfast':
         baseStreamUrl = `https://vidrock.net/embed/movie/${activeId}`;
-        break;
-      case 'embedwave':
-      case 'movies111':
-      case 'rgshows':
-        baseStreamUrl = `https://embedwave.cc/embed/movie/${activeId}`;
         break;
       case 'vidsrcto':
         baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
@@ -209,10 +205,31 @@ export const getEmbedStreamUrl = ({
       case 'vidsrcme':
         baseStreamUrl = `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
         break;
+      case 'cinemaos':
+      case 'vidlink':
+      case 'videasy':
+        baseStreamUrl = `https://cinemaos.tech/player/${activeId}`;
+        break;
+      case 'vidsrcru':
+        baseStreamUrl = `https://vidsrc.ru/embed/movie/${activeId}`;
+        break;
       case 'vidukimulti':
       case 'anyembed':
       case 'smashystream':
         baseStreamUrl = `https://www.viduki.net/2/movie/${activeId}`;
+        break;
+      case 'vidnest':
+      case 'vidsrcpm':
+        baseStreamUrl = `https://vidnest.fun/movie/${activeId}`;
+        break;
+      case 'embedwave':
+      case 'movies111':
+      case 'rgshows':
+        baseStreamUrl = `https://embedwave.cc/embed/movie/${activeId}`;
+        break;
+      case 'autoembed':
+      case 'autoembedco':
+        baseStreamUrl = `https://player.autoembed.co/embed/movie/${activeId}`;
         break;
       case 'movietv':
       case 'vidsrcdev':
@@ -223,9 +240,8 @@ export const getEmbedStreamUrl = ({
       case 'vidsrcsu':
         baseStreamUrl = `https://www.nontongo.win/embed/movie/${activeId}`;
         break;
-      case 'vidnest':
-      case 'vidsrcpm':
-        baseStreamUrl = `https://vidnest.fun/movie/${activeId}`;
+      case 'primesrc':
+        baseStreamUrl = `https://primesrc.me/embed/movie?tmdb=${activeId}`;
         break;
       case 'twoembed':
       case 'vidzy':
@@ -237,42 +253,22 @@ export const getEmbedStreamUrl = ({
       case 'twoembedskin':
         baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
         break;
-      case 'vidprime':
-        baseStreamUrl = `https://vidprime.top/movie/${activeId}`;
-        break;
-      case 'vidsrcru':
-        baseStreamUrl = `https://vidsrc.ru/embed/movie/${activeId}`;
-        break;
-      case 'autoembed':
-      case 'autoembedco':
-        baseStreamUrl = `https://player.autoembed.co/embed/movie/${activeId}`;
-        break;
-      case 'primesrc':
-        baseStreamUrl = `https://primesrc.me/embed/movie?tmdb=${activeId}`;
-        break;
-      case 'vidfastpro':
-        baseStreamUrl = `https://vidfast.pro/movie/${activeId}`;
-        break;
       default:
-        baseStreamUrl = `https://cinemaos.tech/player/${activeId}`;
+        baseStreamUrl = `https://vidfast.pro/movie/${activeId}`;
         break;
     }
   } else {
     // TV Shows and Anime
     switch (serverKey) {
-      case 'cinemaos':
-      case 'vidlink':
-      case 'videasy':
-        baseStreamUrl = `https://cinemaos.tech/player/${activeId}/${s}/${ep}`;
+      case 'vidfastpro':
+      case 'vidfast':
+        baseStreamUrl = `https://vidfast.pro/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidprime':
+        baseStreamUrl = `https://vidprime.top/tv/${activeId}/${s}/${ep}`;
         break;
       case 'vidrock':
-      case 'vidfast':
         baseStreamUrl = `https://vidrock.net/embed/tv/${activeId}/${s}/${ep}`;
-        break;
-      case 'embedwave':
-      case 'movies111':
-      case 'rgshows':
-        baseStreamUrl = `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
         break;
       case 'vidsrcto':
         baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
@@ -280,10 +276,35 @@ export const getEmbedStreamUrl = ({
       case 'vidsrcme':
         baseStreamUrl = `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
         break;
+      case 'cinemaos':
+      case 'vidlink':
+      case 'videasy':
+        baseStreamUrl = `https://cinemaos.tech/player/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidsrcru':
+        baseStreamUrl = `https://vidsrc.ru/embed/tv/${activeId}/${s}/${ep}`;
+        break;
       case 'vidukimulti':
       case 'anyembed':
       case 'smashystream':
         baseStreamUrl = `https://www.viduki.net/2/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'vidnest':
+      case 'vidsrcpm':
+        if (mediaType === 'anime' && alNumericId && !cleanTmdbId) {
+          baseStreamUrl = `https://vidnest.fun/anime/${alNumericId}/${rawEp}/sub`;
+        } else {
+          baseStreamUrl = `https://vidnest.fun/tv/${activeId}/${s}/${ep}`;
+        }
+        break;
+      case 'embedwave':
+      case 'movies111':
+      case 'rgshows':
+        baseStreamUrl = `https://embedwave.cc/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+      case 'autoembed':
+      case 'autoembedco':
+        baseStreamUrl = `https://player.autoembed.co/embed/tv/${activeId}/${s}/${ep}`;
         break;
       case 'movietv':
       case 'vidsrcdev':
@@ -294,13 +315,8 @@ export const getEmbedStreamUrl = ({
       case 'vidsrcsu':
         baseStreamUrl = `https://www.nontongo.win/embed/tv/${activeId}/${s}/${ep}`;
         break;
-      case 'vidnest':
-      case 'vidsrcpm':
-        if (mediaType === 'anime' && alNumericId && !cleanTmdbId) {
-          baseStreamUrl = `https://vidnest.fun/anime/${alNumericId}/${rawEp}/sub`;
-        } else {
-          baseStreamUrl = `https://vidnest.fun/tv/${activeId}/${s}/${ep}`;
-        }
+      case 'primesrc':
+        baseStreamUrl = `https://primesrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
         break;
       case 'twoembed':
       case 'vidzy':
@@ -312,24 +328,8 @@ export const getEmbedStreamUrl = ({
       case 'twoembedskin':
         baseStreamUrl = `https://www.2embed.skin/embedtv/${activeId}?s=${s}&e=${ep}`;
         break;
-      case 'vidprime':
-        baseStreamUrl = `https://vidprime.top/tv/${activeId}/${s}/${ep}`;
-        break;
-      case 'vidsrcru':
-        baseStreamUrl = `https://vidsrc.ru/embed/tv/${activeId}/${s}/${ep}`;
-        break;
-      case 'autoembed':
-      case 'autoembedco':
-        baseStreamUrl = `https://player.autoembed.co/embed/tv/${activeId}/${s}/${ep}`;
-        break;
-      case 'primesrc':
-        baseStreamUrl = `https://primesrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
-        break;
-      case 'vidfastpro':
-        baseStreamUrl = `https://vidfast.pro/tv/${activeId}/${s}/${ep}`;
-        break;
       default:
-        baseStreamUrl = `https://cinemaos.tech/player/${activeId}/${s}/${ep}`;
+        baseStreamUrl = `https://vidfast.pro/tv/${activeId}/${s}/${ep}`;
         break;
     }
   }

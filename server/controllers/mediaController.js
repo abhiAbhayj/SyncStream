@@ -2981,7 +2981,7 @@ export const saveContinueWatching = async (req, res) => {
     chapter_id,
     chapter_number,
     chapter_title,
-    server_key = 'cinemaos',
+    server_key = 'vidfastpro',
     release_date = null,
     quality = null,
     progress_seconds = 0,
@@ -3006,7 +3006,7 @@ export const saveContinueWatching = async (req, res) => {
     const parsedEpisode = episode_number !== undefined && episode_number !== null ? parseInt(episode_number, 10) : null;
     const parsedProgress = parseInt(progress_seconds || '0', 10) || 0;
     const parsedDuration = parseInt(duration_seconds || '0', 10) || 0;
-    const safeServerKey = server_key && typeof server_key === 'string' ? server_key.trim() : 'cinemaos';
+    const safeServerKey = server_key && typeof server_key === 'string' ? server_key.trim() : 'vidfastpro';
     const safeReleaseDate = release_date && typeof release_date === 'string' ? release_date.trim().slice(0, 32) : null;
     const safeQuality = (quality === 'HD' || quality === 'CAM') ? quality : null;
 
@@ -3146,7 +3146,7 @@ export const syncContinueWatching = async (req, res) => {
     for (const item of items) {
       if (!item.external_media_id || !item.media_type || !item.title) continue;
       const safePoster = (item.media_type !== 'manga' || isValidCoverUrl(item.poster_path)) ? (item.poster_path || null) : null;
-      const safeServerKey = item.server_key && typeof item.server_key === 'string' ? item.server_key.trim() : 'cinemaos';
+      const safeServerKey = item.server_key && typeof item.server_key === 'string' ? item.server_key.trim() : 'vidfastpro';
       const safeReleaseDate = item.release_date && typeof item.release_date === 'string' ? item.release_date.trim().slice(0, 32) : null;
       const safeQuality = (item.quality === 'HD' || item.quality === 'CAM') ? item.quality : null;
       await db.query(

@@ -98,7 +98,7 @@ io.on('connection', (socket) => {
       roomPlaybackStates[roomCode] = {
         roomCode,
         playbackMode: 'solo-embed',
-        embedServer: 'cinemaos',
+        embedServer: 'vidfastpro',
         activeSeason: 1,
         activeEpisode: 1,
         event: 'play',

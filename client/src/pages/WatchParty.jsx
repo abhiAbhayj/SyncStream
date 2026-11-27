@@ -66,7 +66,7 @@ export default function WatchParty() {
     }, 3200);
   };
 
-  // Streaming console states (Default: CinemaOS Multi-Audio Server 1 - Shared Sync)
+  // Streaming console states (Default: VidFast PRO Server 1 - Shared Sync)
   const [playbackMode, setPlaybackMode] = useState('solo-embed');
   const [embedServer, setEmbedServer] = useState(DEFAULT_SERVER_KEY);
   const [showAllServers, setShowAllServers] = useState(false);
