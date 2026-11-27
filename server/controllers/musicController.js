@@ -1221,6 +1221,172 @@ export const getSongDetails = async (req, res) => {
   }
 };
 
+// ── Lyrics Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Clean a raw track title coming from JioSaavn, YouTube, or user input.
+ * Strips TV-show/movie attribution tags, YouTube SEO clutter, and "Artist - " prefix
+ * when the supplied artist name matches the prefix.
+ *
+ * Returns { cleanTitle, embeddedArtist|null }
+ * - embeddedArtist is non-null when the raw title is in "Artist - Title" form
+ *   and the prefix verifiably matches the known artist, or is a short single-word name.
+ */
+const cleanLyricsTitle = (rawTitle, knownArtist) => {
+  if (!rawTitle) return { cleanTitle: '', embeddedArtist: null };
+
+  let title = rawTitle.trim();
+  let embeddedArtist = null;
+
+  // 1. Strip anything after a bare pipe  e.g. "Song | Official Video | Artist"
+  title = title.replace(/\s*\|.*$/g, '').trim();
+
+  // 2. Detect "Artist - Song Title (...)" format.
+  //    Strategy: split on the first " - ", then decide which side is artist vs title.
+  //    Rules:
+  //      a) Skip series/theme prefixes like "From Opening -", "OST -", "Theme -"
+  //      b) If we know the artist and the LHS matches, extract it (strip from title)
+  //      c) Otherwise don't swap — the first word group is usually the song title
+  const hyphenMatch = title.match(/^([^([\-]{2,60}?)\s+-\s+(.+)$/);
+  if (hyphenMatch) {
+    const lhs = hyphenMatch[1].trim();
+    const rhs = hyphenMatch[2].trim();
+    const lhsLower = lhs.toLowerCase();
+
+    const isSeriesPrefix = /^(from\s*opening|theme\s*song|ost|intro|opening|ending|insert\s*song)\b/.test(lhsLower);
+    if (!isSeriesPrefix) {
+      // Only use hyphen-split to strip artist prefix when known artist matches LHS
+      const artistMatchesLhs = knownArtist
+        ? (lhsLower.includes(knownArtist.toLowerCase().split(',')[0].trim().toLowerCase()) ||
+           knownArtist.toLowerCase().includes(lhsLower))
+        : false;
+
+      if (artistMatchesLhs) {
+        embeddedArtist = lhs;
+        title = rhs;
+      }
+      // No known artist: only extract if LHS is a short plain word(s) with no special chars
+      // AND the RHS doesn't look like "Artist (Series tag)" which would mean it's inverted
+      else if (!knownArtist) {
+        const lhsWords = lhs.trim().split(/\s+/);
+        const rhsHasArtistSeriesPattern = /^[\w\s]{1,30}\s*[\(\[][^\)\]]{3,}[\)\]]/.test(rhs);
+        if (lhsWords.length <= 3 && !/[\(\[]/.test(lhs) && !rhsHasArtistSeriesPattern) {
+          embeddedArtist = lhs;
+          title = rhs;
+        }
+      }
+    }
+  }
+
+  // 3. Strip TV series / Movie attribution parentheticals:
+  //    (From "FROM"), [From "FROM" Season 1], (Theme from FROM), (OST), (Soundtrack)
+  //    (Original Television Soundtrack), - From the TV Series ...
+  title = title
+    .replace(/\s*[\(\[]\s*(?:from\s+[""]?[^""\)\]]*[""]?|theme\s+from[^)\]]*|original\s+(?:television\s+)?soundtrack[^)\]]*|ost[^)\]]*|mgm\s*series[^)\]]*|tv\s*series[^)\]]*)\s*[\)\]]/gi, '')
+    .replace(/\s*-\s*(?:from\s+the\s+(?:original\s+)?(?:television|tv)\s*series[^\n]*|from\s+the\s+film[^\n]*|theme\s+from[^\n]*)/gi, '')
+    .trim();
+
+  // 4. Strip common YouTube / release suffix clutter inside parens/brackets
+  title = title
+    .replace(/\s*[\(\[]\s*(?:official\s*(?:music\s*)?(?:lyric\s*)?video|audio(?:\s*song)?|hd|4k|full\s*song|visualizer|remastered(?:\s+\d{4})?|lyrics?|lyrical|feat\.?[^)\]]*|ft\.?[^)\]]*|with\s+[^)\]]*|remix[^)\]]*|live[^)\]]*)\s*[\)\]]/gi, '')
+    .replace(/\s*-\s*(?:official\s*(?:music\s*)?video|official\s*audio|lyrics?\s*video|hd|4k|visualizer)\s*$/gi, '')
+    .trim();
+
+  // 5. Strip trailing noise words left over
+  title = title
+    .replace(/\b(lyrical|official video|music video|full song|visualizer|audio song)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  return { cleanTitle: title || rawTitle.trim(), embeddedArtist };
+};
+
+/**
+ * Clean a raw artist name: strip YouTube-channel suffixes, pick first credited artist.
+ */
+const cleanLyricsArtist = (rawArtist) => {
+  if (!rawArtist) return '';
+  return rawArtist
+    .split(',')[0].split('&')[0].split('/')[0]
+    .replace(/\s*-\s*topic\s*$/i, '')
+    .replace(/\s*official\s*$/i, '')
+    .replace(/\s*vevo\s*$/i, '')
+    .replace(/\s*(?:records|music|tv|channel|audio|lyrics)\s*$/gi, '')
+    .trim();
+};
+
+/**
+ * Token-level Jaccard similarity between two strings (case-insensitive, punctuation-stripped).
+ * Returns 0.0 – 1.0
+ */
+const tokenSimilarity = (a, b) => {
+  if (!a || !b) return 0;
+  const norm = (s) => s.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const setA = new Set(norm(a).split(' ').filter(Boolean));
+  const setB = new Set(norm(b).split(' ').filter(Boolean));
+  if (!setA.size || !setB.size) return 0;
+  let inter = 0;
+  for (const t of setA) { if (setB.has(t)) inter++; }
+  const union = new Set([...setA, ...setB]).size;
+  return inter / union;
+};
+
+/**
+ * Score a single LRCLIB candidate against our target.
+ * Returns a score 0–1 (higher = better match).
+ * Returns -1 if the candidate is definitely wrong (hard rejection).
+ */
+const scoreLyricsCandidate = (candidate, targetTitle, targetArtist, targetDurationSec) => {
+  const candTitle = candidate.trackName || '';
+  const candArtist = candidate.artistName || '';
+  const candDuration = Number(candidate.duration) || 0;
+
+  // Title similarity
+  const titleSim = tokenSimilarity(candTitle, targetTitle);
+
+  // Artist similarity (optional — 0.0 if no target artist)
+  const artistSim = targetArtist ? tokenSimilarity(candArtist, targetArtist) : 0.5;
+
+  // Duration delta
+  const durDelta = targetDurationSec > 0 && candDuration > 0
+    ? Math.abs(candDuration - targetDurationSec)
+    : 999;
+
+  // Hard rejection: title similarity too low
+  if (titleSim < 0.25) return -1;
+
+  // Hard rejection: artist provided + candidate artist totally different
+  if (targetArtist && artistSim < 0.1 && candArtist) return -1;
+
+  // Hard rejection: duration off by more than 30 seconds (if both durations are known)
+  if (targetDurationSec > 0 && candDuration > 0 && durDelta > 30) return -1;
+
+  // Composite score (title matters most, then artist, then duration closeness)
+  const durScore = durDelta < 999 ? Math.max(0, 1 - durDelta / 30) : 0.5;
+  return titleSim * 0.55 + artistSim * 0.30 + durScore * 0.15;
+};
+
+/**
+ * From an array of LRCLIB search results, pick the best verified match.
+ * Returns the winning candidate or null if nothing passes minimum confidence.
+ */
+const pickBestLyricsCandidate = (candidates, targetTitle, targetArtist, targetDurationSec) => {
+  if (!Array.isArray(candidates) || candidates.length === 0) return null;
+
+  let best = null;
+  let bestScore = 0.30; // minimum confidence threshold
+
+  for (const cand of candidates) {
+    if (!cand.syncedLyrics && !cand.plainLyrics) continue;
+    const score = scoreLyricsCandidate(cand, targetTitle, targetArtist, targetDurationSec);
+    if (score > bestScore) {
+      best = cand;
+      bestScore = score;
+    }
+  }
+  return best;
+};
+
 // 5. Get Lyrics (Synced & Plain) Transliterated into English Latin Text
 export const getLyrics = async (req, res) => {
   const { title, artist, duration, songId } = req.query;
@@ -1229,17 +1395,14 @@ export const getLyrics = async (req, res) => {
     return res.status(400).json({ error: 'Title is required for lyrics lookup' });
   }
 
-  // Clean title (remove (From "Movie"), (Feat...), | OM | Dhanush, etc.)
-  const cleanTitle = title
-    .replace(/\s*\|.*$/g, '')
-    .replace(/\s*\((?:from|feat|ft|with|official|video|audio|remix|version|lyrical|lyric)[^\)]*\)/gi, '')
-    .replace(/\s*\[(?:from|feat|ft|with|official|video|audio|remix|version|lyrical|lyric)[^\]]*\]/gi, '')
-    .replace(/\s*-\s*(?:from|feat|ft|with|official|video|audio|remix|version|original).*$/gi, '')
-    .replace(/\s*-\s*.*$/gi, '')
-    .replace(/\b(lyrical|official video|music video|full song|visualizer)\b/gi, '')
-    .trim();
+  const targetDurationSec = duration ? parseInt(duration, 10) : 0;
 
-  const cleanArtist = (artist || '').split(',')[0].split('&')[0].trim();
+  // ── Title & artist cleaning ───────────────────────────────────────────────
+  // Pass raw artist to cleanLyricsTitle so it can verify "Artist - Song" splits safely
+  const rawCleanArtist = cleanLyricsArtist(artist || '');
+  const { cleanTitle, embeddedArtist } = cleanLyricsTitle(title, rawCleanArtist);
+  // Prefer explicitly supplied artist; fall back to artist embedded in title
+  const cleanArtist = rawCleanArtist || embeddedArtist || '';
 
   const parseSyncedLyrics = (lrcString) => {
     if (!lrcString) return [];
@@ -1256,11 +1419,22 @@ export const getLyrics = async (req, res) => {
       .filter(Boolean);
   };
 
+  const buildLyricsResponse = (candidate) => {
+    const parsedLines = parseSyncedLyrics(candidate.syncedLyrics);
+    return {
+      has_lyrics: true,
+      synced: parsedLines.length > 0,
+      syncedLyrics: parsedLines,
+      plainLyrics: toEnglishText(candidate.plainLyrics || ''),
+      source: 'LRCLIB'
+    };
+  };
+
   try {
-    // 1. Try LRCLIB exact get
+    // ── Stage 1: LRCLIB exact /api/get with track + artist + duration ─────────
     try {
       let lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
-      if (duration) lrcUrl += `&duration=${parseInt(duration, 10)}`;
+      if (targetDurationSec) lrcUrl += `&duration=${targetDurationSec}`;
 
       const lrcRes = await axios.get(lrcUrl, {
         headers: { 'User-Agent': 'SyncStream/1.0 (https://github.com/abhiAbhayj/SyncStream)' },
@@ -1268,60 +1442,57 @@ export const getLyrics = async (req, res) => {
       });
 
       if (lrcRes.data && (lrcRes.data.syncedLyrics || lrcRes.data.plainLyrics)) {
-        const parsedLines = parseSyncedLyrics(lrcRes.data.syncedLyrics);
-        return res.json({
-          has_lyrics: true,
-          synced: parsedLines.length > 0,
-          syncedLyrics: parsedLines,
-          plainLyrics: toEnglishText(lrcRes.data.plainLyrics || ''),
-          source: 'LRCLIB'
-        });
+        // Exact endpoint already matches by LRCLIB — still validate artist isn't totally wrong
+        const score = scoreLyricsCandidate(lrcRes.data, cleanTitle, cleanArtist, targetDurationSec);
+        if (score >= 0) {
+          return res.json(buildLyricsResponse(lrcRes.data));
+        }
       }
     } catch (e) {}
 
-    // 2. Try LRCLIB search endpoint with cleanTitle + cleanArtist
+    // ── Stage 2: LRCLIB structured search with track_name + artist_name params ─
+    if (cleanArtist) {
+      try {
+        const searchUrl = `https://lrclib.net/api/search?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
+        const sRes = await axios.get(searchUrl, {
+          headers: { 'User-Agent': 'SyncStream/1.0 (https://github.com/abhiAbhayj/SyncStream)' },
+          timeout: 5000
+        });
+
+        const best = pickBestLyricsCandidate(sRes.data, cleanTitle, cleanArtist, targetDurationSec);
+        if (best) return res.json(buildLyricsResponse(best));
+      } catch (e) {}
+    }
+
+    // ── Stage 3: LRCLIB free-text search "cleanTitle cleanArtist" ─────────────
     try {
-      const searchLrcUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(`${cleanTitle} ${cleanArtist}`)}`;
-      const sRes = await axios.get(searchLrcUrl, {
+      const q = cleanArtist ? `${cleanTitle} ${cleanArtist}` : cleanTitle;
+      const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(q)}`;
+      const sRes = await axios.get(searchUrl, {
         headers: { 'User-Agent': 'SyncStream/1.0' },
-        timeout: 4500
+        timeout: 5000
       });
 
-      const firstMatch = sRes.data?.[0];
-      if (firstMatch && (firstMatch.syncedLyrics || firstMatch.plainLyrics)) {
-        const parsedLines = parseSyncedLyrics(firstMatch.syncedLyrics);
-        return res.json({
-          has_lyrics: true,
-          synced: parsedLines.length > 0,
-          syncedLyrics: parsedLines,
-          plainLyrics: toEnglishText(firstMatch.plainLyrics || ''),
-          source: 'LRCLIB'
-        });
-      }
+      const best = pickBestLyricsCandidate(sRes.data, cleanTitle, cleanArtist, targetDurationSec);
+      if (best) return res.json(buildLyricsResponse(best));
     } catch (e) {}
 
-    // 3. Try LRCLIB search endpoint with cleanTitle only
-    try {
-      const searchLrcUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle)}`;
-      const sRes = await axios.get(searchLrcUrl, {
-        headers: { 'User-Agent': 'SyncStream/1.0' },
-        timeout: 4500
-      });
-
-      const firstMatch = sRes.data?.[0];
-      if (firstMatch && (firstMatch.syncedLyrics || firstMatch.plainLyrics)) {
-        const parsedLines = parseSyncedLyrics(firstMatch.syncedLyrics);
-        return res.json({
-          has_lyrics: true,
-          synced: parsedLines.length > 0,
-          syncedLyrics: parsedLines,
-          plainLyrics: toEnglishText(firstMatch.plainLyrics || ''),
-          source: 'LRCLIB'
+    // ── Stage 4: LRCLIB free-text search with cleanTitle only ─────────────────
+    if (cleanArtist) {
+      try {
+        const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle)}`;
+        const sRes = await axios.get(searchUrl, {
+          headers: { 'User-Agent': 'SyncStream/1.0' },
+          timeout: 5000
         });
-      }
-    } catch (e) {}
 
-    // 4. Fallback to JioSaavn native lyrics if songId provided
+        // For title-only search, require higher title similarity since no artist filter
+        const best = pickBestLyricsCandidate(sRes.data, cleanTitle, cleanArtist, targetDurationSec);
+        if (best) return res.json(buildLyricsResponse(best));
+      } catch (e) {}
+    }
+
+    // ── Stage 5: Fallback to JioSaavn native (plain) lyrics if songId provided ─
     if (songId) {
       try {
         const jioLyrUrl = `${JIOSAAVN_BASE}?__call=lyrics.getLyrics&_format=json&_marker=0&api_version=4&ctx=web6dot0&lyrics_id=${songId}`;
@@ -1343,6 +1514,7 @@ export const getLyrics = async (req, res) => {
       } catch (e) {}
     }
 
+    // ── No confident match found — return empty rather than wrong lyrics ───────
     res.json({
       has_lyrics: false,
       synced: false,
