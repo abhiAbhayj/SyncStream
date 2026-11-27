@@ -19,29 +19,38 @@ function assert(condition, message) {
   }
 }
 
-console.log('=== TEST 1: STREAMING_SERVERS Definition (Exact 5 Verified Working Servers) ===');
+console.log('=== TEST 1: STREAMING_SERVERS Definition (Exact 5 Non-Vid Working Servers) ===');
 assert(STREAMING_SERVERS.length === 5, `Contains exactly 5 servers (got ${STREAMING_SERVERS.length})`);
 const keys = new Set(STREAMING_SERVERS.map(s => s.key));
 assert(keys.size === 5, `All 5 server keys are unique (got ${keys.size})`);
-assert(DEFAULT_SERVER_KEY === 'vidsrcme', `Default server is vidsrcme (got ${DEFAULT_SERVER_KEY})`);
-assert(STREAMING_SERVERS[0].key === 'vidsrcme', `Server 1 is VidSrc ME (got ${STREAMING_SERVERS[0].name})`);
-assert(STREAMING_SERVERS[1].key === 'vidsrcto', `Server 2 is VidSrc TO (got ${STREAMING_SERVERS[1].name})`);
-assert(STREAMING_SERVERS[2].key === 'twoembed', `Server 3 is 2Embed PRO (got ${STREAMING_SERVERS[2].name})`);
-assert(STREAMING_SERVERS[3].key === 'autoembed', `Server 4 is AutoEmbed PRO (got ${STREAMING_SERVERS[3].name})`);
-assert(STREAMING_SERVERS[4].key === 'twoembedskin', `Server 5 is 2Embed Skin (got ${STREAMING_SERVERS[4].name})`);
+assert(DEFAULT_SERVER_KEY === 'twoembed', `Default server is twoembed (got ${DEFAULT_SERVER_KEY})`);
+assert(STREAMING_SERVERS[0].key === 'twoembed', `Server 1 is 2Embed PRO (got ${STREAMING_SERVERS[0].name})`);
+assert(STREAMING_SERVERS[1].key === 'autoembed', `Server 2 is AutoEmbed Cloud (got ${STREAMING_SERVERS[1].name})`);
+assert(STREAMING_SERVERS[2].key === 'nontongo', `Server 3 is NontonGo Multi-Audio (got ${STREAMING_SERVERS[2].name})`);
+assert(STREAMING_SERVERS[3].key === 'twoembedskin', `Server 4 is 2Embed Skin (got ${STREAMING_SERVERS[3].name})`);
+assert(STREAMING_SERVERS[4].key === 'smashystream', `Server 5 is SmashyStream PRO (got ${STREAMING_SERVERS[4].name})`);
+
+// Ensure NO server has "vid" in its name or key
+for (const server of STREAMING_SERVERS) {
+  assert(!server.key.includes('vid'), `Server key ${server.key} does not contain 'vid'`);
+  assert(!server.name.toLowerCase().includes('vid'), `Server name ${server.name} does not contain 'vid'`);
+}
 
 console.log('\n=== TEST 2: normalizeServerKey Legacy Aliases (All Map to 5 Active Servers) ===');
-assert(normalizeServerKey('vidlink') === 'vidsrcme', 'vidlink maps to vidsrcme');
-assert(normalizeServerKey('vidfastpro') === 'vidsrcme', 'vidfastpro maps to vidsrcme');
-assert(normalizeServerKey('vidfast') === 'vidsrcme', 'vidfast maps to vidsrcme');
-assert(normalizeServerKey('vidprime') === 'vidsrcme', 'vidprime maps to vidsrcme');
-assert(normalizeServerKey('vidnest') === 'vidsrcme', 'vidnest maps to vidsrcme');
-assert(normalizeServerKey('vidsrccc') === 'vidsrcto', 'vidsrccc maps to vidsrcto');
 assert(normalizeServerKey('twoembed') === 'twoembed', 'twoembed maps to twoembed');
 assert(normalizeServerKey('autoembed') === 'autoembed', 'autoembed maps to autoembed');
+assert(normalizeServerKey('nontongo') === 'nontongo', 'nontongo maps to nontongo');
+assert(normalizeServerKey('twoembedskin') === 'twoembedskin', 'twoembedskin maps to twoembedskin');
+assert(normalizeServerKey('smashystream') === 'smashystream', 'smashystream maps to smashystream');
+assert(normalizeServerKey('vidlink') === 'twoembed', 'vidlink maps to twoembed');
+assert(normalizeServerKey('vidfastpro') === 'twoembed', 'vidfastpro maps to twoembed');
+assert(normalizeServerKey('vidsrcme') === 'twoembed', 'vidsrcme maps to twoembed');
+assert(normalizeServerKey('vidsrcto') === 'autoembed', 'vidsrcto maps to autoembed');
+assert(normalizeServerKey('vidsrccc') === 'autoembed', 'vidsrccc maps to autoembed');
 assert(normalizeServerKey('embedsu') === 'autoembed', 'embedsu maps to autoembed');
+assert(normalizeServerKey('cinemaos') === 'nontongo', 'cinemaos maps to nontongo');
 assert(normalizeServerKey('multiembed') === 'twoembedskin', 'multiembed maps to twoembedskin');
-assert(normalizeServerKey('unknown_key_xyz') === 'vidsrcme', 'unknown key falls back to default vidsrcme');
+assert(normalizeServerKey('unknown_key_xyz') === 'twoembed', 'unknown key falls back to default twoembed');
 
 console.log('\n=== TEST 3: Movie Embed URL Generation across all 5 servers ===');
 for (const server of STREAMING_SERVERS) {
@@ -69,7 +78,7 @@ for (const server of STREAMING_SERVERS) {
 
 console.log('\n=== TEST 5: IMDb ID Fallback when tmdbId is missing ===');
 const imdbUrl = getEmbedStreamUrl({
-  serverKey: 'vidsrcme',
+  serverKey: 'twoembed',
   mediaType: 'movie',
   id: 'custom_789',
   tmdbId: null,
@@ -79,19 +88,19 @@ assert(Boolean(imdbUrl && imdbUrl.includes('tt0111161')), `Movie falls back to I
 
 console.log('\n=== TEST 6: AniList Guard ===');
 // Unmapped AniList ID with no TMDB ID must NOT leak to TMDB-only servers
-const unmappedVidSrcMe = getEmbedStreamUrl({
-  serverKey: 'vidsrcme',
+const unmappedTwoEmbed = getEmbedStreamUrl({
+  serverKey: 'twoembed',
   mediaType: 'anime',
   id: 'al_7054',
   tmdbId: null,
   season: 1,
   episode: 1
 });
-assert(unmappedVidSrcMe === null, 'Unmapped AniList ID returns null until TMDB is resolved (prevents playing wrong show)');
+assert(unmappedTwoEmbed === null, 'Unmapped AniList ID returns null until TMDB is resolved (prevents playing wrong show)');
 
 console.log('\n=== TEST 7: Timestamp Seeking Parameter ===');
 const seekUrl = getEmbedStreamUrl({
-  serverKey: 'vidsrcme',
+  serverKey: 'twoembed',
   mediaType: 'movie',
   id: '550',
   tmdbId: '550',

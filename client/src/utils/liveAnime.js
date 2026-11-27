@@ -1230,8 +1230,8 @@ export const fetchClientAniListDetail = async (rawId, { forceRefresh = false } =
       video_url: null,
       embed_url: tmdbId
         ? (tmdbType === 'movie' || m.format === 'MOVIE'
-            ? `https://vidsrc.to/embed/movie/${tmdbId}`
-            : `https://vidsrc.to/embed/tv/${tmdbId}/${detectedSeason}/${1 + episodeOffset}`)
+            ? `https://www.2embed.cc/embed/${tmdbId}`
+            : `https://www.2embed.cc/embedtv/${tmdbId}&s=${detectedSeason}&e=${1 + episodeOffset}`)
         : null
     };
 

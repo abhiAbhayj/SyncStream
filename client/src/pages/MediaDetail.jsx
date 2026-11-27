@@ -1312,17 +1312,17 @@ export default function MediaDetail() {
                       <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={() => handleSelectServer('vidsrcme')}
+                          onClick={() => handleSelectServer('twoembed')}
                           className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
                         >
-                          Switch to #01 VidSrc ME (Multi-Audio)
+                          Switch to #01 2Embed PRO (Zero Ads)
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleSelectServer('vidsrcto')}
+                          onClick={() => handleSelectServer('autoembed')}
                           className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
                         >
-                          Switch to #02 VidSrc TO (Global HD)
+                          Switch to #02 AutoEmbed Cloud (Multi-Audio)
                         </button>
                         {isAniListEntry && (
                           <button

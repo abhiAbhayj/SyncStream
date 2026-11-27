@@ -804,8 +804,8 @@ export const getAniListMediaDetail = async (alId) => {
       video_url: null,
       embed_url: tmdbMapping?.id
         ? (tmdbMapping.type === 'movie' || m.format === 'MOVIE'
-            ? `https://vidsrc.to/embed/movie/${tmdbMapping.id}`
-            : `https://vidsrc.to/embed/tv/${tmdbMapping.id}/${detectedSeason}/${1 + episodeOffset}`)
+            ? `https://www.2embed.cc/embed/${tmdbMapping.id}`
+            : `https://www.2embed.cc/embedtv/${tmdbMapping.id}&s=${detectedSeason}&e=${1 + episodeOffset}`)
         : null
     };
 
@@ -2630,8 +2630,8 @@ export const getMediaDetail = async (req, res) => {
             // Dynamic streaming embeds
             video_url: null, // Host will supply custom or fall back to open movie in player
             embed_url: tmdbType === 'movie'
-              ? `https://vidsrc.to/embed/movie/${d.id}`
-              : `https://vidsrc.to/embed/tv/${d.id}/1/1` // Default Season 1 Episode 1
+              ? `https://www.2embed.cc/embed/${d.id}`
+              : `https://www.2embed.cc/embedtv/${d.id}&s=1&e=1` // Default Season 1 Episode 1
           };
         } catch (err) {
           console.warn('TMDB detail fetch failed, falling back to mock:', err.message);
