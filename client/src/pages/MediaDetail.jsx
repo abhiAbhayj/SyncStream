@@ -268,7 +268,7 @@ export default function MediaDetail() {
         if (isAniListAnimeId && !detailData.tmdb_id && !urlServer) {
           const activeSrv = savedProgress?.server_key || embedServer;
           if (!supportsDirectAnimeId(activeSrv, { hasMalId: Boolean(detailData.mal_id) })) {
-            setEmbedServer(detailData.mal_id ? 'vidprime' : 'vidnest');
+            setEmbedServer(detailData.mal_id ? 'vidsrcxyz' : DEFAULT_SERVER_KEY);
           }
         }
 
@@ -696,6 +696,7 @@ export default function MediaDetail() {
       mediaType: effectiveMediaType,
       id,
       tmdbId: isAniListEntry ? (detail?.tmdb_id || null) : (detail?.tmdb_id || id),
+      imdbId: detail?.imdb_id || null,
       malId: detail?.mal_id || null,
       season: activeSeason || 1,
       episode: activeEpisode || 1,
@@ -1312,18 +1313,18 @@ export default function MediaDetail() {
                         {detail?.mal_id && (
                           <button
                             type="button"
-                            onClick={() => handleSelectServer('vidprime')}
+                            onClick={() => handleSelectServer('vidsrcxyz')}
                             className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
                           >
-                            Switch to #02 VidPrime PRO
+                            Switch to #06 VidSrc XYZ (Anime)
                           </button>
                         )}
                         <button
                           type="button"
-                          onClick={() => handleSelectServer('vidnest')}
+                          onClick={() => handleSelectServer('vidlink')}
                           className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
                         >
-                          Switch to #09 VidNest (AniList)
+                          Switch to #01 VidLink PRO
                         </button>
                         {isAniListEntry && (
                           <button

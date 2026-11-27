@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v39-anime-tmdb-strict-id-fix';
+const CACHE_NAME = 'syncstream-v40-working-streaming-servers-fix';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close
