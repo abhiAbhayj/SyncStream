@@ -1310,21 +1310,19 @@ export default function MediaDetail() {
                         {STREAMING_SERVERS.find((s) => s.key === embedServer)?.name || embedServer} requires a TMDB ID. To avoid playing the wrong show, use an AniList-native mirror below or retry TMDB lookup.
                       </p>
                       <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                        {detail?.mal_id && (
-                          <button
-                            type="button"
-                            onClick={() => handleSelectServer('vidlink')}
-                            className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
-                          >
-                            Switch to #01 VidLink PRO (Multi-Audio)
-                          </button>
-                        )}
                         <button
                           type="button"
-                          onClick={() => handleSelectServer('vidsrccc')}
+                          onClick={() => handleSelectServer('vidsrcme')}
+                          className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
+                        >
+                          Switch to #01 VidSrc ME (Multi-Audio)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectServer('vidsrcto')}
                           className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
                         >
-                          Switch to #02 VidSrc CC (Multi-Audio)
+                          Switch to #02 VidSrc TO (Global HD)
                         </button>
                         {isAniListEntry && (
                           <button

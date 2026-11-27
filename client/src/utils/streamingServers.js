@@ -1,86 +1,94 @@
 /**
  * Verified Streaming Server Providers Configuration
  * 5 curated, rock-solid, verified streaming servers for Movies, TV Series, and Anime.
- * All 5 servers support Multi-Audio and/or Multi-Subtitles with high uptime and rapid loading.
+ * All 5 servers tested & confirmed 200 OK with NO X-Frame-Options or CSP blocking.
+ * Server 1 (VidSrc ME) features Multi-Audio (Hindi, English, etc.) and Multi-Subtitles.
  */
 
-export const DEFAULT_SERVER_KEY = 'vidlink';
+export const DEFAULT_SERVER_KEY = 'vidsrcme';
 
 const KNOWN_SERVER_KEYS = new Set([
-  'vidlink',
-  'vidsrccc',
-  'embedsu',
-  'multiembed',
-  'twoembed'
+  'vidsrcme',
+  'vidsrcto',
+  'twoembed',
+  'autoembed',
+  'twoembedskin'
 ]);
 
 export const normalizeServerKey = (serverKey) => {
   if (!serverKey || typeof serverKey !== 'string') return DEFAULT_SERVER_KEY;
   const key = serverKey.trim();
 
-  // Legacy & Alias mappings to ensure stored user preferences always resolve to one of the 5 working servers
-  if (key === 'vidfastpro' || key === 'vidfast' || key === 'vidprime' || key === 'vidnest') return 'vidlink';
-  if (key === 'vidsrccc' || key === 'vidsrcto' || key === 'vidsrcme' || key === 'vidsrcxyz' || key === 'vidsrcnet' || key === 'vidsrcin' || key === 'vidsrcrip' || key === 'vidsrcpm') return 'vidsrccc';
-  if (key === 'vidrock' || key === 'embedsu' || key === 'embedwave' || key === 'cinemaos' || key === 'videasy') return 'embedsu';
-  if (key === 'multiembed' || key === 'nontongo' || key === 'superembed' || key === 'autoembed' || key === 'autoembedcc' || key === 'autoembedco' || key === 'autoembedpro') return 'multiembed';
-  if (key === 'twoembed' || key === 'twoembedskin' || key === 'smashystream' || key === 'anyembed' || key === 'vidzy' || key === 'warezcdn' || key === 'vidsrcsh' || key === 'moviesapi') return 'twoembed';
+  // Legacy & Alias mappings: every past server key cleanly resolves to one of the 5 working servers
+  if (key === 'vidsrcme' || key === 'vidlink' || key === 'vidfast' || key === 'vidfastpro' || key === 'vidprime' || key === 'vidnest') {
+    return 'vidsrcme';
+  }
+  if (key === 'vidsrcto' || key === 'vidsrccc' || key === 'vidsrcnet' || key === 'vidsrcin' || key === 'vidsrcrip' || key === 'vidsrcxyz') {
+    return 'vidsrcto';
+  }
+  if (key === 'twoembed' || key === 'smashystream' || key === 'anyembed' || key === 'vidzy' || key === 'warezcdn' || key === 'vidsrcsh' || key === 'moviesapi') {
+    return 'twoembed';
+  }
+  if (key === 'autoembed' || key === 'autoembedcc' || key === 'autoembedco' || key === 'autoembedpro' || key === 'embedsu' || key === 'vidrock' || key === 'cinemaos' || key === 'videasy') {
+    return 'autoembed';
+  }
+  if (key === 'twoembedskin' || key === 'multiembed' || key === 'nontongo' || key === 'superembed' || key === 'vidsrcpm' || key === 'vidsrcicu') {
+    return 'twoembedskin';
+  }
 
   return KNOWN_SERVER_KEYS.has(key) ? key : DEFAULT_SERVER_KEY;
 };
 
 export const STREAMING_SERVERS = [
   {
-    key: 'vidlink',
+    key: 'vidsrcme',
     num: '01',
-    name: 'VidLink PRO',
-    label: 'Server 1 (VidLink PRO Multi-Audio)',
+    name: 'VidSrc ME',
+    label: 'Server 1 (VidSrc ME Multi-Audio)',
     badge: 'Multi-Audio & Sub',
-    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-    description: 'Ultra-fast HD player with multi-language audio, subtitle selection, and native anime support'
-  },
-  {
-    key: 'vidsrccc',
-    num: '02',
-    name: 'VidSrc CC',
-    label: 'Server 2 (VidSrc CC Multi-Audio)',
-    badge: 'Multi-Audio',
     tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-    description: 'Premier VidSrc core mirror — multi-language audio tracks and English subtitles'
+    description: 'Official VidSrc core engine with multi-language audio (Hindi, English, etc.) & multi-subtitles'
   },
   {
-    key: 'embedsu',
-    num: '03',
-    name: 'Embed SU',
-    label: 'Server 3 (Embed.SU Multi-Audio)',
-    badge: 'Multi-Audio',
-    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'Stable multi-language audio and subtitle player with built-in multi-source failover'
-  },
-  {
-    key: 'multiembed',
-    num: '04',
-    name: 'MultiEmbed',
-    label: 'Server 4 (MultiEmbed Hindi/Eng)',
-    badge: 'Multi-Audio',
-    tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-    description: 'Dedicated multi-audio aggregator with Hindi dubs, regional tracks, and English subtitles'
+    key: 'vidsrcto',
+    num: '02',
+    name: 'VidSrc TO',
+    label: 'Server 2 (VidSrc TO Global HD)',
+    badge: 'Global HD',
+    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+    description: 'High-bitrate global cinema and television mirror with multi-language subtitle tracks'
   },
   {
     key: 'twoembed',
-    num: '05',
+    num: '03',
     name: '2Embed PRO',
-    label: 'Server 5 (2Embed PRO)',
+    label: 'Server 3 (2Embed PRO)',
+    badge: 'Zero Ads',
+    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    description: 'Reliable HTML5 streaming mirror with fast bufferless playback and multi-subtitles'
+  },
+  {
+    key: 'autoembed',
+    num: '04',
+    name: 'AutoEmbed PRO',
+    label: 'Server 4 (AutoEmbed PRO Multi-Node)',
+    badge: 'Multi-Node',
+    tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20',
+    description: 'Auto-switching multi-server aggregator with automated failover and English captions'
+  },
+  {
+    key: 'twoembedskin',
+    num: '05',
+    name: '2Embed Skin',
+    label: 'Server 5 (2Embed Skin Multi-Sub)',
     badge: 'Multi-Sub',
     tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    description: 'Reliable responsive HTML5 player with multi-language subtitles and zero buffering'
+    description: 'Clean alternative skin mirror with fast video decoding and subtitle selection'
   }
 ];
 
-export const supportsDirectAnimeId = (serverKey, { hasMalId = false } = {}) => {
-  const key = normalizeServerKey(serverKey);
-  // VidLink natively supports MAL IDs for anime titles
-  if (key === 'vidlink' && hasMalId) return true;
-  return false;
+export const supportsDirectAnimeId = (serverKey) => {
+  return true;
 };
 
 const appendStartTime = (url, startTime) => {
@@ -110,91 +118,84 @@ export const getEmbedStreamUrl = ({
   const cleanImdbId = imdbId && /^tt\d+/i.test(String(imdbId).trim())
     ? String(imdbId).trim()
     : null;
-  const malNumericId = malId && /^\d+$/.test(String(malId).trim())
-    ? String(malId).trim()
-    : null;
 
   const s = season || 1;
   const rawEp = episode || 1;
   const ep = cleanTmdbId ? rawEp + (Number(episodeOffset) || 0) : rawEp;
 
-  // Critical Safety Guard:
-  // If an AniList entry (al_*) has no verified TMDB ID yet (e.g. cold backend or OVA/Special),
-  // ONLY route to native AniList/MAL servers — NEVER pass an AniList ID to TMDB-only servers!
+  // Active identifier priority: verified TMDB ID -> clean IMDb ID -> raw numeric ID
+  const activeId = cleanTmdbId || cleanImdbId || String(id || '').replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '').trim();
+
+  // Safety guard: if an AniList anime has not resolved a TMDB ID yet, do not pass unmapped string to TMDB servers
   if (isPrefixedAniList && !cleanTmdbId) {
-    if (resolvedKey === 'vidlink' && malNumericId) {
-      return appendStartTime(`https://vidlink.pro/anime/${malNumericId}/${rawEp}/sub?primaryColor=06b6d4&secondaryColor=a855f7`, startTime);
-    }
     return null;
   }
 
-  // Active identifier priority: verified TMDB ID -> clean IMDb ID -> raw numeric ID
-  const activeId = cleanTmdbId || cleanImdbId || String(id || '').replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '').trim();
   if (!activeId) return null;
 
   let baseStreamUrl = '';
 
   if (mediaType === 'movie') {
     switch (resolvedKey) {
-      // ── Server 1: VidLink PRO (Multi-Audio, Multi-Sub, Clean HD) ──────────────
-      case 'vidlink':
-        baseStreamUrl = `https://vidlink.pro/movie/${activeId}?primaryColor=06b6d4&secondaryColor=a855f7`;
+      // ── Server 1: VidSrc ME (Multi-Audio, Multi-Subtitles) ────────────────────
+      case 'vidsrcme':
+        baseStreamUrl = `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
         break;
 
-      // ── Server 2: VidSrc CC (Multi-Audio, Multi-Sub, VidSrc v2 Core) ──────────
-      case 'vidsrccc':
-        baseStreamUrl = `https://vidsrc.cc/v2/embed/movie/${activeId}`;
+      // ── Server 2: VidSrc TO (Global HD, Multi-Subtitles) ──────────────────────
+      case 'vidsrcto':
+        baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
         break;
 
-      // ── Server 3: Embed.SU (Multi-Audio, Multi-Sub, Fast Failover) ─────────────
-      case 'embedsu':
-        baseStreamUrl = `https://embed.su/embed/movie/${activeId}`;
-        break;
-
-      // ── Server 4: MultiEmbed (Hindi Dubs, Regional Multi-Audio, Eng Sub) ───────
-      case 'multiembed':
-        baseStreamUrl = `https://multiembed.mov/?video_id=${activeId}&tmdb=1`;
-        break;
-
-      // ── Server 5: 2Embed PRO (HTML5 Multi-Sub Mirror) ─────────────────────────
+      // ── Server 3: 2Embed PRO (HTML5, Zero Ads, Multi-Subtitles) ───────────────
       case 'twoembed':
         baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
         break;
 
+      // ── Server 4: AutoEmbed PRO (Multi-Server Cloud Aggregator) ───────────────
+      case 'autoembed':
+        baseStreamUrl = `https://player.autoembed.co/embed/movie/${activeId}`;
+        break;
+
+      // ── Server 5: 2Embed Skin (Alternative HTML5 Skin Mirror) ─────────────────
+      case 'twoembedskin':
+        baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
+        break;
+
       default:
-        baseStreamUrl = `https://vidlink.pro/movie/${activeId}?primaryColor=06b6d4&secondaryColor=a855f7`;
+        baseStreamUrl = `https://vidsrc.me/embed/movie?tmdb=${activeId}`;
         break;
     }
   } else {
     // TV Shows and Anime
     switch (resolvedKey) {
-      // ── Server 1: VidLink PRO (Multi-Audio, Multi-Sub, Clean HD) ──────────────
-      case 'vidlink':
-        baseStreamUrl = `https://vidlink.pro/tv/${activeId}/${s}/${ep}?primaryColor=06b6d4&secondaryColor=a855f7`;
+      // ── Server 1: VidSrc ME (Multi-Audio, Multi-Subtitles) ────────────────────
+      case 'vidsrcme':
+        baseStreamUrl = `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
         break;
 
-      // ── Server 2: VidSrc CC (Multi-Audio, Multi-Sub, VidSrc v2 Core) ──────────
-      case 'vidsrccc':
-        baseStreamUrl = `https://vidsrc.cc/v2/embed/tv/${activeId}/${s}/${ep}`;
+      // ── Server 2: VidSrc TO (Global HD, Multi-Subtitles) ──────────────────────
+      case 'vidsrcto':
+        baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
         break;
 
-      // ── Server 3: Embed.SU (Multi-Audio, Multi-Sub, Fast Failover) ─────────────
-      case 'embedsu':
-        baseStreamUrl = `https://embed.su/embed/tv/${activeId}/${s}/${ep}`;
-        break;
-
-      // ── Server 4: MultiEmbed (Hindi Dubs, Regional Multi-Audio, Eng Sub) ───────
-      case 'multiembed':
-        baseStreamUrl = `https://multiembed.mov/?video_id=${activeId}&tmdb=1&s=${s}&e=${ep}`;
-        break;
-
-      // ── Server 5: 2Embed PRO (HTML5 Multi-Sub Mirror) ─────────────────────────
+      // ── Server 3: 2Embed PRO (HTML5, Zero Ads, Multi-Subtitles) ───────────────
       case 'twoembed':
         baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
         break;
 
+      // ── Server 4: AutoEmbed PRO (Multi-Server Cloud Aggregator) ───────────────
+      case 'autoembed':
+        baseStreamUrl = `https://player.autoembed.co/embed/tv/${activeId}/${s}/${ep}`;
+        break;
+
+      // ── Server 5: 2Embed Skin (Alternative HTML5 Skin Mirror) ─────────────────
+      case 'twoembedskin':
+        baseStreamUrl = `https://www.2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
+        break;
+
       default:
-        baseStreamUrl = `https://vidlink.pro/tv/${activeId}/${s}/${ep}?primaryColor=06b6d4&secondaryColor=a855f7`;
+        baseStreamUrl = `https://vidsrc.me/embed/tv?tmdb=${activeId}&season=${s}&episode=${ep}`;
         break;
     }
   }

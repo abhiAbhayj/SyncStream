@@ -19,30 +19,29 @@ function assert(condition, message) {
   }
 }
 
-console.log('=== TEST 1: STREAMING_SERVERS Definition (Exact 5 Servers) ===');
+console.log('=== TEST 1: STREAMING_SERVERS Definition (Exact 5 Verified Working Servers) ===');
 assert(STREAMING_SERVERS.length === 5, `Contains exactly 5 servers (got ${STREAMING_SERVERS.length})`);
 const keys = new Set(STREAMING_SERVERS.map(s => s.key));
 assert(keys.size === 5, `All 5 server keys are unique (got ${keys.size})`);
-assert(DEFAULT_SERVER_KEY === 'vidlink', `Default server is vidlink (got ${DEFAULT_SERVER_KEY})`);
-assert(STREAMING_SERVERS[0].key === 'vidlink', `Server 1 is VidLink PRO (got ${STREAMING_SERVERS[0].name})`);
-assert(STREAMING_SERVERS[1].key === 'vidsrccc', `Server 2 is VidSrc CC (got ${STREAMING_SERVERS[1].name})`);
-assert(STREAMING_SERVERS[2].key === 'embedsu', `Server 3 is Embed SU (got ${STREAMING_SERVERS[2].name})`);
-assert(STREAMING_SERVERS[3].key === 'multiembed', `Server 4 is MultiEmbed (got ${STREAMING_SERVERS[3].name})`);
-assert(STREAMING_SERVERS[4].key === 'twoembed', `Server 5 is 2Embed PRO (got ${STREAMING_SERVERS[4].name})`);
+assert(DEFAULT_SERVER_KEY === 'vidsrcme', `Default server is vidsrcme (got ${DEFAULT_SERVER_KEY})`);
+assert(STREAMING_SERVERS[0].key === 'vidsrcme', `Server 1 is VidSrc ME (got ${STREAMING_SERVERS[0].name})`);
+assert(STREAMING_SERVERS[1].key === 'vidsrcto', `Server 2 is VidSrc TO (got ${STREAMING_SERVERS[1].name})`);
+assert(STREAMING_SERVERS[2].key === 'twoembed', `Server 3 is 2Embed PRO (got ${STREAMING_SERVERS[2].name})`);
+assert(STREAMING_SERVERS[3].key === 'autoembed', `Server 4 is AutoEmbed PRO (got ${STREAMING_SERVERS[3].name})`);
+assert(STREAMING_SERVERS[4].key === 'twoembedskin', `Server 5 is 2Embed Skin (got ${STREAMING_SERVERS[4].name})`);
 
 console.log('\n=== TEST 2: normalizeServerKey Legacy Aliases (All Map to 5 Active Servers) ===');
-assert(normalizeServerKey('vidfastpro') === 'vidlink', 'vidfastpro maps to vidlink');
-assert(normalizeServerKey('vidfast') === 'vidlink', 'vidfast maps to vidlink');
-assert(normalizeServerKey('vidprime') === 'vidlink', 'vidprime maps to vidlink');
-assert(normalizeServerKey('vidnest') === 'vidlink', 'vidnest maps to vidlink');
-assert(normalizeServerKey('vidrock') === 'embedsu', 'vidrock maps to embedsu');
-assert(normalizeServerKey('cinemaos') === 'embedsu', 'cinemaos maps to embedsu');
-assert(normalizeServerKey('vidsrcme') === 'vidsrccc', 'vidsrcme maps to vidsrccc');
-assert(normalizeServerKey('vidsrcto') === 'vidsrccc', 'vidsrcto maps to vidsrccc');
-assert(normalizeServerKey('autoembed') === 'multiembed', 'autoembed maps to multiembed');
-assert(normalizeServerKey('superembed') === 'multiembed', 'superembed maps to multiembed');
-assert(normalizeServerKey('twoembedskin') === 'twoembed', 'twoembedskin maps to twoembed');
-assert(normalizeServerKey('unknown_key_xyz') === 'vidlink', 'unknown key falls back to default vidlink');
+assert(normalizeServerKey('vidlink') === 'vidsrcme', 'vidlink maps to vidsrcme');
+assert(normalizeServerKey('vidfastpro') === 'vidsrcme', 'vidfastpro maps to vidsrcme');
+assert(normalizeServerKey('vidfast') === 'vidsrcme', 'vidfast maps to vidsrcme');
+assert(normalizeServerKey('vidprime') === 'vidsrcme', 'vidprime maps to vidsrcme');
+assert(normalizeServerKey('vidnest') === 'vidsrcme', 'vidnest maps to vidsrcme');
+assert(normalizeServerKey('vidsrccc') === 'vidsrcto', 'vidsrccc maps to vidsrcto');
+assert(normalizeServerKey('twoembed') === 'twoembed', 'twoembed maps to twoembed');
+assert(normalizeServerKey('autoembed') === 'autoembed', 'autoembed maps to autoembed');
+assert(normalizeServerKey('embedsu') === 'autoembed', 'embedsu maps to autoembed');
+assert(normalizeServerKey('multiembed') === 'twoembedskin', 'multiembed maps to twoembedskin');
+assert(normalizeServerKey('unknown_key_xyz') === 'vidsrcme', 'unknown key falls back to default vidsrcme');
 
 console.log('\n=== TEST 3: Movie Embed URL Generation across all 5 servers ===');
 for (const server of STREAMING_SERVERS) {
@@ -70,7 +69,7 @@ for (const server of STREAMING_SERVERS) {
 
 console.log('\n=== TEST 5: IMDb ID Fallback when tmdbId is missing ===');
 const imdbUrl = getEmbedStreamUrl({
-  serverKey: 'vidlink',
+  serverKey: 'vidsrcme',
   mediaType: 'movie',
   id: 'custom_789',
   tmdbId: null,
@@ -78,32 +77,21 @@ const imdbUrl = getEmbedStreamUrl({
 });
 assert(Boolean(imdbUrl && imdbUrl.includes('tt0111161')), `Movie falls back to IMDb ID when tmdbId is missing: ${imdbUrl}`);
 
-console.log('\n=== TEST 6: AniList & MAL Safety Guard ===');
+console.log('\n=== TEST 6: AniList Guard ===');
 // Unmapped AniList ID with no TMDB ID must NOT leak to TMDB-only servers
-const unmappedVidSrcCC = getEmbedStreamUrl({
-  serverKey: 'vidsrccc',
+const unmappedVidSrcMe = getEmbedStreamUrl({
+  serverKey: 'vidsrcme',
   mediaType: 'anime',
   id: 'al_7054',
   tmdbId: null,
   season: 1,
   episode: 1
 });
-assert(unmappedVidSrcCC === null, 'Unmapped AniList ID returns null for TMDB-only servers (prevents playing wrong show)');
-
-const unmappedAnimeServer = getEmbedStreamUrl({
-  serverKey: 'vidlink',
-  mediaType: 'anime',
-  id: 'al_7054',
-  tmdbId: null,
-  malId: '7054',
-  season: 1,
-  episode: 1
-});
-assert(Boolean(unmappedAnimeServer && unmappedAnimeServer.includes('7054') && unmappedAnimeServer.includes('sub')), `Unmapped AniList ID correctly routes to VidLink using MAL ID: ${unmappedAnimeServer}`);
+assert(unmappedVidSrcMe === null, 'Unmapped AniList ID returns null until TMDB is resolved (prevents playing wrong show)');
 
 console.log('\n=== TEST 7: Timestamp Seeking Parameter ===');
 const seekUrl = getEmbedStreamUrl({
-  serverKey: 'vidlink',
+  serverKey: 'vidsrcme',
   mediaType: 'movie',
   id: '550',
   tmdbId: '550',
