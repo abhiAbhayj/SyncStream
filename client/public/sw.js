@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v40-working-streaming-servers-fix';
+const CACHE_NAME = 'syncstream-v41-5-multi-audio-working-servers';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

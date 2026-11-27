@@ -268,7 +268,7 @@ export default function MediaDetail() {
         if (isAniListAnimeId && !detailData.tmdb_id && !urlServer) {
           const activeSrv = savedProgress?.server_key || embedServer;
           if (!supportsDirectAnimeId(activeSrv, { hasMalId: Boolean(detailData.mal_id) })) {
-            setEmbedServer(detailData.mal_id ? 'vidsrcxyz' : DEFAULT_SERVER_KEY);
+            setEmbedServer(DEFAULT_SERVER_KEY);
           }
         }
 
@@ -1313,18 +1313,18 @@ export default function MediaDetail() {
                         {detail?.mal_id && (
                           <button
                             type="button"
-                            onClick={() => handleSelectServer('vidsrcxyz')}
+                            onClick={() => handleSelectServer('vidlink')}
                             className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
                           >
-                            Switch to #06 VidSrc XYZ (Anime)
+                            Switch to #01 VidLink PRO (Multi-Audio)
                           </button>
                         )}
                         <button
                           type="button"
-                          onClick={() => handleSelectServer('vidlink')}
+                          onClick={() => handleSelectServer('vidsrccc')}
                           className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
                         >
-                          Switch to #01 VidLink PRO
+                          Switch to #02 VidSrc CC (Multi-Audio)
                         </button>
                         {isAniListEntry && (
                           <button

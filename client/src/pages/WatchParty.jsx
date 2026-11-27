@@ -174,7 +174,7 @@ export default function WatchParty() {
         setMediaDetail(detailData);
 
         if (isAniListId && !detailData.tmdb_id && !supportsDirectAnimeId(embedServer, { hasMalId: Boolean(detailData.mal_id) })) {
-          setEmbedServer(detailData.mal_id ? 'vidsrcxyz' : DEFAULT_SERVER_KEY);
+          setEmbedServer(DEFAULT_SERVER_KEY);
         }
 
         // Set default playback mode (honor already received sync state if present)
@@ -1220,18 +1220,18 @@ export default function WatchParty() {
                         {mediaDetail?.mal_id && (
                           <button
                             type="button"
-                            onClick={() => handleServerChange('vidsrcxyz')}
+                            onClick={() => handleServerChange('vidlink')}
                             className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
                           >
-                            Switch to #06 VidSrc XYZ (Anime)
+                            Switch to #01 VidLink PRO (Multi-Audio)
                           </button>
                         )}
                         <button
                           type="button"
-                          onClick={() => handleServerChange('vidlink')}
+                          onClick={() => handleServerChange('vidsrccc')}
                           className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
                         >
-                          Switch to #01 VidLink PRO
+                          Switch to #02 VidSrc CC (Multi-Audio)
                         </button>
                       </div>
                     </div>

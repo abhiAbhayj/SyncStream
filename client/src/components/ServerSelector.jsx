@@ -52,10 +52,12 @@ export default function ServerSelector({
         )}
       </div>
 
-      {/* Compact Responsive Grid: Mobile 3 cols | Tablet/Laptop 5-6 cols */}
+      {/* Compact Responsive Grid: Mobile 2-3 cols | Tablet/Laptop 5 cols */}
       <div
         className={`grid gap-1.5 ${
-          showAllServers
+          servers.length <= 5
+            ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
+            : showAllServers
             ? 'grid-cols-3 sm:grid-cols-5'
             : 'grid-cols-3 md:grid-cols-6'
         }`}
