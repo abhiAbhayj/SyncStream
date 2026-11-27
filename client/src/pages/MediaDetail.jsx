@@ -9,6 +9,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import EmbedPlayer from '../components/EmbedPlayer';
 import EqualizerBars from '../components/EqualizerBars';
 import ConfirmModal from '../components/ConfirmModal';
+import ServerSelector from '../components/ServerSelector';
 import SolidSelect from '../components/SolidSelect';
 import QualityBadge from '../components/QualityBadge';
 import { getMediaQuality } from '../utils/mediaQuality';
@@ -17,7 +18,7 @@ import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { fetchClientAniListDetail, fetchClientAniListMangaDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
-import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw, Zap } from 'lucide-react';
+import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Layers, Clock, SkipForward, Pause, X, User, Server, RotateCcw, Zap } from 'lucide-react';
 
 function CastAvatarCard({ member, onSelect, gridMode = false }) {
   const [imgFailed, setImgFailed] = useState(false);
@@ -1233,190 +1234,13 @@ export default function MediaDetail() {
 
           {/* Streaming Server Selector (only for Standard Embed) */}
           {playbackMode === 'solo-embed' && (streamSourceMode === 'embed' || !directStream?.streamUrl) && (
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-darkCard/95 via-black/70 to-darkCard/85 backdrop-blur-xl p-3 sm:p-4 shadow-2xl space-y-3">
-              {/* Subtle top neon ambient glow */}
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accentCyan/50 to-transparent pointer-events-none" />
-
-              {/* Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-accentCyan/15 border border-accentCyan/30 flex items-center justify-center text-accentCyan shadow-sm shadow-accentCyan/20 shrink-0">
-                    <Server className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-white tracking-wide uppercase font-mono">
-                        Streaming Mirrors
-                      </span>
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        10 Live
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-gray-400 hidden xs:block">
-                      Select any high-speed mirror below • Instant bufferless playback
-                    </p>
-                  </div>
-                </div>
-
-                {/* Active Server Pill */}
-                <div className="flex items-center justify-between sm:justify-end gap-2 bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5">
-                  <span className="text-[10px] text-gray-400 font-mono">Active:</span>
-                  <span className="text-[11px] font-bold font-mono text-accentCyan flex items-center gap-1.5 truncate max-w-[180px] sm:max-w-none">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accentCyan animate-ping" />
-                    {STREAMING_SERVERS.find((s) => s.key === embedServer)?.label || embedServer}
-                  </span>
-                </div>
-              </div>
-
-              {/* Primary 5 Servers Grid (Responsive for Laptop, Tablet, Mobile) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
-                {STREAMING_SERVERS.slice(0, 5).map((server) => {
-                  const isActive = embedServer === server.key;
-                  return (
-                    <button
-                      key={server.key}
-                      onClick={() => handleSelectServer(server.key)}
-                      className={`group relative text-left p-2.5 sm:p-3 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1.5 active:scale-[0.98] ${
-                        isActive
-                          ? 'border-accentCyan bg-gradient-to-b from-accentCyan/20 via-accentCyan/10 to-transparent text-white shadow-lg shadow-accentCyan/15 ring-1 ring-accentCyan/40'
-                          : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/20 text-gray-300 hover:text-white'
-                      }`}
-                    >
-                      {/* Top Row: Server Number + Live Status Beacon */}
-                      <div className="flex items-center justify-between w-full">
-                        <span className={`text-[10px] font-mono font-bold ${isActive ? 'text-accentCyan' : 'text-gray-500'}`}>
-                          #{server.num || '01'}
-                        </span>
-                        <span className={`w-2 h-2 rounded-full transition-all ${
-                          isActive
-                            ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
-                            : 'bg-emerald-500/40 group-hover:bg-emerald-400'
-                        }`} />
-                      </div>
-
-                      {/* Middle: Server Name */}
-                      <div className="font-bold text-xs sm:text-[13px] leading-snug truncate w-full">
-                        {server.name || server.label}
-                      </div>
-
-                      {/* Bottom: Quality / Feature Badge */}
-                      <div className="pt-0.5">
-                        <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded-md border font-semibold truncate max-w-full ${
-                          isActive
-                            ? 'border-accentCyan/40 bg-accentCyan/20 text-accentCyan'
-                            : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
-                        }`}>
-                          {server.badge}
-                        </span>
-                      </div>
-
-                      {/* Active Indicator Underline */}
-                      {isActive && (
-                        <div className="absolute -bottom-px inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-accentCyan to-transparent" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Extended Servers (6 - 10) Accordion Toggle Banner */}
-              <button
-                type="button"
-                onClick={() => setShowAllServers((prev) => !prev)}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer group active:scale-[0.99] ${
-                  showAllServers
-                    ? 'border-accentPurple/50 bg-gradient-to-r from-accentPurple/20 via-accentPurple/10 to-transparent text-accentPurple ring-1 ring-accentPurple/30 shadow-md shadow-accentPurple/10'
-                    : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.06] hover:border-accentCyan/30 text-gray-300 hover:text-white'
-                }`}
-                title={showAllServers ? 'Collapse back to 5 primary servers' : 'Expand 5 more servers (Servers 6 - 10)'}
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className={`w-3.5 h-3.5 transition-colors ${showAllServers ? 'text-accentPurple' : 'text-accentCyan'}`} />
-                  <span className="text-xs font-bold font-mono">
-                    {showAllServers ? 'Hide Extended Mirrors (Servers 6 – 10)' : '+5 More Servers (Extended Mirrors 6 – 10)'}
-                  </span>
-                  <span className="hidden sm:inline-flex text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-400 font-mono">
-                    Global Backup Nodes
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono text-gray-400 group-hover:text-white hidden xs:inline">
-                    {showAllServers ? 'Collapse' : 'Show All 10'}
-                  </span>
-                  {showAllServers ? (
-                    <ChevronUp className="w-4 h-4 text-accentPurple transition-transform duration-200" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-accentCyan group-hover:translate-y-0.5 transition-transform duration-200" />
-                  )}
-                </div>
-              </button>
-
-              {/* Extended 5 Servers Grid (Revealed smoothly on click) */}
-              {showAllServers && (
-                <div className="pt-2 border-t border-white/10 space-y-2 animate-fadeIn">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 px-0.5">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accentPurple animate-ping" />
-                      <span className="text-accentPurple font-bold">Extended Mirrors (Nodes 06 – 10)</span>
-                    </span>
-                    <span className="text-gray-500 hidden sm:inline">Failover & multi-source backup mirrors</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
-                    {STREAMING_SERVERS.slice(5).map((server) => {
-                      const isActive = embedServer === server.key;
-                      return (
-                        <button
-                          key={server.key}
-                          onClick={() => handleSelectServer(server.key)}
-                          className={`group relative text-left p-2.5 sm:p-3 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1.5 active:scale-[0.98] ${
-                            isActive
-                              ? 'border-accentPurple bg-gradient-to-b from-accentPurple/20 via-accentPurple/10 to-transparent text-white shadow-lg shadow-accentPurple/15 ring-1 ring-accentPurple/40'
-                              : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/20 text-gray-300 hover:text-white'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <span className={`text-[10px] font-mono font-bold ${isActive ? 'text-accentPurple' : 'text-gray-500'}`}>
-                              #{server.num || '06'}
-                            </span>
-                            <span className={`w-2 h-2 rounded-full transition-all ${
-                              isActive
-                                ? 'bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]'
-                                : 'bg-purple-500/40 group-hover:bg-purple-400'
-                            }`} />
-                          </div>
-
-                          <div className="font-bold text-xs sm:text-[13px] leading-snug truncate w-full">
-                            {server.name || server.label}
-                          </div>
-
-                          <div className="pt-0.5">
-                            <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded-md border font-semibold truncate max-w-full ${
-                              isActive
-                                ? 'border-accentPurple/40 bg-accentPurple/20 text-purple-300'
-                                : server.tagColor || 'text-gray-400 bg-white/5 border-white/10'
-                            }`}>
-                              {server.badge}
-                            </span>
-                          </div>
-
-                          {isActive && (
-                            <div className="absolute -bottom-px inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-accentPurple to-transparent" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Bottom Quick Switch Hint */}
-              <div className="flex items-center justify-between text-[10px] text-gray-500 font-mono pt-0.5 px-1">
-                <span>💡 Tip: If video buffers, switch to any other mirror above</span>
-                <span className="hidden sm:inline">100% Free & Bufferless</span>
-              </div>
-            </div>
+            <ServerSelector
+              servers={STREAMING_SERVERS}
+              activeServer={embedServer}
+              onSelectServer={handleSelectServer}
+              showAllServers={showAllServers}
+              onToggleAllServers={() => setShowAllServers((prev) => !prev)}
+            />
           )}
 
           {/* Custom Stream Input Box (only for Custom mode) */}
