@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { resolveAnimeTmdbMapping } from './animeTmdbMapper.js';
 
 dotenv.config();
 
@@ -219,7 +220,20 @@ const extractNumericTmdbId = (item) => {
   return null;
 };
 
-const resolveMovieTmdbIdByTitle = async (title, year) => {
+const resolveMovieTmdbIdByTitle = async (item, title, year) => {
+  if (String(item?.media_type || '').toLowerCase() === 'anime' || String(item?.id || '').startsWith('al_')) {
+    const mapped = await resolveAnimeTmdbMapping({
+      alId: item?.anilist_id || item?.id,
+      malId: item?.mal_id || null,
+      titleEnglish: item?.title_english || title,
+      titleRomaji: item?.title_romaji || title,
+      format: item?.format || 'MOVIE',
+      startDate: extractRelStr(item),
+      seasonYear: year ? parseInt(year, 10) : null
+    });
+    if (mapped?.tmdbId) return mapped.tmdbId;
+  }
+
   const key = getTmdbKey();
   if (!key || !title) return null;
   const cacheKey = `${String(title).toLowerCase().trim()}_${year || ''}`;
@@ -334,7 +348,7 @@ export const resolveMediaQualityAsync = async (item, mediaType = null, options =
   // Resolve TMDB numeric ID for recent/ambiguous AniList Anime Movies when needed
   if (!numericId && type === 'anime' && isMovie) {
     const yrMatch = relStr.match(/\b(\d{4})\b/);
-    numericId = await resolveMovieTmdbIdByTitle(item.title || item.name, yrMatch?.[1]);
+    numericId = await resolveMovieTmdbIdByTitle(item, item.title || item.name, yrMatch?.[1]);
   }
 
   const effectiveCacheId = numericId || cacheId;

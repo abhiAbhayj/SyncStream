@@ -91,7 +91,9 @@ export async function resolveStream(req, res) {
   const s = Number(season) || 1;
   const ep = Number(episode) || 1;
   const year = Number(releaseYear) || new Date().getFullYear();
-  const cacheKey = `${type}:${tmdbId || title}:${s}:${ep}`;
+  const cleanTmdbId = /^\d+$/.test(String(tmdbId || '').trim()) ? String(tmdbId).trim() : '';
+  const isEpisodic = type === 'tv' || type === 'anime';
+  const cacheKey = `${type}:${cleanTmdbId || tmdbId || title}:${s}:${ep}`;
 
   // 1. Check in-memory cache
   const cached = getCachedStream(cacheKey);
@@ -115,14 +117,14 @@ export async function resolveStream(req, res) {
     return res.json(payload);
   }
 
-  // 3. Try @movie-web/providers extraction
-  if (movieWebProviders && title) {
+  // 3. Try @movie-web/providers extraction (Anime series share TV 'show' extraction, never 'movie')
+  if (movieWebProviders && title && (cleanTmdbId || !String(tmdbId || '').startsWith('al_'))) {
     try {
-      const media = type === 'tv' ? {
+      const media = isEpisodic ? {
         type: 'show',
         title,
         releaseYear: year,
-        tmdbId: String(tmdbId || ''),
+        tmdbId: cleanTmdbId,
         imdbId: imdbId ? String(imdbId) : undefined,
         season: { number: s, tmdbId: '' },
         episode: { number: ep, tmdbId: '' }
@@ -130,7 +132,7 @@ export async function resolveStream(req, res) {
         type: 'movie',
         title,
         releaseYear: year,
-        tmdbId: String(tmdbId || ''),
+        tmdbId: cleanTmdbId,
         imdbId: imdbId ? String(imdbId) : undefined
       };
 
@@ -194,7 +196,7 @@ export async function resolveStream(req, res) {
 
   // 4. Try Direct Cloud Scrapers / Public Resolvers
   try {
-    const cloudStream = await resolveDirectCloudStream({ tmdbId, type, season: s, episode: ep, title });
+    const cloudStream = await resolveDirectCloudStream({ tmdbId: cleanTmdbId, type: isEpisodic ? 'tv' : 'movie', season: s, episode: ep, title });
     if (cloudStream && cloudStream.streamUrl) {
       setCachedStream(cacheKey, cloudStream);
       return res.json(cloudStream);

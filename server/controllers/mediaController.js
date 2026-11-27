@@ -18,6 +18,7 @@ import {
   resolveMediaQualityAsync,
   enrichMediaQualityList
 } from '../utils/mediaQualityResolver.js';
+import { resolveAnimeTmdbMapping } from '../utils/animeTmdbMapper.js';
 
 dotenv.config();
 
@@ -29,6 +30,51 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 // Re-export unified synchronous quality resolver for backwards compatibility
 export const resolveMediaQuality = resolveMediaQualitySync;
+
+// Resolve exact TMDB ID, type ('tv'|'movie'), season & episodeOffset for any AniList anime entry
+export const resolveAnimeTmdb = async (req, res) => {
+  try {
+    const {
+      alId,
+      malId,
+      titleEnglish = '',
+      titleRomaji = '',
+      titleNative = '',
+      format = '',
+      startDate = '',
+      seasonYear = '',
+      countryOfOrigin = 'JP',
+      prequels = ''
+    } = req.query;
+
+    const prequelTitles = String(prequels || '')
+      .split('|')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const mapping = await resolveAnimeTmdbMapping({
+      alId,
+      malId,
+      titleEnglish,
+      titleRomaji,
+      titleNative,
+      format,
+      startDate,
+      seasonYear: seasonYear ? parseInt(seasonYear, 10) : null,
+      countryOfOrigin,
+      prequelTitles
+    });
+
+    if (!mapping) {
+      return res.json({ found: false, tmdbId: null, tmdbType: null, tmdbSeason: 1, episodeOffset: 0, tmdbSeasons: [] });
+    }
+
+    return res.json({ found: true, ...mapping });
+  } catch (err) {
+    console.warn('[AnimeTMDB Route Error]:', err.message);
+    return res.json({ found: false, tmdbId: null, tmdbType: null, tmdbSeason: 1, episodeOffset: 0, tmdbSeasons: [] });
+  }
+};
 
 // Batch resolve authoritative 'HD' vs 'CAM' quality tags for client-side lists / guest Continue Watching
 export const resolveMediaQualities = async (req, res) => {
@@ -412,6 +458,8 @@ export const getAniListMediaDetail = async (alId) => {
     query ($id: Int) {
       Media(id: $id, type: ANIME) {
         id
+        idMal
+        countryOfOrigin
         title { english romaji native }
         format
         episodes
@@ -500,21 +548,47 @@ export const getAniListMediaDetail = async (alId) => {
     const titleEnglish = m.title?.english;
     const titleRomaji = m.title?.romaji;
     const fullTitle = titleEnglish || titleRomaji || 'Unknown Anime';
+    const resolvedAnimeRelDate = formatAniListDate(m.startDate, m.seasonYear);
+    const prequelTitles = (m.relations?.edges || [])
+      .filter((e) => e?.relationType === 'PREQUEL' && e.node && e.node.format !== 'MANGA')
+      .map((e) => e.node.title?.english || e.node.title?.romaji || '')
+      .filter(Boolean);
+
+    // Resolve authoritative TMDB ID, type ('tv'|'movie'), target season, and flattened episodeOffset
+    const mappedTmdb = await resolveAnimeTmdbMapping({
+      alId: m.id,
+      malId: m.idMal,
+      titleEnglish,
+      titleRomaji,
+      titleNative: m.title?.native || '',
+      format: m.format,
+      startDate: resolvedAnimeRelDate,
+      seasonYear: m.seasonYear,
+      countryOfOrigin: m.countryOfOrigin || 'JP',
+      prequelTitles
+    });
+    const tmdbMapping = mappedTmdb ? { id: mappedTmdb.tmdbId, type: mappedTmdb.tmdbType } : null;
 
     const sMatch = fullTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
-    const detectedSeason = sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : 1;
+    const titleSeason = sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : 1;
+    const detectedSeason = mappedTmdb?.tmdbSeason || titleSeason;
+    const episodeOffset = mappedTmdb?.episodeOffset || 0;
 
-    // Resolve TMDB ID for video streaming
-    const tmdbMapping = await getTmdbIdForAnime(titleRomaji, titleEnglish, m.seasonYear?.toString());
-
-    // If mapped to a TMDB TV show, fetch full TV details to get all seasons and runtime
+    // If mapped to a TMDB TV show, use cached seasons or fetch full TV details
     let tmdbTvData = null;
-    if (tmdbMapping?.id && tmdbMapping.type === 'tv' && isTmdbConfigured()) {
-      try {
-        const tmdbTvRes = await axios.get(`${TMDB_BASE_URL}/tv/${tmdbMapping.id}?api_key=${TMDB_API_KEY}`, { timeout: 4000 });
-        tmdbTvData = tmdbTvRes.data;
-      } catch (err) {
-        console.warn('TMDB TV lookup in getAniListMediaDetail failed:', err.message);
+    if (tmdbMapping?.id && tmdbMapping.type === 'tv' && isTmdbConfigured() && episodeOffset === 0) {
+      if (mappedTmdb?.tmdbSeasons?.length > 0) {
+        tmdbTvData = {
+          seasons: mappedTmdb.tmdbSeasons,
+          episode_run_time: mappedTmdb.runtime ? [mappedTmdb.runtime] : []
+        };
+      } else {
+        try {
+          const tmdbTvRes = await axios.get(`${TMDB_BASE_URL}/tv/${tmdbMapping.id}?api_key=${TMDB_API_KEY}`, { timeout: 4000 });
+          tmdbTvData = tmdbTvRes.data;
+        } catch (err) {
+          console.warn('TMDB TV lookup in getAniListMediaDetail failed:', err.message);
+        }
       }
     }
 
@@ -682,8 +756,7 @@ export const getAniListMediaDetail = async (alId) => {
         };
       });
 
-    const animeDuration = m.duration || (tmdbTvData?.episode_run_time && tmdbTvData.episode_run_time[0]) || null;
-    const resolvedAnimeRelDate = formatAniListDate(m.startDate, m.seasonYear);
+    const animeDuration = m.duration || (tmdbTvData?.episode_run_time && tmdbTvData.episode_run_time[0]) || mappedTmdb?.runtime || null;
     const resolvedAnimeQuality = await resolveMediaQualityAsync(
       {
         id: `al_${m.id}`,
@@ -704,6 +777,8 @@ export const getAniListMediaDetail = async (alId) => {
       id: `al_${m.id}`,
       external_media_id: `al_${m.id}`,
       tmdb_id: tmdbMapping?.id || null,
+      tmdb_type: tmdbMapping?.type || (m.format === 'MOVIE' ? 'movie' : 'tv'),
+      episode_offset: episodeOffset,
       title: fullTitle,
       overview: m.description ? m.description.replace(/<[^>]*>/g, '') : '',
       poster_path: currentPoster,
@@ -719,7 +794,7 @@ export const getAniListMediaDetail = async (alId) => {
       duration: animeDuration,
       runtime: animeDuration,
       number_of_seasons: seasons.filter(s => s.season_number > 0).length || 1,
-      number_of_episodes: tmdbTvData?.number_of_episodes || m.episodes || null,
+      number_of_episodes: episodeOffset > 0 ? epCount : (tmdbTvData?.number_of_episodes || m.episodes || null),
       default_season: detectedSeason,
       seasons,
       related_franchise: relatedFranchise,
@@ -728,9 +803,9 @@ export const getAniListMediaDetail = async (alId) => {
       recommendations,
       video_url: null,
       embed_url: tmdbMapping?.id
-        ? (m.format === 'MOVIE'
+        ? (tmdbMapping.type === 'movie' || m.format === 'MOVIE'
             ? `https://vidsrc.to/embed/movie/${tmdbMapping.id}`
-            : `https://vidsrc.to/embed/tv/${tmdbMapping.id}/${detectedSeason}/1`)
+            : `https://vidsrc.to/embed/tv/${tmdbMapping.id}/${detectedSeason}/${1 + episodeOffset}`)
         : null
     };
 
@@ -2043,8 +2118,13 @@ export const searchMedia = async (req, res) => {
                 const clean = title.toLowerCase().trim();
                 if (clean && !seenTitles.has(clean)) {
                   seenTitles.add(clean);
+                  const isAnimeMovie = Boolean(r.title && !r.name);
+                  const entryId = isAnimeMovie ? `tmdb_m_${r.id}` : r.id.toString();
                   merged.push({
-                    id: r.id.toString(),
+                    id: entryId,
+                    external_media_id: entryId,
+                    tmdb_id: r.id.toString(),
+                    tmdb_type: isAnimeMovie ? 'movie' : 'tv',
                     title,
                     overview: r.overview || '',
                     poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : (r.backdrop_path ? `https://image.tmdb.org/t/p/w500${r.backdrop_path}` : null),
@@ -2052,7 +2132,7 @@ export const searchMedia = async (req, res) => {
                     vote_average: r.vote_average || 0,
                     genre_ids: r.genre_ids || [],
                     media_type: 'anime',
-                    format: r.title ? 'Movie' : 'TV'
+                    format: isAnimeMovie ? 'Movie' : 'TV'
                   });
                 }
               });
@@ -2214,9 +2294,13 @@ export const getMediaDetail = async (req, res) => {
     }
   }
 
+  // Detect explicit TMDB Anime Movie prefix (tmdb_m_<id>) before AniList fallback
+  const rawIdStr = String(id || '').trim();
+  const isTmdbMoviePrefixed = rawIdStr.startsWith('tmdb_m_');
+
   // Intercept AniList Anime details
-  if ((type === 'anime' && (id.startsWith('al_') || isNaN(parseInt(id, 10)))) || (id.startsWith('al_') && !id.startsWith('al_m_'))) {
-    const alId = id.replace('al_', '');
+  if (!isTmdbMoviePrefixed && ((type === 'anime' && (rawIdStr.startsWith('al_') || isNaN(parseInt(rawIdStr, 10)))) || (rawIdStr.startsWith('al_') && !rawIdStr.startsWith('al_m_')))) {
+    const alId = rawIdStr.replace('al_', '');
     const alDetail = await getAniListMediaDetail(alId);
     if (alDetail) {
       return res.json(alDetail);
@@ -2229,11 +2313,12 @@ export const getMediaDetail = async (req, res) => {
     if (type === 'movie' || type === 'tv' || type === 'anime') {
       if (isTmdbConfigured()) {
         try {
-          const tmdbType = type === 'anime' ? 'tv' : type;
+          const cleanTmdbId = rawIdStr.replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '');
+          const tmdbType = isTmdbMoviePrefixed ? 'movie' : (type === 'anime' ? 'tv' : type);
           const appendFields = tmdbType === 'tv'
             ? 'videos,recommendations,credits,aggregate_credits,keywords'
             : 'videos,recommendations,credits,keywords,release_dates,external_ids';
-          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=${appendFields}`);
+          const detailRes = await axios.get(`${TMDB_BASE_URL}/${tmdbType}/${cleanTmdbId}?api_key=${TMDB_API_KEY}&append_to_response=${appendFields}`);
           const d = detailRes.data;
           
           const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key;
@@ -2328,7 +2413,7 @@ export const getMediaDetail = async (req, res) => {
             title: r.title || r.name,
             poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w200${r.poster_path}` : null,
             release_date: r.release_date || r.first_air_date || '',
-            media_type: type
+            media_type: r.media_type || (tmdbType === 'movie' ? 'movie' : type)
           })) || [];
 
           const tmdbGenres = splitCombinedTmdbGenres(d.genres || [], type);
@@ -2488,13 +2573,13 @@ export const getMediaDetail = async (req, res) => {
             console.warn('Franchise search error:', relErr.message);
           }
 
-          const mediaDuration = type === 'movie'
+          const mediaDuration = tmdbType === 'movie'
             ? (d.runtime || null)
             : ((d.episode_run_time && d.episode_run_time[0]) || d.last_episode_to_air?.runtime || d.runtime || null);
 
           const [detailQuality] = await Promise.all([
             resolveMediaQualityAsync(
-              { ...d, release_date: d.release_date || d.first_air_date },
+              { ...d, format: tmdbType === 'movie' ? 'Movie' : d.format, release_date: d.release_date || d.first_air_date },
               type,
               {
                 existingDetail: d,
@@ -2507,7 +2592,10 @@ export const getMediaDetail = async (req, res) => {
           ]);
 
           details = {
-            id: d.id.toString(),
+            id: isTmdbMoviePrefixed ? rawIdStr : d.id.toString(),
+            external_media_id: isTmdbMoviePrefixed ? rawIdStr : d.id.toString(),
+            tmdb_id: d.id.toString(),
+            tmdb_type: tmdbType,
             imdb_id: d.external_ids?.imdb_id || null,
             title: d.title || d.name,
             overview: d.overview,
@@ -2515,13 +2603,14 @@ export const getMediaDetail = async (req, res) => {
             backdrop_path: d.backdrop_path ? `https://image.tmdb.org/t/p/original${d.backdrop_path}` : null,
             release_date: d.release_date || d.first_air_date,
             status: d.status || null,
+            format: tmdbType === 'movie' && type === 'anime' ? 'Movie' : undefined,
             vote_average: d.vote_average,
             genres,
             duration: mediaDuration,
             runtime: mediaDuration,
-            number_of_seasons: type === 'tv' ? (d.number_of_seasons || (formattedSeasons.filter(s => s.season_number > 0).length || 1)) : null,
+            number_of_seasons: tmdbType === 'tv' ? (d.number_of_seasons || (formattedSeasons.filter(s => s.season_number > 0).length || 1)) : null,
             number_of_episodes: d.number_of_episodes || null,
-            seasons: (type === 'movie')
+            seasons: (tmdbType === 'movie')
               ? []
               : (formattedSeasons.length > 0 ? formattedSeasons : [{
                   id: 1,
@@ -2540,8 +2629,8 @@ export const getMediaDetail = async (req, res) => {
             quality: detailQuality,
             // Dynamic streaming embeds
             video_url: null, // Host will supply custom or fall back to open movie in player
-            embed_url: type === 'movie' 
-              ? `https://vidsrc.to/embed/movie/${d.id}` 
+            embed_url: tmdbType === 'movie'
+              ? `https://vidsrc.to/embed/movie/${d.id}`
               : `https://vidsrc.to/embed/tv/${d.id}/1/1` // Default Season 1 Episode 1
           };
         } catch (err) {

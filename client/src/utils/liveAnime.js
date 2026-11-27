@@ -762,58 +762,45 @@ export const searchClientLiveAniListAnime = async ({
 
 const detailCache = new Map();
 
-// Helper: Resolve numeric TMDB ID for an AniList anime via backend TMDB search (never blocked!)
-const resolveTmdbIdForAnimeTitle = async (titleEnglish, titleRomaji, format) => {
-  const candidates = [];
-  const addCandidate = (t) => {
-    if (!t) return;
-    const clean = t
-      .replace(/season\s*\d+|\d+(?:nd|rd|th)?\s*season|part\s*\d+|\d+(?:nd|rd|th)?\s*cour|final\s*season/gi, '')
-      .replace(/[:\-–—]\s*$/, '')
-      .trim();
-    if (clean && clean.length >= 2 && !candidates.includes(clean)) candidates.push(clean);
-    if (t.trim() && !candidates.includes(t.trim())) candidates.push(t.trim());
-  };
-  addCandidate(titleEnglish);
-  addCandidate(titleRomaji);
+// Helper: Resolve authoritative TMDB ID, type ('tv'|'movie'), target season & episode offset via backend mapper
+const resolveAnimeTmdbFromBackend = async ({
+  alId,
+  malId,
+  titleEnglish,
+  titleRomaji,
+  titleNative,
+  format,
+  startDate,
+  seasonYear,
+  countryOfOrigin,
+  prequels = []
+}) => {
+  try {
+    const params = new URLSearchParams();
+    if (alId) params.set('alId', String(alId));
+    if (malId) params.set('malId', String(malId));
+    if (titleEnglish) params.set('titleEnglish', titleEnglish);
+    if (titleRomaji) params.set('titleRomaji', titleRomaji);
+    if (titleNative) params.set('titleNative', titleNative);
+    if (format) params.set('format', format);
+    if (startDate) params.set('startDate', startDate);
+    if (seasonYear) params.set('seasonYear', String(seasonYear));
+    if (countryOfOrigin) params.set('countryOfOrigin', countryOfOrigin);
+    if (prequels.length > 0) params.set('prequels', prequels.join('|'));
 
-  const searchType = format === 'MOVIE' ? 'movie' : 'tv';
-  for (const q of candidates.slice(0, 3)) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(
-        `/api/media/search?type=${encodeURIComponent(searchType)}&query=${encodeURIComponent(q)}&page=1`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-      if (!res.ok) continue;
-      const list = await res.json();
-      if (Array.isArray(list)) {
-        // Prefer numeric TMDB ID (not al_ prefixed)
-        const numericMatch = list.find((item) => item?.id && /^\d+$/.test(String(item.id)));
-        if (numericMatch) {
-          return String(numericMatch.id);
-        }
-      }
-    } catch {
-      // Ignore abort / network hiccup and try next candidate
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7500);
+    const res = await fetch(`/api/media/anime/resolve-tmdb?${params.toString()}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data && data.tmdbId) {
+      return data;
     }
-  }
-
-  // Secondary fallback: if format was not movie but TV had no match, check movie
-  if (searchType === 'tv') {
-    for (const q of candidates.slice(0, 2)) {
-      try {
-        const res = await fetch(`/api/media/search?type=movie&query=${encodeURIComponent(q)}&page=1`);
-        if (!res.ok) continue;
-        const list = await res.json();
-        if (Array.isArray(list)) {
-          const numericMatch = list.find((item) => item?.id && /^\d+$/.test(String(item.id)));
-          if (numericMatch) return String(numericMatch.id);
-        }
-      } catch {}
-    }
+  } catch {
+    // Graceful fallback handled downstream
   }
   return null;
 };
@@ -837,6 +824,7 @@ export const fetchClientAniListDetail = async (rawId) => {
       Media(id: $id, type: ANIME) {
         id
         idMal
+        countryOfOrigin
         title { english romaji native }
         description(asHtml: false)
         coverImage { extraLarge large medium }
@@ -918,24 +906,59 @@ export const fetchClientAniListDetail = async (rawId) => {
     const fullTitle = m.title?.english || m.title?.romaji || m.title?.native || 'Untitled Anime';
     const currentPoster = m.coverImage?.extraLarge || m.coverImage?.large || m.coverImage?.medium || null;
     const epCount = m.episodes || (m.nextAiringEpisode?.episode ? Math.max(12, m.nextAiringEpisode.episode) : 12);
+    const relDateStr = formatDate(m.startDate, m.seasonYear);
+    const prequelTitles = (m.relations?.edges || [])
+      .filter((e) => e?.relationType === 'PREQUEL' && e.node && e.node.format !== 'MANGA' && e.node.format !== 'NOVEL')
+      .map((e) => e.node.title?.english || e.node.title?.romaji || '')
+      .filter(Boolean);
 
-    // Detect season number from title (e.g. "Season 3", "2nd Season", "3rd Season")
-    const sMatch = fullTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
-    const detectedSeason = sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : 1;
-
-    // Resolve TMDB ID for all 10 streaming mirrors (safe, never throws)
-    const tmdbId = await resolveTmdbIdForAnimeTitle(m.title?.english, m.title?.romaji, m.format);
-
-    // Build seasons map from current entry + AniList relations
-    const seasonsMap = new Map();
-    seasonsMap.set(detectedSeason, {
-      id: m.id,
-      season_number: detectedSeason,
-      name: fullTitle.toLowerCase().includes('season') ? fullTitle : `Season ${detectedSeason}`,
-      episode_count: epCount,
-      poster_path: currentPoster,
-      air_date: formatDate(m.startDate, m.seasonYear)
+    // Resolve authoritative TMDB ID, type ('tv'|'movie'), target season, and episode offset
+    const mappedTmdb = await resolveAnimeTmdbFromBackend({
+      alId: m.id,
+      malId: m.idMal,
+      titleEnglish: m.title?.english,
+      titleRomaji: m.title?.romaji,
+      titleNative: m.title?.native,
+      format: m.format,
+      startDate: relDateStr,
+      seasonYear: m.seasonYear,
+      countryOfOrigin: m.countryOfOrigin || 'JP',
+      prequels: prequelTitles
     });
+    const tmdbId = mappedTmdb?.tmdbId || null;
+    const tmdbType = mappedTmdb?.tmdbType || (m.format === 'MOVIE' ? 'movie' : 'tv');
+    const episodeOffset = mappedTmdb?.episodeOffset || 0;
+
+    // Detect season number from verified Fribb/TMDB mapping or title fallback
+    const sMatch = fullTitle.match(/season\s*(\d+)|(\d+)(?:nd|rd|th)?\s*season/i);
+    const detectedSeason = mappedTmdb?.tmdbSeason || (sMatch ? parseInt(sMatch[1] || sMatch[2], 10) : 1);
+
+    // Build seasons map from TMDB seasons (when non-flattened TV) + current entry + AniList relations
+    const seasonsMap = new Map();
+    if (tmdbType === 'tv' && episodeOffset === 0 && Array.isArray(mappedTmdb?.tmdbSeasons)) {
+      mappedTmdb.tmdbSeasons.forEach((s) => {
+        if (s.season_number > 0) {
+          seasonsMap.set(s.season_number, {
+            id: s.id,
+            season_number: s.season_number,
+            name: s.name || `Season ${s.season_number}`,
+            episode_count: s.episode_count || epCount,
+            poster_path: s.poster_path || currentPoster,
+            air_date: s.air_date || relDateStr
+          });
+        }
+      });
+    }
+    if (!seasonsMap.has(detectedSeason) || episodeOffset > 0) {
+      seasonsMap.set(detectedSeason, {
+        id: m.id,
+        season_number: detectedSeason,
+        name: fullTitle.toLowerCase().includes('season') ? fullTitle : `Season ${detectedSeason}`,
+        episode_count: epCount,
+        poster_path: currentPoster,
+        air_date: relDateStr
+      });
+    }
 
     const relatedFranchise = [];
     const seenRel = new Set([m.id]);
@@ -1052,7 +1075,6 @@ export const fetchClientAniListDetail = async (rawId) => {
         };
       });
 
-    const relDateStr = formatDate(m.startDate, m.seasonYear);
     let resolvedQuality = getMediaQuality({
       media_type: 'anime',
       status: m.status || null,
@@ -1088,6 +1110,8 @@ export const fetchClientAniListDetail = async (rawId) => {
       anilist_id: m.id,
       mal_id: m.idMal || null,
       tmdb_id: tmdbId || null,
+      tmdb_type: tmdbType,
+      episode_offset: episodeOffset,
       title: fullTitle,
       name: fullTitle,
       overview: m.description ? m.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '',
@@ -1101,8 +1125,8 @@ export const fetchClientAniListDetail = async (rawId) => {
       quality: resolvedQuality,
       format: m.format === 'TV' && detectedSeason > 1 ? `Season ${detectedSeason}` : (m.format === 'MOVIE' ? 'Movie' : (m.format || 'Anime')),
       episodes_count: epCount,
-      duration: m.duration || 24,
-      runtime: m.duration || 24,
+      duration: m.duration || mappedTmdb?.runtime || 24,
+      runtime: m.duration || mappedTmdb?.runtime || 24,
       number_of_seasons: seasons.filter((s) => s.season_number > 0).length || 1,
       number_of_episodes: epCount,
       default_season: detectedSeason,
@@ -1113,9 +1137,9 @@ export const fetchClientAniListDetail = async (rawId) => {
       recommendations: enrichedRec,
       video_url: null,
       embed_url: tmdbId
-        ? (m.format === 'MOVIE'
+        ? (tmdbType === 'movie' || m.format === 'MOVIE'
             ? `https://vidsrc.to/embed/movie/${tmdbId}`
-            : `https://vidsrc.to/embed/tv/${tmdbId}/${detectedSeason}/1`)
+            : `https://vidsrc.to/embed/tv/${tmdbId}/${detectedSeason}/${1 + episodeOffset}`)
         : null
     };
 

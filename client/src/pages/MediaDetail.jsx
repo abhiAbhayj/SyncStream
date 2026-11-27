@@ -240,7 +240,7 @@ export default function MediaDetail() {
       setActiveChapterId(null);
       try {
         let detailData = null;
-        const isAniListAnimeId = type === 'anime' && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+        const isAniListAnimeId = type === 'anime' && !String(id).startsWith('tmdb_m_') && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
         const isAniListMangaId = type === 'manga' && (String(id).startsWith('al_m_') || /^\d+$/.test(String(id)));
 
         // Direct Browser AniList Detail Fetch for al_* anime & al_m_* manga (bypasses Render shared-IP 429!)
@@ -259,11 +259,18 @@ export default function MediaDetail() {
           throw new Error('Empty media detail payload');
         }
         setDetail(detailData);
-        
+
         // Check saved continue watching progress if not explicitly in URL
         const savedProgress = getSavedProgress(id, type);
 
-        if ((type === 'tv' || type === 'anime') && detailData.seasons && detailData.seasons.length > 0) {
+        // If an unmapped AniList title has no TMDB ID yet and user didn't force a mirror, prefer VidNest's native AniList stream
+        if (isAniListAnimeId && !detailData.tmdb_id && !urlServer && !savedProgress?.server_key) {
+          setEmbedServer('vidnest');
+        }
+
+        const isAniMovie = type === 'anime' && (detailData.tmdb_type === 'movie' || String(detailData.format || '').toUpperCase() === 'MOVIE');
+
+        if ((type === 'tv' || (type === 'anime' && !isAniMovie)) && detailData.seasons && detailData.seasons.length > 0) {
           if (!urlSeason) {
             const resumeSeason = savedProgress?.season_number;
             const resumeEpisode = savedProgress?.episode_number;
@@ -333,16 +340,32 @@ export default function MediaDetail() {
   }, [type, id, user]);
 
   useEffect(() => {
-    if ((type === 'tv' || type === 'anime') && activeSeason !== null) {
-      const isAniListId = String(id).startsWith('al_') || isNaN(parseInt(id, 10));
+    const isAniMovie = type === 'anime' && (detail?.tmdb_type === 'movie' || String(detail?.format || '').toUpperCase() === 'MOVIE');
+    if ((type === 'tv' || (type === 'anime' && !isAniMovie)) && activeSeason !== null) {
+      const isAniListId = !String(id).startsWith('tmdb_m_') && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
       if (isAniListId && !detail) return; // Wait for client AniList detail to resolve tmdb_id/seasons
 
       const fetchSeason = async () => {
-        const seasonLookupId = isAniListId ? detail?.tmdb_id : id;
+        const seasonLookupId = isAniListId ? detail?.tmdb_id : (detail?.tmdb_id || id);
         if (seasonLookupId) {
           try {
             const res = await axios.get(`/api/media/tv/${seasonLookupId}/season/${activeSeason}`);
             if (res.data?.episodes?.length > 0) {
+              const offset = (detail?.episode_offset && activeSeason === detail?.default_season) ? detail.episode_offset : 0;
+              if (offset > 0) {
+                const sliced = res.data.episodes
+                  .slice(offset, offset + (detail?.episodes_count || res.data.episodes.length))
+                  .map((ep, idx) => ({
+                    ...ep,
+                    tmdb_episode_number: ep.episode_number,
+                    episode_number: idx + 1
+                  }));
+                if (sliced.length > 0) {
+                  setCurrentSeasonData({ ...res.data, episodes: sliced });
+                  setSeasonEpisodes(sliced);
+                  return;
+                }
+              }
               setCurrentSeasonData(res.data);
               setSeasonEpisodes(res.data.episodes);
               return;
@@ -370,14 +393,19 @@ export default function MediaDetail() {
     const fetchDirectStream = async () => {
       setIsResolvingStream(true);
       try {
+        const isAniListId = type === 'anime' && !String(id).startsWith('tmdb_m_') && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+        const isAniMovie = type === 'anime' && (detail?.tmdb_type === 'movie' || String(detail?.format || '').toUpperCase() === 'MOVIE');
+        const effectiveType = isAniMovie ? 'movie' : (type === 'anime' ? 'tv' : type);
+        const offset = (detail?.episode_offset && activeSeason === detail?.default_season) ? detail.episode_offset : 0;
+
         const streamResult = await resolveDirectStream({
-          tmdbId: detail.tmdb_id || detail.id || id,
+          tmdbId: isAniListId ? (detail.tmdb_id || '') : (detail.tmdb_id || id),
           imdbId: detail.imdb_id,
-          type: type === 'tv' ? 'tv' : (type === 'anime' ? 'anime' : 'movie'),
+          type: effectiveType,
           title: detail.title || detail.name || '',
           releaseYear: detail.release_date ? parseInt(detail.release_date.split('-')[0], 10) : undefined,
           season: activeSeason,
-          episode: activeEpisode
+          episode: (activeEpisode || 1) + offset
         });
 
         if (!isCancelled) {
@@ -653,14 +681,20 @@ export default function MediaDetail() {
     }
   };
 
+  const isAnimeMovie = type === 'anime' && (detail?.tmdb_type === 'movie' || String(detail?.format || '').toUpperCase() === 'MOVIE');
+  const effectiveMediaType = isAnimeMovie ? 'movie' : type;
+  const isAniListEntry = type === 'anime' && !String(id).startsWith('tmdb_m_') && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+
   const getEmbedUrl = () => {
+    const offset = (detail?.episode_offset && activeSeason === detail?.default_season) ? detail.episode_offset : 0;
     return getEmbedStreamUrl({
       serverKey: embedServer,
-      mediaType: type,
+      mediaType: effectiveMediaType,
       id,
-      tmdbId: detail?.tmdb_id || id,
+      tmdbId: isAniListEntry ? (detail?.tmdb_id || null) : (detail?.tmdb_id || id),
       season: activeSeason || 1,
       episode: activeEpisode || 1,
+      episodeOffset: offset,
       startTime: resumeTime
     });
   };
@@ -688,7 +722,7 @@ export default function MediaDetail() {
     );
   }
 
-  const isEpisodic = (type === 'tv' || type === 'anime');
+  const isEpisodic = (type === 'tv' || (type === 'anime' && !isAnimeMovie));
   const durationLabel = formatDuration(detail?.runtime || detail?.duration, type, detail?.episodes_count);
 
   const seasonsList = (() => {

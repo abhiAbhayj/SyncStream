@@ -158,7 +158,7 @@ export default function WatchParty() {
 
         // B. Fetch Media details (use direct browser AniList for al_* anime to bypass Render IP throttling)
         let detailData = null;
-        const isAniListId = String(roomData?.external_media_id || '').startsWith('al_') || (roomData?.media_type === 'anime' && isNaN(parseInt(roomData.external_media_id, 10)));
+        const isAniListId = !String(roomData?.external_media_id || '').startsWith('tmdb_m_') && (String(roomData?.external_media_id || '').startsWith('al_') || (roomData?.media_type === 'anime' && isNaN(parseInt(roomData.external_media_id, 10))));
         if (isAniListId) {
           detailData = await fetchClientAniListDetail(roomData.external_media_id);
         }
@@ -172,13 +172,18 @@ export default function WatchParty() {
         }
         setMediaDetail(detailData);
 
+        if (isAniListId && !detailData.tmdb_id) {
+          setEmbedServer('vidnest');
+        }
+
         // Set default playback mode (honor already received sync state if present)
         if (!hasSyncedModeRef.current) {
           setPlaybackMode('solo-embed');
         }
 
         // TV / Anime series seasons initialization
-        if ((roomData.media_type === 'tv' || roomData.media_type === 'anime') && Array.isArray(detailData.seasons) && detailData.seasons.length > 0) {
+        const isAniMovie = roomData.media_type === 'anime' && (detailData.tmdb_type === 'movie' || String(detailData.format || '').toUpperCase() === 'MOVIE');
+        if ((roomData.media_type === 'tv' || (roomData.media_type === 'anime' && !isAniMovie)) && Array.isArray(detailData.seasons) && detailData.seasons.length > 0) {
           const firstSeason = detailData.seasons.find(s => s.season_number > 0) || detailData.seasons[0];
           setActiveSeason(detailData.default_season || firstSeason.season_number);
         }
@@ -197,16 +202,32 @@ export default function WatchParty() {
 
   // 1.5 Fetch Season Episodes for TV & Anime
   useEffect(() => {
-    if ((room?.media_type === 'tv' || room?.media_type === 'anime') && activeSeason !== null) {
-      const isAniListId = String(room.external_media_id).startsWith('al_') || isNaN(parseInt(room.external_media_id, 10));
+    const isAniMovie = room?.media_type === 'anime' && (mediaDetail?.tmdb_type === 'movie' || String(mediaDetail?.format || '').toUpperCase() === 'MOVIE');
+    if ((room?.media_type === 'tv' || (room?.media_type === 'anime' && !isAniMovie)) && activeSeason !== null) {
+      const isAniListId = !String(room.external_media_id || '').startsWith('tmdb_m_') && (String(room.external_media_id).startsWith('al_') || isNaN(parseInt(room.external_media_id, 10)));
       if (isAniListId && !mediaDetail) return;
 
       const fetchSeason = async () => {
-        const lookupId = isAniListId ? mediaDetail?.tmdb_id : room.external_media_id;
+        const lookupId = isAniListId ? mediaDetail?.tmdb_id : (mediaDetail?.tmdb_id || room.external_media_id);
         if (lookupId) {
           try {
             const res = await axios.get(`/api/media/tv/${lookupId}/season/${activeSeason}`);
             if (res.data?.episodes?.length > 0) {
+              const offset = (mediaDetail?.episode_offset && activeSeason === mediaDetail?.default_season) ? mediaDetail.episode_offset : 0;
+              if (offset > 0) {
+                const sliced = res.data.episodes
+                  .slice(offset, offset + (mediaDetail?.episodes_count || res.data.episodes.length))
+                  .map((ep, idx) => ({
+                    ...ep,
+                    tmdb_episode_number: ep.episode_number,
+                    episode_number: idx + 1
+                  }));
+                if (sliced.length > 0) {
+                  setCurrentSeasonData({ ...res.data, episodes: sliced });
+                  setSeasonEpisodes(sliced);
+                  return;
+                }
+              }
               setCurrentSeasonData(res.data);
               setSeasonEpisodes(res.data.episodes);
               return;
@@ -228,7 +249,8 @@ export default function WatchParty() {
   // Automatically record continue watching for Watch Party sessions
   useEffect(() => {
     if (!room || !mediaDetail) return;
-    const isSeries = room.media_type === 'tv' || room.media_type === 'anime';
+    const isAniMovie = room.media_type === 'anime' && (mediaDetail.tmdb_type === 'movie' || String(mediaDetail.format || '').toUpperCase() === 'MOVIE');
+    const isSeries = room.media_type === 'tv' || (room.media_type === 'anime' && !isAniMovie);
     recordContinueWatching({
       external_media_id: room.external_media_id,
       media_type: room.media_type,
@@ -251,14 +273,19 @@ export default function WatchParty() {
     const resolvePartyStream = async () => {
       setIsResolvingStream(true);
       try {
+        const isAniListId = !String(room.external_media_id || '').startsWith('tmdb_m_') && (String(room.external_media_id).startsWith('al_') || isNaN(parseInt(room.external_media_id, 10)));
+        const isAniMovie = room.media_type === 'anime' && (mediaDetail.tmdb_type === 'movie' || String(mediaDetail.format || '').toUpperCase() === 'MOVIE');
+        const effectiveType = isAniMovie ? 'movie' : (room.media_type === 'anime' ? 'tv' : room.media_type);
+        const offset = (mediaDetail.episode_offset && activeSeason === mediaDetail.default_season) ? mediaDetail.episode_offset : 0;
+
         const streamResult = await resolveDirectStream({
-          tmdbId: room.external_media_id,
+          tmdbId: isAniListId ? (mediaDetail.tmdb_id || '') : (mediaDetail.tmdb_id || room.external_media_id),
           imdbId: mediaDetail.imdb_id,
-          type: room.media_type,
+          type: effectiveType,
           title: mediaDetail.title || mediaDetail.name || '',
           releaseYear: mediaDetail.release_date ? parseInt(String(mediaDetail.release_date).split('-')[0], 10) : undefined,
           season: activeSeason,
-          episode: activeEpisode
+          episode: (activeEpisode || 1) + offset
         });
 
         if (!isCancelled) {
@@ -541,9 +568,11 @@ export default function WatchParty() {
     if (!mediaDetail || !room) return null;
     const type = room.media_type;
     const id = room.external_media_id;
-    const tmdbId = mediaDetail.tmdb_id || id;
-    const isTmdbMovie = mediaDetail.tmdb_type === 'movie' || type === 'movie';
+    const isAniListEntry = !String(id || '').startsWith('tmdb_m_') && (String(id).startsWith('al_') || isNaN(parseInt(id, 10)));
+    const tmdbId = isAniListEntry ? (mediaDetail.tmdb_id || null) : (mediaDetail.tmdb_id || id);
+    const isTmdbMovie = mediaDetail.tmdb_type === 'movie' || String(mediaDetail.format || '').toUpperCase() === 'MOVIE' || type === 'movie';
     const activeType = (type === 'anime' && isTmdbMovie) ? 'movie' : type;
+    const offset = (mediaDetail.episode_offset && activeSeason === mediaDetail.default_season) ? mediaDetail.episode_offset : 0;
 
     return getEmbedStreamUrl({
       serverKey: embedServer || 'vidlink',
@@ -552,6 +581,7 @@ export default function WatchParty() {
       tmdbId,
       season: activeSeason || 1,
       episode: activeEpisode || 1,
+      episodeOffset: offset,
       startTime: initialRoomTimeRef.current || 0
     });
   };
@@ -581,7 +611,8 @@ export default function WatchParty() {
 
 
 
-  const isEpisodic = (room?.media_type === 'tv' || room?.media_type === 'anime');
+  const isAniMovie = room?.media_type === 'anime' && (mediaDetail?.tmdb_type === 'movie' || String(mediaDetail?.format || '').toUpperCase() === 'MOVIE');
+  const isEpisodic = (room?.media_type === 'tv' || (room?.media_type === 'anime' && !isAniMovie));
   const durationLabel = formatDuration(mediaDetail?.runtime || mediaDetail?.duration, room?.media_type, mediaDetail?.episodes_count);
 
   const seasonsList = (() => {

@@ -631,8 +631,9 @@ export default function VoiceAssistant() {
           if (results.length > 0) {
             const firstResult = results[0];
             const targetType = firstResult.media_type || mediaType || 'anime';
+            const navId = firstResult.external_media_id || firstResult.id;
             setStatusText(`Playing ${firstResult.title} S${season} Ep ${epNum}!`);
-            navigate(`/media/${targetType}/${firstResult.id}?season=${season}&episode=${epNum}&play=true`);
+            navigate(`/media/${targetType}/${navId}?season=${season}&episode=${epNum}&play=true`);
             return;
           } else {
             setStatusText(`Couldn't find show "${cleanTitle}".`);
@@ -693,9 +694,10 @@ export default function VoiceAssistant() {
         if (results.length > 0) {
           const firstResult = results[0];
           const finalType = firstResult.media_type || detectedType || 'movie';
+          const navId = firstResult.external_media_id || firstResult.id;
           setStatusText(`Found ${firstResult.title}!`);
           setTimeout(() => {
-            navigate(`/media/${finalType}/${firstResult.id}?play=true`);
+            navigate(`/media/${finalType}/${navId}?play=true`);
           }, 600);
         } else {
           setStatusText(`Couldn't find "${query}".`);

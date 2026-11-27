@@ -104,14 +104,31 @@ const appendStartTime = (url, startTime) => {
   return `${url}${separator}start=${t}&time=${t}&startAt=${t}`;
 };
 
-export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie', id, tmdbId, season = 1, episode = 1, startTime = 0 }) => {
-  let activeId = tmdbId || id;
-  // Strip any lingering AniList identifier prefix so numeric TMDB queries don't fail
+export const getEmbedStreamUrl = ({
+  serverKey = 'vidsrcto',
+  mediaType = 'movie',
+  id,
+  tmdbId,
+  season = 1,
+  episode = 1,
+  episodeOffset = 0,
+  startTime = 0
+}) => {
+  const cleanTmdbId = (tmdbId && !String(tmdbId).startsWith('al_'))
+    ? String(tmdbId).replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '')
+    : null;
+  const alNumericId = typeof id === 'string' && id.startsWith('al_')
+    ? id.replace(/^al_/i, '')
+    : null;
+
+  let activeId = cleanTmdbId || String(id || '').replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '');
   if (typeof activeId === 'string' && activeId.startsWith('al_')) {
     activeId = activeId.replace(/^al_/, '');
   }
+
   const s = season || 1;
-  const ep = episode || 1;
+  const rawEp = episode || 1;
+  const ep = cleanTmdbId ? rawEp + (Number(episodeOffset) || 0) : rawEp;
 
   let baseStreamUrl = '';
 
@@ -161,9 +178,6 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'vidsrcsh':
         baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
         break;
-      case 'twoembed':
-        baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
-        break;
       case 'twoembedskin':
         baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
         break;
@@ -208,8 +222,8 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
         break;
       case 'vidnest':
       case 'vidsrcpm':
-        if (mediaType === 'anime' && typeof id === 'string' && id.startsWith('al_') && !tmdbId) {
-          baseStreamUrl = `https://vidnest.fun/anime/${id.replace(/^al_/i, '')}/${ep}/sub`;
+        if (mediaType === 'anime' && alNumericId && !cleanTmdbId) {
+          baseStreamUrl = `https://vidnest.fun/anime/${alNumericId}/${rawEp}/sub`;
         } else {
           baseStreamUrl = `https://vidnest.fun/tv/${activeId}/${s}/${ep}`;
         }
@@ -220,9 +234,6 @@ export const getEmbedStreamUrl = ({ serverKey = 'vidsrcto', mediaType = 'movie',
       case 'autoembedco':
       case 'warezcdn':
       case 'vidsrcsh':
-        baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}?s=${s}&e=${ep}`;
-        break;
-      case 'twoembed':
         baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}?s=${s}&e=${ep}`;
         break;
       case 'twoembedskin':

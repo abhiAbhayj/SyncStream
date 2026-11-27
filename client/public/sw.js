@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v34-consistent-hd-cam-quality';
+const CACHE_NAME = 'syncstream-v35-anime-tmdb-fix-and-audit';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close
