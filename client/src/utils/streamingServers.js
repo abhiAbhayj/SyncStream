@@ -4,24 +4,34 @@
  * All servers load without sandbox errors and are protected by SyncStream's parent redirect neutralizer.
  */
 
+export const DEFAULT_SERVER_KEY = 'cinemaos';
+
+export const normalizeServerKey = (serverKey) => {
+  if (!serverKey || typeof serverKey !== 'string') return DEFAULT_SERVER_KEY;
+  const key = serverKey.trim();
+  if (key === 'vidlink' || key === 'videasy') return 'cinemaos';
+  if (key === 'vidfast') return 'vidrock';
+  return key || DEFAULT_SERVER_KEY;
+};
+
 export const STREAMING_SERVERS = [
   { 
-    key: 'vidlink', 
+    key: 'cinemaos', 
     num: '01',
-    name: 'VidLink PRO',
-    label: 'Server 1 (VidLink PRO)', 
-    badge: 'Multi-Subs • 4K',
+    name: 'CinemaOS Multi-Audio',
+    label: 'Server 1 (CinemaOS Multi-Audio)', 
+    badge: 'Multi-Audio • Multi-Sub',
     tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    description: 'Next-gen streaming cloud with built-in multi-language subtitles and clean 4K sources'
+    description: 'Multi-audio player with Hindi & international tracks, multi-language subtitles, and multi-source failover'
   },
   { 
-    key: 'vidfast', 
+    key: 'vidrock', 
     num: '02',
-    name: 'VidFast PRO',
-    label: 'Server 2 (VidFast PRO)', 
-    badge: 'Lightning Fast',
+    name: 'VidRock Multi-Audio',
+    label: 'Server 2 (VidRock Multi-Audio)', 
+    badge: 'Multi-Audio • Multi-Sub',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    description: 'Supercharged direct cloud node with rapid loading and adaptive bitrate'
+    description: 'High-speed multi-audio stream engine with built-in audio track switcher and multi-language subtitles'
   },
   { 
     key: 'embedwave', 
@@ -105,7 +115,7 @@ const appendStartTime = (url, startTime) => {
 };
 
 export const getEmbedStreamUrl = ({
-  serverKey = 'vidsrcto',
+  serverKey = DEFAULT_SERVER_KEY,
   mediaType = 'movie',
   id,
   tmdbId,
@@ -137,12 +147,14 @@ export const getEmbedStreamUrl = ({
       case 'vidsrcto':
         baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
         break;
+      case 'cinemaos':
       case 'vidlink':
       case 'videasy':
-        baseStreamUrl = `https://vidlink.pro/movie/${activeId}`;
+        baseStreamUrl = `https://cinemaos.tech/player/${activeId}`;
         break;
+      case 'vidrock':
       case 'vidfast':
-        baseStreamUrl = `https://vidfast.vc/movie/${activeId}`;
+        baseStreamUrl = `https://vidrock.net/embed/movie/${activeId}`;
         break;
       case 'embedwave':
       case 'movies111':
@@ -191,12 +203,14 @@ export const getEmbedStreamUrl = ({
       case 'vidsrcto':
         baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
         break;
+      case 'cinemaos':
       case 'vidlink':
       case 'videasy':
-        baseStreamUrl = `https://vidlink.pro/tv/${activeId}/${s}/${ep}`;
+        baseStreamUrl = `https://cinemaos.tech/player/${activeId}/${s}/${ep}`;
         break;
+      case 'vidrock':
       case 'vidfast':
-        baseStreamUrl = `https://vidfast.vc/tv/${activeId}/${s}/${ep}`;
+        baseStreamUrl = `https://vidrock.net/embed/tv/${activeId}/${s}/${ep}`;
         break;
       case 'embedwave':
       case 'movies111':

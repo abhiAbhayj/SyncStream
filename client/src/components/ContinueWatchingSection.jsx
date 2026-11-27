@@ -28,7 +28,7 @@ import {
   restoreContinueWatchingBatch,
   getResumeUrl 
 } from '../utils/continueWatching';
-import { STREAMING_SERVERS } from '../utils/streamingServers';
+import { STREAMING_SERVERS, normalizeServerKey } from '../utils/streamingServers';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
 
 export default function ContinueWatchingSection() {
@@ -43,6 +43,7 @@ export default function ContinueWatchingSection() {
   const undoTimerRef = useRef(null);
   const railRef = useRef(null);
   const clearMenuRef = useRef(null);
+  const loadSeqRef = useRef(0);
 
   // Close dropdown on outside click or escape
   useEffect(() => {
@@ -71,8 +72,10 @@ export default function ContinueWatchingSection() {
 
   // Load items from database / local storage while respecting pending undo state
   const loadItems = async () => {
+    const seq = ++loadSeqRef.current;
     try {
       const data = await fetchContinueWatching();
+      if (seq !== loadSeqRef.current) return;
       const raw = data || [];
       if (undoToastRef.current) {
         const toast = undoToastRef.current;
@@ -148,9 +151,16 @@ export default function ContinueWatchingSection() {
     if (!itemToDelete) return;
     const target = itemToDelete;
     setItemToDelete(null);
+    loadSeqRef.current += 1;
 
-    // Optimistically remove from state immediately
-    setItems((prev) => prev.filter((i) => i.id !== target.id && i.external_media_id !== target.external_media_id));
+    // Optimistically remove from state immediately (matched by id or exact external_media_id + media_type)
+    setItems((prev) => prev.filter((i) => {
+      if (target.id && i.id && String(i.id) === String(target.id)) return false;
+      if (String(i.external_media_id) === String(target.external_media_id) && (!target.media_type || i.media_type === target.media_type)) {
+        return false;
+      }
+      return true;
+    }));
 
     // Provide 4.5s undo window
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -183,6 +193,7 @@ export default function ContinueWatchingSection() {
     if (!bulkClearTarget) return;
     const { type, label } = bulkClearTarget;
     setBulkClearTarget(null);
+    loadSeqRef.current += 1;
 
     const removedItems = type === 'all'
       ? [...items]
@@ -236,7 +247,8 @@ export default function ContinueWatchingSection() {
 
   const getServerLabel = (serverKey) => {
     if (!serverKey) return null;
-    const found = STREAMING_SERVERS.find((s) => s.key === serverKey);
+    const normalizedKey = normalizeServerKey(serverKey);
+    const found = STREAMING_SERVERS.find((s) => s.key === normalizedKey);
     return found ? (found.name || found.label) : null;
   };
 

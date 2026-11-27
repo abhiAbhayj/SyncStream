@@ -14,7 +14,7 @@ import QualityBadge from '../components/QualityBadge';
 import { getMediaQuality } from '../utils/mediaQuality';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
-import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
+import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { fetchClientAniListDetail, fetchClientAniListMangaDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Sparkles, Layers, Clock, SkipForward, Pause, X, User, ChevronDown, ChevronUp, Server, RotateCcw, Zap } from 'lucide-react';
@@ -140,7 +140,7 @@ export default function MediaDetail() {
   const [activeEpisode, setActiveEpisode] = useState(urlEpisode ? parseInt(urlEpisode, 10) : (savedProgress?.episode_number || 1));
   
   // Streaming server source tracking (Preserves user's chosen server permanently)
-  const initialServer = urlServer || savedProgress?.server_key || 'vidlink';
+  const initialServer = normalizeServerKey(urlServer || savedProgress?.server_key || DEFAULT_SERVER_KEY);
   const [embedServer, setEmbedServer] = useState(initialServer);
   const isExtendedServer = STREAMING_SERVERS.findIndex(s => s.key === initialServer) >= 5;
   const [showAllServers, setShowAllServers] = useState(isExtendedServer);
@@ -436,7 +436,7 @@ export default function MediaDetail() {
   const saveProgressSnapshot = (targetServer = null, targetTime = null) => {
     const mediaTitle = detail?.title || detail?.name;
     if (!detail || !mediaTitle || playbackMode === 'trailer') return;
-    const curServer = targetServer || embedServer || 'vidlink';
+    const curServer = normalizeServerKey(targetServer || embedServer || DEFAULT_SERVER_KEY);
     const curTime = targetTime !== null && targetTime !== undefined
       ? targetTime
       : (progressTrackerRef.current.currentTime || resumeTime || 0);

@@ -2940,6 +2940,11 @@ export const removeFromWatchlist = async (req, res) => {
 
 // 8a. Get User Continue Watching
 export const getContinueWatching = async (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    Pragma: 'no-cache',
+    Expires: '0'
+  });
   try {
     const [rows] = await db.query(
       `SELECT id, external_media_id, media_type, title, poster_path, backdrop_path,
@@ -2976,12 +2981,18 @@ export const saveContinueWatching = async (req, res) => {
     chapter_id,
     chapter_number,
     chapter_title,
-    server_key = 'vidsrcto',
+    server_key = 'cinemaos',
     release_date = null,
     quality = null,
     progress_seconds = 0,
     duration_seconds = 0
   } = req.body;
+
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    Pragma: 'no-cache',
+    Expires: '0'
+  });
 
   if (!external_media_id || !media_type || !title) {
     return res.status(400).json({ error: 'Missing required media details (external_media_id, media_type, title).' });
@@ -2995,7 +3006,7 @@ export const saveContinueWatching = async (req, res) => {
     const parsedEpisode = episode_number !== undefined && episode_number !== null ? parseInt(episode_number, 10) : null;
     const parsedProgress = parseInt(progress_seconds || '0', 10) || 0;
     const parsedDuration = parseInt(duration_seconds || '0', 10) || 0;
-    const safeServerKey = server_key && typeof server_key === 'string' ? server_key.trim() : 'vidsrcto';
+    const safeServerKey = server_key && typeof server_key === 'string' ? server_key.trim() : 'cinemaos';
     const safeReleaseDate = release_date && typeof release_date === 'string' ? release_date.trim().slice(0, 32) : null;
     const safeQuality = (quality === 'HD' || quality === 'CAM') ? quality : null;
 
@@ -3053,38 +3064,66 @@ export const saveContinueWatching = async (req, res) => {
 // 8c. Remove / Delete from Continue Watching (Individual or Category / All)
 export const removeContinueWatching = async (req, res) => {
   const { id } = req.params;
-  const { media_type, external_id } = req.query;
+  const { media_type, external_id, row_id } = req.query;
+
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    Pragma: 'no-cache',
+    Expires: '0'
+  });
 
   try {
     if (id === 'all') {
+      let result;
       if (media_type && media_type !== 'all') {
-        await db.query(
+        [result] = await db.query(
           'DELETE FROM continue_watching WHERE user_id = ? AND media_type = ?',
           [req.user.id, media_type]
         );
       } else {
-        await db.query(
+        [result] = await db.query(
           'DELETE FROM continue_watching WHERE user_id = ?',
           [req.user.id]
         );
       }
-      return res.json({ message: 'Cleared continue watching items successfully.' });
+      return res.json({ message: 'Cleared continue watching items successfully.', deleted: result?.affectedRows ?? 0 });
     }
 
-    const extId = external_id || id;
-    if (media_type) {
-      await db.query(
-        'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR external_media_id = ? OR (external_media_id = ? AND media_type = ?))',
-        [req.user.id, id, extId, id, media_type]
-      );
-    } else {
-      await db.query(
-        'DELETE FROM continue_watching WHERE user_id = ? AND (id = ? OR external_media_id = ?)',
-        [req.user.id, id, extId]
-      );
+    const candidates = [external_id, id].filter((v) => typeof v === 'string' && v.trim() !== '').map((v) => v.trim());
+    const uniqueExtIds = Array.from(new Set(candidates));
+    const numericRowId = /^\d+$/.test(String(row_id || '').trim())
+      ? parseInt(String(row_id).trim(), 10)
+      : (/^\d+$/.test(String(id || '').trim()) ? parseInt(String(id).trim(), 10) : null);
+
+    const clauses = [];
+    const params = [req.user.id];
+
+    if (numericRowId !== null) {
+      clauses.push('id = ?');
+      params.push(numericRowId);
     }
 
-    res.json({ message: 'Removed from continue watching.' });
+    if (uniqueExtIds.length > 0) {
+      const placeholders = uniqueExtIds.map(() => 'external_media_id = ?').join(' OR ');
+      if (media_type) {
+        clauses.push(`((${placeholders}) AND media_type = ?)`);
+        params.push(...uniqueExtIds, media_type);
+      } else {
+        clauses.push(`(${placeholders})`);
+        params.push(...uniqueExtIds);
+      }
+    }
+
+    if (clauses.length === 0) {
+      return res.json({ message: 'No matching item specified.', deleted: 0 });
+    }
+
+    const [result] = await db.query(
+      `DELETE FROM continue_watching WHERE user_id = ? AND (${clauses.join(' OR ')})`,
+      params
+    );
+
+    res.json({ message: 'Removed from continue watching.', deleted: result?.affectedRows ?? 0 });
   } catch (error) {
     console.error('[Continue Watching DELETE Error]:', error);
     res.status(500).json({ error: 'Failed to remove from continue watching.' });
@@ -3093,6 +3132,11 @@ export const removeContinueWatching = async (req, res) => {
 
 // 8d. Bulk Sync Continue Watching (e.g. on user login/register)
 export const syncContinueWatching = async (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    Pragma: 'no-cache',
+    Expires: '0'
+  });
   const { items } = req.body;
   if (!Array.isArray(items) || items.length === 0) {
     return res.json({ message: 'No items to sync.' });
@@ -3102,7 +3146,7 @@ export const syncContinueWatching = async (req, res) => {
     for (const item of items) {
       if (!item.external_media_id || !item.media_type || !item.title) continue;
       const safePoster = (item.media_type !== 'manga' || isValidCoverUrl(item.poster_path)) ? (item.poster_path || null) : null;
-      const safeServerKey = item.server_key && typeof item.server_key === 'string' ? item.server_key.trim() : 'vidsrcto';
+      const safeServerKey = item.server_key && typeof item.server_key === 'string' ? item.server_key.trim() : 'cinemaos';
       const safeReleaseDate = item.release_date && typeof item.release_date === 'string' ? item.release_date.trim().slice(0, 32) : null;
       const safeQuality = (item.quality === 'HD' || item.quality === 'CAM') ? item.quality : null;
       await db.query(

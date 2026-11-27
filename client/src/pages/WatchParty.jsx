@@ -13,7 +13,7 @@ import WatchPartyCall from '../components/WatchPartyCall';
 import SolidSelect from '../components/SolidSelect';
 import QualityBadge from '../components/QualityBadge';
 import { getMediaQuality } from '../utils/mediaQuality';
-import { STREAMING_SERVERS, getEmbedStreamUrl } from '../utils/streamingServers';
+import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Sparkles, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, ChevronDown, ChevronUp, Server, Rewind, FastForward, Zap } from 'lucide-react';
 
@@ -65,9 +65,9 @@ export default function WatchParty() {
     }, 3200);
   };
 
-  // Streaming console states (Default: VidLink PRO Server 1 - Shared Sync)
+  // Streaming console states (Default: CinemaOS Multi-Audio Server 1 - Shared Sync)
   const [playbackMode, setPlaybackMode] = useState('solo-embed');
-  const [embedServer, setEmbedServer] = useState('vidlink');
+  const [embedServer, setEmbedServer] = useState(DEFAULT_SERVER_KEY);
   const [showAllServers, setShowAllServers] = useState(false);
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeEpisode, setActiveEpisode] = useState(1);
@@ -259,7 +259,7 @@ export default function WatchParty() {
       backdrop_path: mediaDetail.backdrop_path,
       season_number: isSeries ? (activeSeason || 1) : null,
       episode_number: isSeries ? (activeEpisode || 1) : null,
-      server_key: embedServer || 'vidlink',
+      server_key: normalizeServerKey(embedServer || DEFAULT_SERVER_KEY),
       release_date: mediaDetail.release_date || mediaDetail.first_air_date || null,
       quality: getMediaQuality({ ...mediaDetail, media_type: room.media_type })
     });
@@ -343,7 +343,7 @@ export default function WatchParty() {
       hasSyncedModeRef.current = true;
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
-      if (state.embedServer) setEmbedServer(state.embedServer);
+      if (state.embedServer) setEmbedServer(normalizeServerKey(state.embedServer));
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
@@ -370,7 +370,7 @@ export default function WatchParty() {
       triggerRadarPing();
       setInboundSyncEvent({ ...state, trigger: Date.now() });
       if (state.playbackMode) setPlaybackMode(state.playbackMode);
-      if (state.embedServer) setEmbedServer(state.embedServer);
+      if (state.embedServer) setEmbedServer(normalizeServerKey(state.embedServer));
       if (state.activeSeason !== undefined) setActiveSeason(state.activeSeason);
       if (state.activeEpisode !== undefined) setActiveEpisode(state.activeEpisode);
       if (state.customUrl !== undefined) setCustomUrl(state.customUrl);
@@ -575,7 +575,7 @@ export default function WatchParty() {
     const offset = (mediaDetail.episode_offset && activeSeason === mediaDetail.default_season) ? mediaDetail.episode_offset : 0;
 
     return getEmbedStreamUrl({
-      serverKey: embedServer || 'vidlink',
+      serverKey: normalizeServerKey(embedServer || DEFAULT_SERVER_KEY),
       mediaType: activeType,
       id,
       tmdbId,

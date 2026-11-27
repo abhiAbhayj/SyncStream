@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { syncLocalContinueWatchingToServer, fetchContinueWatching } from '../utils/continueWatching';
+import { syncLocalContinueWatchingToServer, fetchContinueWatching, clearContinueWatchingClientState } from '../utils/continueWatching';
 
 const AuthContext = createContext();
 
@@ -86,6 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    clearContinueWatchingClientState();
     setToken(null);
     setUser(null);
   };
