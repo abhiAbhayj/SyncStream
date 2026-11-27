@@ -5,7 +5,7 @@
  * Schedule, and Upcoming anime across Home, Search, and Catalog pages.
  */
 
-import { getMediaQuality, hydrateMediaQualities } from './mediaQuality';
+import { getMediaQuality, hydrateMediaQualities } from './mediaQuality.js';
 
 const enrichRecentAnimeMovies = async (items) => {
   if (!Array.isArray(items) || items.length === 0) return items || [];
@@ -761,6 +761,94 @@ export const searchClientLiveAniListAnime = async ({
 };
 
 const detailCache = new Map();
+const UNMAPPED_DETAIL_TTL = 30 * 1000;
+const MAPPED_DETAIL_TTL = 15 * 60 * 1000;
+
+let clientFribbCache = null;
+let clientFribbPromise = null;
+
+// Direct browser Fribb anime-lists CDN fallback so AniList -> TMDB resolution works
+// even when Render backend is cold-starting or times out.
+const loadClientFribbMaps = async () => {
+  if (clientFribbCache) return clientFribbCache;
+  if (clientFribbPromise) return clientFribbPromise;
+
+  clientFribbPromise = (async () => {
+    const urls = [
+      'https://cdn.jsdelivr.net/gh/Fribb/anime-lists@master/anime-list-mini.json',
+      'https://raw.githubusercontent.com/Fribb/anime-lists/master/anime-list-mini.json'
+    ];
+    for (const url of urls) {
+      try {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(tid);
+        if (!res.ok) continue;
+        const list = await res.json();
+        if (!Array.isArray(list) || list.length === 0) continue;
+
+        const byAlId = new Map();
+        const byMalId = new Map();
+        for (const entry of list) {
+          if (!entry || !entry.themoviedb_id) continue;
+          if (entry.anilist_id) byAlId.set(Number(entry.anilist_id), entry);
+          if (entry.mal_id) byMalId.set(Number(entry.mal_id), entry);
+        }
+        if (byAlId.size > 0) {
+          clientFribbCache = { byAlId, byMalId };
+          return clientFribbCache;
+        }
+      } catch {
+        // Try next CDN mirror
+      }
+    }
+    return null;
+  })().finally(() => {
+    clientFribbPromise = null;
+  });
+
+  return clientFribbPromise;
+};
+
+const extractClientFribbMapping = (entry, fallbackFormat = '') => {
+  if (!entry || !entry.themoviedb_id) return null;
+  const raw = entry.themoviedb_id;
+  const isMovie = String(entry.type || fallbackFormat || '').toUpperCase() === 'MOVIE';
+
+  if (typeof raw === 'number' || typeof raw === 'string') {
+    return {
+      tmdbId: String(raw),
+      tmdbType: isMovie ? 'movie' : 'tv',
+      tmdbSeason: entry.season?.tmdb ? parseInt(entry.season.tmdb, 10) : 1,
+      episodeOffset: 0,
+      tmdbSeasons: []
+    };
+  }
+  if (raw.tv) {
+    return {
+      tmdbId: String(raw.tv),
+      tmdbType: 'tv',
+      tmdbSeason: entry.season?.tmdb ? parseInt(entry.season.tmdb, 10) : 1,
+      episodeOffset: 0,
+      tmdbSeasons: []
+    };
+  }
+  if (raw.movie) {
+    const movieId = Array.isArray(raw.movie) ? raw.movie[0] : raw.movie;
+    if (movieId) {
+      return { tmdbId: String(movieId), tmdbType: 'movie', tmdbSeason: 1, episodeOffset: 0, tmdbSeasons: [] };
+    }
+  }
+  return null;
+};
+
+const resolveAnimeTmdbClientFribb = async (alId, malId, format = '') => {
+  const maps = await loadClientFribbMaps();
+  if (!maps) return null;
+  const entry = (alId && maps.byAlId.get(Number(alId))) || (malId && maps.byMalId.get(Number(malId))) || null;
+  return extractClientFribbMapping(entry, format);
+};
 
 // Helper: Resolve authoritative TMDB ID, type ('tv'|'movie'), target season & episode offset via backend mapper
 const resolveAnimeTmdbFromBackend = async ({
@@ -789,7 +877,7 @@ const resolveAnimeTmdbFromBackend = async ({
     if (prequels.length > 0) params.set('prequels', prequels.join('|'));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7500);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
     const res = await fetch(`/api/media/anime/resolve-tmdb?${params.toString()}`, {
       signal: controller.signal
     });
@@ -800,22 +888,23 @@ const resolveAnimeTmdbFromBackend = async ({
       return data;
     }
   } catch {
-    // Graceful fallback handled downstream
+    // Graceful fallback handled downstream via client Fribb CDN
   }
   return null;
 };
 
 /**
  * Fetch complete rich anime details directly from AniList GraphQL in the browser (0% Render IP throttling!)
- * Automatically resolves numeric TMDB ID in parallel so all 10 streaming servers work seamlessly.
+ * Automatically resolves numeric TMDB ID via backend + instant browser Fribb CDN fallback.
  */
-export const fetchClientAniListDetail = async (rawId) => {
+export const fetchClientAniListDetail = async (rawId, { forceRefresh = false } = {}) => {
   const cleanId = String(rawId || '').replace(/^al_/i, '');
   const numId = parseInt(cleanId, 10);
   if (!numId || isNaN(numId)) return null;
 
   const cached = detailCache.get(numId);
-  if (cached && (Date.now() - cached.ts < 15 * 60 * 1000)) {
+  const ttl = cached?.data?.tmdb_id ? MAPPED_DETAIL_TTL : UNMAPPED_DETAIL_TTL;
+  if (!forceRefresh && cached && (Date.now() - cached.ts < ttl)) {
     return cached.data;
   }
 
@@ -912,8 +1001,8 @@ export const fetchClientAniListDetail = async (rawId) => {
       .map((e) => e.node.title?.english || e.node.title?.romaji || '')
       .filter(Boolean);
 
-    // Resolve authoritative TMDB ID, type ('tv'|'movie'), target season, and episode offset
-    const mappedTmdb = await resolveAnimeTmdbFromBackend({
+    // Resolve authoritative TMDB ID via backend + instant browser Fribb CDN fallback
+    let mappedTmdb = await resolveAnimeTmdbFromBackend({
       alId: m.id,
       malId: m.idMal,
       titleEnglish: m.title?.english,
@@ -925,6 +1014,9 @@ export const fetchClientAniListDetail = async (rawId) => {
       countryOfOrigin: m.countryOfOrigin || 'JP',
       prequels: prequelTitles
     });
+    if (!mappedTmdb?.tmdbId) {
+      mappedTmdb = await resolveAnimeTmdbClientFribb(m.id, m.idMal, m.format);
+    }
     const tmdbId = mappedTmdb?.tmdbId || null;
     const tmdbType = mappedTmdb?.tmdbType || (m.format === 'MOVIE' ? 'movie' : 'tv');
     const episodeOffset = mappedTmdb?.episodeOffset || 0;

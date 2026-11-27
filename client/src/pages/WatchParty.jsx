@@ -14,7 +14,7 @@ import ServerSelector from '../components/ServerSelector';
 import SolidSelect from '../components/SolidSelect';
 import QualityBadge from '../components/QualityBadge';
 import { getMediaQuality } from '../utils/mediaQuality';
-import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, getEmbedStreamUrl } from '../utils/streamingServers';
+import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, supportsDirectAnimeId, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { Copy, Users, Tv, ShieldAlert, Loader2, ArrowLeft, Play, Pause, RotateCcw, Check, Film, Radio, Layers, Star, Clock, UserPlus, LogOut, Lightbulb, Server, Rewind, FastForward, Zap } from 'lucide-react';
 
@@ -173,8 +173,8 @@ export default function WatchParty() {
         }
         setMediaDetail(detailData);
 
-        if (isAniListId && !detailData.tmdb_id) {
-          setEmbedServer('vidnest');
+        if (isAniListId && !detailData.tmdb_id && !supportsDirectAnimeId(embedServer, { hasMalId: Boolean(detailData.mal_id) })) {
+          setEmbedServer(detailData.mal_id ? 'vidprime' : 'vidnest');
         }
 
         // Set default playback mode (honor already received sync state if present)
@@ -592,6 +592,7 @@ export default function WatchParty() {
       mediaType: activeType,
       id,
       tmdbId,
+      malId: mediaDetail?.mal_id || null,
       season: activeSeason || 1,
       episode: activeEpisode || 1,
       episodeOffset: offset,
@@ -1070,7 +1071,7 @@ export default function WatchParty() {
                   }`}
                 >
                   <Server className="w-3.5 h-3.5" />
-                  <span>🌐 Mirror Servers (10 Mirrors)</span>
+                  <span>🌐 Mirror Servers (15 Mirrors)</span>
                 </button>
               </div>
 
@@ -1202,19 +1203,53 @@ export default function WatchParty() {
                     }
                   }}
                 />
-              ) : (
-                <EmbedPlayer
-                  embedUrl={getEmbedUrl()}
-                  title={mediaDetail.title}
-                  initialTime={initialRoomTimeRef.current || 0}
-                  syncEvent={inboundSyncEvent}
-                  onProgressUpdate={(time) => {
-                    if (typeof time === 'number' && time >= 0) {
-                      currentPlaybackTimeRef.current = Math.floor(time);
-                    }
-                  }}
-                />
-              )
+              ) : (() => {
+                const resolvedEmbedUrl = getEmbedUrl();
+                if (!resolvedEmbedUrl) {
+                  return (
+                    <div className="flex flex-col items-center justify-center aspect-video w-full rounded-2xl bg-darkCard border border-white/10 text-center p-5 sm:p-8 gap-3">
+                      <ShieldAlert className="w-10 h-10 text-amber-400" />
+                      <h4 className="text-sm sm:text-base font-bold text-white">
+                        TMDB Mapping Unavailable for This Server
+                      </h4>
+                      <p className="text-xs sm:text-sm text-gray-400 max-w-md">
+                        Switch to an AniList-native mirror so Watch Party stays on the exact anime instead of loading a mismatched series.
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        {mediaDetail?.mal_id && (
+                          <button
+                            type="button"
+                            onClick={() => handleServerChange('vidprime')}
+                            className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
+                          >
+                            Switch to #02 VidPrime PRO
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleServerChange('vidnest')}
+                          className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
+                        >
+                          Switch to #09 VidNest (AniList)
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <EmbedPlayer
+                    embedUrl={resolvedEmbedUrl}
+                    title={mediaDetail.title}
+                    initialTime={initialRoomTimeRef.current || 0}
+                    syncEvent={inboundSyncEvent}
+                    onProgressUpdate={(time) => {
+                      if (typeof time === 'number' && time >= 0) {
+                        currentPlaybackTimeRef.current = Math.floor(time);
+                      }
+                    }}
+                  />
+                );
+              })()
             )}
 
             {playbackMode === 'solo-html5' && (() => {

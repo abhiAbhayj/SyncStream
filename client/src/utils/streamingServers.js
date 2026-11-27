@@ -152,6 +152,13 @@ export const STREAMING_SERVERS = [
   }
 ];
 
+export const supportsDirectAnimeId = (serverKey, { hasMalId = false } = {}) => {
+  const key = normalizeServerKey(serverKey);
+  if (key === 'vidnest' || key === 'vidsrcpm') return true;
+  if (key === 'vidprime' && hasMalId) return true;
+  return false;
+};
+
 const appendStartTime = (url, startTime) => {
   if (!startTime || Number(startTime) <= 5) return url;
   const t = Math.floor(Number(startTime));
@@ -164,31 +171,48 @@ export const getEmbedStreamUrl = ({
   mediaType = 'movie',
   id,
   tmdbId,
+  malId = null,
   season = 1,
   episode = 1,
   episodeOffset = 0,
   startTime = 0
 }) => {
-  const cleanTmdbId = (tmdbId && !String(tmdbId).startsWith('al_'))
-    ? String(tmdbId).replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '')
+  const resolvedKey = normalizeServerKey(serverKey);
+  const isPrefixedAniList = typeof id === 'string' && /^al_/i.test(id);
+  const cleanTmdbId = (tmdbId && !/^al_/i.test(String(tmdbId)))
+    ? String(tmdbId).replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '').trim()
     : null;
-  const alNumericId = typeof id === 'string' && id.startsWith('al_')
-    ? id.replace(/^al_/i, '')
+  const alNumericId = isPrefixedAniList
+    ? id.replace(/^al_/i, '').trim()
     : null;
-
-  let activeId = cleanTmdbId || String(id || '').replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '');
-  if (typeof activeId === 'string' && activeId.startsWith('al_')) {
-    activeId = activeId.replace(/^al_/, '');
-  }
+  const malNumericId = malId && /^\d+$/.test(String(malId).trim())
+    ? String(malId).trim()
+    : null;
 
   const s = season || 1;
   const rawEp = episode || 1;
   const ep = cleanTmdbId ? rawEp + (Number(episodeOffset) || 0) : rawEp;
 
+  // Critical Safety Guard:
+  // If an AniList entry (al_*) has no verified TMDB ID yet (e.g. cold backend or OVA/Special),
+  // ONLY route to native AniList/MAL servers — NEVER pass an AniList ID to TMDB-only servers!
+  if (isPrefixedAniList && !cleanTmdbId) {
+    if (resolvedKey === 'vidnest' || resolvedKey === 'vidsrcpm') {
+      return appendStartTime(`https://vidnest.fun/anime/${alNumericId}/${rawEp}/sub`, startTime);
+    }
+    if (resolvedKey === 'vidprime' && malNumericId) {
+      return appendStartTime(`https://vidprime.top/anime/${malNumericId}/${rawEp}/sub`, startTime);
+    }
+    return null;
+  }
+
+  const activeId = cleanTmdbId || String(id || '').replace(/^tmdb_m_/i, '').replace(/_s\d+$/i, '').trim();
+  if (!activeId) return null;
+
   let baseStreamUrl = '';
 
   if (mediaType === 'movie') {
-    switch (serverKey) {
+    switch (resolvedKey) {
       case 'vidfastpro':
       case 'vidfast':
         baseStreamUrl = `https://vidfast.pro/movie/${activeId}`;
@@ -259,7 +283,7 @@ export const getEmbedStreamUrl = ({
     }
   } else {
     // TV Shows and Anime
-    switch (serverKey) {
+    switch (resolvedKey) {
       case 'vidfastpro':
       case 'vidfast':
         baseStreamUrl = `https://vidfast.pro/tv/${activeId}/${s}/${ep}`;
@@ -291,7 +315,7 @@ export const getEmbedStreamUrl = ({
         break;
       case 'vidnest':
       case 'vidsrcpm':
-        if (mediaType === 'anime' && alNumericId && !cleanTmdbId) {
+        if (mediaType === 'anime' && alNumericId && (!cleanTmdbId || (!episodeOffset && Number(s) === 1))) {
           baseStreamUrl = `https://vidnest.fun/anime/${alNumericId}/${rawEp}/sub`;
         } else {
           baseStreamUrl = `https://vidnest.fun/tv/${activeId}/${s}/${ep}`;

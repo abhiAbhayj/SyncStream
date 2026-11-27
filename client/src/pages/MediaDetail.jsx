@@ -15,7 +15,7 @@ import QualityBadge from '../components/QualityBadge';
 import { getMediaQuality } from '../utils/mediaQuality';
 import { recordContinueWatching, getSavedProgress } from '../utils/continueWatching';
 import { formatMediaPoster, handlePosterError } from '../utils/posterFallback';
-import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, getEmbedStreamUrl } from '../utils/streamingServers';
+import { STREAMING_SERVERS, DEFAULT_SERVER_KEY, normalizeServerKey, supportsDirectAnimeId, getEmbedStreamUrl } from '../utils/streamingServers';
 import { resolveDirectStream } from '../utils/streamResolver';
 import { fetchClientAniListDetail, fetchClientAniListMangaDetail, buildSyntheticAnimeEpisodes } from '../utils/liveAnime';
 import { Star, Heart, Tv, BookOpen, Loader2, Play, Users, Film, AlertTriangle, ShieldCheck, Layers, Clock, SkipForward, Pause, X, User, Server, RotateCcw, Zap } from 'lucide-react';
@@ -264,9 +264,12 @@ export default function MediaDetail() {
         // Check saved continue watching progress if not explicitly in URL
         const savedProgress = getSavedProgress(id, type);
 
-        // If an unmapped AniList title has no TMDB ID yet and user didn't force a mirror, prefer VidNest's native AniList stream
-        if (isAniListAnimeId && !detailData.tmdb_id && !urlServer && !savedProgress?.server_key) {
-          setEmbedServer('vidnest');
+        // If an unmapped AniList title has no TMDB ID yet and active server needs TMDB, prefer native AniList/MAL mirrors
+        if (isAniListAnimeId && !detailData.tmdb_id && !urlServer) {
+          const activeSrv = savedProgress?.server_key || embedServer;
+          if (!supportsDirectAnimeId(activeSrv, { hasMalId: Boolean(detailData.mal_id) })) {
+            setEmbedServer(detailData.mal_id ? 'vidprime' : 'vidnest');
+          }
         }
 
         const isAniMovie = type === 'anime' && (detailData.tmdb_type === 'movie' || String(detailData.format || '').toUpperCase() === 'MOVIE');
@@ -693,6 +696,7 @@ export default function MediaDetail() {
       mediaType: effectiveMediaType,
       id,
       tmdbId: isAniListEntry ? (detail?.tmdb_id || null) : (detail?.tmdb_id || id),
+      malId: detail?.mal_id || null,
       season: activeSeason || 1,
       episode: activeEpisode || 1,
       episodeOffset: offset,
@@ -1211,7 +1215,7 @@ export default function MediaDetail() {
                   }`}
                 >
                   <Server className="w-3.5 h-3.5" />
-                  <span>🌐 Mirror Servers (10 Mirrors)</span>
+                  <span>🌐 Mirror Servers (15 Mirrors)</span>
                 </button>
               </div>
 
@@ -1292,14 +1296,60 @@ export default function MediaDetail() {
                   subtitles={directStream.subtitles || []}
                   provider={directStream.provider}
                 />
-              ) : (
-                <EmbedPlayer
-                  embedUrl={getEmbedUrl()}
-                  title={detail.title}
-                  initialTime={resumeTime}
-                  onProgressUpdate={handleProgressUpdate}
-                />
-              )
+              ) : (() => {
+                const resolvedEmbedUrl = getEmbedUrl();
+                if (!resolvedEmbedUrl) {
+                  return (
+                    <div className="flex flex-col items-center justify-center aspect-video w-full rounded-2xl bg-darkCard border border-white/10 text-center p-5 sm:p-8 gap-3">
+                      <AlertTriangle className="w-10 h-10 text-amber-400" />
+                      <h4 className="text-sm sm:text-base font-bold text-white">
+                        TMDB Mapping Unavailable for This Server
+                      </h4>
+                      <p className="text-xs sm:text-sm text-gray-400 max-w-md">
+                        {STREAMING_SERVERS.find((s) => s.key === embedServer)?.name || embedServer} requires a TMDB ID. To avoid playing the wrong show, use an AniList-native mirror below or retry TMDB lookup.
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        {detail?.mal_id && (
+                          <button
+                            type="button"
+                            onClick={() => handleSelectServer('vidprime')}
+                            className="px-3.5 py-2 rounded-xl bg-accentCyan/15 border border-accentCyan/40 text-accentCyan text-xs font-bold hover:bg-accentCyan/25 transition cursor-pointer"
+                          >
+                            Switch to #02 VidPrime PRO
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleSelectServer('vidnest')}
+                          className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
+                        >
+                          Switch to #09 VidNest (AniList)
+                        </button>
+                        {isAniListEntry && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const refreshed = await fetchClientAniListDetail(id, { forceRefresh: true });
+                              if (refreshed) setDetail(refreshed);
+                            }}
+                            className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 text-gray-200 text-xs font-semibold hover:bg-white/10 transition cursor-pointer"
+                          >
+                            Retry TMDB Sync
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <EmbedPlayer
+                    embedUrl={resolvedEmbedUrl}
+                    title={detail.title}
+                    initialTime={resumeTime}
+                    onProgressUpdate={handleProgressUpdate}
+                  />
+                );
+              })()
             )}
 
             {playbackMode === 'solo-html5' && (() => {

@@ -117,8 +117,8 @@ export async function resolveStream(req, res) {
     return res.json(payload);
   }
 
-  // 3. Try @movie-web/providers extraction (Anime series share TV 'show' extraction, never 'movie')
-  if (movieWebProviders && title && (cleanTmdbId || !String(tmdbId || '').startsWith('al_'))) {
+  // 3. Try @movie-web/providers extraction only with a verified numeric TMDB ID (prevents wrong-title collisions on anime)
+  if (movieWebProviders && title && cleanTmdbId) {
     try {
       const media = isEpisodic ? {
         type: 'show',
