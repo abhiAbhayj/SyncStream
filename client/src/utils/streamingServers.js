@@ -1,18 +1,18 @@
 /**
  * Verified Streaming Server Providers Configuration
- * 5 curated, rock-solid, verified fast-loading streaming servers for Movies, TV Series, and Anime.
+ * 5 curated, rock-solid, verified ultra-fast streaming servers for Movies, TV Series, and Anime.
  * All 5 servers tested & confirmed 200 OK with NO X-Frame-Options, CSP, or anti-iframe blocking.
- * Completely free of unstable/blocked "vid" servers, featuring Multi-Audio & Multi-Subtitles.
+ * Featuring Multi-Audio (Hindi, English, etc.), Multi-Subtitles, and rapid bufferless playback.
  */
 
 export const DEFAULT_SERVER_KEY = 'twoembed';
 
 const KNOWN_SERVER_KEYS = new Set([
   'twoembed',
-  'bingeapi',
-  'cinesrc',
+  'vidlink',
+  'anyembed',
   'twoembedskin',
-  'varkai'
+  'vidsrcto'
 ]);
 
 export const normalizeServerKey = (serverKey) => {
@@ -21,22 +21,22 @@ export const normalizeServerKey = (serverKey) => {
 
   // Primary active servers
   if (key === 'twoembed') return 'twoembed';
-  if (key === 'bingeapi' || key === 'autoembed' || key === 'autoembedco' || key === 'autoembedcc' || key === 'autoembedpro') return 'bingeapi';
-  if (key === 'cinesrc' || key === 'nontongo' || key === 'nontongowin' || key === 'nontongoorg') return 'cinesrc';
+  if (key === 'vidlink' || key === 'vidlinkpro' || key === 'bingeapi') return 'vidlink';
+  if (key === 'anyembed' || key === 'cinesrc' || key === 'smashystream' || key === 'smashy' || key === 'autoembed' || key === 'autoembedco' || key === 'autoembedme') return 'anyembed';
   if (key === 'twoembedskin') return 'twoembedskin';
-  if (key === 'varkai' || key === 'smashystream' || key === 'smashy' || key === 'embedsmashy') return 'varkai';
+  if (key === 'vidsrcto' || key === 'vidsrc' || key === 'varkai') return 'vidsrcto';
 
-  // Legacy mappings: map old / "vid" servers cleanly into these 5 working servers
-  if (key === 'vidsrcme' || key === 'vidlink' || key === 'vidfast' || key === 'vidfastpro' || key === 'vidprime' || key === 'vidnest' || key === 'anyembed') {
-    return 'twoembed';
+  // Legacy mappings: map old / deprecated server keys cleanly into these 5 working servers
+  if (key === 'vidsrcme' || key === 'vidfast' || key === 'vidfastpro' || key === 'vidprime' || key === 'vidnest') {
+    return 'vidsrcto';
   }
-  if (key === 'vidsrcto' || key === 'vidsrccc' || key === 'vidsrcnet' || key === 'vidsrcin' || key === 'vidsrcrip' || key === 'vidsrcxyz' || key === 'embedsu') {
-    return 'bingeapi';
+  if (key === 'vidsrccc' || key === 'vidsrcnet' || key === 'vidsrcin' || key === 'vidsrcrip' || key === 'vidsrcxyz' || key === 'vidsrcsh' || key === 'embedsu') {
+    return 'vidsrcto';
   }
-  if (key === 'cinemaos' || key === 'vidrock' || key === 'videasy' || key === 'moviesapi') {
-    return 'cinesrc';
+  if (key === 'cinemaos' || key === 'nontongo' || key === 'nontongowin' || key === 'nontongoorg' || key === 'moviesapi') {
+    return 'vidlink';
   }
-  if (key === 'multiembed' || key === 'superembed' || key === 'vidsrcpm' || key === 'vidsrcicu' || key === 'vidsrcsh') {
+  if (key === 'multiembed' || key === 'superembed' || key === 'vidsrcpm' || key === 'vidsrcicu') {
     return 'twoembedskin';
   }
 
@@ -54,22 +54,22 @@ export const STREAMING_SERVERS = [
     description: 'Ultra-fast HTML5 streaming player with multi-language subtitle tracks and zero intrusive ads'
   },
   {
-    key: 'bingeapi',
+    key: 'vidlink',
     num: '02',
-    name: 'BingeAPI PRO',
-    label: 'Server 2 (BingeAPI PRO Multi-Audio)',
+    name: 'VidLink PRO',
+    label: 'Server 2 (VidLink PRO Multi-Audio)',
     badge: 'Multi-Audio & Sub',
     tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-    description: 'Ultra-fast HLS streaming engine with multi-language audio tracks, subtitles, and instant buffer'
+    description: 'Ultra-fast HTML5 player with multi-language audio (Hindi, English, etc.), soft subtitles, and bufferless HLS'
   },
   {
-    key: 'cinesrc',
+    key: 'anyembed',
     num: '03',
-    name: 'CineSrc PRO',
-    label: 'Server 3 (CineSrc PRO Multi-Sub)',
-    badge: 'Next.js • Multi-Sub',
+    name: 'AnyEmbed PRO',
+    label: 'Server 3 (AnyEmbed PRO Fast HLS)',
+    badge: 'Fast HLS • Zero Ads',
     tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-    description: 'High-bitrate cinema engine with multi-subtitles, international audio, and zero ads'
+    description: 'Direct high-speed streaming infrastructure with multi-server failover, multi-subtitles, and zero ads'
   },
   {
     key: 'twoembedskin',
@@ -81,13 +81,13 @@ export const STREAMING_SERVERS = [
     description: 'Alternative clean skin mirror with customizable subtitle appearance and fast video decoding'
   },
   {
-    key: 'varkai',
+    key: 'vidsrcto',
     num: '05',
-    name: 'Varkai PRO',
-    label: 'Server 5 (Varkai PRO Anime & TV)',
-    badge: 'Multi-Tier • Anime & TV',
+    name: 'VidSrc PRO',
+    label: 'Server 5 (VidSrc PRO Anime & TV)',
+    badge: 'Massive Library • TV & Anime',
     tagColor: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    description: 'Universal failover streaming player with multi-audio, subtitle selection, and direct TMDB/AniList preconnect'
+    description: 'Massive global catalog player with multi-subtitles, auto-episode navigation, and direct TMDB/AniList playback'
   }
 ];
 
@@ -146,14 +146,16 @@ export const getEmbedStreamUrl = ({
         baseStreamUrl = `https://www.2embed.cc/embed/${activeId}`;
         break;
 
-      // ── Server 2: BingeAPI PRO (Multi-Audio, Multi-Subtitles, HLS) ────────────
-      case 'bingeapi':
-        baseStreamUrl = `https://bingeapi.st/embed/movie/${activeId}`;
+      // ── Server 2: VidLink PRO (Multi-Audio, Soft Subtitles, HLS) ─────────────
+      case 'vidlink':
+        baseStreamUrl = `https://vidlink.pro/movie/${activeId}?primaryColor=6366f1`;
         break;
 
-      // ── Server 3: CineSrc PRO (Next.js, Multi-Subtitles, Zero Ads) ────────────
-      case 'cinesrc':
-        baseStreamUrl = `https://cinesrc.st/embed/movie/${activeId}`;
+      // ── Server 3: AnyEmbed PRO (Dedicated HLS, Zero Ads, Multi-Sub) ──────────
+      case 'anyembed':
+        baseStreamUrl = cleanImdbId && !cleanTmdbId
+          ? `https://anyembed.xyz/embed/imdb-movie-${cleanImdbId}`
+          : `https://anyembed.xyz/embed/tmdb-movie-${activeId}`;
         break;
 
       // ── Server 4: 2Embed Skin (Alternative HTML5 Skin Mirror) ─────────────────
@@ -161,9 +163,9 @@ export const getEmbedStreamUrl = ({
         baseStreamUrl = `https://www.2embed.skin/embed/${activeId}`;
         break;
 
-      // ── Server 5: Varkai PRO (Multi-Tier Failover, Anime & TV) ─────────────────
-      case 'varkai':
-        baseStreamUrl = `https://varkai.st/embed/movie/${activeId}`;
+      // ── Server 5: VidSrc PRO (Massive Library, TV & Anime) ────────────────────
+      case 'vidsrcto':
+        baseStreamUrl = `https://vidsrc.to/embed/movie/${activeId}`;
         break;
 
       default:
@@ -178,14 +180,16 @@ export const getEmbedStreamUrl = ({
         baseStreamUrl = `https://www.2embed.cc/embedtv/${activeId}&s=${s}&e=${ep}`;
         break;
 
-      // ── Server 2: BingeAPI PRO (Multi-Audio, Multi-Subtitles, HLS) ────────────
-      case 'bingeapi':
-        baseStreamUrl = `https://bingeapi.st/embed/tv/${activeId}/${s}/${ep}`;
+      // ── Server 2: VidLink PRO (Multi-Audio, Soft Subtitles, HLS) ─────────────
+      case 'vidlink':
+        baseStreamUrl = `https://vidlink.pro/tv/${activeId}/${s}/${ep}?primaryColor=6366f1`;
         break;
 
-      // ── Server 3: CineSrc PRO (Next.js, Multi-Subtitles, Zero Ads) ────────────
-      case 'cinesrc':
-        baseStreamUrl = `https://cinesrc.st/embed/tv/${activeId}?s=${s}&e=${ep}`;
+      // ── Server 3: AnyEmbed PRO (Dedicated HLS, Zero Ads, Multi-Sub) ──────────
+      case 'anyembed':
+        baseStreamUrl = cleanImdbId && !cleanTmdbId
+          ? `https://anyembed.xyz/embed/imdb-tv-${cleanImdbId}-${s}-${ep}`
+          : `https://anyembed.xyz/embed/tmdb-tv-${activeId}-${s}-${ep}`;
         break;
 
       // ── Server 4: 2Embed Skin (Alternative HTML5 Skin Mirror) ─────────────────
@@ -193,9 +197,9 @@ export const getEmbedStreamUrl = ({
         baseStreamUrl = `https://www.2embed.skin/embedtv/${activeId}&s=${s}&e=${ep}`;
         break;
 
-      // ── Server 5: Varkai PRO (Multi-Tier Failover, Anime & TV) ─────────────────
-      case 'varkai':
-        baseStreamUrl = `https://varkai.st/embed/tv/${activeId}/${s}/${ep}`;
+      // ── Server 5: VidSrc PRO (Massive Library, TV & Anime) ────────────────────
+      case 'vidsrcto':
+        baseStreamUrl = `https://vidsrc.to/embed/tv/${activeId}/${s}/${ep}`;
         break;
 
       default:

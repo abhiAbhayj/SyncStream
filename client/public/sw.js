@@ -1,5 +1,5 @@
 // SyncStream Service Worker for PWA & Mobile Support
-const CACHE_NAME = 'syncstream-v44-5-fast-verified-non-vid-servers';
+const CACHE_NAME = 'syncstream-v45-fast-verified-servers';
 
 self.addEventListener('install', (event) => {
   // Activate updated service worker immediately without waiting for tabs to close

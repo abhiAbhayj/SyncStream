@@ -19,39 +19,34 @@ function assert(condition, message) {
   }
 }
 
-console.log('=== TEST 1: STREAMING_SERVERS Definition (Exact 5 Fast Non-Vid Working Servers) ===');
+console.log('=== TEST 1: STREAMING_SERVERS Definition (Exact 5 Fast Verified Working Servers) ===');
 assert(STREAMING_SERVERS.length === 5, `Contains exactly 5 servers (got ${STREAMING_SERVERS.length})`);
 const keys = new Set(STREAMING_SERVERS.map(s => s.key));
 assert(keys.size === 5, `All 5 server keys are unique (got ${keys.size})`);
 assert(DEFAULT_SERVER_KEY === 'twoembed', `Default server is twoembed (got ${DEFAULT_SERVER_KEY})`);
 assert(STREAMING_SERVERS[0].key === 'twoembed', `Server 1 is 2Embed PRO (got ${STREAMING_SERVERS[0].name})`);
-assert(STREAMING_SERVERS[1].key === 'bingeapi', `Server 2 is BingeAPI PRO (got ${STREAMING_SERVERS[1].name})`);
-assert(STREAMING_SERVERS[2].key === 'cinesrc', `Server 3 is CineSrc PRO (got ${STREAMING_SERVERS[2].name})`);
+assert(STREAMING_SERVERS[1].key === 'vidlink', `Server 2 is VidLink PRO (got ${STREAMING_SERVERS[1].name})`);
+assert(STREAMING_SERVERS[2].key === 'anyembed', `Server 3 is AnyEmbed PRO (got ${STREAMING_SERVERS[2].name})`);
 assert(STREAMING_SERVERS[3].key === 'twoembedskin', `Server 4 is 2Embed Skin (got ${STREAMING_SERVERS[3].name})`);
-assert(STREAMING_SERVERS[4].key === 'varkai', `Server 5 is Varkai PRO (got ${STREAMING_SERVERS[4].name})`);
-
-// Ensure NO server has "vid" in its name or key
-for (const server of STREAMING_SERVERS) {
-  assert(!server.key.includes('vid'), `Server key ${server.key} does not contain 'vid'`);
-  assert(!server.name.toLowerCase().includes('vid'), `Server name ${server.name} does not contain 'vid'`);
-}
+assert(STREAMING_SERVERS[4].key === 'vidsrcto', `Server 5 is VidSrc PRO (got ${STREAMING_SERVERS[4].name})`);
 
 console.log('\n=== TEST 2: normalizeServerKey Legacy Aliases (All Map to 5 Active Servers) ===');
 assert(normalizeServerKey('twoembed') === 'twoembed', 'twoembed maps to twoembed');
-assert(normalizeServerKey('bingeapi') === 'bingeapi', 'bingeapi maps to bingeapi');
-assert(normalizeServerKey('cinesrc') === 'cinesrc', 'cinesrc maps to cinesrc');
+assert(normalizeServerKey('vidlink') === 'vidlink', 'vidlink maps to vidlink');
+assert(normalizeServerKey('anyembed') === 'anyembed', 'anyembed maps to anyembed');
 assert(normalizeServerKey('twoembedskin') === 'twoembedskin', 'twoembedskin maps to twoembedskin');
-assert(normalizeServerKey('varkai') === 'varkai', 'varkai maps to varkai');
-assert(normalizeServerKey('autoembed') === 'bingeapi', 'autoembed maps to bingeapi');
-assert(normalizeServerKey('nontongo') === 'cinesrc', 'nontongo maps to cinesrc');
-assert(normalizeServerKey('smashystream') === 'varkai', 'smashystream maps to varkai');
-assert(normalizeServerKey('vidlink') === 'twoembed', 'vidlink maps to twoembed');
-assert(normalizeServerKey('vidfastpro') === 'twoembed', 'vidfastpro maps to twoembed');
-assert(normalizeServerKey('vidsrcme') === 'twoembed', 'vidsrcme maps to twoembed');
-assert(normalizeServerKey('vidsrcto') === 'bingeapi', 'vidsrcto maps to bingeapi');
-assert(normalizeServerKey('vidsrccc') === 'bingeapi', 'vidsrccc maps to bingeapi');
-assert(normalizeServerKey('embedsu') === 'bingeapi', 'embedsu maps to bingeapi');
-assert(normalizeServerKey('cinemaos') === 'cinesrc', 'cinemaos maps to cinesrc');
+assert(normalizeServerKey('vidsrcto') === 'vidsrcto', 'vidsrcto maps to vidsrcto');
+assert(normalizeServerKey('bingeapi') === 'vidlink', 'bingeapi maps to vidlink');
+assert(normalizeServerKey('cinesrc') === 'anyembed', 'cinesrc maps to anyembed');
+assert(normalizeServerKey('varkai') === 'vidsrcto', 'varkai maps to vidsrcto');
+assert(normalizeServerKey('autoembed') === 'anyembed', 'autoembed maps to anyembed');
+assert(normalizeServerKey('smashystream') === 'anyembed', 'smashystream maps to anyembed');
+assert(normalizeServerKey('nontongo') === 'vidlink', 'nontongo maps to vidlink');
+assert(normalizeServerKey('vidfastpro') === 'vidsrcto', 'vidfastpro maps to vidsrcto');
+assert(normalizeServerKey('vidsrcme') === 'vidsrcto', 'vidsrcme maps to vidsrcto');
+assert(normalizeServerKey('vidsrccc') === 'vidsrcto', 'vidsrccc maps to vidsrcto');
+assert(normalizeServerKey('embedsu') === 'vidsrcto', 'embedsu maps to vidsrcto');
+assert(normalizeServerKey('cinemaos') === 'vidlink', 'cinemaos maps to vidlink');
 assert(normalizeServerKey('multiembed') === 'twoembedskin', 'multiembed maps to twoembedskin');
 assert(normalizeServerKey('unknown_key_xyz') === 'twoembed', 'unknown key falls back to default twoembed');
 

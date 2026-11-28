@@ -1226,10 +1226,10 @@ export default function WatchParty() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleServerChange('bingeapi')}
+                          onClick={() => handleServerChange('vidlink')}
                           className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition cursor-pointer"
                         >
-                          Switch to #02 BingeAPI PRO (Multi-Audio)
+                          Switch to #02 VidLink PRO (Multi-Audio)
                         </button>
                       </div>
                     </div>
